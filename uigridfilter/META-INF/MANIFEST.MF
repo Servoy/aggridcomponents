@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Bundle-SymbolicName: uigridfilter
+Bundle-Name: uigridfilter
+Package-Type: Web-Component
+
+Name: uigridfilter/uigridfilter.spec
+Web-Component: True
+

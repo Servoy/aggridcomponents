@@ -1,0 +1,25 @@
+.ghost {
+	background-color: transparent;
+	opacity: 0.5;
+	cursor: pointer;
+	padding: 5px;
+}
+
+.ui-grid-render-container-left .ghost {
+	color: transparent !important;
+	opacity: 1;
+	background-color: inherit;
+	padding: 0;
+}
+
+.ui-grid {
+	max-height: 100%;
+}
+
+.ui-grid-viewport {
+	overflow: auto !important;
+}
+
+.ui-grid-render-container-left .ui-grid-viewport {
+	overflow: hidden !important;
+}
