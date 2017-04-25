@@ -6,7 +6,7 @@
 		<project>resources</project>
 		<project>servoy-extra-components</project>
 		<project>uigridfilter</project>
-		<project>uigridfilterws</project>
+		<project>svyMicroSamples</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

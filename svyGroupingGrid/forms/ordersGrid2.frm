@@ -1,5 +1,6 @@
 customProperties:"formComponent:false",
 dataSource:"db:/example_data/orders",
+deprecated:"yes",
 encapsulation:60,
 items:[
 {
@@ -64,7 +65,7 @@ typeid:47,
 uuid:"A7262CD7-7F65-4E24-930B-4CCCD1471F9D"
 }
 ],
-name:"orders",
+name:"ordersGrid2",
 onShowMethodID:"CB540D95-0A2D-4131-AEBE-92390538DBA7",
 showInMenu:true,
 typeid:3,

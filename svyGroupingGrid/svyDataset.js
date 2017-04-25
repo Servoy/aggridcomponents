@@ -1,0 +1,351 @@
+/**
+ * @param {String} dataSource
+ * @constructor 
+ *
+ * @properties={typeid:24,uuid:"AB5D1A88-0D20-48C3-9FB6-2CB4F7A9EF37"}
+ */
+function DataSetManager(dataSource) {
+	this.dataSource = dataSource;	
+	/** @type {QBSelect} */
+	this.query = databaseManager.createSelect(dataSource);
+	
+	this.pageSize = 10;
+	var rowCount = 0;
+	var offset = 0;
+	
+// 	var relations = {};
+	var joins = {};
+	/** @type {Array<String>} */
+	var result = [];
+	
+	/** @type {Array<String>} */	
+	var grouping = [];
+	
+	var _this = this;
+	
+	/**  
+	 * @param {String} dataProvider
+	 * @param {String} [name]
+	 * @param {Function} [functionResult]
+	 * @public 
+	 * 
+	 * */
+	this.addResult = function(dataProvider, name, functionResult) {
+		
+		var rel = getRelations(dataProvider);
+		var fullrel = getRelationsName(dataProvider);
+		var dataProviderName = getDataProviderName(dataProvider);
+		
+		if (rel.length) {	// has relation
+			
+			if (!joins[fullrel]) {	// add join condition
+				var relpath = "";
+				for (var i = 0; i < rel.length; i++) {	// add a join for each relation
+				
+					// get the join root, could be the query or a join
+					var joinRoot = getJoinRoot(relpath);
+					relpath += relpath ? "." + rel[i] : rel[i];
+					
+					if (!joins[relpath]) {
+						joins[relpath] = joinRoot.joins.add(rel[i], rel[i]);
+					}
+				}
+			} 
+		}
+
+		var queryRoot = getJoinRoot(fullrel);
+		/** @type {QBColumn} */
+		var qColumn = queryRoot.getColumn(dataProviderName);
+		
+		if (functionResult) {
+			qColumn = functionResult.call(this, qColumn);
+		}
+		_this.query.result.add(qColumn, name);
+		
+		// push dataProvider in result
+		result.push(dataProvider);
+	}
+	
+	/** @return {QBSelect} */
+	function getJoinRoot(path) {
+		return joins[path] || _this.query;
+	}
+	
+	function persistGroup(dataProvider) {
+		grouping.push(dataProvider);
+	}
+	
+	function persistUngroup(dataProvider) {
+		var idx = grouping.indexOf(dataProvider);
+		grouping = grouping.splice(idx,1);
+		application.output(grouping);
+	}
+	
+	/**  
+	 * @param {QBColumn} column
+	 * @param {String} value
+	 * 
+	 * @return {JSDataSet}
+	 * @public 
+	 * 
+	 * */
+	this.lookupValue = function(column, value) {
+		_this.query.where.remove('lookup');
+		_this.query.where.add('lookup', column.eq(value));
+		var ds = this.getDataSet(-1);
+		_this.query.where.remove('lookup');
+		return ds;
+	}
+	
+	/**  
+	 * @param {QBColumn} column
+	 * @param {Number} groupIndex
+	 * 
+	 * @return {JSDataSet}
+	 * @public 
+	 * 
+	 * */
+	this.groupValue = function(column, groupIndex) {
+		
+		if (groupIndex === 0) {
+			// sorted by the given column
+			this.query.result.clear();
+			
+			for (var i = 0; i < result.length; i++) {
+				var fullrel = getRelationsName(result[i]);
+				var dataProviderName = getDataProviderName(result[i]);
+				var queryRoot = getJoinRoot(fullrel);
+				
+				/** @type {QBColumn} */
+				var qColumn = queryRoot.getColumn(dataProviderName);
+				if (qColumn === column) {
+					application.output('SI E LEI');
+					persistGroup(result[i]);
+				}
+
+				// TODO possible functions on column
+				this.query.result.add(qColumn.min);
+			}
+			 
+			// FIXME has side effect on the sort and grouby
+			this.query.groupBy.clear();
+			this.query.groupBy.add(column);
+			this.query.sort.clear();
+			this.query.sort.add(column);
+			
+		} else if (isNaN(groupIndex)) {
+			// sorted by the given column
+			this.query.result.clear();
+			
+			for (var i = 0; i < result.length; i++) {
+				var fullrel = getRelationsName(result[i]);
+				var dataProviderName = getDataProviderName(result[i]);
+				var queryRoot = getJoinRoot(fullrel);
+				
+				/** @type {QBColumn} */
+				var qColumn = queryRoot.getColumn(dataProviderName);
+				if (qColumn === column) {
+					application.output('SI E LEI');
+					persistUngroup(result[i]);
+				}
+
+				// TODO possible functions on column
+				this.query.result.add(qColumn);
+			}
+			 
+			// FIXME has side effect on the sort and grouby
+			this.query.groupBy.clear();
+			this.query.groupBy.add(column);
+			this.query.sort.clear();
+			this.query.sort.add(column);
+			
+		} else {
+			// priority of column is 2, just store it.
+		}
+		
+		var ds = this.getDataSet(-1);
+		_this.query.where.remove('group');
+		return ds;
+	}
+	
+	/**  
+	 * @param {Number} maxRows
+	 * @public 
+	 * @return {JSDataSet}
+	 * 
+	 * */
+	this.getDataSet = function(maxRows) {
+		application.output(databaseManager.getSQL(_this.query))
+		application.output(databaseManager.getSQLParameters(_this.query))
+		return databaseManager.getDataSetByQuery(_this.query,maxRows)
+	}
+	
+	/** 
+	 * @param {Number} diff it can be 0 1 or -1
+	 * @protected 
+	 * */
+	function addOffset(diff) {
+		var row;
+		var pk
+		var i;
+		var pks = databaseManager.getTable(_this.dataSource).getRowIdentifierColumnNames();
+
+
+		// FIXME should not go over max
+		// FIXME go previous
+		switch (diff) {
+		case 1:		
+			row = getLastRow();
+			var queryFunction = _this.query.getColumn(pks[0]);
+			var pkValue = row[pks[0]];
+			
+			if (pks.length > 1) {	// concatenate the pk to get an unique value well sorted
+				queryFunction = queryFunction.cast(QUERY_COLUMN_TYPES.TYPE_TEXT);	// force cast to text
+				for (i = 1; i < pks.length; i++) {
+					pk = pks[i]
+					queryFunction = queryFunction.concat(_this.query.getColumn(pk)).cast(QUERY_COLUMN_TYPES.TYPE_TEXT);
+					pkValue += "" + row[pk];
+				}
+			}
+			
+			_this.query.where.add(queryFunction.gt(pkValue));
+			//query.where.add(query.getColumn(pk).gt(row[pk]));
+		case 0: 	// cascate
+			_this.query.result.addPk();
+			sortPkAsc();
+			break;
+		case -1:
+			row = getFirstRow();
+			_this.query.sort.clear();
+			for (i = 0; i < pks.length; i++) {
+				application.output(row[pk]);
+				pk = pks[i]
+				_this.query.sort.add(_this.query.getColumn(pk).desc);
+				_this.query.where.add(_this.query.getColumn(pk).lt(row[pk]));
+			}
+			break;
+		default:
+			break;
+		}
+		
+		function sortPkAsc() {
+			_this.query.sort.clear();
+			_this.query.sort.addPk();
+		}
+		
+		function sortPkDesc() {
+			_this.query.sort.clear();
+			for (var j = 0; j < pks.length; j++) {
+				_this.query.sort.add(_this.query.getColumn(pks[j]).desc);
+			}
+		}
+		
+		
+	}
+}
+
+/**
+ * @param {String} dataProvider
+ *
+ * @properties={typeid:24,uuid:"87D941E5-A21F-4E71-8ED5-0AD8AFD913C9"}
+ */
+function getRelations(dataProvider) {
+	var relationStack = dataProvider.split(".");
+	return relationStack.slice(0, relationStack.length - 1);
+}
+
+/**
+ * @param {String} dataProvider
+ *
+ * @properties={typeid:24,uuid:"1CB35E08-49EE-4DA2-9CA1-D741D18AEF8E"}
+ */
+function getRelationsName(dataProvider) {
+	var relationStack = getRelations(dataProvider);
+	return relationStack.join(".");
+}
+
+/**
+ * @param {String} dataProvider
+ *
+ * @properties={typeid:24,uuid:"C1F7538D-355D-4215-A9A5-17E8DBFBC60A"}
+ */
+function getDataProviderName(dataProvider) {
+	var relationStack = dataProvider.split(".");
+	return relationStack[relationStack.length - 1]
+}
+
+/**
+ * @properties={typeid:24,uuid:"48CA1325-2DF6-4AC8-A1F9-76A555FEB760"}
+ */
+function testDataSet() {
+		
+	
+	var dataSetManager = new DataSetManager("db:/example_data/order_details");
+	dataSetManager.addResult('order_details_to_products.productname','Product');
+	dataSetManager.addResult('order_details_to_products.products_to_suppliers.companyname', 'Supplier');
+	dataSetManager.addResult('order_details_to_orders.orders_to_customers.companyname','Customer');
+	dataSetManager.addResult('order_details_to_orders.orderdate','Year', orderDateToYear);
+	dataSetManager.addResult('order_details_to_orders.orderdate','Month', orderDateToMonth);
+	dataSetManager.addResult('quantity', 'quantity');
+	dataSetManager.addResult('unitprice', 'unitprice');
+	
+	/** 
+	 * @param {QBColumn} column 
+	 * @return {QBColumn}
+	 * */
+	function orderDateToYear(column) {
+		return column.year;
+	}
+	
+	/** 
+	 * @param {QBColumn} column 
+	 * @return {QBColumn}
+	 * */
+	function orderDateToMonth(column) {
+		return column.month;
+	}
+	
+	var ds1 = dataSetManager.getDataSet(-1);
+	var ds2 = getTestDataset();
+	
+	for (var i = 0; i < ds1.getMaxRowIndex(); i++) {
+		for (var j = 1; j <= ds1.getMaxColumnIndex(); j++) {
+			jsunit.assertEquals(ds1.getValue(i,j),ds2.getValue(i,j))
+		}
+	}
+
+}
+
+/**
+ * @properties={typeid:24,uuid:"6FEA90A7-B957-4F80-9A91-60012B79FBBA"}
+ */
+function getTestDataset() {
+	
+	var q = datasources.db.example_data.order_details.createSelect();
+	
+	/** @type{QBJoin<db:/example_data/products>} */
+	var jProducts = q.joins.add(datasources.db.example_data.products.getDataSource());
+	jProducts.on.add(q.columns.productid.eq(jProducts.columns.productid));
+	
+	/** @type{QBJoin<db:/example_data/suppliers>} */
+	var jSuppliers = jProducts.joins.add(datasources.db.example_data.suppliers.getDataSource(), JSRelation.LEFT_OUTER_JOIN);
+	jSuppliers.on.add(jProducts.columns.supplierid.eq(jSuppliers.columns.supplierid));
+	
+	/** @type{QBJoin<db:/example_data/orders>} */
+	var jOrders = q.joins.add(datasources.db.example_data.orders.getDataSource());
+	jOrders.on.add(q.columns.orderid.eq(jOrders.columns.orderid));
+	
+	/** @type{QBJoin<db:/example_data/customers>} */
+	var jCustomers = q.joins.add(datasources.db.example_data.customers.getDataSource());
+	jCustomers.on.add(jOrders.columns.customerid.eq(jCustomers.columns.customerid));	
+	
+	q.result.add(jProducts.columns.productname, 'Product');
+	q.result.add(jSuppliers.columns.companyname, 'Supplier');
+	q.result.add(jCustomers.columns.companyname, 'Customer');
+	q.result.add(jOrders.columns.orderdate.year, 'Year');
+	q.result.add(jOrders.columns.orderdate.month, 'Month');
+	q.result.add(q.columns.quantity);
+	q.result.add(q.columns.unitprice);	
+	
+	return databaseManager.getDataSetByQuery(q,-1);
+}

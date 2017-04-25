@@ -1,2 +1,16 @@
 .ghost {
+	
+}
+
+.img-link {
+}
+
+.img-link:before {
+	content: "\e095";
+	display: inline-block;
+    font-family: 'Glyphicons Halflings';
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1;
+    margin-right: 6px;
 }

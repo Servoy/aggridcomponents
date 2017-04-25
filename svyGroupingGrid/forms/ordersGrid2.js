@@ -196,3 +196,16 @@ function onNodeExpanded(dataproviderName, value) {
 	
 }
 
+
+/**
+ * Perform the element default action.
+ *
+ * @param {JSEvent} event the event that triggered the action
+ *
+ * @protected
+ *
+ * @properties={typeid:24,uuid:"F277DF06-1455-44E8-B112-47684F1B6203"}
+ */
+function onAction(event, action) {
+	// TODO Auto-generated method stub
+}

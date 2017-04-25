@@ -1,5 +1,6 @@
 customProperties:"formComponent:false",
 dataSource:"db:/example_data/orders",
+deprecated:"used ?",
 encapsulation:60,
 items:[
 {
@@ -49,7 +50,7 @@ typeid:19,
 uuid:"A10AAB89-B4F3-428D-BDCD-175DAE8FE5D3"
 }
 ],
-name:"main",
+name:"mainGrid",
 navigatorID:"-1",
 showInMenu:true,
 size:"1315,480",

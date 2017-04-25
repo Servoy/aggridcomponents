@@ -3,6 +3,9 @@ Bundle-SymbolicName: uigridfilter
 Bundle-Name: uigridfilter
 Package-Type: Web-Component
 
+Name: uigridDataset/uigridDataset.spec
+Web-Component: True
+
 Name: uigridfilter/uigridfilter.spec
 Web-Component: True
 

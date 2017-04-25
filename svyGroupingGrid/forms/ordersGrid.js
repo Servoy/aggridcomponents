@@ -17,6 +17,8 @@ function onShow(firstShow, event) {
 		datasource: foundset.getDataSource()
 	}];
 	
+	setDataset();
+	
 	return;
 }
 
@@ -88,5 +90,55 @@ function onNodeExpanded(dataproviderName, value) {
 	 * 
 	 * 
 	 * */
+	
+}
+
+/**
+ * Perform the element default action.
+ *
+ * @param {JSEvent} event the event that triggered the action
+ *
+ * @protected
+ *
+ * @properties={typeid:24,uuid:"DCDC5454-07D0-46B7-9F24-2FDE59681DFD"}
+ */
+function onAction(event) {
+	setDataset();
+}
+
+/**
+ * @properties={typeid:24,uuid:"37F88E83-D4F5-4B5A-A4B0-E15671F06B24"}
+ */
+function setDataset() {
+	
+	var q = datasources.db.example_data.order_details.createSelect();
+	
+	/** @type{QBJoin<db:/example_data/products>} */
+	var jProducts = q.joins.add(datasources.db.example_data.products.getDataSource());
+	jProducts.on.add(q.columns.productid.eq(jProducts.columns.productid));
+	
+	/** @type{QBJoin<db:/example_data/suppliers>} */
+	var jSuppliers = jProducts.joins.add(datasources.db.example_data.suppliers.getDataSource(), JSRelation.LEFT_OUTER_JOIN);
+	jSuppliers.on.add(jProducts.columns.supplierid.eq(jSuppliers.columns.supplierid));
+	
+	/** @type{QBJoin<db:/example_data/orders>} */
+	var jOrders = q.joins.add(datasources.db.example_data.orders.getDataSource());
+	jOrders.on.add(q.columns.orderid.eq(jOrders.columns.orderid));
+	
+	/** @type{QBJoin<db:/example_data/customers>} */
+	var jCustomers = q.joins.add(datasources.db.example_data.customers.getDataSource());
+	jCustomers.on.add(jOrders.columns.customerid.eq(jCustomers.columns.customerid));	
+	
+	q.result.add(jOrders.columns.orderdate.year, 'Year');
+	q.result.add(jOrders.columns.orderdate.month, 'Month');
+	q.result.add(jProducts.columns.productname, 'Product');
+	q.result.add(jSuppliers.columns.companyname, 'SupplierName');
+	q.result.add(jCustomers.columns.companyname, 'CustomerName');
+	q.result.add(q.columns.quantity);
+	q.result.add(q.columns.unitprice);
+	
+	var ds = databaseManager.getDataSetByQuery(q, 10);
+	
+	elements.uigrid.dataset = ds;
 	
 }
