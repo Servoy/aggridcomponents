@@ -50,7 +50,7 @@ var datasetManager;
  * @properties={typeid:24,uuid:"750DCE9B-EFBB-484E-9341-DC26ABA8A0BE"}
  */
 function onLoad(event) {
-	datasetManager = new scopes.svyDataset.DataSetManager(foundset.getDataSource());
+	datasetManager = new scopes.svyDataset.DataSetManager(foundset.getQuery());
 }
 
 /**

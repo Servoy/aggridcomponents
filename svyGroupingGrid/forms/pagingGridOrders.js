@@ -19,8 +19,8 @@ function onLoad(event) {
 	datasetManager.addResult('unitprice', 'unitprice');
 	
 	// TODO addPK in dataset
-	datasetManager.addResult('orderid', 'orderid');
-	datasetManager.addResult('productid', 'productid');
+	//datasetManager.addResult('orderid', 'orderid');
+	//datasetManager.addResult('productid', 'productid');
 	
 	/** 
 	 * @param {QBColumn} column 

@@ -286,10 +286,11 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 				}
 			}
 
-			_this.query.where.add(queryFunction.gt(pkValue));
+			_this.query.where.remove('offset')
+			_this.query.where.add('offset', queryFunction.gt(pkValue));
 		//query.where.add(query.getColumn(pk).gt(row[pk]));
 		case 0: // cascate
-			_this.query.result.addPk();
+			//_this.query.result.addPk();
 			sortPkAsc();
 			break;
 		case -1:
