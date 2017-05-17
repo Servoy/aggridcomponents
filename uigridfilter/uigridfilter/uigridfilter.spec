@@ -17,7 +17,7 @@
 
 	"model": 
 	{
-		"myFoundset": {"type": "foundset", "dynamicDataproviders": true, "initialPreferredViewPortSize": 70, "sendSelectionViewportInitially": true },
+		"myFoundset": {"type": "foundset", "dynamicDataproviders": true, "initialPreferredViewPortSize": 20, "sendSelectionViewportInitially": true },
 
 		"root" : {"type" : "foundsetref"},
 		"groupings": {"type" : "grouping[]", "pushToServer": "shallow"},

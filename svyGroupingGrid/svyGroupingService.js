@@ -1,28 +1,13 @@
 /**
- * @param {String|QBSelect|JSFoundSet} dataSourceOrQueryOrFoundset
+ * @param {JSFoundSet} foundset
  * @constructor
  *
- * @properties={typeid:24,uuid:"AB5D1A88-0D20-48C3-9FB6-2CB4F7A9EF37"}
+ * @properties={typeid:24,uuid:"281F0F42-D69A-4D7F-A3DA-245327A42F89"}
  */
-function DataSetManager(dataSourceOrQueryOrFoundset) {
-	this.dataSource = dataSourceOrQueryOrFoundset;
-	var lookupQuery;
-	// TODO should be just a foundset query, and duplicate the lookup query ?
-	
-	/** @type {QBSelect} */
-	if (dataSourceOrQueryOrFoundset instanceof String) {	// is a datasource
-		this.query = databaseManager.createSelect(dataSourceOrQueryOrFoundset);
-		/** @type {QBSelect} */
-		lookupQuery = databaseManager.createSelect(dataSourceOrQueryOrFoundset);
-	} else if (dataSourceOrQueryOrFoundset instanceof QBSelect) {		// is a query
-		this.query = dataSourceOrQueryOrFoundset;
-		this.dataSource = dataSourceOrQueryOrFoundset.getDataSource();
-	} else if (dataSourceOrQueryOrFoundset instanceof JSFoundSet) {
-		this.query = dataSourceOrQueryOrFoundset.getQuery();
-		this.dataSource = dataSourceOrQueryOrFoundset.getDataSource();
-	} else {
-		throw "DataSource not Valid"
-	}
+function GroupService(foundset) {
+	this.dataSource = foundset.getDataSource();
+	this.query = foundset.getQuery();
+	var lookupQuery = foundset.getQuery();
 
 	this.pageSize = 10;
 	var rowCount = 0;
@@ -58,22 +43,7 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 	 * */
 	this.addResult = function(dataProvider, name, functionResult) {
 
-		var rel = getRelations(dataProvider);
-
-		if (rel.length) { // has relation
-
-			var relpath = "";
-			for (var i = 0; i < rel.length; i++) { // add a join for each relation
-
-				// get the join root, could be the query or a join
-				var joinRoot = getJoinRoot(relpath);
-				relpath += relpath ? "." + rel[i] : rel[i];
-
-				if (!joins[relpath]) {
-					joins[relpath] = joinRoot.joins.add(rel[i], rel[i]);
-				}
-			}
-		}
+		getJoin(dataProvider);
 
 		/** @type {QBColumn} */
 		var qColumn = getResultColumn(dataProvider, functionResult);
@@ -90,6 +60,25 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 	/** @return {QBSelect} */
 	function getJoinRoot(path) {
 		return joins[path] || this.query;
+	}
+
+	function getJoin(dataProvider) {
+		var rel = getRelations(dataProvider);
+
+		if (rel.length) { // has relation
+
+			var relpath = "";
+			for (var i = 0; i < rel.length; i++) { // add a join for each relation
+
+				// get the join root, could be the query or a join
+				var joinRoot = getJoinRoot(relpath);
+				relpath += relpath ? "." + rel[i] : rel[i];
+
+				if (!joins[relpath]) {
+					joins[relpath] = joinRoot.joins.add(rel[i], rel[i]);
+				}
+			}
+		}
 	}
 
 	function persistGroup(dataProvider) {
@@ -154,13 +143,12 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 	this.lookupValue = function(columnIndex, value) {
 		var column = getResultColumn(result[columnIndex].dataProvider, result[columnIndex].functionResult);
 		var lookupQuery = databaseManager.createSelect(this.query.getDataSource());
-		
-		
+
 		// copy joins
 		var queryJoins = this.query.joins.getJoins();
 		for (var i = 0; i < queryJoins.length; i++) {
 		}
-		
+
 		this.query.where.remove('lookup');
 		this.query.where.add('lookup', column.eq(value));
 		var ds = this.getDataSet(-1);
@@ -296,7 +284,7 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 /**
  * @param {String} dataProvider
  *
- * @properties={typeid:24,uuid:"87D941E5-A21F-4E71-8ED5-0AD8AFD913C9"}
+ * @properties={typeid:24,uuid:"30646A08-C110-4DCB-B1D4-FC4661BB0271"}
  */
 function getRelations(dataProvider) {
 	var relationStack = dataProvider.split(".");
@@ -306,7 +294,7 @@ function getRelations(dataProvider) {
 /**
  * @param {String} dataProvider
  *
- * @properties={typeid:24,uuid:"1CB35E08-49EE-4DA2-9CA1-D741D18AEF8E"}
+ * @properties={typeid:24,uuid:"0BAB2A1B-0057-49A5-9B57-F189E0D4EEF7"}
  */
 function getRelationsName(dataProvider) {
 	var relationStack = getRelations(dataProvider);
@@ -316,7 +304,7 @@ function getRelationsName(dataProvider) {
 /**
  * @param {String} dataProvider
  *
- * @properties={typeid:24,uuid:"C1F7538D-355D-4215-A9A5-17E8DBFBC60A"}
+ * @properties={typeid:24,uuid:"79E671FD-10A7-4765-A31C-0A517F1F4B08"}
  */
 function getDataProviderName(dataProvider) {
 	var relationStack = dataProvider.split(".");
@@ -326,11 +314,14 @@ function getDataProviderName(dataProvider) {
 /**
  * @private
  *
- * @properties={typeid:24,uuid:"48CA1325-2DF6-4AC8-A1F9-76A555FEB760"}
+ * @properties={typeid:24,uuid:"945AFCF8-15F0-44B8-A4FD-9FBA3471E9EF"}
  */
 function testDataSet() {
 
-	var dataSetManager = new DataSetManager("db:/example_data/order_details");
+	var fs = datasources.db.example_data.order_details.getFoundSet();
+	fs.loadAllRecords();
+
+	var dataSetManager = new GroupService(fs);
 	dataSetManager.addResult('order_details_to_products.productname', 'Product');
 	dataSetManager.addResult('order_details_to_products.products_to_suppliers.companyname', 'Supplier');
 	dataSetManager.addResult('order_details_to_orders.orders_to_customers.companyname', 'Customer');
@@ -369,7 +360,7 @@ function testDataSet() {
 /**
  * @private
  *
- * @properties={typeid:24,uuid:"6FEA90A7-B957-4F80-9A91-60012B79FBBA"}
+ * @properties={typeid:24,uuid:"23E852AD-7EC1-4D6F-8A41-2276E5845747"}
  */
 function getTestDataset() {
 

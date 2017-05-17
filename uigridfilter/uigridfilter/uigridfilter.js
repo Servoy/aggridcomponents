@@ -848,7 +848,6 @@ angular.module('uigridfilterUigridfilter', ['servoy', 'foundset_manager', 'ui.gr
 								field: "" + header["dp"] + "",
 								aggregationType: aggregationType,
 								headerCellClass: $scope.highlightFilteredHeader,
-								width: 150,
 								visible: header["visible"]//,
 //								cellClass: function(grid, row, col, rowRenderIndex, colRenderIndex) {
 //									if (grid.getCellValue(row, col) == true) {
@@ -863,7 +862,6 @@ angular.module('uigridfilterUigridfilter', ['servoy', 'foundset_manager', 'ui.gr
 						colDefs.push({
 							name: "ghost",
 							field: "ghost",
-							width: 50,
 							visible: false
 //							cellClass: function(grid, row, col, rowRenderIndex, colRenderIndex) {
 //								if (grid.getCellValue(row, col) == true) {

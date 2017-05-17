@@ -5,7 +5,7 @@ items:[
 anchors:15,
 items:[
 {
-containsFormID:"1AB4D298-1A69-4D68-8E9A-9C54F2BE09D8",
+containsFormID:"25A52C53-DF62-48DE-81E2-10297481FC3E",
 location:"77,159",
 text:"tab_2",
 typeid:15,
@@ -14,7 +14,7 @@ uuid:"7E1B571A-6D62-4972-8C83-3DB7CA22F446"
 ],
 location:"14,42",
 name:"tabpanel_1",
-size:"607,425",
+size:"607,150",
 typeid:16,
 uuid:"2A7D85D1-CBD6-4A5B-873C-68975F9F6232"
 },
@@ -28,7 +28,7 @@ typeid:7,
 uuid:"775A0E23-FC4D-4466-A682-DB0052C47E0C"
 },
 {
-height:480,
+height:199,
 partType:5,
 typeid:19,
 uuid:"FD05D493-C54E-4115-B6C7-76152630D162"

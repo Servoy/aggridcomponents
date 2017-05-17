@@ -23,3 +23,7 @@
 .ui-grid-render-container-left .ui-grid-viewport {
 	overflow: hidden !important;
 }
+
+.ui-grid-filter {
+	height: 100%;
+}

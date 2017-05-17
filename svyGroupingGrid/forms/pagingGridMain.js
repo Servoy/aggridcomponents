@@ -1,21 +1,21 @@
 /**
  * @enum
- * @public  
- * @properties={typeid:35,uuid:"97312305-FAD7-4A0C-A8AB-74299D7BC048",variableType:-4}
+ * @protected 
+ * @properties={typeid:35,uuid:"182F208A-C818-4414-BE3C-632C433095C6",variableType:-4}
  */
 var MENU = {
-	CUSTOMER_ORDERS : 'uigridCustomerOrders',
-	PRODUCTS :	'uigridProducts',
-	SUPPLIERS : 'uigridSuppliers',
-	CUSTOMERS : 'uigridCustomers'
-}
+	ORDERS : 'pagingGridOrders',
+	PRODUCTS :	'pagingGridProducts',
+	SUPPLIERS : 'pagingGridSuppliers',
+	CUSTOMERS : 'pagingGridCustomers'
+};
 
 /**
  * @param {String} menuOption
  * @param {Array<{dataProvider:String, operator: String, value: String|Number}>} [filters]
  * @param {Number|String} [selectedPK]
  *
- * @properties={typeid:24,uuid:"C592A476-CFD4-4B17-A64E-1E94D075AEC8"}
+ * @properties={typeid:24,uuid:"03057CF9-C36C-44BE-A8E0-37D413475BCB"}
  */
 function navigateTo(menuOption, filters, selectedPK) {
 
@@ -51,8 +51,6 @@ function navigateTo(menuOption, filters, selectedPK) {
 	//	}
 	
 }
-	
-
 
 /**
  * Perform the element default action.
@@ -61,8 +59,9 @@ function navigateTo(menuOption, filters, selectedPK) {
  *
  * @protected
  *
- * @properties={typeid:24,uuid:"936F8B73-7855-405A-B294-06A6AEA5540A"}
+ * @properties={typeid:24,uuid:"784560F5-5F07-4F09-B14D-D7B40B7D5DB9"}
  */
-function onHomeClick(event) {
-	navigateTo(MENU.CUSTOMERS);
+function onAction(event) {
+	// TODO Auto-generated method stub
+	navigateTo(MENU.ORDERS);
 }

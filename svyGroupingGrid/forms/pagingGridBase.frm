@@ -67,7 +67,7 @@ typeid:47,
 uuid:"F7926C95-EEE0-4C4D-8241-682E2B7D6CD9"
 }
 ],
-name:"uigridBase",
+name:"pagingGridBase",
 navigatorID:"-1",
 onLoadMethodID:"750DCE9B-EFBB-484E-9341-DC26ABA8A0BE",
 onShowMethodID:"20C11138-EBF9-4718-978A-69644EA2CB9F",

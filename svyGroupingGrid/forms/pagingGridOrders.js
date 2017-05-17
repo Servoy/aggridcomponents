@@ -1,7 +1,7 @@
 /**
  * @param event
  *
- * @properties={typeid:24,uuid:"DB9118F7-3ED3-490D-AD3E-F4FD0C878F2C"}
+ * @properties={typeid:24,uuid:"EE838223-200C-4EF6-B8E7-EE7897708224"}
  */
 function onLoad(event) {
 	
@@ -38,7 +38,7 @@ function onLoad(event) {
 /**
  * @param {Number} tableOffset
  * 
- * @properties={typeid:24,uuid:"C0A5B052-BA85-4036-BDFC-D951EE9F3F37"}
+ * @properties={typeid:24,uuid:"09AA6633-1792-4BC1-BFF6-6F5F85FC5E24"}
  */
 function getDataSet(tableOffset) {	
 	datasetManager = new scopes.svyDataset.DataSetManager(foundset.getQuery());
@@ -78,14 +78,12 @@ function getDataSet(tableOffset) {
 }
 
 /**
- * @properties={typeid:24,uuid:"817847A2-00F7-49EC-AE55-E25EC5AB46FE"}
+ * @properties={typeid:24,uuid:"2DDF2F00-8B42-4DBF-9721-B29686721AA3"}
  */
 function emptyDs () {
 	var ds = databaseManager.createEmptyDataSet();
 	elements.uigrid.dataset = ds;
 }
-
-
 
 /**
  * Called when a row is selected.
@@ -96,7 +94,7 @@ function emptyDs () {
  *
  * @protected
  *
- * @properties={typeid:24,uuid:"385D086F-6038-4A74-92DE-93C79D5AA2AC"}
+ * @properties={typeid:24,uuid:"CE5AE2AD-E3F6-4AD2-9471-48083698BF5C"}
  */
 function onRowSelected(index, row, event) {
 	// TODO Auto-generated method stub
@@ -112,7 +110,7 @@ function onRowSelected(index, row, event) {
  *
  * @protected
  *
- * @properties={typeid:24,uuid:"09D791FB-E5D7-40A2-886F-ED4CC15A2F7D"}
+ * @properties={typeid:24,uuid:"6082235B-9A3D-443C-80CF-BBD6A30EE28E"}
  */
 function onAction(event) {
 	elements.uigrid.setSelectedIndex(11);
@@ -126,7 +124,7 @@ function onAction(event) {
  *
  * @protected
  *
- * @properties={typeid:24,uuid:"D0B0D9DC-16F2-4018-B3AF-46FEBEF17754"}
+ * @properties={typeid:24,uuid:"75F71812-57DF-49B3-B11E-E838F1CE157B"}
  */
 function onProductClick(index, value, event) {
 	// TODO Auto-generated method stub
@@ -143,7 +141,7 @@ function onProductClick(index, value, event) {
  *
  * @protected
  *
- * @properties={typeid:24,uuid:"414E345A-2ACC-4EAC-A3D0-FD124CEDB0EF"}
+ * @properties={typeid:24,uuid:"4E23AEB0-8BA4-4D57-99AE-772DDC694BAA"}
  */
 function onSupplierClick(index, value, event) {
 	// TODO Auto-generated method stub
@@ -160,7 +158,7 @@ function onSupplierClick(index, value, event) {
  *
  * @protected
  * 
- * @properties={typeid:24,uuid:"5838C76C-8DBE-4661-9071-F5D237B5B2DB"}
+ * @properties={typeid:24,uuid:"CE71664C-19B1-423B-AAFF-02773C7AAAF3"}
  */
 function onCustomerClick(index, value, event) {
 	
@@ -174,7 +172,7 @@ function onCustomerClick(index, value, event) {
  *
  * @protected
  *
- * @properties={typeid:24,uuid:"C6D6DF06-A90D-44AE-878C-36F80FD8066A"}
+ * @properties={typeid:24,uuid:"F913D2D2-442D-4B43-A9B2-1EE6E5D17A23"}
  */
 function onNodeExpanded(columnIndex, value) {
 	// FIXME better lookup pattern
@@ -197,7 +195,7 @@ function onNodeExpanded(columnIndex, value) {
  *
  * @protected
  *
- * @properties={typeid:24,uuid:"93C80F7A-DA0E-4E06-A49F-88763A4538CB"}
+ * @properties={typeid:24,uuid:"332C65A1-A530-45A0-85F9-C80489932E42"}
  */
 function onGroupChanged(columnIndex, groupIndex, isGrouped) {
 	application.output(groupIndex);
