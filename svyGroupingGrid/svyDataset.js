@@ -27,6 +27,8 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 	this.pageSize = 10;
 	var rowCount = 0;
 	var offset = 0;
+	var page = 1;
+	
 
 	/** @type {JSDataSet} */
 	var datasetCache;
@@ -129,6 +131,11 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 		}
 		return null;
 	}
+	
+	function getDataSetColumnIndex(columnName) {
+		var columnNames = datasetCache.getColumnNames();
+		return columnNames.indexOf(columnName);
+	}
 
 	/**
 	 * @param {Number} maxRows
@@ -140,6 +147,7 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 		application.output(databaseManager.getSQL(_this.query));
 		application.output(databaseManager.getSQLParameters(_this.query));
 		datasetCache = databaseManager.getDataSetByQuery(_this.query, maxRows);
+		application.output(datasetCache)
 		return datasetCache;
 	}
 
@@ -227,10 +235,30 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 			// priority of column is 2, just store it.
 		}
 
-		var ds = this.getDataSet(-1);
+		var ds = this.getDataSet(10);
 		return ds;
 	}
+	
+	this.loadNextChunk = function() {
+//		// update the offset
+//		if (offsetDiff && ((offsetDiff*pageSize) + offset) > 0 && ((offsetDiff*pageSize) + offset <= pageCount)) {
+//			offset += offsetDiff*pageSize;
+//			pageOffset = Math.floor(offset / pageSize);
+//		}
+//
+//		var ds = getDataSet(offsetDiff);
+//		
+//		currentPage = pageOffset * pageSize + ds.getMaxRowIndex();
+//		elements.uigrid.dataset = ds;
 
+		addOffset(1);
+		return this.getDataSet(this.pageSize);
+	}
+	
+	this.loadPrevChunk = function() {
+		addOffset(-1)
+	}
+	
 	/**
 	 * @param {Number} diff it can be 0 1 or -1
 	 * @protected
@@ -245,16 +273,16 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 		// FIXME go previous
 		switch (diff) {
 		case 1:
-			row = getLastRow();
+			//row = getLastRow();
 			var queryFunction = _this.query.getColumn(pks[0]);
-			var pkValue = row[pks[0]];
+			var pkValue = datasetCache.getValue(datasetCache.getMaxRowIndex(), getDataSetColumnIndex(pks[0]));//row[pks[0]];
 
 			if (pks.length > 1) { // concatenate the pk to get an unique value well sorted
 				queryFunction = queryFunction.cast(QUERY_COLUMN_TYPES.TYPE_TEXT); // force cast to text
 				for (i = 1; i < pks.length; i++) {
 					pk = pks[i]
 					queryFunction = queryFunction.concat(_this.query.getColumn(pk)).cast(QUERY_COLUMN_TYPES.TYPE_TEXT);
-					pkValue += "" + row[pk];
+					pkValue += "" + datasetCache.getValue(datasetCache.getMaxRowIndex(), getDataSetColumnIndex(pk)); //row[pk];
 				}
 			}
 

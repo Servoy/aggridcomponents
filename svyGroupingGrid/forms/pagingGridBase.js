@@ -125,6 +125,7 @@ function getTableCount() {
 }
 
 /**
+ * @deprecated 
  * @protected 
  * @param {QBSelect} query
  * @param {Number} diff
@@ -191,6 +192,7 @@ function addOffset(query, diff) {
 }
 
 /**
+ * @deprecated 
  * @properties={typeid:24,uuid:"A706548C-799F-4A42-92D6-75B812BD1B6A"}
  */
 function getFirstRow() {
@@ -203,6 +205,7 @@ function getFirstRow() {
 }
 
 /**
+ * @deprecated 
  * @properties={typeid:24,uuid:"6A9F3A59-F287-4C03-94DF-63928C37B794"}
  */
 function getLastRow() {
@@ -246,7 +249,10 @@ function onRowSelected(index, row, event) {
  * @properties={typeid:24,uuid:"53D39C16-FE56-4DDD-8244-DCA7F9BB79CC"}
  */
 function onLoadNext(event) {
-	showUIGrid(1);
+	//showUIGrid(1);
+	var ds = datasetManager.loadNextChunk();
+	elements.uigrid.dataset = ds;
+
 }
 
 /**
@@ -256,6 +262,8 @@ function onLoadNext(event) {
  * @properties={typeid:24,uuid:"650C7AED-CBBC-4C71-B2E6-CE2A7925245B"}
  */
 function onLoadPrev(event) {
-	showUIGrid(-1);
+	//showUIGrid(-1);
+	elements.uigrid.dataset = ds;
+
 }
 

@@ -18,6 +18,10 @@ function onLoad(event) {
 	datasetManager.addResult('quantity', 'quantity');
 	datasetManager.addResult('unitprice', 'unitprice');
 	
+	// TODO addPK in dataset
+	datasetManager.addResult('orderid', 'orderid');
+	datasetManager.addResult('productid', 'productid');
+	
 	/** 
 	 * @param {QBColumn} column 
 	 * @return {QBColumn}
@@ -41,33 +45,33 @@ function onLoad(event) {
  * @properties={typeid:24,uuid:"09AA6633-1792-4BC1-BFF6-6F5F85FC5E24"}
  */
 function getDataSet(tableOffset) {	
-	datasetManager = new scopes.svyDataset.DataSetManager(foundset.getQuery());
-
-	datasetManager.addResult('order_details_to_products.productname','Product');
-	datasetManager.addResult('order_details_to_products.products_to_suppliers.companyname', 'Supplier');
-	datasetManager.addResult('order_details_to_orders.orders_to_customers.companyname','Customer');
-	datasetManager.addResult('order_details_to_orders.orderdate','Year', orderDateToYear);
-	datasetManager.addResult('order_details_to_orders.orderdate','Month', orderDateToMonth);
-	datasetManager.addResult('quantity', 'quantity');
-	datasetManager.addResult('unitprice', 'unitprice');
+//	datasetManager = new scopes.svyDataset.DataSetManager(foundset.getQuery());
+//
+//	datasetManager.addResult('order_details_to_products.productname','Product');
+//	datasetManager.addResult('order_details_to_products.products_to_suppliers.companyname', 'Supplier');
+//	datasetManager.addResult('order_details_to_orders.orders_to_customers.companyname','Customer');
+//	datasetManager.addResult('order_details_to_orders.orderdate','Year', orderDateToYear);
+//	datasetManager.addResult('order_details_to_orders.orderdate','Month', orderDateToMonth);
+//	datasetManager.addResult('quantity', 'quantity');
+//	datasetManager.addResult('unitprice', 'unitprice');
+//	
+//	/** 
+//	 * @param {QBColumn} column 
+//	 * @return {QBColumn}
+//	 * */
+//	function orderDateToYear(column) {
+//		return column.year;
+//	}
+//	
+//	/** 
+//	 * @param {QBColumn} column 
+//	 * @return {QBColumn}
+//	 * */
+//	function orderDateToMonth(column) {
+//		return column.month;
+//	}
 	
-	/** 
-	 * @param {QBColumn} column 
-	 * @return {QBColumn}
-	 * */
-	function orderDateToYear(column) {
-		return column.year;
-	}
-	
-	/** 
-	 * @param {QBColumn} column 
-	 * @return {QBColumn}
-	 * */
-	function orderDateToMonth(column) {
-		return column.month;
-	}
-	
-	addOffset(datasetManager.query, tableOffset);
+//	datasetManager.addOffset(tableOffset);
 	
 	//application.output(databaseManager.getSQL(q));
 	//application.output(databaseManager.getSQLParameters(q));
