@@ -41,6 +41,9 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 	var grouping = [];
 
 	var _this = this;
+	
+	// init result list
+	addPksToResult();
 
 	/**
 	 * @public
@@ -86,6 +89,18 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 			name: name,
 			functionResult: functionResult
 		});
+	}
+	
+	function addPksToResult() {
+		if (_this.dataSource) {
+			var pks = databaseManager.getTable(_this.dataSource).getRowIdentifierColumnNames();
+			for (var i = 0; i < pks.length; i++) {
+				result.push({
+					dataProvider: pks[i],
+					name: pks[i]
+				})
+			}
+		}
 	}
 
 	/** @return {QBSelect} */
@@ -133,7 +148,7 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 
 	function getDataSetColumnIndex(columnName) {
 		var columnNames = datasetCache.getColumnNames();
-		return columnNames.indexOf(columnName);
+		return columnNames.indexOf(columnName) + 1;
 	}
 
 	/**
@@ -279,16 +294,16 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 			if (grouping[0]) { // offset on the grouped column
 				// the grouped column
 				var groupedColumn = grouping[0];
-				
+
 				var root = getJoinRoot(getRelationsName(groupedColumn));
 				var columnName = getDataProviderName(groupedColumn);
 				queryFunction = root.getColumn(columnName);
 				pkValue = datasetCache.getValue(datasetCache.getMaxRowIndex(), getDataSetColumnIndex(groupedColumn.replace(/\./g, '_')));
-				
+
 				application.output(pkValue)
 				_this.query.sort.clear();
 				_this.query.sort.add(queryFunction);
-				
+
 			} else {
 				//row = getLastRow();
 				queryFunction = _this.query.getColumn(pks[0]);
@@ -302,13 +317,13 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 						pkValue += "" + datasetCache.getValue(datasetCache.getMaxRowIndex(), getDataSetColumnIndex(pk)); //row[pk];
 					}
 				}
-				
+
 				sortPkAsc();
 			}
 
 			_this.query.where.remove('offset')
 			_this.query.where.add('offset', queryFunction.gt(pkValue));
-		//query.where.add(query.getColumn(pk).gt(row[pk]));
+			//query.where.add(query.getColumn(pk).gt(row[pk]));
 			break;
 		case 0: // cascate
 			//_this.query.result.addPk();
