@@ -8,13 +8,13 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 	this.dataSource = dataSourceOrQueryOrFoundset;
 	var lookupQuery;
 	// TODO should be just a foundset query, and duplicate the lookup query ?
-	
+
 	/** @type {QBSelect} */
-	if (dataSourceOrQueryOrFoundset instanceof String) {	// is a datasource
+	if (dataSourceOrQueryOrFoundset instanceof String) { // is a datasource
 		this.query = databaseManager.createSelect(dataSourceOrQueryOrFoundset);
 		/** @type {QBSelect} */
 		lookupQuery = databaseManager.createSelect(dataSourceOrQueryOrFoundset);
-	} else if (dataSourceOrQueryOrFoundset instanceof QBSelect) {		// is a query
+	} else if (dataSourceOrQueryOrFoundset instanceof QBSelect) { // is a query
 		this.query = dataSourceOrQueryOrFoundset;
 		this.dataSource = dataSourceOrQueryOrFoundset.getDataSource();
 	} else if (dataSourceOrQueryOrFoundset instanceof JSFoundSet) {
@@ -28,7 +28,6 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 	var rowCount = 0;
 	var offset = 0;
 	var page = 1;
-	
 
 	/** @type {JSDataSet} */
 	var datasetCache;
@@ -131,7 +130,7 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 		}
 		return null;
 	}
-	
+
 	function getDataSetColumnIndex(columnName) {
 		var columnNames = datasetCache.getColumnNames();
 		return columnNames.indexOf(columnName);
@@ -162,13 +161,12 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 	this.lookupValue = function(columnIndex, value) {
 		var column = getResultColumn(result[columnIndex].dataProvider, result[columnIndex].functionResult);
 		var lookupQuery = databaseManager.createSelect(this.query.getDataSource());
-		
-		
+
 		// copy joins
 		var queryJoins = this.query.joins.getJoins();
 		for (var i = 0; i < queryJoins.length; i++) {
 		}
-		
+
 		this.query.where.remove('lookup');
 		this.query.where.add('lookup', column.eq(value));
 		var ds = this.getDataSet(-1);
@@ -186,6 +184,7 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 	 * */
 	this.groupValue = function(columnIndex, groupIndex) {
 
+		// TODO: fix invisible columns
 		var column = getResultColumn(result[columnIndex].dataProvider, result[columnIndex].functionResult);
 
 		if (groupIndex === 0) { // group the column
@@ -196,7 +195,6 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 				/** @type {QBColumn} */
 				var qColumn = getResultColumn(result[i].dataProvider, result[i].functionResult);
 				if (i === columnIndex) {
-					application.output('SI E LEI');
 					persistGroup(result[i].dataProvider);
 				}
 
@@ -208,6 +206,7 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 			this.query.groupBy.add(column);
 			this.query.sort.clear();
 			this.query.sort.add(column);
+			this.query.where.remove('offset');
 
 		} else if (isNaN(groupIndex)) { // TODO check if is the first column, ungroup the column
 			// sorted by the given column
@@ -230,6 +229,7 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 			this.query.groupBy.add(column);
 			this.query.sort.clear();
 			this.query.sort.add(column);
+			this.query.where.remove('offset');
 
 		} else {
 			// priority of column is 2, just store it.
@@ -238,27 +238,27 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 		var ds = this.getDataSet(10);
 		return ds;
 	}
-	
+
 	this.loadNextChunk = function() {
-//		// update the offset
-//		if (offsetDiff && ((offsetDiff*pageSize) + offset) > 0 && ((offsetDiff*pageSize) + offset <= pageCount)) {
-//			offset += offsetDiff*pageSize;
-//			pageOffset = Math.floor(offset / pageSize);
-//		}
-//
-//		var ds = getDataSet(offsetDiff);
-//		
-//		currentPage = pageOffset * pageSize + ds.getMaxRowIndex();
-//		elements.uigrid.dataset = ds;
+		//		// update the offset
+		//		if (offsetDiff && ((offsetDiff*pageSize) + offset) > 0 && ((offsetDiff*pageSize) + offset <= pageCount)) {
+		//			offset += offsetDiff*pageSize;
+		//			pageOffset = Math.floor(offset / pageSize);
+		//		}
+		//
+		//		var ds = getDataSet(offsetDiff);
+		//
+		//		currentPage = pageOffset * pageSize + ds.getMaxRowIndex();
+		//		elements.uigrid.dataset = ds;
 
 		addOffset(1);
 		return this.getDataSet(this.pageSize);
 	}
-	
+
 	this.loadPrevChunk = function() {
 		addOffset(-1)
 	}
-	
+
 	/**
 	 * @param {Number} diff it can be 0 1 or -1
 	 * @protected
@@ -273,22 +273,43 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 		// FIXME go previous
 		switch (diff) {
 		case 1:
-			//row = getLastRow();
-			var queryFunction = _this.query.getColumn(pks[0]);
-			var pkValue = datasetCache.getValue(datasetCache.getMaxRowIndex(), getDataSetColumnIndex(pks[0]));//row[pks[0]];
 
-			if (pks.length > 1) { // concatenate the pk to get an unique value well sorted
-				queryFunction = queryFunction.cast(QUERY_COLUMN_TYPES.TYPE_TEXT); // force cast to text
-				for (i = 1; i < pks.length; i++) {
-					pk = pks[i]
-					queryFunction = queryFunction.concat(_this.query.getColumn(pk)).cast(QUERY_COLUMN_TYPES.TYPE_TEXT);
-					pkValue += "" + datasetCache.getValue(datasetCache.getMaxRowIndex(), getDataSetColumnIndex(pk)); //row[pk];
+			var queryFunction;
+			var pkValue
+			if (grouping[0]) { // offset on the grouped column
+				// the grouped column
+				var groupedColumn = grouping[0];
+				
+				var root = getJoinRoot(getRelationsName(groupedColumn));
+				var columnName = getDataProviderName(groupedColumn);
+				queryFunction = root.getColumn(columnName);
+				pkValue = datasetCache.getValue(datasetCache.getMaxRowIndex(), getDataSetColumnIndex(columnName));
+				
+				application.output(pkValue)
+				_this.query.sort.clear();
+				_this.query.sort.add(queryFunction);
+				
+			} else {
+				//row = getLastRow();
+				queryFunction = _this.query.getColumn(pks[0]);
+				pkValue = datasetCache.getValue(datasetCache.getMaxRowIndex(), getDataSetColumnIndex(pks[0]));//row[pks[0]];
+
+				if (pks.length > 1) { // concatenate the pk to get an unique value well sorted
+					queryFunction = queryFunction.cast(QUERY_COLUMN_TYPES.TYPE_TEXT); // force cast to text
+					for (i = 1; i < pks.length; i++) {
+						pk = pks[i]
+						queryFunction = queryFunction.concat(_this.query.getColumn(pk)).cast(QUERY_COLUMN_TYPES.TYPE_TEXT);
+						pkValue += "" + datasetCache.getValue(datasetCache.getMaxRowIndex(), getDataSetColumnIndex(pk)); //row[pk];
+					}
 				}
+				
+				sortPkAsc();
 			}
 
 			_this.query.where.remove('offset')
 			_this.query.where.add('offset', queryFunction.gt(pkValue));
 		//query.where.add(query.getColumn(pk).gt(row[pk]));
+			break;
 		case 0: // cascate
 			//_this.query.result.addPk();
 			sortPkAsc();
