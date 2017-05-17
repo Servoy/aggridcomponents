@@ -89,7 +89,7 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 
 	/** @return {QBSelect} */
 	function getJoinRoot(path) {
-		return joins[path] || this.query;
+		return joins[path] || _this.query;
 	}
 
 	function persistGroup(dataProvider) {
