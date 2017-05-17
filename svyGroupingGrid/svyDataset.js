@@ -198,7 +198,7 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 					persistGroup(result[i].dataProvider);
 				}
 
-				this.query.result.add(qColumn.min, result[i].dataProvider.replace(/./g, '_'));
+				this.query.result.add(qColumn.min, result[i].dataProvider.replace(/\./g, '_'));
 			}
 
 			// FIXME has side effect on the sort and grouby
@@ -283,7 +283,7 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 				var root = getJoinRoot(getRelationsName(groupedColumn));
 				var columnName = getDataProviderName(groupedColumn);
 				queryFunction = root.getColumn(columnName);
-				pkValue = datasetCache.getValue(datasetCache.getMaxRowIndex(), getDataSetColumnIndex(groupedColumn.replace(/./g, '_')));
+				pkValue = datasetCache.getValue(datasetCache.getMaxRowIndex(), getDataSetColumnIndex(groupedColumn.replace(/\./g, '_')));
 				
 				application.output(pkValue)
 				_this.query.sort.clear();
