@@ -42,7 +42,7 @@ function getDataSet() {
 	q.result.add(q.columns.unitprice);
 
 	// filter on product
-	q.where.add(jCustomers.columns.companyname.eq(foundset.companyname));
+	q.where.add(jCustomers.columns.customerid.eq(foundset.customerid));
 
 	var ds = databaseManager.getDataSetByQuery(q, -1);
 

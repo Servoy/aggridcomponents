@@ -11,7 +11,7 @@ uuid:"56AA1BBA-44BD-4715-BA32-30E8D1DC770F"
 anchors:15,
 items:[
 {
-containsFormID:"B94E40E2-9D76-43AC-BA34-73AB11DA7396",
+containsFormID:"C3E34C1B-5892-4998-AF88-D3343B8A9673",
 location:"36,31",
 text:"tab_2",
 typeid:15,

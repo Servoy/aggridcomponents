@@ -5,9 +5,8 @@ items:[
 anchors:15,
 items:[
 {
-containsFormID:"F884C8F9-2E4D-4966-862B-DF09E417A406",
+containsFormID:"259203C6-4EA2-4754-9642-8DAD9B9B2A29",
 location:"77,159",
-relationName:"products$active",
 text:"tab_2",
 typeid:15,
 uuid:"A2E0FB66-E355-4137-BF84-9115EA3DD071"
