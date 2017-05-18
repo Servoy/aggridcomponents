@@ -5,7 +5,7 @@
  * @properties={typeid:24,uuid:"F03B34EF-C053-466D-8F92-E3958BFDEA47"}
  */
 function getName() {
-	return "Infinite Grouping";
+	return "6. Infinite Grouping";
 }
 
 /**

@@ -5,7 +5,7 @@
  * @properties={typeid:24,uuid:"B9722DA4-E9F0-48D6-A6B5-02EB153EBC4C"}
  */
 function getName() {
-	return "Paged Grouping grid";
+	return "5. Paged Grouping";
 }
 
 /**

@@ -6,7 +6,7 @@
  * @properties={typeid:24,uuid:"E93EE06C-704F-4BBA-B9D4-72A4A2281975"}
  */
 function getName() {
-	return "Grouping grid";
+	return "4. Grouping";
 }
 
 
