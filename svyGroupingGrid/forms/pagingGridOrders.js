@@ -123,3 +123,27 @@ function onGroupChanged(columnIndex, groupIndex, isGrouped) {
 	var groupSet = datasetManager.groupValue(columnIndex, groupIndex);
 	if (groupSet) elements.uigrid.dataset = groupSet;
 }
+
+/**
+ * @param {JSEvent} event the event that triggered the action
+ * @protected
+ *
+ * @properties={typeid:24,uuid:"D70B982D-BB73-40A7-91D7-9BA28843D4CE"}
+ */
+function onLoadNext(event) {
+	var ds = datasetManager.loadNextChunk();
+	if (ds) elements.uigrid.dataset = ds;
+
+}
+
+/**
+ * @param {JSEvent} event
+ * @protected
+ *
+ * @properties={typeid:24,uuid:"7928D77C-CBE7-4F4D-A474-DA0BD24A2980"}
+ */
+function onLoadPrev(event) {
+	var ds = datasetManager.loadPrevChunk();
+	if (ds) elements.uigrid.dataset = ds;
+}
+

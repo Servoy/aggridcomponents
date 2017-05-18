@@ -55,6 +55,17 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 	this.getResults = function() {
 		return result;
 	}
+	
+	this.getGroupingIndexes = function (){
+		var idxs = [];
+		for (var i = 0; i < grouping.length; i++) {
+			var idx = getDataSetColumnIndex(grouping[0].replace(/\./g,'_')) - 1;
+			if (idx > -1) {
+				idxs.push(idx);
+			}
+		}
+		return idxs;
+	}
 
 	/**
 	 * @param {String} dataProvider
@@ -118,8 +129,6 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 	function persistUngroup(dataProvider) {
 		var idx = grouping.indexOf(dataProvider);
 		grouping.splice(idx, 1);
-		application.output('GROUPIIIIING_______________________')
-		application.output(grouping);
 	}
 
 	function getResultColumn(dataProvider, functionResult) {
