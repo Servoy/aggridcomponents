@@ -4,9 +4,8 @@
  * @properties={typeid:24,uuid:"EE838223-200C-4EF6-B8E7-EE7897708224"}
  */
 function onLoad(event) {
-	
-	// apply a filter to it
-	foundset.addFoundSetFilterParam("orderid",">",40000);
+		
+	datasetManager = new scopes.svyDataset.DataSetManager(foundset.getQuery());
 	
 	_super.onLoad(event);
 		
@@ -108,7 +107,7 @@ function onCustomerClick(index, value, event) {
  */
 function onNodeExpanded(columnIndex, value) {
 	var lookupSet = datasetManager.lookupValue(columnIndex, value);
-	elements.uigrid.dataset = lookupSet;
+	if (lookupSet) elements.uigrid.dataset = lookupSet;
 }
 
 /**
@@ -122,5 +121,5 @@ function onNodeExpanded(columnIndex, value) {
  */
 function onGroupChanged(columnIndex, groupIndex, isGrouped) {
 	var groupSet = datasetManager.groupValue(columnIndex, groupIndex);
-	elements.uigrid.dataset = groupSet;
+	if (groupSet) elements.uigrid.dataset = groupSet;
 }

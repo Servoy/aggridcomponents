@@ -1,11 +1,13 @@
 /**
  * @type {Number}
+ * @protected 
  *
  * @properties={typeid:35,uuid:"279174F8-75BB-43AD-9943-E3865908048E",variableType:8}
  */
 var pageCount
 
 /**
+ * @protected 
  * @type {scopes.svyDataset.DataSetManager}
  *
  * @properties={typeid:35,uuid:"289FE5BB-4653-4C03-9B50-51E80F15F321",variableType:-4}
@@ -99,7 +101,7 @@ function onRowSelected(index, row, event) {
  */
 function onLoadNext(event) {
 	var ds = datasetManager.loadNextChunk();
-	elements.uigrid.dataset = ds;
+	if (ds) elements.uigrid.dataset = ds;
 
 }
 
@@ -111,6 +113,6 @@ function onLoadNext(event) {
  */
 function onLoadPrev(event) {
 	var ds = datasetManager.loadPrevChunk();
-	elements.uigrid.dataset = ds;
+	if (ds) elements.uigrid.dataset = ds;
 }
 

@@ -1,4 +1,12 @@
 /**
+ * @type {Number}
+ * @protected 
+ *
+ * @properties={typeid:35,uuid:"153B0A88-42ED-4EA4-BE22-09F15C2DFAAC",variableType:8}
+ */
+var pageCount;
+
+/**
  * Callback method when form is (re)loaded.
  *
  * @param {JSEvent} event the event that triggered the action

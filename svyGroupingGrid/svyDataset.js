@@ -41,10 +41,10 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 	var grouping = [];
 
 	var _this = this;
-	
+
 	/** @type {QBSelect} */
 	var originalQuery;
-	
+
 	// init result list
 	addPksToResult();
 
@@ -93,7 +93,7 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 			functionResult: functionResult
 		});
 	}
-	
+
 	function addPksToResult() {
 		if (_this.dataSource) {
 			var pks = databaseManager.getTable(_this.dataSource).getRowIdentifierColumnNames();
@@ -117,7 +117,8 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 
 	function persistUngroup(dataProvider) {
 		var idx = grouping.indexOf(dataProvider);
-		grouping = grouping.splice(idx, 1);
+		grouping.splice(idx, 1);
+		application.output('GROUPIIIIING_______________________')
 		application.output(grouping);
 	}
 
@@ -165,7 +166,7 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 		if (!originalQuery) {
 			originalQuery = _this.query;
 		}
-		
+
 		application.output(databaseManager.getSQL(_this.query));
 		application.output(databaseManager.getSQLParameters(_this.query));
 		datasetCache = databaseManager.getDataSetByQuery(_this.query, maxRows);
@@ -182,8 +183,15 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 	 *
 	 * */
 	this.lookupValue = function(columnIndex, value) {
-		this.groupValue(columnIndex, null);	// disable the index
+
+		if (result[columnIndex].dataProvider != grouping[0]) {
+			return;
+		}
 		
+		var mergeDs = datasetCache;
+
+		this.groupValue(columnIndex, null); // disable the index
+
 		var column = getResultColumn(result[columnIndex].dataProvider, result[columnIndex].functionResult);
 		// var lookupQuery = databaseManager.createSelect(this.query.getDataSource());
 
@@ -193,19 +201,19 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 		application.output('LOOKUP')
 		application.output(databaseManager.getSQL(_this.query))
 		_this.query.where.remove('lookup');
-		
+
 		// merge rows
-		var columnValues = datasetCache.getColumnAsArray(columnIndex + 1);
+		var columnValues = mergeDs.getColumnAsArray(columnIndex + 1);
 		for (var i = 0; i < columnValues.length; i++) {
-			if (columnValues != value) {
-				ds.addRow(datasetCache.getRowAsArray(i + 1));
+			if (columnValues[i] != value) {
+				ds.addRow(mergeDs.getRowAsArray(i + 1));
 			}
 		}
-		
+
 		application.output(ds)
-		
-		this.groupValue(columnIndex, 0);	// enable the index
-		
+
+		this.groupValue(columnIndex, 0); // enable the index
+
 		return ds;
 	}
 
@@ -261,14 +269,15 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 
 			// FIXME has side effect on the sort and grouby
 			this.query.groupBy.clear();
-//			this.query.groupBy.add(column);
+			//			this.query.groupBy.add(column);
 			this.query.sort.clear();
 			this.query.sort.addPk()
-//			this.query.sort.add(column);
+			//			this.query.sort.add(column);
 			this.query.where.remove('offset');
 
 		} else {
 			// priority of column is 2, just store it.
+			return;
 		}
 
 		var ds = this.getDataSet(10);
@@ -292,8 +301,11 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 	}
 
 	this.loadPrevChunk = function() {
-		addOffset(-1)
+		addOffset(-1);
+		return this.getDataSet(this.pageSize);
 	}
+
+	var sortDirection;
 
 	/**
 	 * @param {Number} diff it can be 0 1 or -1
@@ -305,13 +317,17 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 		var i;
 		var pks = databaseManager.getTable(_this.dataSource).getRowIdentifierColumnNames();
 
+		var rowIndex;
+		var queryFunction;
+		var pkValue;
+
 		// FIXME should not go over max
 		// FIXME go previous
 		switch (diff) {
 		case 1:
 
-			var queryFunction;
-			var pkValue
+			rowIndex = (sortDirection == 'desc') ? 1 : datasetCache.getMaxRowIndex();
+
 			if (grouping[0]) { // offset on the grouped column
 				// the grouped column
 				var groupedColumn = grouping[0];
@@ -319,7 +335,7 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 				var root = getJoinRoot(getRelationsName(groupedColumn));
 				var columnName = getDataProviderName(groupedColumn);
 				queryFunction = root.getColumn(columnName);
-				pkValue = datasetCache.getValue(datasetCache.getMaxRowIndex(), getDataSetColumnIndex(groupedColumn.replace(/\./g, '_')));
+				pkValue = datasetCache.getValue(rowIndex, getDataSetColumnIndex(groupedColumn.replace(/\./g, '_')));
 
 				application.output(pkValue)
 				_this.query.sort.clear();
@@ -328,14 +344,14 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 			} else {
 				//row = getLastRow();
 				queryFunction = _this.query.getColumn(pks[0]);
-				pkValue = datasetCache.getValue(datasetCache.getMaxRowIndex(), getDataSetColumnIndex(pks[0]));//row[pks[0]];
+				pkValue = datasetCache.getValue(rowIndex, getDataSetColumnIndex(pks[0]));//row[pks[0]];
 
 				if (pks.length > 1) { // concatenate the pk to get an unique value well sorted
 					queryFunction = queryFunction.cast(QUERY_COLUMN_TYPES.TYPE_TEXT); // force cast to text
 					for (i = 1; i < pks.length; i++) {
 						pk = pks[i]
 						queryFunction = queryFunction.concat(_this.query.getColumn(pk)).cast(QUERY_COLUMN_TYPES.TYPE_TEXT);
-						pkValue += "" + datasetCache.getValue(datasetCache.getMaxRowIndex(), getDataSetColumnIndex(pk)); //row[pk];
+						pkValue += "" + datasetCache.getValue(rowIndex, getDataSetColumnIndex(pk)); //row[pk];
 					}
 				}
 
@@ -351,14 +367,50 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 			sortPkAsc();
 			break;
 		case -1:
-			row = getFirstRow();
-			_this.query.sort.clear();
-			for (i = 0; i < pks.length; i++) {
-				application.output(row[pk]);
-				pk = pks[i]
-				_this.query.sort.add(_this.query.getColumn(pk).desc);
-				_this.query.where.add(_this.query.getColumn(pk).lt(row[pk]));
+			//			row = getFirstRow();
+			//			_this.query.sort.clear();
+			//			for (i = 0; i < pks.length; i++) {
+			//				application.output(row[pk]);
+			//				pk = pks[i]
+			//				_this.query.sort.add(_this.query.getColumn(pk).desc);
+			//				_this.query.where.add(_this.query.getColumn(pk).lt(row[pk]));
+			//			}
+
+			rowIndex = sortDirection === 'desc' ? 1 : datasetCache.getMaxRowIndex();
+
+			if (grouping[0]) { // offset on the grouped column
+				// the grouped column
+				var groupedColumn = grouping[0];
+
+				var root = getJoinRoot(getRelationsName(groupedColumn));
+				var columnName = getDataProviderName(groupedColumn);
+				queryFunction = root.getColumn(columnName);
+				pkValue = datasetCache.getValue(rowIndex, getDataSetColumnIndex(groupedColumn.replace(/\./g, '_')));
+
+				application.output(pkValue)
+				_this.query.sort.clear();
+				_this.query.sort.add(queryFunction.desc);
+
+			} else {
+				//row = getLastRow();
+				queryFunction = _this.query.getColumn(pks[0]);
+				pkValue = datasetCache.getValue(rowIndex, getDataSetColumnIndex(pks[0]));//row[pks[0]];
+
+				if (pks.length > 1) { // concatenate the pk to get an unique value well sorted
+					queryFunction = queryFunction.cast(QUERY_COLUMN_TYPES.TYPE_TEXT); // force cast to text
+					for (i = 1; i < pks.length; i++) {
+						pk = pks[i]
+						queryFunction = queryFunction.concat(_this.query.getColumn(pk)).cast(QUERY_COLUMN_TYPES.TYPE_TEXT);
+						pkValue += "" + datasetCache.getValue(rowIndex, getDataSetColumnIndex(pk)); //row[pk];
+					}
+				}
+
+				sortPkDesc();
 			}
+
+			_this.query.where.remove('offset');
+			_this.query.where.add('offset', queryFunction.lt(pkValue));
+			//query.where.add(query.getColumn(pk).gt(row[pk]));
 			break;
 		default:
 			break;
@@ -367,6 +419,7 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 		function sortPkAsc() {
 			_this.query.sort.clear();
 			_this.query.sort.addPk();
+			sortDirection = 'asc';
 		}
 
 		function sortPkDesc() {
@@ -374,6 +427,7 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 			for (var j = 0; j < pks.length; j++) {
 				_this.query.sort.add(_this.query.getColumn(pks[j]).desc);
 			}
+			sortDirection = 'desc';
 		}
 
 	}
