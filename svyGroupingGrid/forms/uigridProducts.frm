@@ -4,6 +4,12 @@ encapsulation:60,
 extendsID:"167AF765-6AC3-4A7F-81B8-FDB218838E07",
 items:[
 {
+extendsID:"6EFA81F2-8314-467C-B23F-FDB0CDF2477D",
+text:"Product",
+typeid:7,
+uuid:"146E5235-E9D2-43FE-96CF-72BD4B0173C7"
+},
+{
 location:"16,119",
 size:"80,20",
 text:"Description",

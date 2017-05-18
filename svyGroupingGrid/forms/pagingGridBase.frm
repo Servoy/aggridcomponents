@@ -16,7 +16,7 @@ anchors:3,
 displaysTags:true,
 location:"486,36",
 size:"110,20",
-text:"%%currentPage%%/%%pageCount%%",
+text:"%%pageCount%%",
 typeid:7,
 uuid:"43E8914D-185D-4E69-BE6F-8EAE1B0A8BB2"
 },

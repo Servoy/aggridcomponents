@@ -1,4 +1,15 @@
 /**
+ * @param {JSEvent} event
+ *
+ * @properties={typeid:24,uuid:"A03A8146-B78E-4606-8335-36A059FCF131"}
+ */
+function onLoad(event) {
+	
+	_super.onLoad(event);
+}
+
+
+/**
  * @properties={typeid:24,uuid:"2A5540FF-A63A-483C-A4A5-239B60FE946E"}
  */
 function showUIGrid() {

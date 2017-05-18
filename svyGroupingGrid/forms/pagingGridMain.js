@@ -1,6 +1,6 @@
 /**
  * @enum
- * @protected 
+ * @public  
  * @properties={typeid:35,uuid:"182F208A-C818-4414-BE3C-632C433095C6",variableType:-4}
  */
 var MENU = {
@@ -20,7 +20,7 @@ var MENU = {
 function navigateTo(menuOption, filters, selectedPK) {
 
 	
-	/** @type {RuntimeForm<uigridBase>} */
+	/** @type {RuntimeForm<pagingGridBase>} */
 	var form = forms[menuOption]
 	if (form) {
 //		if (selectedPK) {

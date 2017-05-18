@@ -4,7 +4,6 @@
  * @properties={typeid:24,uuid:"72272147-FCAD-4C37-9D95-DBD4A044BAB0"}
  */
 function showUIGrid() {
-
 	_super.showUIGrid();
 	defaultGrouping();
 }
@@ -59,24 +58,6 @@ function defaultGrouping() {
 }
 
 /**
- * Called when a row is selected.
- *
- * @param {Number} index
- * @param {object} [row]
- * @param {JSEvent} [event]
- *
- * @protected
- *
- * @properties={typeid:24,uuid:"015A06CE-5053-416D-8A42-C6C285A775FC"}
- */
-function onRowSelected(index, row, event) {
-	// TODO Auto-generated method stub
-	application.output(index)
-	application.output(row)
-	application.output(event.getElementName())
-}
-
-/**
  * Perform the element default action.
  * @param {Number} index
  * @param {String|Number} value
@@ -87,7 +68,6 @@ function onRowSelected(index, row, event) {
  * @properties={typeid:24,uuid:"4F93B24B-80F9-40C9-B328-C12433C48A00"}
  */
 function onProductClick(index, value, event) {
-	// TODO Auto-generated method stub
 	plugins.webnotificationsToastr.info('Product cliecked ' + value);
 	forms.uigrid.navigateTo(forms.uigrid.MENU.PRODUCTS, [{dataProvider: "productname", operator: "=", value: value}]);
 }
@@ -104,9 +84,6 @@ function onProductClick(index, value, event) {
  * @properties={typeid:24,uuid:"3308FC06-0D9D-4B44-8F4E-1914599B76C5"}
  */
 function onSupplierClick(index, value, event) {
-	// TODO Auto-generated method stub
-	
 	plugins.webnotificationsToastr.info('Supplier cliecked ' + value);
 	forms.uigrid.navigateTo(forms.uigrid.MENU.SUPPLIERS, [{dataProvider: "companyname", operator: "=", value: value}]);
-	
 }
