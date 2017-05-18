@@ -77,7 +77,7 @@ angular.module('uigridfilterUigridDataset', ['servoy', 'ui.grid', 'ui.grid.moveC
 					maintainColumnRatios: true,
 
 					// filters
-					enableFiltering: true,
+					enableFiltering: $scope.model.allowFiltering ? true : false,
 					filterOptions: { filterText: 'Cercalo', useExternalFilter: true },
 
 					// grouping

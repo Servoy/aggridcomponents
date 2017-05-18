@@ -27,7 +27,7 @@
 		"dataset": 		{ "type": "dataset", "includeColumnNames": true },
 		"config": 		{ "type": "object", "pushToServer" : "allow" },
 		"columns": 		{ "type": "column[]", "droppable" : true },
-		"allowFiltering" : {"type" : "default", "tags" : {"scope": "design"}, "default": false }
+		"allowFiltering" : {"type" : "boolean", "tags" : {"scope": "design"}, "default": false }
 	},
 	"handlers": 
 	{

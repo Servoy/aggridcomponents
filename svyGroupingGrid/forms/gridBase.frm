@@ -22,6 +22,7 @@ uuid:"6EFA81F2-8314-467C-B23F-FDB0CDF2477D"
 {
 anchors:15,
 json:{
+allowFiltering:true,
 anchors:15,
 location:{
 x:15,
