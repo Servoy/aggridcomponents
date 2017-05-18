@@ -42,6 +42,9 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 
 	var _this = this;
 	
+	/** @type {QBSelect} */
+	var originalQuery;
+	
 	// init result list
 	addPksToResult();
 
@@ -81,7 +84,7 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 
 		/** @type {QBColumn} */
 		var qColumn = getResultColumn(dataProvider, functionResult);
-		_this.query.result.add(qColumn, name);
+		_this.query.result.add(qColumn, dataProvider.replace(/\./g, '_'));
 
 		// push dataProvider in result
 		result.push({
@@ -158,10 +161,15 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 	 *
 	 * */
 	this.getDataSet = function(maxRows) {
+		// TODO this is a quick workaround
+		if (!originalQuery) {
+			originalQuery = _this.query;
+		}
+		
 		application.output(databaseManager.getSQL(_this.query));
 		application.output(databaseManager.getSQLParameters(_this.query));
 		datasetCache = databaseManager.getDataSetByQuery(_this.query, maxRows);
-		application.output(datasetCache)
+		application.output(datasetCache);
 		return datasetCache;
 	}
 
@@ -174,18 +182,30 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 	 *
 	 * */
 	this.lookupValue = function(columnIndex, value) {
+		this.groupValue(columnIndex, null);	// disable the index
+		
 		var column = getResultColumn(result[columnIndex].dataProvider, result[columnIndex].functionResult);
-		var lookupQuery = databaseManager.createSelect(this.query.getDataSource());
+		// var lookupQuery = databaseManager.createSelect(this.query.getDataSource());
 
-		// copy joins
-		var queryJoins = this.query.joins.getJoins();
-		for (var i = 0; i < queryJoins.length; i++) {
+		_this.query.where.remove('lookup');
+		_this.query.where.add('lookup', column.eq(value));
+		var ds = databaseManager.getDataSetByQuery(_this.query, -1);
+		application.output('LOOKUP')
+		application.output(databaseManager.getSQL(_this.query))
+		_this.query.where.remove('lookup');
+		
+		// merge rows
+		var columnValues = datasetCache.getColumnAsArray(columnIndex + 1);
+		for (var i = 0; i < columnValues.length; i++) {
+			if (columnValues != value) {
+				ds.addRow(datasetCache.getRowAsArray(i + 1));
+			}
 		}
-
-		this.query.where.remove('lookup');
-		this.query.where.add('lookup', column.eq(value));
-		var ds = this.getDataSet(-1);
-		this.query.where.remove('lookup');
+		
+		application.output(ds)
+		
+		this.groupValue(columnIndex, 0);	// enable the index
+		
 		return ds;
 	}
 
@@ -223,7 +243,7 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 			this.query.sort.add(column);
 			this.query.where.remove('offset');
 
-		} else if (isNaN(groupIndex)) { // TODO check if is the first column, ungroup the column
+		} else if (groupIndex == null || groupIndex == undefined) { // TODO check if is the first column, ungroup the column
 			// sorted by the given column
 			this.query.result.clear();
 
@@ -236,14 +256,15 @@ function DataSetManager(dataSourceOrQueryOrFoundset) {
 				}
 
 				// TODO possible functions on column
-				this.query.result.add(qColumn);
+				this.query.result.add(qColumn, result[i].dataProvider.replace(/\./g, '_'));
 			}
 
 			// FIXME has side effect on the sort and grouby
 			this.query.groupBy.clear();
-			this.query.groupBy.add(column);
+//			this.query.groupBy.add(column);
 			this.query.sort.clear();
-			this.query.sort.add(column);
+			this.query.sort.addPk()
+//			this.query.sort.add(column);
 			this.query.where.remove('offset');
 
 		} else {

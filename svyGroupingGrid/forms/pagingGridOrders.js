@@ -180,15 +180,15 @@ function onCustomerClick(index, value, event) {
  */
 function onNodeExpanded(columnIndex, value) {
 	// FIXME better lookup pattern
-	var dataset = datasetManager.getDataSet(pageSize);
+//	var dataset = datasetManager.getDataSet(pageSize);
 	
 	// TODO better way to get the column 
 	var lookupSet = datasetManager.lookupValue(columnIndex, value);
 
-	for (var i = 1; i <= dataset.getMaxRowIndex(); i++) {
-		var row = dataset.getRowAsArray(i);
-		lookupSet.addRow(row)
-	}
+//	for (var i = 1; i <= dataset.getMaxRowIndex(); i++) {
+//		var row = dataset.getRowAsArray(i);
+//		lookupSet.addRow(row)
+//	}
 	elements.uigrid.dataset = lookupSet;
 }
 

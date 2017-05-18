@@ -54,8 +54,8 @@ function getDataSet() {
  * @properties={typeid:24,uuid:"4FA63163-FE9D-4B97-966C-2AF78F383968"}
  */
 function defaultGrouping() {
-	elements.uigrid.groupColumn(0);
-	elements.uigrid.groupColumn(1);
+//	elements.uigrid.groupColumn(1);
+//	elements.uigrid.groupColumn(2);
 }
 
 /**
