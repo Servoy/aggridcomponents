@@ -71,7 +71,7 @@ angular.module('uigridfilterUigridDataset', ['servoy', 'ui.grid', 'ui.grid.moveC
 
 					// columns
 					enablePinning: false,
-					enableSorting: true,
+					enableSorting: false,
 					enableColumnReordering: true,
 					enableColumnResizing: true,
 					maintainColumnRatios: true,

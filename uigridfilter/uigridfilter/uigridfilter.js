@@ -474,8 +474,9 @@ angular.module('uigridfilterUigridfilter', ['servoy', 'foundset_manager', 'ui.gr
 				//grid options initial setup
 				$scope.gridOptions = {
 				    rowTemplate: rowTemplate(),
-					enableSorting: true,
-					enableFiltering: true,
+					enablePinning: false,
+					enableSorting: false,
+					enableFiltering: false,
 					enableColumnResizing: true,
 					enableGridMenu: true,
 					groupingShowCounts: false,
@@ -846,6 +847,8 @@ angular.module('uigridfilterUigridfilter', ['servoy', 'foundset_manager', 'ui.gr
 							colDef = {
 								name: "" + header["headerTitle"] + "",
 								field: "" + header["dp"] + "",
+								groupingShowGroupingMenu: true,
+								groupingShowAggregationMenu: false,
 								aggregationType: aggregationType,
 								headerCellClass: $scope.highlightFilteredHeader,
 								visible: header["visible"]//,
