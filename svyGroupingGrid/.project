@@ -7,6 +7,8 @@
 		<project>servoy-extra-components</project>
 		<project>uigridfilter</project>
 		<project>svyMicroSamples</project>
+		<project>exampleDataModel</project>
+		<project>aggrid</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

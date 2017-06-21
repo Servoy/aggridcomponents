@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Bundle-SymbolicName: aggrid
+Bundle-Name: Ag Grid
+Bundle-Version: 1.0.0
+Package-Type: Web-Component
+
+Name: groupingtable/groupingtable.spec
+Web-Component: True
+
