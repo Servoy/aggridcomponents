@@ -3,6 +3,7 @@
 	"displayName": "Grouping Table",
 	"version": 1,
 	"definition": "aggrid/groupingtable/groupingtable.js",
+	"serverscript": "aggrid/groupingtable/groupingtable_server.js",
 	"libraries": [
 		{
 			"name": "ag-grid.js",
@@ -26,6 +27,8 @@
 	{
 		"myFoundset": {"type": "foundset", "dynamicDataproviders": true, "initialPreferredViewPortSize": 50, "sendSelectionViewportInitially": true },
 		"columns": 		{ "type": "column[]", "droppable" : true },
+		"hashedFoundsets": { "type": "hashedFoundset[]", "default": [], "tags": {"scope": "private"}},
+		"hashedColumns": {"type" : "string[]", "default": [], "tags": {"scope": "private"}},
 		"visible": "visible"
 	},
 	"handlers" : {
@@ -73,8 +76,50 @@
 					"name": "value",
 					"type": "string"
 				}
-			]
+			],
+			"returns" : "dataset"
 		}
+	}, 
+	"api" : {
+		"getGroupedChildFoundsetUUID" : {
+            "returns" : "foundsetRef",
+            "parameters" :
+            [{
+                    "name" : "parentFoundset",
+                    "type" : "foundsetRef"
+                }, {
+                    "name" : "parentRecordFinder",
+                    "type" : "rowRef"
+                }, {
+                    "name": "parentLevelGroupColumnIndex",
+                    "type": "int"
+                }, {
+                    "name": "newLevelGroupColumnIndex",
+                    "type": "int"
+                }, {
+                	"name" : "idForFoundsets",
+                	"type" : "string[]"
+                }
+            ]
+        },
+        "getLeafChildFoundsetUUID" : {
+            "returns" : "foundsetRef",
+            "parameters" :
+            [{
+                    "name" : "parentFoundset",
+                    "type" : "foundsetRef"
+                }, {
+                    "name" : "parentRecordFinder",
+                    "type" : "rowRef"
+                }, {
+                    "name": "parentLevelGroupColumnIndex",
+                    "type": "int"
+                }, {
+                	"name" : "idForFoundsets",
+                	"type" : "string[]"
+                }
+            ]
+        }
 	},
 	"types" : {
 		"column" : {
@@ -84,6 +129,10 @@
 			"format" : "format",
 			"visible":  { "type": "boolean", "default": true },
 			"onActionMethodID" : "function"
-		}
+		},
+		 "hashedFoundset" : {
+            "foundset": "foundset",
+            "foundsetUUID": "foundsetRef"
+        }  
 	}
 }
