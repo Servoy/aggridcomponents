@@ -64,7 +64,7 @@ $scope.getGroupedChildFoundsetUUID = function(parentFoundset, parentRecordFinder
 			initialPreferredViewPortSize: 15
 		}, foundsetUUID: childFoundset
 	}); // send it to client as a foundset property with a UUID
-	
+
 	// TODO this is not required
 	// TODO perhaps R&D can improve this
 	// send the column mapping; clientside i don't have the dataprovider id name and server side i don't have the idForFoundset.
@@ -75,6 +75,63 @@ $scope.getGroupedChildFoundsetUUID = function(parentFoundset, parentRecordFinder
 };
 
 $scope.getLeafChildFoundsetUUID = function(parentFoundset, parentRecordFinder, parentLevelGroupColumnIndex, idForFoundsets) {
-	// TODO to be implemented
-	return $scope.model.myFoundset.foundset;
+
+	// root is the parent
+	console.log('SERVER SIDE LEAF');
+	if (!parentFoundset) parentFoundset = $scope.model.myFoundset.foundset;
+
+	/** @type {QBSelect} */
+	var query = parentFoundset.getQuery();
+
+	var groupColumn;
+	var groupDataprovider;
+	var groupValue;
+	
+
+	groupDataprovider = $scope.model.columns[parentLevelGroupColumnIndex].dataprovider;
+	groupColumn = query.getColumn(groupDataprovider);
+	groupValue = parentRecordFinder['col_' + parentLevelGroupColumnIndex];
+	
+	console.log(parentRecordFinder)
+
+
+	// this is an intemediate group expand; alter query of parent level for the child level
+	query.where.add(groupColumn.eq(groupValue));
+
+	console.log('Run Query ' + ' - ' + parentLevelGroupColumnIndex +  ' - ' + groupValue);
+
+	// console.log(databaseManager.getSQL(query));
+
+	var childFoundset = parentFoundset.duplicateFoundSet();
+	childFoundset.loadRecords(query);
+	
+	
+	
+
+	// push dataproviders to the clientside foundset
+	var dps = { };
+	var hashedColumns = [];
+	for (var idx = 0; idx < $scope.model.columns.length; idx++) {
+		var dpId = $scope.model.columns[idx].dataprovider;
+		var idForFoundset = idForFoundsets[idx];
+		dps[idForFoundset] = dpId;
+		hashedColumns.push(dpId);
+	}
+
+	$scope.model.hashedFoundsets.push({
+		foundset: {
+			foundset: childFoundset,
+			dataproviders: dps,
+			sendSelectionViewportInitially: false,
+			initialPreferredViewPortSize: 15
+		}, foundsetUUID: childFoundset
+	}); // send it to client as a foundset property with a UUID
+
+	// TODO this is not required
+	// TODO perhaps R&D can improve this
+	// send the column mapping; clientside i don't have the dataprovider id name and server side i don't have the idForFoundset.
+	$scope.model.hashedColumns = hashedColumns;
+	console.log('End');
+
+	return childFoundset; // return the UUID that points to this foundset (return type will make it UUID)
 };

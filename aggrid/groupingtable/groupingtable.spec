@@ -25,7 +25,7 @@
 		}],
 	"model":
 	{
-		"myFoundset": {"type": "foundset", "dynamicDataproviders": true, "initialPreferredViewPortSize": 50, "sendSelectionViewportInitially": true },
+		"myFoundset": {"type": "foundset", "dynamicDataproviders": true, "initialPreferredViewPortSize": 15, "sendSelectionViewportInitially": true },
 		"columns": 		{ "type": "column[]", "droppable" : true },
 		"hashedFoundsets": { "type": "hashedFoundset[]", "default": [], "tags": {"scope": "private"}},
 		"hashedColumns": {"type" : "string[]", "default": [], "tags": {"scope": "private"}},
@@ -110,7 +110,7 @@
                     "type" : "foundsetRef"
                 }, {
                     "name" : "parentRecordFinder",
-                    "type" : "rowRef"
+                    "type" : "object"
                 }, {
                     "name": "parentLevelGroupColumnIndex",
                     "type": "int"

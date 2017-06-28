@@ -35,7 +35,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				// create the grid passing in the div to use together with the columns & data we want to use
 				//				new agGrid.Grid(eGridDiv, gridOptions);
 
-				var CHUNK_SIZE = 50;
+				var CHUNK_SIZE = 15;
 
 				// init the foundset
 				var foundset = new FoundSetManager($scope.model.myFoundset, true);
@@ -242,69 +242,114 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					 * @param {Array} rowGroupCols
 					 * @param {Array} groupKeys
 					 *
-					 * @return {FoundSetManager}
+					 * @return {Object} returns a promise
 					 * */
 					this.getFoundsetData = function(rowGroupCols, groupKeys) {
 
 						var resultPromise = $q.defer();
 
-						if (rowGroupCols.length === 0 && groupKeys.length === 0) { // return root foundset
+						if (rowGroupCols.length === 0 && groupKeys.length === 0) { // no group return root foundset
 							return foundset;
 						}
 
 						var idx; // the index of the group dept
 						var parentIndex; // the index of the parent column
 						var columnIndex; // the index of the grouped column
-						for (idx = 0; idx < rowGroupCols.length; idx++) {
-							// TODO loop over columns
-							var columnId = rowGroupCols[idx].field; //
-							columnIndex = getColumnIndex(columnId);
-							if (hashTree[columnId]) { // i had already retrieved the foundset
-								// search in sub tree
-								resultPromise.resolve(hashTree[columnId]);
-								// TODO how can i get Row ID ? do i need the row ID ?
 
-							} else { // get the serverside foundset
-								// create the subtree
-								// FIXME i will miss information about the root columns. I need an array of matching column, not an index. e.g. [ALFKI, Italy, Roma]
-								var promise = getHashFoundset(null, null, parentIndex, columnIndex);
-								promise.then(getHasFoundsetSuccess)
-								promise.catch(promiseError);
-								
-								function getHasFoundsetSuccess(foundsetRef) {
+						if (rowGroupCols.length === groupKeys.length) { // expand a node
 
-										if (!foundsetRef) {
-											$log.error("why i don't have a foundset ref ?")
-											return;
-										} else {
-											$log.warn(foundsetRef);
-										}
-										// return the foundsetRef
-										hashTree[columnId] = foundsetRef;
-
-										// setPreferredViewPortSize and resolve when viewPortSize records are loaded ?
-										foundsetRef.setPreferredViewportSize(CHUNK_SIZE);
-										//var recordLoaded = foundsetRef.loadRecordsAsync(foundsetRef.viewPort.startIndex, CHUNK_SIZE);
-										var recordLoaded = foundsetRef.loadExtraRecordsAsync(CHUNK_SIZE, false);
-										recordLoaded.then(recordLoadedSuccess)
-										recordLoaded.catch(promiseError);
-										
-										function recordLoadedSuccess() {
-											$log.warn('success');
-											resultPromise.resolve(foundsetRef);
-										}
-										
-								}
-
-								
+							// TODO handle multilevel
+							var searchRow = new Object();
+							for (var idx = 0; idx < groupKeys.length; idx++) {
+								// find
+								var columnId = rowGroupCols[idx].field;
+								columnIndex = getColumnIndex(columnId);
+								searchRow['col_' + columnIndex] = groupKeys[idx];
 							}
 
-							$log.warn();
-							parentIndex = columnIndex;
+							$log.warn(searchRow);
+
+							// TODO loop over all data to retrieve the _svyRowId
+							// TODO return parentFoundsetHash ? (i need this if is a second level group !!). Retrieving parent foundset i already have the condition on the first level
+							var promiseLeaf = getHashFoundset(null, searchRow, columnIndex);
+							promiseLeaf.then(getHashLeafFoundsetSuccess)
+							promiseLeaf.catch(promiseError);
+
+							function getHashLeafFoundsetSuccess(foundsetRef) {
+
+								if (!foundsetRef) {
+									$log.error("why i don't have a foundset ref ?")
+									return;
+								} else {
+									$log.warn(foundsetRef);
+								}
+
+								// setPreferredViewPortSize and resolve when viewPortSize records are loaded ?
+								//foundsetRef.setPreferredViewportSize(CHUNK_SIZE);
+								//var recordLoaded = foundsetRef.loadRecordsAsync(foundsetRef.viewPort.startIndex, CHUNK_SIZE);
+								//										var recordLoaded = foundsetRef.loadExtraRecordsAsync(CHUNK_SIZE, false);
+								//										recordLoaded.then(recordLoadedSuccess)
+								//										recordLoaded.catch(promiseError);
+
+								//										function recordLoadedSuccess() {
+								$log.warn('success');
+								resultPromise.resolve(foundsetRef);
+								//										}
+
+							}
+
+						} else { // scroll a group
+
+							for (idx = 0; idx < rowGroupCols.length; idx++) {
+								// TODO loop over columns
+								var columnId = rowGroupCols[idx].field; //
+								columnIndex = getColumnIndex(columnId);
+								if (hashTree[columnId]) { // i had already retrieved the foundset
+									// search in sub tree
+									resultPromise.resolve(hashTree[columnId]);
+									// TODO how can i get Row ID ? do i need the row ID ?
+
+								} else { // get the serverside foundset
+									// create the subtree
+									// FIXME i will miss information about the root columns. I need an array of matching column, not an index. e.g. [ALFKI, Italy, Roma]
+									var promise = getHashFoundset(null, null, parentIndex, columnIndex);
+									promise.then(getHashFoundsetSuccess)
+									promise.catch(promiseError);
+								}
+
+								$log.warn();
+								parentIndex = columnIndex;
+
+								function getHashFoundsetSuccess(foundsetRef) {
+
+									if (!foundsetRef) {
+										$log.error("why i don't have a foundset ref ?")
+										return;
+									} else {
+										$log.warn(foundsetRef);
+									}
+									// return the foundsetRef
+									hashTree[columnId] = foundsetRef;
+
+									// setPreferredViewPortSize and resolve when viewPortSize records are loaded ?
+									//foundsetRef.setPreferredViewportSize(CHUNK_SIZE);
+									//var recordLoaded = foundsetRef.loadRecordsAsync(foundsetRef.viewPort.startIndex, CHUNK_SIZE);
+									//										var recordLoaded = foundsetRef.loadExtraRecordsAsync(CHUNK_SIZE, false);
+									//										recordLoaded.then(recordLoadedSuccess)
+									//										recordLoaded.catch(promiseError);
+
+									//										function recordLoadedSuccess() {
+									$log.warn('success');
+									resultPromise.resolve(foundsetRef);
+									//										}
+
+								}
+
+							}
 						}
-						
+
 						function promiseError(e) {
-							$low.error(e);
+							$log.error(e);
 							resultPromise.reject(e);
 						}
 
@@ -312,9 +357,10 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					}
 
 					function getHashFoundset(parentFoundsetHash, rowId, parentLevelGroupColumnIndex, newLevelGroupColumnIndex) {
+						// TODO do i neet this method for something ?
 						return getChildFoundSetHash(parentFoundsetHash, rowId, parentLevelGroupColumnIndex, newLevelGroupColumnIndex)
+
 					}
-					
 
 				}
 
@@ -339,7 +385,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						idForFoundsets.push(getColumnID($scope.model.columns[i], i));
 					}
 
-					if (newLevelGroupColumnIndex) {
+					if (newLevelGroupColumnIndex || newLevelGroupColumnIndex === 0) {
 						childFoundsetPromise = $scope.svyServoyapi.callServerSideApi("getGroupedChildFoundsetUUID",
 							[parentFoundsetHash, rowId, parentLevelGroupColumnIndex, newLevelGroupColumnIndex, idForFoundsets]);
 					} else {
@@ -348,17 +394,27 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					}
 
 					childFoundsetPromise.then(function(childFoundsetUUID) {
-							$log.error(childFoundsetUUID);
+							$log.warn(childFoundsetUUID);
 							var childFoundset = getFoundSetByFoundsetUUID(childFoundsetUUID);
+							if (!childFoundset) {
+								$log.error("why i don't have a childFoundset ?")
+							}
+							
+							childFoundset.addChangeListener(childChangeListener);
 							resultDeferred.resolve(childFoundset)
 							// TODO get data
 							//mergeData('', childFoundset);
 						}, function(e) {
+							$log.error(e);
 							resultDeferred.reject(e);
 							// some error happened
 						});
 
 					return resultDeferred.promise;
+				}
+
+				function childChangeListener() {
+					$log.error('LISTENER ')
 				}
 
 				/**
@@ -370,10 +426,14 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 							if ($scope.model.hashedFoundsets[i].foundsetUUID == foundsetHash)
 								return $scope.model.hashedFoundsets[i].foundset;
 
-							return null;
 						}
+						return null;
 				}
 
+				/**
+				 * @private
+				 * Check if objects are deep equal
+				 * */
 				function areObjectEqual(o1, o2) {
 					if (o1 instanceof Array) {
 						if (o1.lenght != o2.length) {
@@ -592,8 +652,6 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					console.log(rowGroupCols);
 					console.log(groupKeys);
 
-					var promise;
-
 					// if not grouping, just return the full set
 					if (rowGroupCols.length === 0) {
 						console.log('NO GROUP');
@@ -604,57 +662,14 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						// first, if not the top level, take out everything that is not under the group
 						// we are looking at.
 						//var filteredData = this.filterOutOtherGroups(filteredData, groupKeys, rowGroupCols);
-
-						// if grouping, return the group
-						var showingGroups = rowGroupCols.length > groupKeys.length;
-
-						groupManager.getFoundsetData(rowGroupCols, groupKeys).then(function(foundsetRef) {
+						groupManager.getFoundsetData(rowGroupCols, groupKeys)
+						.then(function(foundsetRef) {
 
 							var foundsetRefManager = new FoundSetManager(foundsetRef);
+							getDataFromFoundset(foundsetRefManager);
 
-							if (showingGroups) {
-								// TODO i do i know where i start showing stuff ?
-
-								// TODO
-								// expand all groups, get until last group
-
-								// this is called when scrolling
-								console.log('showingGroup');
-								// result = this.buildGroupsFromData(filteredData, rowGroupCols, groupKeys, valueCols);
-								// TODO get foundset grouped by column
-								getDataFromFoundset(foundsetRefManager);
-							} else {
-								//								// this is called when expanding a node
-								//								console.log('not showingGroup');
-								//								// show all remaining leaf level rows
-								//								// result = filteredData;
-								//
-								//								result = [];
-								//								if ($scope.handlers.onNodeExpanded) {
-								//
-								//									// FIXME wait for node expanded
-								//									promise = $scope.handlers.onNodeExpanded(1, groupKeys[groupKeys.length - 1]);
-								//									promise.then(function(data) {
-								//										for (var i = 0; data && i < data.length; i++) {
-								//											var r = new Object();
-								//											for (var idx = 0; idx < columnDefs.length; idx++) {
-								//												var column = columnDefs[idx];
-								//												r[column.field] = data[i][idx];
-								//												result.push[r];
-								//											}
-								//
-								//											console.log(result);
-								//											// callback(result, true);
-								//											return result;
-								//										}
-								//									});
-								//								}
-								getDataFromFoundset(foundsetRefManager);
-
-								// TODO wait for result
-								return;
-							}
-
+						}).catch(function (e) {
+							$log.error(e);
 						});
 					}
 
