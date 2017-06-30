@@ -1,4 +1,4 @@
-angular.module('uigridfilterUigridDataset', ['servoy', 'ui.grid', 'ui.grid.moveColumns', 'ui.grid.pinning', 'ui.grid.resizeColumns', 'ui.grid.grouping', 'ui.grid.selection', 'ngAnimate', 'ngTouch'])
+angular.module('uigridfilterUigridDataset', ['servoy', 'ui.grid', 'ui.grid.moveColumns', 'ui.grid.pinning', 'ui.grid.resizeColumns', 'ui.grid.grouping', 'ui.grid.selection', 'ngAnimate'])
 .directive('uigridfilterUigridDataset', ['$log', '$sabloConstants', '$window', 'uiGridConstants', 'uiGridGroupingConstants', function($log, $sabloConstants, $window, uiGridConstants, uiGridGroupingConstants) {
 		return {
 			restrict: 'E',

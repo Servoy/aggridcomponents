@@ -1,9 +1,12 @@
 Manifest-Version: 1.0
-Bundle-SymbolicName: aggrid
-Bundle-Name: Ag Grid
 Bundle-Version: 1.0.0
 Package-Type: Web-Component
+Bundle-Name: Ag Grid
+Bundle-SymbolicName: aggrid
 
 Name: groupingtable/groupingtable.spec
+Web-Component: True
+
+Name: pivot/pivot.spec
 Web-Component: True
 

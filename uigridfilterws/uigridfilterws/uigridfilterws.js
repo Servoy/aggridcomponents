@@ -1,4 +1,4 @@
-angular.module('uigridfilterwsUigridfilterws',['servoy', 'ui.grid', 'ui.grid.moveColumns', 'ui.grid.resizeColumns', 'ui.grid.grouping', 'ui.grid.selection', 'ui.grid.exporter', 'ngAnimate', 'ngTouch']).directive('uigridfilterwsUigridfilterws', function() {  
+angular.module('uigridfilterwsUigridfilterws',['servoy', 'ui.grid', 'ui.grid.moveColumns', 'ui.grid.resizeColumns', 'ui.grid.grouping', 'ui.grid.selection', 'ui.grid.exporter', 'ngAnimate']).directive('uigridfilterwsUigridfilterws', function() {  
 	 return {
 	      restrict: 'E',
 	      scope: {

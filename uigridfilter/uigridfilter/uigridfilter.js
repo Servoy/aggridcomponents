@@ -1,4 +1,4 @@
-angular.module('uigridfilterUigridfilter', ['servoy', 'foundset_manager', 'ui.grid', 'ui.grid.moveColumns', 'ui.grid.pinning', 'ui.grid.resizeColumns', 'ui.grid.grouping', 'ui.grid.selection', 'ngAnimate', 'ngTouch']).directive('uigridfilterUigridfilter', ['foundset_manager', function(foundset_manager) {
+angular.module('uigridfilterUigridfilter', ['servoy', 'foundset_manager', 'ui.grid', 'ui.grid.moveColumns', 'ui.grid.pinning', 'ui.grid.resizeColumns', 'ui.grid.grouping', 'ui.grid.selection', 'ngAnimate']).directive('uigridfilterUigridfilter', ['foundset_manager', function(foundset_manager) {
 		return {
 			restrict: 'E',
 			scope: {
