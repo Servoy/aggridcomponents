@@ -128,7 +128,8 @@
 			"styleClass" : {"type" : "styleclass"},
 			"format" : "format",
 			"visible":  { "type": "boolean", "default": true },
-			"onActionMethodID" : "function"
+			"onActionMethodID" : "function",
+			"enableRowGroup" : {"type": "boolean", "default" : true}
 		},
 		 "hashedFoundset" : {
             "foundset": "foundset",

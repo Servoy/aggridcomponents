@@ -108,11 +108,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 					});
 
-				function changeListener() {
-					$log.error("Change listener is called");
-					// gridOptions.api.purgeEnterpriseCache();
-				}
-
+				
 				// watch for sort changes and purge the cache
 				$scope.$watch("model.myFoundset.sortColumns", function(newValue, oldValue) {
 						// sort changed
@@ -125,6 +121,10 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						}
 
 					}, true);
+				
+		
+
+
 
 				/**
 				 * FoundsetManager
@@ -219,6 +219,123 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						}
 					}
 				}
+				
+				// TODO to be completed, use the GroupHashCache to persist foundset UUID for rowGroupCols/groupKeys combinations
+				function GroupHashCache() {
+					var hashTree = new Object();
+
+					this.getCachedFoundset = function (rowGroupCols, groupKeys) {
+						
+						var tree = hashTree;
+						getTreeNode(tree, rowGroupCols, groupKeys)
+						
+//						for (var colIdx = 0; colIdx < rowGroupCols.length; colIdx++) {
+//							var columnId = rowGroupCols[colIdx].field;
+//							if (colIdx === groupKeys.length -2 ) {	// last node is not a leaf
+//								parentTree = parentTree[columnId];
+//							} else {	// 
+//								if (parentTree[columnId]) {
+//									parentTree = parentTree[columnId].nodes;
+//								} else {
+//									return null;
+//								}
+//							}
+//						}
+//						
+//						if (parentTree) {
+//							return parentTree.foundsetUUID;
+//						}
+//						
+					}
+					
+					this.setCachedFoundset = function (rowGroupCols, groupKeys, foundsetUUID) {
+						var tree = getTreeNode(hashTree,rowGroupCols,groupKeys);
+						tree.foundsetUUID = foundsetUUID;
+					}
+					
+					/** 
+					 * @param {Object} tree
+					 * @param {Array} rowGroupCols
+					 * @param {Array} groupKeys
+					 * @param {Boolean} [create]
+					 * 
+					 * */
+					function getTreeNode(tree, rowGroupCols, groupKeys, create) {
+						
+						/* 
+						 * {
+						 * 	columnId {
+						 * 		foundsetUUID: uuid
+						 * 		nodes: {
+						 * 			keyValue : {
+						 * 				foundsetUUID : uuid
+						 * 				nodes : {
+						 * 					subColumnId { ... }
+						 * 				}
+						 * 			},
+						 * 			keyValue2 : { ... }
+						 * 		}
+						 * 	  }
+						 * }
+						 * 
+						 * 
+						 * */
+						
+						if (!tree) {
+							return null;
+						}
+						
+						if (rowGroupCols.length === 1) {	// the last group
+							
+							if (groupKeys.length === 1) {	// is a leaf child
+							
+								var columnId = rowGroupCols[0].field
+								var key = groupKeys[0];
+								var subTree = tree[columnId];
+								if (subTree) {
+									return subTree[key];
+								} else {
+									if (create) {
+										var newTree = {
+											nodes: {},
+											foundsetUUID : null
+										}
+										
+										subTree[key] = newTree;
+										return newTree;
+										
+									} else {
+										return null;
+									}
+								}
+							} else {	// no group key criteria
+								return tree[rowGroupCols[0].field];
+							}
+							
+						} else { 	// is not the last group
+							var column = rowGroupCols.slice(0, 1);
+							var key = groupKeys.length ? groupKeys.slice(0, 1) : null;
+							var columnId = column.field;
+							var subTree = tree[columnId];
+							
+							if (!subTree) {
+								return null;
+							}
+							
+							if (key !== null) {
+								subTree = subTree.nodes[key];
+							} else {
+								// do i need it ?
+							}
+							
+							// check if key ?
+							
+							getTreeNode(subTree, rowGroupCols, groupKeys);
+							
+						}
+					}
+				}
+				
 
 				/**
 				 * @constructor
@@ -239,6 +356,8 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					//					}
 
 					/**
+					 * Returns the foundset with the given grouping criteria
+					 * 
 					 * @param {Array} rowGroupCols
 					 * @param {Array} groupKeys
 					 *
@@ -246,10 +365,12 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					 * */
 					this.getFoundsetData = function(rowGroupCols, groupKeys) {
 
+						// create a promis
 						var resultPromise = $q.defer();
 
+						// return the root foundset if no grouping criteria
 						if (rowGroupCols.length === 0 && groupKeys.length === 0) { // no group return root foundset
-							return foundset;
+							return resultPromis.resolve(foundset);
 						}
 
 						var idx; // the index of the group dept
@@ -300,6 +421,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 						} else { // scroll a group
 
+							// if first level return the first foundset with no group criteria, if on second level, foundset will have group criteria
 							for (idx = 0; idx < rowGroupCols.length; idx++) {
 								// TODO loop over columns
 								var columnId = rowGroupCols[idx].field; //
@@ -413,7 +535,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					return resultDeferred.promise;
 				}
 
-				function childChangeListener() {
+				function childChangeListener(rowUpdates, oldStartIndex, oldSize) {
 					$log.error('LISTENER ')
 				}
 
@@ -429,6 +551,83 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						}
 						return null;
 				}
+				
+				/*************************************************************************************
+				 * 
+				 *********************************************************************************/
+				
+				function changeListener(rowUpdates, oldStartIndex, oldSize) {
+					$log.error("Change listener is called");
+					// gridOptions.api.purgeEnterpriseCache();
+					updateRows(rowUpdates,oldStartIndex,oldSize);
+				}				
+				
+				/**
+				 * Update the uiGrid row with given viewPort index
+				 * @param {Array} rowUpdates
+				 * @param {Number} [oldStartIndex]
+				 * @param {Number} oldSize
+				 *
+				 *  */
+				function updateRows(rowUpdates, oldStartIndex, oldSize) {
+					for (var i = 0; i < rowUpdates.length; i++) {
+						for (var j = rowUpdates[i].startIndex; j <= rowUpdates[i].endIndex; j++) {
+							updateRow(j);
+						}
+					}
+				}
+				
+				/**
+				 * Update the uiGrid row with given viewPort index
+				 * @param {Number} index
+				 * @param {Object} [foundsetObj]
+				 *
+				 *  */
+				function updateRow(index, foundsetObj) {
+					var row;
+					if (!foundsetObj) {
+						row = foundset.getViewPortRow(index);
+					} else {
+						row = getClientViewPortRow(foundsetObj, index); // TODO get it from viewportObj
+					}
+
+					if (row) {
+						var uiRow = getAgGridRow(row._svyRowId);
+
+						// update the row
+						if (uiRow) {
+							for (var prop in row) {
+								if (uiRow[prop] != row[prop]) {
+									uiRow[prop] = row[prop];
+								}
+							}
+						} else {
+							$scope.gridOptions.data.push(row);
+						}
+					} else {
+						$log.warn("could not update row at index " + index);
+					}
+				}
+				
+				/** return the row of the given foundsetObj at given index */
+				function getClientViewPortRow(foundsetObj, index) {
+					var row;
+					if (foundsetObj.viewPort.rows) {
+						row = foundsetObj.viewPort.rows[index];
+					}
+					return row;
+				}
+				
+				/** return the row in grid with the given id */
+				function getUiGridRow(svyRowId) {
+					var data = $scope.gridOptions.data;
+					for (var i = 0; i < data.length; i++) {
+						if (data[i]._svyRowId === svyRowId) {
+							return data[i];
+						}
+					}
+				}
+				
 
 				/**
 				 * @private
@@ -491,9 +690,11 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 							field: field
 						};
 						// FIXME remove hardcoded columnIndex
-						if (i === 1) {
-							colDef.rowGroupIndex = 0;
-						}
+//						if (i === 1) {
+//							colDef.rowGroupIndex = 0;
+//						}
+						
+						colDef.enableRowGroup = column.enableRowGroup;
 
 						colDefs.push(colDef);
 					}
