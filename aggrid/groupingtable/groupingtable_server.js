@@ -1,45 +1,52 @@
 $scope.getGroupedChildFoundsetUUID = function(parentFoundset, parentRecordFinder, parentLevelGroupColumnIndex, newLevelGroupColumnIndex, idForFoundsets) {
 	// root is the parent
 	console.log('SERVER SIDE');
-	if (!parentFoundset) parentFoundset = $scope.model.myFoundset.foundset;
-
+	if (!parentFoundset) {
+		parentFoundset = $scope.model.myFoundset.foundset;
+	} else {
+		console.log('Has a Parent Foundset');
+	}
+	
 	/** @type {QBSelect} */
 	var query = parentFoundset.getQuery();
+	
+	console.log(query);
 
 	var groupColumn;
 	var groupDataprovider;
 	if (newLevelGroupColumnIndex && newLevelGroupColumnIndex > -1) {
 		// retrieve the grouping column
 		groupDataprovider = $scope.model.columns[newLevelGroupColumnIndex].dataprovider;
+		console.log('group on ' + groupDataprovider);
 		groupColumn = query.getColumn(groupDataprovider);
 	} else { // is not a new group, will be a leaf !
 
 	}
 
 	console.log('try')
-	if (parentLevelGroupColumnIndex == undefined) { // this is the root column
-		// this is the first grouping operation; alter initial query to get all first level groups
+	//	if (parentLevelGroupColumnIndex == undefined) { // this is the root column
+	// this is the first grouping operation; alter initial query to get all first level groups
 
-		var pkColumns = query.result.getColumns();
+	var pkColumns = query.result.getColumns();
 
-		query.result.clear();
-		// Group pks handle pks
-		for (var i = 0; i < pkColumns.length; i++) {
-			query.result.add(pkColumns[i].min);
-		}
-		query.groupBy.add(groupColumn);
-		query.sort.clear();
-		query.sort.add(groupColumn);
-
-	} else {
-		// this is an intemediate group expand; alter query of parent level for the child level
-		query.groupBy.clear();
-		query.groupBy.add(groupColumn);
-		var parentGroupColumnName = $scope.model.columns[parentLevelGroupColumnIndex].dataprovider;
-		query.where.add(query.columns[parentGroupColumnName].eq(parentRecordFinder(parentFoundset)[parentGroupColumnName]));
+	query.result.clear();
+	// Group pks handle pks
+	for (var i = 0; i < pkColumns.length; i++) {
+		query.result.add(pkColumns[i].min);
 	}
+	query.groupBy.add(groupColumn);
+	query.sort.clear();
+	query.sort.add(groupColumn);
 
-	console.log('Run Query ' + groupColumn);
+	//	} else {
+	//		// this is an intemediate group expand; alter query of parent level for the child level
+	//		query.groupBy.clear();
+	//		query.groupBy.add(groupColumn);
+	//		var parentGroupColumnName = $scope.model.columns[parentLevelGroupColumnIndex].dataprovider;
+	//		query.where.add(query.columns[parentGroupColumnName].eq(parentRecordFinder(parentFoundset)[parentGroupColumnName]));
+	//	}
+
+	console.log('Run Query ' + query);
 
 	// console.log(databaseManager.getSQL(query));
 
@@ -86,27 +93,22 @@ $scope.getLeafChildFoundsetUUID = function(parentFoundset, parentRecordFinder, p
 	var groupColumn;
 	var groupDataprovider;
 	var groupValue;
-	
 
 	groupDataprovider = $scope.model.columns[parentLevelGroupColumnIndex].dataprovider;
 	groupColumn = query.getColumn(groupDataprovider);
 	groupValue = parentRecordFinder['col_' + parentLevelGroupColumnIndex];
-	
-	console.log(parentRecordFinder)
 
+	console.log(parentRecordFinder)
 
 	// this is an intemediate group expand; alter query of parent level for the child level
 	query.where.add(groupColumn.eq(groupValue));
 
-	console.log('Run Query ' + ' - ' + parentLevelGroupColumnIndex +  ' - ' + groupValue);
+	console.log('Run Query ' + ' - ' + parentLevelGroupColumnIndex + ' - ' + groupValue);
 
 	// console.log(databaseManager.getSQL(query));
 
 	var childFoundset = parentFoundset.duplicateFoundSet();
 	childFoundset.loadRecords(query);
-	
-	
-	
 
 	// push dataproviders to the clientside foundset
 	var dps = { };

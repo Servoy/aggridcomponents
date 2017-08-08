@@ -21,6 +21,20 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				 * */
 				var PromiseType;
 
+				/**
+				 * @typedef {{
+				 * endRow:Number,
+				 * filterModel:Object,
+				 * groupKeys:Array,
+				 * rowGroupCols:Array,
+				 * sortModel:Array,
+				 * startRow: Number,
+				 * valueCols: Array
+				 * }}
+				 *
+				 * */
+				var AgDataRequestType;
+
 				$scope.refresh = function(count) {
 					gridOptions.api.refreshInfiniteCache();
 				}
@@ -167,7 +181,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						var result = [];
 						startIndex = startIndex ? startIndex : 0;
 						endIndex = endIndex ? endIndex : thisInstance.foundset.viewPort.rows.length;
-						
+
 						// index cannot exceed ServerSize
 						startIndex = Math.min(startIndex, thisInstance.foundset.serverSize);
 						endIndex = Math.min(endIndex, thisInstance.foundset.serverSize);
@@ -257,10 +271,10 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				}
 
 				// TODO to be completed, use the GroupHashCache to persist foundset UUID for rowGroupCols/groupKeys combinations
-				/** 
+				/**
 				 * This object is used to keep track of cached foundset depending on rowGroupCol and groupKeys criteria.
 				 * Any time a foundset is retrieved is persisted in this object.
-				 * 
+				 *
 				 * TODO is not stateful (lost once is refreshed) while the foundset are statefull, potentially can create memory leaks (too many foundset for the same criteria retrieved)
 				 * TODO desist foundset from memory. Remove foundset
 				 * 		Clear ALL
@@ -315,6 +329,13 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					 * */
 					function getTreeNode(tree, rowGroupCols, groupKeys, create) {
 
+						var result = null;
+
+						if (rowGroupCols.length > groupKeys.length + 1) {
+							//							$log.warn('discard row groups ' + (rowGroupCols.length - groupKeys.length));
+							rowGroupCols = rowGroupCols.slice(0, groupKeys.length + 1);
+						}
+
 						/*
 						 * {
 						 * 	columnId {
@@ -338,76 +359,93 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 							return null;
 						}
 
+						// the column id e.g. customerid, shipcity
+						var columnId = rowGroupCols[0].field;
+
+						// the tree for the given column
+						var colTree = tree[columnId];
+
+						// create the tree node if does not exist
+						if (!colTree && create) {
+							colTree = {
+								nodes: { },
+								foundsetUUID: null
+							};
+							tree[columnId] = colTree;
+						} else if (!colTree) { // or return null
+							return null;
+						}
+
 						if (rowGroupCols.length === 1) { // the last group
 
-							if (groupKeys.length === 1) { // is a leaf child
+							if (groupKeys.length === 0) { // is a leaf child
+								result = colTree;
+							} else if (groupKeys.length === 1) { // is a leaf child
 
 								// get the subtree matching the rowGroupCols
-								var columnId = rowGroupCols[0].field;
 								var key = groupKeys[0];
-								var subTree = tree[columnId];
-								if (subTree) { // rowGroup already exists
-									var subTreeGroupKey = subTree.nodes[key];
+								var keyTree = colTree.nodes[key];
 
-									// create the subtree
-									if (!subTreeGroupKey && create) { // keyGroup doesn't exist
-										subTreeGroupKey = new Object();
-										subTree.nodes[key] = subTreeGroupKey;
+								// create the key tree node if does not exist
+								if (!keyTree && create) {
+									keyTree = {
+										foundsetUUID: null,
+										nodes: new Object()
 									}
-									return subTreeGroupKey;
-								} else { // rowGroup not found
-									if (create) {
-										var newTree = {
-											nodes: new Object(),
-											foundsetUUID: null
-										}
-
-										subTree[key] = newTree;
-										return newTree;
-
-									} else {
-										return null;
-									}
+									colTree.nodes[key] = keyTree;
+								} else if (!keyTree) { // or return null
+									return null;
 								}
+
+								result = keyTree;
+
 							} else { // no group key criteria
-								var key = rowGroupCols[0].field;
-								var node = tree[key];
-								if (!node && create) {
-									tree[key] = {
-										nodes: { },
-										foundsetUUID: null
-									};
-								}
-								return tree[key];
+								$log.warn("this should not happen");
 							}
 
-						} else { // is not the last group
-							var column = rowGroupCols[0];
+						} else if (rowGroupCols.length > 1) { // is not the last group
 							var key = groupKeys.length ? groupKeys[0] : null;
-							var columnId = column.field;
-							var subTree = tree[columnId];
 
-							if (!subTree) {
+							if (!colTree) {
 								$log.warn("this should not happen")
 								return null;
 							}
 
-							if (key !== null) {
-								subTree = subTree.nodes[key];
-							} else {
-								$log.warn("this should not happen")
-								// do i need it ?
-							}
+							var subTree = colTree;
 
-							// check if key ?
+							if (key !== null) {
+								var keyTree = colTree.nodes[key];
+
+								// create the key tree node if does not exist
+								if (!keyTree && create) {
+									keyTree = {
+										foundsetUUID: null,
+										nodes: new Object()
+									}
+									colTree.nodes[key] = keyTree;
+								} else if (!keyTree) {
+									return null;
+								}
+
+								subTree = keyTree;
+
+							} else {
+								// if is not the last group, should always have a key criteria
+								$log.warn("this should not happen")
+							}
 
 							rowGroupCols = rowGroupCols.slice(1);
 							groupKeys = groupKeys.slice(1);
 
-							return getTreeNode(subTree, rowGroupCols, groupKeys, create);
+							result = getTreeNode(subTree.nodes, rowGroupCols, groupKeys, create);
 
+						} else {
+							$log.warn("No group criteria, should not happen");
 						}
+
+						return result;
 					}
+
 				}
 
 				/**
@@ -457,100 +495,150 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						var parentIndex; // the index of the parent column
 						var columnIndex; // the index of the grouped column
 
-						if (rowGroupCols.length === groupKeys.length) { // expand a node
+						// for each intermediate group, i need the parent foundset hash (..or i should apply all the query criteria at each level...)
 
-							// TODO handle multilevel
+						// if first level return the first foundset with no group criteria, if on second level, foundset will have group criteria
+						//							for (idx = 0; idx < rowGroupCols.length; idx++) {
+						//								// TODO loop over columns
+						//								var columnId = rowGroupCols[idx].field; //
+						//								columnIndex = getColumnIndex(columnId);
+						//
+						//								// get the foundset Reference
+						//								var foundsetRef = hashTree.getCachedFoundset(rowGroupCols, groupKeys);
+						//								if (foundsetRef) { // the foundsetReference is already cached
+						//									resultPromise.resolve(foundsetRef);
+						//								} else { // need to get a new foundset reference
+						//									// create the subtree
+						//									// FIXME i will miss information about the root columns. I need an array of matching column, not an index. e.g. [ALFKI, Italy, Roma]
+						//									var promise = getHashFoundset(null, null, parentIndex, columnIndex);
+						//									promise.then(getHashFoundsetSuccess)
+						//									promise.catch(promiseError);
+						//								}
+						//
+						//								parentIndex = columnIndex;
+						//
+						//								/** @return {Object} returns the foundsetRef object */
+						//								function getHashFoundsetSuccess(foundsetRef) {
+						//
+						//									if (!foundsetRef) {
+						//										$log.error("why i don't have a foundset ref ?")
+						//										return;
+						//									} else {
+						//										$log.warn(foundsetRef);
+						//									}
+						//
+						//									// cache the foundsetRef
+						//									//hashTree[columnId] = foundsetRef;
+						//									// TODO does it have a UUID ?
+						//									hashTree.setCachedFoundset(rowGroupCols, groupKeys, foundsetRef)
+						//
+						//									$log.warn('success');
+						//									resultPromise.resolve(foundsetRef);
+						//								}
+						//
+						//							}
+
+						// ignore rowGroupColumns which are still collapsed (don't have a matchig key)
+						rowGroupCols = rowGroupCols.slice(0, groupKeys.length + 1);
+
+						// possibilities
+
+						// is a root group CustomerID
+
+						// is a second level group CustomerID, ShipCity
+
+						// is a third level group CustomerID, ShipCity, ShipCountry
+						
+						var parentUUID = null;
+						
+						// recursevely load hashFoundset
+						getRowColumnHashFoundset(0);
+
+
+						function getRowColumnHashFoundset(index) {
+
+							var groupCols = rowGroupCols.slice(0, index + 1);
+							var keys = groupKeys.slice(0, index + 1);
+
+							$log.warn(groupCols)
+							$log.warn(keys);
+
+							// get a foundset for each grouped level
+							// resolve promise when got to the last level
+
+							// TODO loop over columns
+							var columnId = groupCols[groupCols.length - 1].field; //
+							columnIndex = getColumnIndex(columnId);
 
 							// get the foundset Reference
-							var foundsetRef = hashTree.getCachedFoundset(rowGroupCols, groupKeys);
-							if (foundsetRef) { // the foundsetReference is already cached
-								resultPromise.resolve(foundsetRef);
+							var foundsetHash = hashTree.getCachedFoundset(groupCols, keys);
+							if (foundsetHash) { // the foundsetReference is already cached
+								if (index === rowGroupCols.length - 1) { // resolve when last rowColumn foundset has been loaded
+									var foundsetRef = getFoundSetByFoundsetUUID(foundsetHash);
+									resultPromise.resolve(foundsetRef);
+								} else {
+									parentUUID = foundsetHash;
+									getRowColumnHashFoundset(index + 1); // load the foundset for the next group
+								}
+
 							} else { // need to get a new foundset reference
 								// create the subtree
 								// FIXME i will miss information about the root columns. I need an array of matching column, not an index. e.g. [ALFKI, Italy, Roma]
 
-								var searchRow = new Object();
-								for (var idx = 0; idx < groupKeys.length; idx++) {
-									// find
-									var columnId = rowGroupCols[idx].field;
-									columnIndex = getColumnIndex(columnId);
-									searchRow['col_' + columnIndex] = groupKeys[idx];
+								if (groupCols.length === keys.length) { // if is a leaf
+									var searchRow = new Object();
+									for (var idx = 0; idx < groupKeys.length; idx++) {
+										// find
+										var columnId = rowGroupCols[idx].field;
+										columnIndex = getColumnIndex(columnId);
+										searchRow['col_' + columnIndex] = groupKeys[idx];
+									}
+
+									$log.warn(searchRow);
+
+									var promiseLeaf = getHashFoundset(parentUUID, searchRow, columnIndex);
+									promiseLeaf.then(getHashFoundsetSuccess)
+									promiseLeaf.catch(promiseError);
+								} else { // if is a group node
+
+									var promise = getHashFoundset(parentUUID, null, parentIndex, columnIndex);
+									promise.then(getHashFoundsetSuccess)
+									promise.catch(promiseError);
 								}
-
-								$log.warn(searchRow);
-
-								var promiseLeaf = getHashFoundset(null, searchRow, columnIndex);
-								promiseLeaf.then(getHashLeafFoundsetSuccess)
-								promiseLeaf.catch(promiseError);
 							}
 
+							// update the parent index
 							parentIndex = columnIndex;
 
-							// TODO loop over all data to retrieve the _svyRowId
-							// TODO return parentFoundsetHash ? (i need this if is a second level group !!). Retrieving parent foundset i already have the condition on the first level
-							//							var promiseLeaf = getHashFoundset(null, searchRow, columnIndex);
-							//							promiseLeaf.then(getHashLeafFoundsetSuccess)
-							//							promiseLeaf.catch(promiseError);
-
 							/** @return {Object} returns the foundsetRef object */
-							function getHashLeafFoundsetSuccess(foundsetRef) {
+							function getHashFoundsetSuccess(childFoundset) {
 
-								if (!foundsetRef) {
+								if (!childFoundset) {
 									$log.error("why i don't have a foundset ref ?")
 									return;
 								} else {
 									$log.warn(foundsetRef);
 								}
-								
-								hashTree.setCachedFoundset(rowGroupCols, groupKeys, foundsetRef)
 
-								$log.warn('success');
-								resultPromise.resolve(foundsetRef);
+								// the hash of the parent foundset
+								var foundsetUUID = childFoundset.foundsetUUID;
+								var foundsetRef = childFoundset.foundsetRef;
 
+								// for the next child
+								parentUUID = foundsetUUID;
+
+								// cache the foundsetRef
+								hashTree.setCachedFoundset(groupCols, keys, foundsetUUID);
+
+								$log.warn('success ' + foundsetUUID);
+
+								if (index === rowGroupCols.length - 1) { // resolve when last rowColumn foundset has been loaded
+									resultPromise.resolve(foundsetRef);
+								} else {
+									getRowColumnHashFoundset(index + 1); // load the foundset for the next group
+								}
 							}
 
-						} else { // scroll a group
-
-							// if first level return the first foundset with no group criteria, if on second level, foundset will have group criteria
-							for (idx = 0; idx < rowGroupCols.length; idx++) {
-								// TODO loop over columns
-								var columnId = rowGroupCols[idx].field; //
-								columnIndex = getColumnIndex(columnId);
-
-								// get the foundset Reference
-								var foundsetRef = hashTree.getCachedFoundset(rowGroupCols, groupKeys);
-								if (foundsetRef) { // the foundsetReference is already cached
-									resultPromise.resolve(foundsetRef);
-								} else { // need to get a new foundset reference
-									// create the subtree
-									// FIXME i will miss information about the root columns. I need an array of matching column, not an index. e.g. [ALFKI, Italy, Roma]
-									var promise = getHashFoundset(null, null, parentIndex, columnIndex);
-									promise.then(getHashFoundsetSuccess)
-									promise.catch(promiseError);
-								}
-
-								parentIndex = columnIndex;
-
-								/** @return {Object} returns the foundsetRef object */
-								function getHashFoundsetSuccess(foundsetRef) {
-
-									if (!foundsetRef) {
-										$log.error("why i don't have a foundset ref ?")
-										return;
-									} else {
-										$log.warn(foundsetRef);
-									}
-
-									// cache the foundsetRef
-									//hashTree[columnId] = foundsetRef;
-									// TODO does it have a UUID ?
-									hashTree.setCachedFoundset(rowGroupCols, groupKeys, foundsetRef)
-
-									$log.warn('success');
-									resultPromise.resolve(foundsetRef);
-								}
-
-							}
 						}
 
 						function promiseError(e) {
@@ -619,7 +707,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 							}
 
 							childFoundset.addChangeListener(childChangeListener);
-							resultDeferred.resolve(childFoundset)
+							resultDeferred.resolve({ foundsetRef: childFoundset, foundsetUUID: childFoundsetUUID });
 							// TODO get data
 							//mergeData('', childFoundset);
 						}, function(e) {
@@ -639,12 +727,13 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				 * Get Foundset by UUID
 				 * */
 				function getFoundSetByFoundsetUUID(foundsetHash) {
-					if ($scope.model.hashedFoundsets)
+					if ($scope.model.hashedFoundsets) {
 						for (var i = 0; i < $scope.model.hashedFoundsets.length; i++) {
 							if ($scope.model.hashedFoundsets[i].foundsetUUID == foundsetHash)
 								return $scope.model.hashedFoundsets[i].foundset;
 
 						}
+					}
 					return null;
 				}
 
@@ -914,7 +1003,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				}
 
 				/**
-				 * @param {Object} request
+				 * @param {AgDataRequestType} request
 				 * @param {Function} callback callback(data, isLastRow)
 				 * @protected
 				 * */
