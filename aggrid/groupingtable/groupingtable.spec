@@ -80,7 +80,7 @@
 			"returns" : "dataset"
 		}
 	}, 
-	"api" : {
+	"internalApi" : {
 		"getGroupedChildFoundsetUUID" : {
             "returns" : "foundsetRef",
             "parameters" :
@@ -129,7 +129,8 @@
 			"format" : "format",
 			"visible":  { "type": "boolean", "default": true },
 			"onActionMethodID" : "function",
-			"enableRowGroup" : {"type": "boolean", "default" : true}
+			"enableRowGroup" : {"type": "boolean", "default" : true},
+			"rowGroupIndex":  {"type": "int", "default": null}
 		},
 		 "hashedFoundset" : {
             "foundset": "foundset",

@@ -39,7 +39,7 @@ $scope.getGroupedChildFoundsetUUID = function(parentFoundset, parentRecordFinder
 		query.where.add(query.columns[parentGroupColumnName].eq(parentRecordFinder(parentFoundset)[parentGroupColumnName]));
 	}
 
-	console.log('Run Query');
+	console.log('Run Query ' + groupColumn);
 
 	// console.log(databaseManager.getSQL(query));
 
