@@ -6,10 +6,12 @@ $scope.getGroupedChildFoundsetUUID = function(parentFoundset, parentRecordFinder
 	} else {
 		console.log('Has a Parent Foundset');
 	}
-	
+
+	// FIXME i cannot get the query from the parent foundset. I don't know if there is any duplicate relation.
+	// I need the full column/key mapping
 	/** @type {QBSelect} */
-	var query = parentFoundset.getQuery();
-	
+	var query = getQuery(parentFoundset); //parentFoundset.getQuery();
+
 	console.log(query);
 
 	var groupColumn;
@@ -18,7 +20,31 @@ $scope.getGroupedChildFoundsetUUID = function(parentFoundset, parentRecordFinder
 		// retrieve the grouping column
 		groupDataprovider = $scope.model.columns[newLevelGroupColumnIndex].dataprovider;
 		console.log('group on ' + groupDataprovider);
-		groupColumn = query.getColumn(groupDataprovider);
+
+		if (isRelatedDataprovider(groupDataprovider)) {
+			// should search for all the relations (can be multiple level)
+
+			var relationNames = getDataProviderRelations(groupDataprovider);
+			var columnName = getDataProviderColumn(groupDataprovider);
+
+			console.log('is a join on ' + columnName);
+
+			var join;
+			// FIXME how do i know if has already a relation ?
+			for (var i = 0; i < relationNames.length; i++) {
+				var relationName = relationNames[i];
+				var existingJoin = getJoin(query, relationName);
+				if (existingJoin) {
+					join = existingJoin;
+				} else {
+					join = query.joins.add(relationName, relationName);
+				}
+			}
+
+			groupColumn = join.getColumn(columnName);
+		} else {
+			groupColumn = query.getColumn(groupDataprovider);
+		}
 	} else { // is not a new group, will be a leaf !
 
 	}
@@ -27,9 +53,12 @@ $scope.getGroupedChildFoundsetUUID = function(parentFoundset, parentRecordFinder
 	//	if (parentLevelGroupColumnIndex == undefined) { // this is the root column
 	// this is the first grouping operation; alter initial query to get all first level groups
 
-	var pkColumns = query.result.getColumns();
-
+	// get the pks
 	query.result.clear();
+	query.result.addPk();
+	var pkColumns = query.result.getColumns();
+	query.result.clear();
+	
 	// Group pks handle pks
 	for (var i = 0; i < pkColumns.length; i++) {
 		query.result.add(pkColumns[i].min);
@@ -69,7 +98,9 @@ $scope.getGroupedChildFoundsetUUID = function(parentFoundset, parentRecordFinder
 			dataproviders: dps,
 			sendSelectionViewportInitially: false,
 			initialPreferredViewPortSize: 15
-		}, foundsetUUID: childFoundset
+		}, 
+		foundsetUUID: childFoundset,
+		query: query
 	}); // send it to client as a foundset property with a UUID
 
 	// TODO this is not required
@@ -88,20 +119,47 @@ $scope.getLeafChildFoundsetUUID = function(parentFoundset, parentRecordFinder, p
 	if (!parentFoundset) parentFoundset = $scope.model.myFoundset.foundset;
 
 	/** @type {QBSelect} */
-	var query = parentFoundset.getQuery();
+	var query = getQuery(parentFoundset); //parentFoundset.getQuery();
 
 	var groupColumn;
 	var groupDataprovider;
 	var groupValue;
 
 	groupDataprovider = $scope.model.columns[parentLevelGroupColumnIndex].dataprovider;
-	groupColumn = query.getColumn(groupDataprovider);
 	groupValue = parentRecordFinder['col_' + parentLevelGroupColumnIndex];
+
+	if (isRelatedDataprovider(groupDataprovider)) {
+		// should search for all the relations (can be multiple level)
+
+		var relationNames = getDataProviderRelations(groupDataprovider);
+		var columnName = getDataProviderColumn(groupDataprovider);
+
+		console.log('is a join on ' + columnName);
+
+		var join;
+		// FIXME how do i know if has already a relation ?
+		for (var i = 0; i < relationNames.length; i++) {
+			var relationName = relationNames[i];
+
+			var existingJoin = getJoin(query, relationName);
+
+			if (existingJoin) {
+				join = existingJoin;
+			} else {
+				join = query.joins.add(relationName, relationName);
+			}
+		}
+
+		groupColumn = join.getColumn(columnName);
+	} else {
+		groupColumn = query.getColumn(groupDataprovider);
+	}
 
 	console.log(parentRecordFinder)
 
 	// this is an intemediate group expand; alter query of parent level for the child level
 	query.where.add(groupColumn.eq(groupValue));
+	
 
 	console.log('Run Query ' + ' - ' + parentLevelGroupColumnIndex + ' - ' + groupValue);
 
@@ -126,7 +184,9 @@ $scope.getLeafChildFoundsetUUID = function(parentFoundset, parentRecordFinder, p
 			dataproviders: dps,
 			sendSelectionViewportInitially: false,
 			initialPreferredViewPortSize: 15
-		}, foundsetUUID: childFoundset
+		}, 
+		foundsetUUID: childFoundset,
+		query: query
 	}); // send it to client as a foundset property with a UUID
 
 	// TODO this is not required
@@ -137,3 +197,84 @@ $scope.getLeafChildFoundsetUUID = function(parentFoundset, parentRecordFinder, p
 
 	return childFoundset; // return the UUID that points to this foundset (return type will make it UUID)
 };
+
+/** 
+ * @private
+ * @return {QBSelect}
+ * */
+function getQuery(foundset) {
+//	for (var i = 0; i < $scope.model.hashedFoundsets.length; i++) {
+//		var hashedFoundset = $scope.model.hashedFoundsets[i];
+//		if (hashedFoundset.foundsetUUID === foundset) {
+//			return hashedFoundset.query;
+//		}
+//	}
+	return foundset.getQuery();
+} 
+
+/** 
+ * @param {QBSelect} query
+ * @return {QBSelect}
+ * */
+function cloneQuery(query) {
+	return query;
+}
+
+/**
+ * @param {String} dataProvider
+ * @return {Array<String>}
+ * @private
+ *
+ * @properties={typeid:24,uuid:"87D941E5-A21F-4E71-8ED5-0AD8AFD913C9"}
+ */
+function getDataProviderRelations(dataProvider) {
+	var relationStack = dataProvider.split(".");
+	return relationStack.slice(0, relationStack.length - 1);
+}
+
+/**
+ * @param {String} dataProvider
+ * @return {String}
+ * @private
+ *
+ * @properties={typeid:24,uuid:"C1F7538D-355D-4215-A9A5-17E8DBFBC60A"}
+ */
+function getDataProviderColumn(dataProvider) {
+	var relationStack = dataProvider.split(".");
+	return relationStack[relationStack.length - 1];
+}
+
+/**
+ * @param {String} dataProvider
+ * @return {Boolean}
+ * @private
+ *
+ * @properties={typeid:24,uuid:"C1F7538D-355D-4215-A9A5-17E8DBFBC60A"}
+ */
+function isRelatedDataprovider(dataProvider) {
+	return dataProvider.split(".").length > 1;
+}
+
+/**
+ * @param {QBSelect} query
+ * @param {String} alias
+ *
+ * @return {QBJoin}
+ * */
+function getJoin(query, alias) {
+
+	var joins = query.joins.getJoins();
+
+	console.log('getJoins ' + joins.length);
+	for (var i = 0; i < joins.length; i++) {
+		var join = joins[i];
+
+		console.log(join.getTableAlias());
+		if (join.getTableAlias() == alias) {
+			return join;
+		}
+	}
+	return null;
+}
+
+

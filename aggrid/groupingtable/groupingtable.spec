@@ -134,7 +134,8 @@
 		},
 		 "hashedFoundset" : {
             "foundset": "foundset",
-            "foundsetUUID": "foundsetRef"
+            "foundsetUUID": "foundsetRef",
+            "query" : "object"
         }  
 	}
 }
