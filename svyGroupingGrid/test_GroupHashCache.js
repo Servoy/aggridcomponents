@@ -324,3 +324,27 @@ function test_getCachedFoundset() {
 
 
 }
+
+
+/* 
+ * 
+select min(orderid) from orders where customerid = 'ALFKI' group by shipcity order by shipcity;
+
+update orders set shipcountry = 'Greece' where shipcity = 'Athens' or shipcity = 'Thessaloniki';
+
+select * from orders where customerid = 'ALFKI' order by shipcity ;
+
+update orders set shipcountry = 'Spain' where shipcity = 'Barcelona' or shipcity = 'Madrid';
+
+update orders set shipcountry = 'Italy' where shipcity = 'Rome' or shipcity = 'Milan';
+
+update orders set shipcountry = 'Norway' where shipcity = 'Oslo';
+
+update orders set shipcountry = 'Netherlands' where shipcity = 'Amsterdam';
+
+update orders set shipcountry = 'France' where shipcity = 'Paris';
+
+select * from orders where customerid = 'ALFKI' AND shipcity = 'Madrid'
+
+
+ */

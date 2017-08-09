@@ -105,7 +105,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				};
 				// TODO add default sort
 
-				var gridDiv = document.querySelector('#myGrid');
+				var gridDiv = $element.find('.ag-grouping')[0];
 				new agGrid.Grid(gridDiv, gridOptions);
 
 				// listen for sort change
