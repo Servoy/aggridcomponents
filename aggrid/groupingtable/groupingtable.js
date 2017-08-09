@@ -495,49 +495,6 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						var parentIndex; // the index of the parent column
 						var columnIndex; // the index of the grouped column
 
-						// for each intermediate group, i need the parent foundset hash (..or i should apply all the query criteria at each level...)
-
-						// if first level return the first foundset with no group criteria, if on second level, foundset will have group criteria
-						//							for (idx = 0; idx < rowGroupCols.length; idx++) {
-						//								// TODO loop over columns
-						//								var columnId = rowGroupCols[idx].field; //
-						//								columnIndex = getColumnIndex(columnId);
-						//
-						//								// get the foundset Reference
-						//								var foundsetRef = hashTree.getCachedFoundset(rowGroupCols, groupKeys);
-						//								if (foundsetRef) { // the foundsetReference is already cached
-						//									resultPromise.resolve(foundsetRef);
-						//								} else { // need to get a new foundset reference
-						//									// create the subtree
-						//									// FIXME i will miss information about the root columns. I need an array of matching column, not an index. e.g. [ALFKI, Italy, Roma]
-						//									var promise = getHashFoundset(null, null, parentIndex, columnIndex);
-						//									promise.then(getHashFoundsetSuccess)
-						//									promise.catch(promiseError);
-						//								}
-						//
-						//								parentIndex = columnIndex;
-						//
-						//								/** @return {Object} returns the foundsetRef object */
-						//								function getHashFoundsetSuccess(foundsetRef) {
-						//
-						//									if (!foundsetRef) {
-						//										$log.error("why i don't have a foundset ref ?")
-						//										return;
-						//									} else {
-						//										$log.warn(foundsetRef);
-						//									}
-						//
-						//									// cache the foundsetRef
-						//									//hashTree[columnId] = foundsetRef;
-						//									// TODO does it have a UUID ?
-						//									hashTree.setCachedFoundset(rowGroupCols, groupKeys, foundsetRef)
-						//
-						//									$log.warn('success');
-						//									resultPromise.resolve(foundsetRef);
-						//								}
-						//
-						//							}
-
 						// ignore rowGroupColumns which are still collapsed (don't have a matchig key)
 						rowGroupCols = rowGroupCols.slice(0, groupKeys.length + 1);
 
@@ -548,12 +505,11 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						// is a second level group CustomerID, ShipCity
 
 						// is a third level group CustomerID, ShipCity, ShipCountry
-						
+
 						var parentUUID = null;
-						
+
 						// recursevely load hashFoundset
 						getRowColumnHashFoundset(0);
-
 
 						function getRowColumnHashFoundset(index) {
 
@@ -585,26 +541,17 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 								// create the subtree
 								// FIXME i will miss information about the root columns. I need an array of matching column, not an index. e.g. [ALFKI, Italy, Roma]
 
-								if (groupCols.length === keys.length) { // if is a leaf
-									var searchRow = new Object();
-									for (var idx = 0; idx < groupKeys.length; idx++) {
-										// find
-										var columnId = rowGroupCols[idx].field;
-										columnIndex = getColumnIndex(columnId);
-										searchRow['col_' + columnIndex] = groupKeys[idx];
-									}
-
-									$log.warn(searchRow);
-
-									var promiseLeaf = getHashFoundset(parentUUID, searchRow, columnIndex);
-									promiseLeaf.then(getHashFoundsetSuccess)
-									promiseLeaf.catch(promiseError);
-								} else { // if is a group node
-
-									var promise = getHashFoundset(parentUUID, null, parentIndex, columnIndex);
-									promise.then(getHashFoundsetSuccess)
-									promise.catch(promiseError);
+								// get the index of each grouped column
+								var groupColumnIndexes = [];
+								for (var idx = 0; idx < groupCols.length; idx++) {
+									var columnId = rowGroupCols[idx].field;
+									columnIndex = getColumnIndex(columnId);
+									groupColumnIndexes.push(columnIndex);
 								}
+
+								var promise = getHashFoundset(groupColumnIndexes, keys);
+								promise.then(getHashFoundsetSuccess)
+								promise.catch(promiseError);
 							}
 
 							// update the parent index
@@ -658,10 +605,45 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					 *
 					 * @return {PromiseType}
 					 *  */
-					function getHashFoundset(parentFoundsetHash, rowId, parentLevelGroupColumnIndex, newLevelGroupColumnIndex) {
+					function getHashFoundset(groupColumns, groupKeys) {
 						// TODO do i neet this method for something ?
-						return getChildFoundSetHash(parentFoundsetHash, rowId, parentLevelGroupColumnIndex, newLevelGroupColumnIndex)
+						//return getChildFoundSetHash(parentFoundsetHash, rowId, parentLevelGroupColumnIndex, newLevelGroupColumnIndex)
 
+						var resultDeferred = $q.defer();
+
+						// parentFoundsetHash comes from the foundset referece type property
+						// rowId comes from the foundset property type's viewport
+						// parentLevelGroupColumnIndex and newLevelGroupColumnIndex are indexes in
+						// an array property that holds dataproviders
+						var childFoundsetPromise;
+
+						// TODO store it in cache. Requires to be updated each time column array Changes
+						var idForFoundsets = [];
+						for (var i = 0; i < $scope.model.columns.length; i++) {
+							idForFoundsets.push(getColumnID($scope.model.columns[i], i));
+						}
+
+						childFoundsetPromise = $scope.svyServoyapi.callServerSideApi("getGroupedFoundsetUUID",
+							[groupColumns, groupKeys, idForFoundsets]);
+
+						childFoundsetPromise.then(function(childFoundsetUUID) {
+								$log.warn(childFoundsetUUID);
+								var childFoundset = getFoundSetByFoundsetUUID(childFoundsetUUID);
+								if (!childFoundset) {
+									$log.error("why i don't have a childFoundset ?")
+								}
+
+								childFoundset.addChangeListener(childChangeListener);
+								resultDeferred.resolve({ foundsetRef: childFoundset, foundsetUUID: childFoundsetUUID });
+								// TODO get data
+								//mergeData('', childFoundset);
+							}, function(e) {
+								$log.error(e);
+								resultDeferred.reject(e);
+								// some error happened
+							});
+
+						return resultDeferred.promise;
 					}
 
 				}

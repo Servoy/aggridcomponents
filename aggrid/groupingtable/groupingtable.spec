@@ -81,6 +81,21 @@
 		}
 	}, 
 	"internalApi" : {
+		"getGroupedFoundsetUUID" : {
+            "returns" : "foundsetRef",
+            "parameters" :
+            [{
+                    "name": "groupColumns",
+                    "type": "int[]"
+                }, {
+                    "name": "groupKeys",
+                    "type": "object[]"
+                }, {
+                	"name" : "idForFoundsets",
+                	"type" : "string[]"
+                }
+            ]
+        },
 		"getGroupedChildFoundsetUUID" : {
             "returns" : "foundsetRef",
             "parameters" :
