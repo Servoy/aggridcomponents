@@ -597,24 +597,17 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					}
 
 					/**
-					 * Returns the foundset from hash
-					 * @param {String} parentFoundsetHash
-					 * @param {Array<Object>} rowId
-					 * @param {Number} parentLevelGroupColumnIndex
-					 * @param {Number} [newLevelGroupColumnIndex]
+					 * Handle ChildFoundsets
+					 * Returns the foundset in a promise
+					 * @param {Array<Number>} groupColumns index of all grouped columns
+					 * @param {Array} groupKeys value for each grouped column 
 					 *
 					 * @return {PromiseType}
 					 *  */
 					function getHashFoundset(groupColumns, groupKeys) {
-						// TODO do i neet this method for something ?
-						//return getChildFoundSetHash(parentFoundsetHash, rowId, parentLevelGroupColumnIndex, newLevelGroupColumnIndex)
 
 						var resultDeferred = $q.defer();
 
-						// parentFoundsetHash comes from the foundset referece type property
-						// rowId comes from the foundset property type's viewport
-						// parentLevelGroupColumnIndex and newLevelGroupColumnIndex are indexes in
-						// an array property that holds dataproviders
 						var childFoundsetPromise;
 
 						// TODO store it in cache. Requires to be updated each time column array Changes
@@ -646,59 +639,6 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						return resultDeferred.promise;
 					}
 
-				}
-
-				/**
-				 * Handle ChildFoundsets
-				 * Returns the foundset in a promise
-				 *
-				 * @param {String} parentFoundsetHash
-				 * @param {Array<Object>} rowId
-				 * @param {Number} parentLevelGroupColumnIndex
-				 * @param {Number} [newLevelGroupColumnIndex]
-				 *
-				 * @return {PromiseType}				 * */
-				function getChildFoundSetHash(parentFoundsetHash, rowId, parentLevelGroupColumnIndex, newLevelGroupColumnIndex) {
-					var resultDeferred = $q.defer();
-
-					// parentFoundsetHash comes from the foundset referece type property
-					// rowId comes from the foundset property type's viewport
-					// parentLevelGroupColumnIndex and newLevelGroupColumnIndex are indexes in
-					// an array property that holds dataproviders
-					var childFoundsetPromise;
-
-					// TODO store it in cache. Requires to be updated each time column array Changes
-					var idForFoundsets = [];
-					for (var i = 0; i < $scope.model.columns.length; i++) {
-						idForFoundsets.push(getColumnID($scope.model.columns[i], i));
-					}
-
-					if (newLevelGroupColumnIndex || newLevelGroupColumnIndex === 0) {
-						childFoundsetPromise = $scope.svyServoyapi.callServerSideApi("getGroupedChildFoundsetUUID",
-							[parentFoundsetHash, rowId, parentLevelGroupColumnIndex, newLevelGroupColumnIndex, idForFoundsets]);
-					} else {
-						childFoundsetPromise = $scope.svyServoyapi.callServerSideApi("getLeafChildFoundsetUUID",
-							[parentFoundsetHash, rowId, parentLevelGroupColumnIndex, idForFoundsets]);
-					}
-
-					childFoundsetPromise.then(function(childFoundsetUUID) {
-							$log.warn(childFoundsetUUID);
-							var childFoundset = getFoundSetByFoundsetUUID(childFoundsetUUID);
-							if (!childFoundset) {
-								$log.error("why i don't have a childFoundset ?")
-							}
-
-							childFoundset.addChangeListener(childChangeListener);
-							resultDeferred.resolve({ foundsetRef: childFoundset, foundsetUUID: childFoundsetUUID });
-							// TODO get data
-							//mergeData('', childFoundset);
-						}, function(e) {
-							$log.error(e);
-							resultDeferred.reject(e);
-							// some error happened
-						});
-
-					return resultDeferred.promise;
 				}
 
 				function childChangeListener(rowUpdates, oldStartIndex, oldSize) {
