@@ -108,6 +108,8 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				var gridDiv = $element.find('.ag-grouping')[0];
 				new agGrid.Grid(gridDiv, gridOptions);
 
+				gridOptions.api.setSortModel(sortModelDefault);
+				// TODO remove this listener
 				// listen for sort change
 				gridOptions.api.addEventListener('sortChanged', onSortChanged);
 
@@ -124,7 +126,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 				$scope.$watch("model.myFoundset", function(newValue, oldValue) {
 
-						$log.warn('myFoundset root changed');
+						$log.error('myFoundset root changed');
 
 						var foundsetServer = new FoundsetServer([]);
 						var datasource = new FoundsetDatasource(foundsetServer);
@@ -134,15 +136,27 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 					});
 
+				var sortColumnsPromise;
+
 				// watch for sort changes and purge the cache
 				$scope.$watch("model.myFoundset.sortColumns", function(newValue, oldValue) {
+
 						// sort changed
+						$log.debug("Change Sort Model " + newValue);
+						
+						// FIXME this is a workaround for issue SVY-11456
+						if (sortColumnsPromise) {
+							sortColumnsPromise.resolve(true);
+							return;
+						}
+
 						/** TODO check with R&D, sortColumns is updated only after the viewPort is update or there could be a concurrency race. When i would know when sort is completed ? */
 						if (newValue && oldValue && newValue != oldValue) {
 							$log.debug('myFoundset sort changed');
+							gridOptions.api.setSortModel(getSortModel());
 							gridOptions.api.purgeEnterpriseCache();
 						} else if (newValue == oldValue && !newValue && !oldValue) {
-							$log.warn("this should be happening");
+							$log.warn("this should not be happening");
 						}
 
 					}, true);
@@ -190,6 +204,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 							for (var j = startIndex; j < endIndex; j++) {
 								data.push(thisInstance.getViewPortRow(j));
 							}
+							result = data;
 						} else { // if is a referenced foundset rows are already available
 							// TODO how to resolved duplicates !??!?!?
 							data = thisInstance.foundset.viewPort.rows;
@@ -248,13 +263,13 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					}
 
 					var getSortColumns = function() {
-						return this.foundset.sortColumns;
+						return thisInstance.foundset.sortColumns;
 					}
 
 					var sort = function(sortString) {
 						if (sortString) {
 							// TODO check sort
-							return this.foundset.sort(sortString);
+							return thisInstance.foundset.sort(sortString);
 						}
 					}
 
@@ -274,6 +289,8 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				/**
 				 * This object is used to keep track of cached foundset depending on rowGroupCol and groupKeys criteria.
 				 * Any time a foundset is retrieved is persisted in this object.
+				 *
+				 * Question: can i use an hash instead of a tree structure ? e.g hash of columnName:keyValue,columnName:keyValue..
 				 *
 				 * TODO is not stateful (lost once is refreshed) while the foundset are statefull, potentially can create memory leaks (too many foundset for the same criteria retrieved)
 				 * TODO desist foundset from memory. Remove foundset
@@ -600,7 +617,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					 * Handle ChildFoundsets
 					 * Returns the foundset in a promise
 					 * @param {Array<Number>} groupColumns index of all grouped columns
-					 * @param {Array} groupKeys value for each grouped column 
+					 * @param {Array} groupKeys value for each grouped column
 					 *
 					 * @return {PromiseType}
 					 *  */
@@ -779,11 +796,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				function getColumnDefs() {
 
 					//create the column definitions from the specified columns in designer
-					var colDefs = [{
-							field: '_svyRowId',
-							headerName: '_svyRowId',
-							hide: false
-						}];
+					var colDefs = [];
 					var colDef = { };
 					var column;
 					for (var i = 0; i < $scope.model.columns.length; i++) {
@@ -806,14 +819,39 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 						colDefs.push(colDef);
 					}
+					colDefs.push({
+						field: '_svyRowId',
+						headerName: '_svyRowId',
+						hide: true
+					});
+
 					return colDefs;
 				}
 
 				function getSortModel() {
+					var sortModel = [];
 					var sortColumns = foundset.getSortColumns();
+					sortColumns = sortColumns.split(",");
 					for (var i = 0; i < sortColumns.length; i++) {
 						// TODO parse sortColumns into default sort string
+						/** @type {String} */
+						var sortColumn = sortColumns[i];
+						if (!sortColumn) {
+							continue;
+						} else if (sortColumn.substr(sortColumn.length - 5, 5) === " desc") {
+
+							sortModel.push({
+								colId: sortColumn.substring(0, sortColumn.length - 5),
+								sort: "desc"
+							})
+						} else if (sortColumn.substr(sortColumn.length - 4, 4) === " asc") {
+							sortModel.push({
+								colId: sortColumn.substring(0, sortColumn.length - 4),
+								sort: "asc"
+							})
+						}
 					}
+					return sortModel;
 				}
 
 				/**
@@ -954,7 +992,20 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 					// Handle sorting
 					if (sortString && sortString != foundset.getSortColumns()) {
+						$log.error('CHANGE IN SORT HAPPENED');
+
+						// FIXME this is a workaround for issue SVY-11456
+						sortColumnsPromise =  $q.defer();
+						
+						/** Change the foundset's sort column  */
 						foundset.sort(foundsetSortModel.sortColumns);
+						
+						sortColumnsPromise.promise.then(function (){
+							$log.error("yes the promise is resolved");
+							sortColumnsPromise = null;
+							callback(foundset.getViewPortData(request.startRow, request.endRow), foundset.getLastRow());
+						});
+						
 						/** Sort has changed, exit since the sort will refresh the viewPort. Cache will be purged as soon sortColumn change status */
 						return;
 					}
@@ -990,7 +1041,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 					function getDataFromFoundset(foundsetRef) {
 						// load record
-						if (request.startRow > 0) {
+						if (request.endRow > foundsetRef.foundset.viewPort.size) {
 
 							// it keeps loading always the same data. Why ?
 							var promise = foundsetRef.loadExtraRecordsAsync(CHUNK_SIZE, false);
@@ -1003,7 +1054,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 								$log.error(e);
 							});
 						} else {
-							callback(foundsetRef.getViewPortData(0, request.endRow), foundsetRef.getLastRow());
+							callback(foundsetRef.getViewPortData(request.startRow, request.endRow), foundsetRef.getLastRow());
 						}
 					}
 

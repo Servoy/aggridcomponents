@@ -36,15 +36,19 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 
 			console.log('is a join on ' + columnName);
 
-			var join;
+			var join = query;
+			
 			// FIXME how do i know if has already a relation ?
 			for (var j = 0; j < relationNames.length; j++) {
 				var relationName = relationNames[j];
-				var existingJoin = getJoin(query, relationName);
+				// use unique name for multiple level relations
+				var relationPath = relationNames.slice(0, j+1).join("____");
+				console.log(relationPath)
+				var existingJoin = getJoin(join, relationPath);
 				if (existingJoin) {
 					join = existingJoin;
 				} else {
-					join = query.joins.add(relationName, relationName);
+					join = join.joins.add(relationName, relationPath);
 				}
 			}
 
@@ -91,6 +95,8 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 
 	var childFoundset = parentFoundset.duplicateFoundSet();
 	childFoundset.loadRecords(query);
+	
+	console.log('Matching records ' + childFoundset.getSize());
 
 	// push dataproviders to the clientside foundset
 	var dps = { };
