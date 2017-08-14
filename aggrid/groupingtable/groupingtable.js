@@ -8,7 +8,6 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				svyServoyapi: '='
 			},
 			controller: function($scope, $element, $attrs) {
-
 				/**
 				 * @typedef{{
 				 * 	resolve: Function,
@@ -43,24 +42,6 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					gridOptions.api.purgeEnterpriseCache();
 				}
 
-				// specify the columns
-				// var columnDefs = [{ headerName: "Make", field: "make" }, { headerName: "Model", field: "model" }, { headerName: "Price", field: "price" }];
-
-				// specify the data
-				// var rowData = [{ make: "Toyota", model: "Celica", price: 35000 }, { make: "Ford", model: "Mondeo", price: 32000 }, { make: "Porsche", model: "Boxter", price: 72000 }];
-
-				//				// let the grid know which columns and what data to use
-				//				var gridOptions = {
-				//					columnDefs: columnDefs,
-				//					rowData: rowData
-				//				};
-
-				// lookup the container we want the Grid to use
-				//				var eGridDiv = document.querySelector('#myGrid');
-
-				// create the grid passing in the div to use together with the columns & data we want to use
-				//				new agGrid.Grid(eGridDiv, gridOptions);
-
 				var CHUNK_SIZE = 15;
 
 				// init the foundset
@@ -68,7 +49,6 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				var groupManager = new GroupManager();
 				var columnDefs = getColumnDefs();
 				var sortModelDefault = getSortModel();
-				// var columnDefs = [{ headerName: "Athlete", field: "athlete" }, { headerName: "Age", field: "age" }, { headerName: "Country", field: "country", rowGroupIndex: 0 }, { headerName: "Year", field: "year" }, { headerName: "Sport", field: "sport" }, { headerName: "Gold", field: "gold" }, { headerName: "Silver", field: "silver" }, { headerName: "Bronze", field: "bronze" }];
 
 				console.log(columnDefs)
 				var gridOptions = {
@@ -136,7 +116,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					onGridReady: function(params) {
 						params.api.sizeColumnsToFit();
 					},
-					getRowNodeId : function (data) {
+					getRowNodeId: function(data) {
 						return data._svyRowId;
 					}
 					// TODO localeText: how to provide localeText to the grid ? can the grid be shipped with i18n ?
@@ -150,10 +130,10 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				selectedRowIndexesChanged();
 				// default sort order
 				gridOptions.api.setSortModel(sortModelDefault);
-				
+
 				// register listener for selection changed
 				gridOptions.api.addEventListener('selectionChanged', onSelectionChanged);
-				
+
 				function onSelectionChanged(event) {
 					var selectedNodes = gridOptions.api.getSelectedNodes();
 					console.log(selectedNodes);
@@ -305,7 +285,8 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					}
 
 					var hasMoreRecordsToLoad = function() {
-						return thisInstance.foundset.hasMoreRows || thisInstance.foundset.viewPort.size < thisInstance.foundset.serverSize;
+						return thisInstance.foundset.hasMoreRows || (thisInstance.foundset.viewPort.startIndex + thisInstance.foundset.viewPort.size) < thisInstance.foundset.serverSize;
+						//						return thisInstance.foundset.hasMoreRows || thisInstance.foundset.viewPort.size < thisInstance.foundset.serverSize;
 					}
 
 					var getLastRow = function() {
@@ -323,7 +304,10 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						// updateRows(rowUpdates, oldStartIndex, oldSize);
 					}
 
-					var loadExtraRecordsAsync = function(size, dontNotifyYet) {
+					var loadExtraRecordsAsync = function(startIndex, size, dontNotifyYet) {
+						// TODO use loadRecordsAsync to keep cache small
+						//	return this.foundset.loadRecordsAsync(startIndex, size, dontNotifyYet);
+
 						return this.foundset.loadExtraRecordsAsync(size, dontNotifyYet);
 					}
 
@@ -337,7 +321,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 							return thisInstance.foundset.sort(sortString);
 						}
 					}
-					
+
 					/**
 					 * @return {Number} return the foundset index of the given row in viewPort (includes the startIndex diff)
 					 *  */
@@ -765,21 +749,20 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					if (change[$foundsetTypeConstants.NOTIFY_SELECTED_ROW_INDEXES_CHANGED]) {
 						selectedRowIndexesChanged();
 					}
-					
+
 					if (change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROW_UPDATES_RECEIVED]) {
 						var updates = change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROW_UPDATES_RECEIVED].updates;
 						updateRows(updates, null, null);
 					}
 				}
-				
+
 				function selectedRowIndexesChanged() {
 					// FIXME can't select the record when is not in viewPort. Need to synchornize with viewPort record selection
-					
+
 					// CHANGE Seleciton
 					// TODO implement multiselect
 					var rowIndex = foundset.foundset.selectedRowIndexes[0] - foundset.foundset.viewPort.startIndex;
-					
-					
+
 					// find rowid
 					if (rowIndex > -1 && rowIndex >= foundset.foundset.viewPort.startIndex && rowIndex <= foundset.foundset.viewPort.size + foundset.foundset.viewPort.startIndex) {
 						var rowId = foundset.foundset.viewPort.rows[rowIndex]._svyRowId;
@@ -801,34 +784,47 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 							node.setSelected(false);
 						}
 					}
-					
+
 				}
-				
+
 				function getTableNode(id) {
 					var result;
-					
-					gridOptions.api.forEachNode( function(rowNode, index) {
-					    if (rowNode.data._svyRowId === id) {
-					    	result = rowNode;
-					    }
+
+					gridOptions.api.forEachNode(function(rowNode, index) {
+						if (rowNode.data._svyRowId === id) {
+							result = rowNode;
+						}
 					});
 
 					return result;
-				} 
+				}
 
 				/**
 				 * Update the uiGrid row with given viewPort index
-				 * @param {Array} rowUpdates
+				 * @param {Array<{startIndex: Number, endIndex: Number, type: Number}>} rowUpdates
 				 * @param {Number} [oldStartIndex]
 				 * @param {Number} oldSize
 				 *
 				 *  */
 				function updateRows(rowUpdates, oldStartIndex, oldSize) {
 					for (var i = 0; i < rowUpdates.length; i++) {
-						for (var j = rowUpdates[i].startIndex; j <= rowUpdates[i].endIndex; j++) {
-							updateRow(j);
+						var rowUpdate = rowUpdates[i];
+						switch (rowUpdate.type) {
+						case $foundsetTypeConstants.ROWS_CHANGED:
+//							for (var j = rowUpdate.startIndex; j <= rowUpdate.endIndex; j++) {
+//								updateRow(j);
+//							}
+							break;
+						case $foundsetTypeConstants.ROWS_INSERTED:
+							break;
+						case $foundsetTypeConstants.ROWS_DELETED:
+							break;
+						default:
+							break;
 						}
+						// TODO can update single rows ?
 					}
+					$scope.purge();
 				}
 
 				/**
@@ -1173,14 +1169,17 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					// check if sort has changed
 
 					function getDataFromFoundset(foundsetRef) {
-						// load record
+						// load record if endRow is not in viewPort
 						if (request.endRow > foundsetRef.foundset.viewPort.size) {
 
 							// it keeps loading always the same data. Why ?
-							var promise = foundsetRef.loadExtraRecordsAsync(CHUNK_SIZE, false);
+							var promise = foundsetRef.loadExtraRecordsAsync(request.startRow, request.endRow - request.startRow, false);
 							promise.then(function() {
 								var lastRow = foundsetRef.getLastRow();
 								result = foundsetRef.getViewPortData(request.startRow, request.endRow);
+								// TODO use viewPort 0
+								//								result = foundsetRef.getViewPortData(0, request.endRow - request.startRow);
+
 								callback(result, lastRow);
 
 							}).catch(function(e) {
