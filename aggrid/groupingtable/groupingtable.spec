@@ -27,9 +27,10 @@
 	{
 		"myFoundset": {"type": "foundset", "dynamicDataproviders": true, "initialPreferredViewPortSize": 15, "sendSelectionViewportInitially": true },
 		"columns": 		{ "type": "column[]", "droppable" : true },
+		"rowHeight" : 	{"type" : "int", "default": 25},
+		"visible": "visible",
 		"hashedFoundsets": { "type": "hashedFoundset[]", "default": [], "tags": {"scope": "private"}},
-		"hashedColumns": {"type" : "string[]", "default": [], "tags": {"scope": "private"}},
-		"visible": "visible"
+		"hashedColumns": {"type" : "string[]", "default": [], "tags": {"scope": "private"}}
 	},
 	"handlers" : {
 	

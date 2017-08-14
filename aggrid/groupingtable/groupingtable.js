@@ -1,4 +1,4 @@
-angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable', ['$log', '$q', function($log, $q) {
+angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable', ['$log', '$q', '$foundsetTypeConstants', function($log, $q, $foundsetTypeConstants) {
 		return {
 			restrict: 'E',
 			scope: {
@@ -72,57 +72,121 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 				console.log(columnDefs)
 				var gridOptions = {
+
+					debug: true,
+					rowModelType: 'enterprise',
+					rowGroupPanelShow: 'onlyWhenGrouping', // TODO expose property
+
 					defaultColDef: {
 						width: 100,
 						suppressFilter: true
 					},
+
+					rowHeight: $scope.model.rowHeight, // TODO expose property
+					// TODO enable it ?					rowClass: $scope.model.rowStyleClass,	// add the class to each row
+
 					// rowGroupColumnDef: columnDefs,
 					// groupColumnDef : columnDefs,
-					// enableSorting: true,
+					// enableSorting: false,
 					enableServerSideSorting: true,
 					columnDefs: columnDefs,
 					enableColResize: true,
+					suppressAutoSize: false,
+					autoSizePadding: 25,
+					suppressFieldDotNotation: true,
+
+					enableServerSideFilter: false, // TODO implement serverside filtering
+
+					rowSelection: 'single',
+					suppressRowClickSelection: false,
+					suppressCellSelection: true, // TODO implement focus lost/gained
+					enableRangeSelection: false,
+
+					stopEditingWhenGridLosesFocus: true,
+					singleClickEdit: true,
+					suppressClickEdit: false,
+					enableGroupEdit: false,
+					groupUseEntireRow: false,
+					suppressAggFuncInHeader: true, // TODO support aggregations
+
+					//					toolPanelSuppressRowGroups: false,
+					toolPanelSuppressValues: true,
+					toolPanelSuppressPivots: true,
+					toolPanelSuppressPivotMode: true,
+
+					suppressColumnVirtualisation: false,
+					suppressScrollLag: false,
+					suppressScrollOnNewData: true,
+
+					pivotMode: false,
 					// use the enterprise row model
-					rowModelType: 'enterprise',
 					// gridOptions.rowModelType = 'infinite';
 					// bring back data 50 rows at a time
 					// don't show the grouping in a panel at the top
-					rowGroupPanelShow: 'always',
 					animateRows: true,
-					debug: true,
+					enableCellExpressions: true,
 
 					rowBuffer: 0,
-					suppressAggFuncInHeader: true,
 					// restrict to 2 server side calls concurrently
 					maxConcurrentDatasourceRequests: 2,
 					cacheBlockSize: CHUNK_SIZE,
+					paginationInitialRowCount: CHUNK_SIZE, // TODO should be the foundset default (also for grouping ?)
 					maxBlocksInCache: 2,
 					purgeClosedRowNodes: true,
 					onGridReady: function(params) {
 						params.api.sizeColumnsToFit();
+					},
+					getRowNodeId : function (data) {
+						return data._svyRowId;
 					}
+					// TODO localeText: how to provide localeText to the grid ? can the grid be shipped with i18n ?
 
 				};
-				// TODO add default sort
 
 				var gridDiv = $element.find('.ag-grouping')[0];
 				new agGrid.Grid(gridDiv, gridOptions);
 
+				// default selection
+				selectedRowIndexesChanged();
+				// default sort order
 				gridOptions.api.setSortModel(sortModelDefault);
-				// TODO remove this listener
-				// listen for sort change
-				gridOptions.api.addEventListener('sortChanged', onSortChanged);
+				
+				// register listener for selection changed
+				gridOptions.api.addEventListener('selectionChanged', onSelectionChanged);
+				
+				function onSelectionChanged(event) {
+					var selectedNodes = gridOptions.api.getSelectedNodes();
+					console.log(selectedNodes);
+					if (selectedNodes.length > 1) {
+						// TODO enable multi selection
+						$log.warn("Multiselection is not enabled yet")
+					}
+					var node = selectedNodes[0];
+					if (node) {
+						var rowIndex = foundset.getRowIndex(node.data);
+						if (rowIndex > 1) {
+							foundset.foundset.requestSelectionUpdate([rowIndex]);
+						}
+					} else {
+						// this state is possible when the selected record is not in the visible viewPort
+					}
+				}
+
+				// TODO
+				if ($scope.model.rowStyleClassProvider) {
+					gridOptions.getRowClass = function(params) {
+
+						if (params.node.rowIndex) {
+							return '';
+						}
+						// TODO return styleClass provider for row index
+					}
+				}
 
 				function onSortChanged(a1, a2, a3) {
 					// not valuable, look side effect on the foundset
 					console.log('sortChanged');
-					console.log(a1);
-					console.log(a2)
 				}
-
-				//				var foundsetServer = new FoundsetServer(rows);
-				//				var datasource = new FoundsetDatasource(foundsetServer);
-				//				gridOptions.api.setEnterpriseDatasource(datasource);
 
 				$scope.$watch("model.myFoundset", function(newValue, oldValue) {
 
@@ -143,7 +207,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 						// sort changed
 						$log.debug("Change Sort Model " + newValue);
-						
+
 						// FIXME this is a workaround for issue SVY-11456
 						if (sortColumnsPromise) {
 							sortColumnsPromise.resolve(true);
@@ -184,6 +248,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					this.loadExtraRecordsAsync;
 					this.getSortColumns;
 					this.sort;
+					this.getRowIndex;
 
 					/** return the viewPort data in a new object
 					 * @param {Number} [startIndex]
@@ -271,6 +336,20 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 							// TODO check sort
 							return thisInstance.foundset.sort(sortString);
 						}
+					}
+					
+					/**
+					 * @return {Number} return the foundset index of the given row in viewPort (includes the startIndex diff)
+					 *  */
+					this.getRowIndex = function(row) {
+						var id = row._svyRowId;
+						var viewPortRows = this.foundset.viewPort.rows;
+						for (var i = 0; i < viewPortRows.length; i++) {
+							if (viewPortRows[i]._svyRowId === id) {
+								return i + this.foundset.viewPort.startIndex;
+							}
+						}
+						return -1;
 					}
 
 					// methods
@@ -680,11 +759,62 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				 *
 				 *********************************************************************************/
 
-				function changeListener(rowUpdates, oldStartIndex, oldSize) {
+				function changeListener(change, oldStartIndex, oldSize) {
 					$log.error("Change listener is called");
 					// gridOptions.api.purgeEnterpriseCache();
-					updateRows(rowUpdates, oldStartIndex, oldSize);
+					if (change[$foundsetTypeConstants.NOTIFY_SELECTED_ROW_INDEXES_CHANGED]) {
+						selectedRowIndexesChanged();
+					}
+					
+					if (change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROW_UPDATES_RECEIVED]) {
+						var updates = change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROW_UPDATES_RECEIVED].updates;
+						updateRows(updates, null, null);
+					}
 				}
+				
+				function selectedRowIndexesChanged() {
+					// FIXME can't select the record when is not in viewPort. Need to synchornize with viewPort record selection
+					
+					// CHANGE Seleciton
+					// TODO implement multiselect
+					var rowIndex = foundset.foundset.selectedRowIndexes[0] - foundset.foundset.viewPort.startIndex;
+					
+					
+					// find rowid
+					if (rowIndex > -1 && rowIndex >= foundset.foundset.viewPort.startIndex && rowIndex <= foundset.foundset.viewPort.size + foundset.foundset.viewPort.startIndex) {
+						var rowId = foundset.foundset.viewPort.rows[rowIndex]._svyRowId;
+						var node = getTableNode(rowId);
+						if (node) {
+							node.setSelected(true, true);
+						}
+					} else {
+						// TODO selected record is not in viewPort: how to render it ?
+						// deselect existing node
+						var selectedNodes = gridOptions.api.getSelectedNodes();
+						console.log(selectedNodes);
+						if (selectedNodes.length > 1) {
+							// TODO enable multi selection
+							$log.warn("Multiselection is not enabled yet")
+						}
+						var node = selectedNodes[0];
+						if (node) {
+							node.setSelected(false);
+						}
+					}
+					
+				}
+				
+				function getTableNode(id) {
+					var result;
+					
+					gridOptions.api.forEachNode( function(rowNode, index) {
+					    if (rowNode.data._svyRowId === id) {
+					    	result = rowNode;
+					    }
+					});
+
+					return result;
+				} 
 
 				/**
 				 * Update the uiGrid row with given viewPort index
@@ -990,22 +1120,25 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 					$log.warn("Group " + (rowGroupCols[0] ? rowGroupCols[0].displayName : '/') + ' + ' + (groupKeys[0] ? groupKeys[0] : '/') + ' # ' + request.startRow + ' # ' + request.endRow);
 
-					// Handle sorting
-					if (sortString && sortString != foundset.getSortColumns()) {
+					// TODO disable sorting if table is grouped
+					// Handle sorting, skip if grouping
+					if (rowGroupCols.length > 0) {
+						// TODO remove sort icon
+					} else if (sortString && sortString != foundset.getSortColumns()) {
 						$log.error('CHANGE IN SORT HAPPENED');
 
 						// FIXME this is a workaround for issue SVY-11456
-						sortColumnsPromise =  $q.defer();
-						
+						sortColumnsPromise = $q.defer();
+
 						/** Change the foundset's sort column  */
 						foundset.sort(foundsetSortModel.sortColumns);
-						
-						sortColumnsPromise.promise.then(function (){
+
+						sortColumnsPromise.promise.then(function() {
 							$log.error("yes the promise is resolved");
 							sortColumnsPromise = null;
 							callback(foundset.getViewPortData(request.startRow, request.endRow), foundset.getLastRow());
 						});
-						
+
 						/** Sort has changed, exit since the sort will refresh the viewPort. Cache will be purged as soon sortColumn change status */
 						return;
 					}
