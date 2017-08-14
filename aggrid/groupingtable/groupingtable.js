@@ -33,6 +33,24 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				 *
 				 * */
 				var AgDataRequestType;
+				
+				/** 
+				 * Store the state of the table. TODO to be persisted
+				 * */
+				var state = {
+					expanded : {
+						/** The column collapsed */
+						columns: {
+							
+						},
+						buffer: []
+					},
+					grouped : {
+						columns: {
+							
+						}
+					}
+				}
 
 				$scope.refresh = function(count) {
 					gridOptions.api.refreshInfiniteCache();
@@ -40,6 +58,14 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 				$scope.purge = function(count) {
 					gridOptions.api.purgeEnterpriseCache();
+					$scope.dirtyCache = false;
+					
+					// TODO keep status cache
+					
+					var columns = state.expanded.columns;
+					for (var field in columns) {
+						// FIXME there is no ag-grid method to force group expand for a specific key value
+					}
 				}
 
 				var CHUNK_SIZE = 15;
@@ -53,7 +79,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				console.log(columnDefs)
 				var gridOptions = {
 
-					debug: true,
+					debug: false,
 					rowModelType: 'enterprise',
 					rowGroupPanelShow: 'onlyWhenGrouping', // TODO expose property
 
@@ -116,9 +142,10 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					onGridReady: function(params) {
 						params.api.sizeColumnsToFit();
 					},
-					getRowNodeId: function(data) {
-						return data._svyRowId;
-					}
+					// TODO since i can't use getRowNode(id) in enterprise model, is pointeless to get id per node
+//					getRowNodeId: function(data) {
+//						return data._svyRowId;
+//					}
 					// TODO localeText: how to provide localeText to the grid ? can the grid be shipped with i18n ?
 
 				};
@@ -133,6 +160,12 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 				// register listener for selection changed
 				gridOptions.api.addEventListener('selectionChanged', onSelectionChanged);
+				
+				// listen to group changes
+				gridOptions.api.addEventListener('columnRowGroupChanged', onColumnRowGroupChanged);
+				
+				// listen to group collapsed
+				gridOptions.api.addEventListener('rowGroupOpened', onRowGroupOpened);
 
 				function onSelectionChanged(event) {
 					var selectedNodes = gridOptions.api.getSelectedNodes();
@@ -151,7 +184,46 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						// this state is possible when the selected record is not in the visible viewPort
 					}
 				}
+				
+				function onColumnRowGroupChanged(event) {
+					$log.warn(event);
+				}
 
+				function onRowGroupOpened(event) {
+					$log.warn(event);
+					// TODO remove foundset from memory when a group is closed
+					
+					return;
+					
+					var column = event.node;
+					var field = column.field;
+					var key = column.key;
+					var groupIndex = column.level;
+					var isExpanded = column.expanded;
+					
+					// TODO if ungroup remove a full row group.
+					var expandedState = state.expanded;
+					if (isExpanded) {	// add expanded node to cache
+						if (!expandedState.columns[field]) {
+							expandedState.columns[field] = new Object();
+						} 
+						var node = expandedState.columns[field];
+						node[key] = groupIndex;
+					} else { // remove expanded node from cache when collapsed
+						if (expandedState.columns[field]) {
+							delete expandedState.columns[field][key];
+						}
+					}
+					
+				}
+				
+				function setObjectProperty(object, key, value) {
+					if (!object[key]) {
+						object[key] = new Object();
+					}
+					object[key] = 
+				}
+				
 				// TODO
 				if ($scope.model.rowStyleClassProvider) {
 					gridOptions.getRowClass = function(params) {
@@ -721,10 +793,6 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 				}
 
-				function childChangeListener(rowUpdates, oldStartIndex, oldSize) {
-					$log.error('LISTENER ')
-				}
-
 				/**
 				 * Get Foundset by UUID
 				 * */
@@ -743,7 +811,20 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				 *
 				 *********************************************************************************/
 
-				function changeListener(change, oldStartIndex, oldSize) {
+				
+				/** Listener of a group foundset 
+				 *  TODO remove changeListener when removing a foundset
+				 * */
+				function childChangeListener(change) {
+					// TODO keylistener per group, will force the purge of a single group, not all of them
+					if (change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROW_UPDATES_RECEIVED]) {
+						var updates = change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROW_UPDATES_RECEIVED].updates;
+						updateRows(updates, null, null);
+					}
+				}				
+				
+				/** Listener for the root foundset */
+				function changeListener(change) {
 					$log.error("Change listener is called");
 					// gridOptions.api.purgeEnterpriseCache();
 					if (change[$foundsetTypeConstants.NOTIFY_SELECTED_ROW_INDEXES_CHANGED]) {
@@ -791,7 +872,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					var result;
 
 					gridOptions.api.forEachNode(function(rowNode, index) {
-						if (rowNode.data._svyRowId === id) {
+						if (rowNode && rowNode.date && rowNode.data._svyRowId === id) {
 							result = rowNode;
 						}
 					});
@@ -807,6 +888,15 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				 *
 				 *  */
 				function updateRows(rowUpdates, oldStartIndex, oldSize) {
+					
+					// Don't update automatically if the row are grouped
+					var rowGroupCols = gridOptions.columnApi.getRowGroupColumns();
+					if (rowGroupCols.length > 0 ) {
+						// register update
+						$scope.dirtyCache = true;
+						return;
+					}
+					
 					for (var i = 0; i < rowUpdates.length; i++) {
 						var rowUpdate = rowUpdates[i];
 						switch (rowUpdate.type) {
@@ -945,9 +1035,14 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 						colDefs.push(colDef);
 					}
+					
+					// TODO svyRowId should not be visible. I need the id for the selection
 					colDefs.push({
 						field: '_svyRowId',
 						headerName: '_svyRowId',
+						suppressMenu: true,
+						suppressNavigable: true,
+						suppressResize: true,
 						hide: true
 					});
 
