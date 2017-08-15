@@ -140,13 +140,14 @@
 	"types" : {
 		"column" : {
 			"dataprovider": { "type": "dataprovider", "forFoundset": "myFoundset" },
-			"headerTitle": {"type" : "tagstring"},
+			"headerTitle": {"type" : "tagstring", "tags" : {"scope": "design"}},
 			"styleClass" : {"type" : "styleclass"},
-			"format" : {"type" : "format",  "for": ["valuelist", "dataprovider"]},
-			"valuelist": { "type": "valuelist", "for": "dataprovider" },
-			"visible":  { "type": "boolean", "default": true },
-			"enableRowGroup" : {"type": "boolean", "default" : true},
-			"rowGroupIndex":  {"type": "int", "default": null},
+			"format" : {"type" : "format",  "for": ["valuelist", "dataprovider"], "tags" : {"scope": "design"}},
+			"valuelist": { "type": "valuelist", "for": "dataprovider", "tags" : {"scope": "design"} },
+			"visible":  { "type": "boolean", "default": true, "tags" : {"scope": "design"} },
+			"width":  { "type": "int", "default": 0, "tags" : {"scope": "design"} },			
+			"enableRowGroup" : {"type": "boolean", "default" : true, "tags" : {"scope": "design"}},
+			"rowGroupIndex":  {"type": "int", "default": null, "tags" : {"scope": "design"}},
 			"onActionMethodID" : "function"
 		},
 		 "hashedFoundset" : {

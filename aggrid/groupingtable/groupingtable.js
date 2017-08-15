@@ -36,7 +36,9 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				var AgDataRequestType;
 
 				$scope.refresh = function(count) {
-					gridOptions.api.refreshInfiniteCache();
+					gridOptions.api.sizeColumnsToFit()
+					//	gridOptions.api.doLayout();
+					//	gridOptions.api.refreshInfiniteCache();
 				}
 
 				$scope.purge = function(count) {
@@ -50,9 +52,9 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						// FIXME there is no ag-grid method to force group expand for a specific key value
 					}
 				}
-				
+
 				var CHUNK_SIZE = 15;
-				
+
 				/**
 				 * Store the state of the table. TODO to be persisted
 				 * */
@@ -76,7 +78,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				var foundset = new FoundSetManager($scope.model.myFoundset, true);
 				// the group manager
 				var groupManager = new GroupManager();
-				
+
 				var columnDefs = getColumnDefs();
 				var sortModelDefault = getSortModel();
 
@@ -159,10 +161,12 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				// init the grid
 				var gridDiv = $element.find('.ag-grouping')[0];
 				new agGrid.Grid(gridDiv, gridOptions);
+				// FIXME set columns to fit when table resizes
+				gridOptions.api.sizeColumnsToFit();
 
 				// default selection
 				selectedRowIndexesChanged();
-				
+
 				// default sort order
 				gridOptions.api.setSortModel(sortModelDefault);
 
@@ -174,7 +178,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 				// listen to group collapsed
 				gridOptions.api.addEventListener('rowGroupOpened', onRowGroupOpened);
-				
+
 				// TODO rowStyleClassDataprovider
 				if ($scope.model.rowStyleClassProvider) {
 					gridOptions.getRowClass = function(params) {
@@ -184,8 +188,8 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						}
 						// TODO return styleClass provider for row index
 					}
-				}				
-				
+				}
+
 				function onSelectionChanged(event) {
 					var selectedNodes = gridOptions.api.getSelectedNodes();
 					console.log(selectedNodes);
@@ -239,7 +243,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					var field = params.colDef.field;
 					var value = params.data[field];
 					var column = getColumn(field);
-					
+
 					if (column) {
 						value = getValuelistValue(field, value, column);
 
@@ -249,41 +253,40 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 							value.then(getDisplayValueSuccess, getDisplayValueFailure);
 
-//							var waitForValue = setTimeout(function () {
-//								value = params.data[field];
-//								wait = false;
-//							}, 1000);
-							
+							//							var waitForValue = setTimeout(function () {
+							//								value = params.data[field];
+							//								wait = false;
+							//							}, 1000);
+
 							// FIXME how to get displayValue when not in client-side ?
 							// TODO the display setter is called each time, should prevent this top happen.
 							// TODO issue should be addressed during getData ?
-							
+
 							var result;
 							var wait = true;
 							function getDisplayValueSuccess(data) {
 								if ($log.debugEnabled) $log.debug('ag-groupingtable: realValue: ' + value + ' displayValue: ' + data);
 								$log.warn('displayValue ' + data);
 								value = data;
-//								if (waitForValue) {
-//									waitForValue.clearTimeout();
-//								}
+								//								if (waitForValue) {
+								//									waitForValue.clearTimeout();
+								//								}
 								wait = false;
 								return result;
 							}
 
 							function getDisplayValueFailure(e) {
-//								if (waitForValue) {
-//									waitForValue.clearInterval();
-//								}
+								//								if (waitForValue) {
+								//									waitForValue.clearInterval();
+								//								}
 								$log.error(e);
 							}
 							value = params.data[field];
-							
-//							while(wait) {
-//								// do nothing until promise resolved
-//							}
-							
-							
+
+							//							while(wait) {
+							//								// do nothing until promise resolved
+							//							}
+
 						} else {
 
 						}
@@ -295,16 +298,15 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 					return value;
 				}
-				
-				
+
 				/**************************************************************************************************
 				 **************************************************************************************************
-				 * 
-				 *  Enterprise Model  
-				 *  
+				 *
+				 *  Enterprise Model
+				 *
 				 **************************************************************************************************
 				 **************************************************************************************************/
-				
+
 				function FoundsetDatasource(foundsetServer) {
 					this.foundsetServer = foundsetServer;
 				}
@@ -438,12 +440,12 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					var result = result.slice(request.startRow, request.endRow);
 
 				};
-				
+
 				/**************************************************************************************************
 				 **************************************************************************************************
-				 * 
+				 *
 				 *  Watches
-				 *  
+				 *
 				 **************************************************************************************************
 				 **************************************************************************************************/
 
@@ -483,13 +485,12 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						}
 
 					}, true);
-				
-				
+
 				/**************************************************************************************************
 				 **************************************************************************************************
-				 * 
+				 *
 				 *  Foundset Managment
-				 *  
+				 *
 				 **************************************************************************************************
 				 **************************************************************************************************/
 
@@ -1057,8 +1058,49 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				}
 
 				/*************************************************************************************
+				 *************************************************************************************
 				 *
-				 *********************************************************************************/
+				 * Global Methods
+				 *
+				 *************************************************************************************
+				 *************************************************************************************/
+
+				/**
+				 * @private
+				 * Check if objects are deep equal
+				 * */
+				function areObjectEqual(o1, o2) {
+					if (o1 instanceof Array) {
+						if (o1.lenght != o2.length) {
+							return false;
+						} else {
+							for (var i = 0; i < o1.length; i++) {
+								areObjectEqual(o1, o2);
+							}
+						}
+
+					} else if (o1 instanceof String) {
+						return o1 === o2;
+					} else if (o1 instanceof Number) {
+						return o1 === o2;
+					} else if (o1 instanceof Date) {
+						return o1 === o2;
+					} else if (o1 instanceof Boolean) {
+						return o1 === o2;
+					} else if (o1 instanceof Function) {
+						$log.warn('skip function debug');
+					} else if (o1 === null) {
+						return o2 === null;
+					} else if (o1 === undefined) {
+						return o2 === undefined;
+					} else {
+						for (var prop in o1) {
+							if (o1[prop] !== o2[prop]) {
+								return false;
+							}
+						}
+					}
+				}
 
 				/** Listener of a group foundset
 				 *  TODO remove changeListener when removing a foundset
@@ -1095,7 +1137,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					// find rowid
 					if (rowIndex > -1 && rowIndex >= foundset.foundset.viewPort.startIndex && rowIndex <= foundset.foundset.viewPort.size + foundset.foundset.viewPort.startIndex) {
 						var rowId = foundset.foundset.viewPort.rows[rowIndex]._svyRowId;
-						var node = getTableNode(rowId);
+						var node = getTableRow(rowId);
 						if (node) {
 							node.setSelected(true, true);
 						}
@@ -1116,7 +1158,12 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 				}
 
-				function getTableNode(id) {
+				/**
+				 * @param {String} id the _svyRowId of the node, retuns the full row matching the the id
+				 *
+				 * @return {Object}
+				 *  */
+				function getTableRow(id) {
 					var result;
 
 					gridOptions.api.forEachNode(function(rowNode, index) {
@@ -1206,48 +1253,15 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					return row;
 				}
 
-				/** return the row in grid with the given id */
-				function getUiGridRow(svyRowId) {
-					var data = $scope.gridOptions.data;
-					for (var i = 0; i < data.length; i++) {
-						if (data[i]._svyRowId === svyRowId) {
-							return data[i];
-						}
-					}
-				}
-
 				/**
-				 * @private
-				 * Check if objects are deep equal
-				 * */
-				function areObjectEqual(o1, o2) {
-					if (o1 instanceof Array) {
-						if (o1.lenght != o2.length) {
-							return false;
-						} else {
-							for (var i = 0; i < o1.length; i++) {
-								areObjectEqual(o1, o2);
-							}
-						}
-
-					} else if (o1 instanceof String) {
-						return o1 === o2;
-					} else if (o1 instanceof Number) {
-						return o1 === o2;
-					} else if (o1 instanceof Date) {
-						return o1 === o2;
-					} else if (o1 instanceof Boolean) {
-						return o1 === o2;
-					} else if (o1 instanceof Function) {
-						$log.warn('skip function debug');
-					} else if (o1 === null) {
-						return o2 === null;
-					} else if (o1 === undefined) {
-						return o2 === undefined;
-					} else {
-						for (var prop in o1) {
-							if (o1[prop] !== o2[prop]) {
-								return false;
+				 * @deprecated
+				 * return the row in grid with the given id */
+				function getUiGridRow(svyRowId) {
+					if ($scope.gridOptions && $scope.gridOptions.data) {
+						var data = $scope.gridOptions.data;
+						for (var i = 0; i < data.length; i++) {
+							if (data[i]._svyRowId === svyRowId) {
+								return data[i];
 							}
 						}
 					}
@@ -1272,14 +1286,10 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 							headerName: "" + column["headerTitle"] + "",
 							field: field
 						};
-						// FIXME remove hardcoded columnIndex
-						//						if (i === 1) {
-						//							colDef.rowGroupIndex = 0;
-						//						}
 
 						colDef.enableRowGroup = column.enableRowGroup;
-						console.log(column.rowGroupIndex)
 						if (column.rowGroupIndex || column.rowGroupIndex === 0) colDef.rowGroupIndex = column.rowGroupIndex;
+						if (column.width || column.width === 0) colDef.width = column.width;
 
 						colDefs.push(colDef);
 					}
@@ -1322,7 +1332,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					}
 					return sortModel;
 				}
-				
+
 				/**
 				 * @param {String} field
 				 * @param {String|Number|Boolean} value
@@ -1357,7 +1367,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					//
 					//
 					//					}
-				}	
+				}
 
 				/**
 				 * Returns the column identifier
@@ -1447,6 +1457,24 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						sortString: sortString,
 						sortColumns: sortColumns
 					};
+				}
+				
+				// FIXME how to force re-fit when table is shown for the first time
+				
+				// bind resize event
+				$(window).on('resize', onWindowResize);
+
+				var destroyListenerUnreg = $scope.$on('$destroy', function() { // unbind resize on destroy
+						$(window).off('resize', onWindowResize);
+					});
+
+				function onWindowResize() { // resize
+					// var width = $element.parent().width();
+					// var height = $element.parent().height();
+					setTimeout(function() {
+							gridOptions.api.sizeColumnsToFit();
+						}, 150);
+					// resize element using height and width
 				}
 
 				/**************************************************************************************************************************************************************************************************
