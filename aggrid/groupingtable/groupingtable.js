@@ -35,6 +35,24 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				 * */
 				var AgDataRequestType;
 
+				$scope.refresh = function(count) {
+					gridOptions.api.refreshInfiniteCache();
+				}
+
+				$scope.purge = function(count) {
+					gridOptions.api.purgeEnterpriseCache();
+					$scope.dirtyCache = false;
+
+					// TODO keep status cache
+
+					var columns = state.expanded.columns;
+					for (var field in columns) {
+						// FIXME there is no ag-grid method to force group expand for a specific key value
+					}
+				}
+				
+				var CHUNK_SIZE = 15;
+				
 				/**
 				 * Store the state of the table. TODO to be persisted
 				 * */
@@ -51,44 +69,19 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					}
 				}
 
-				$scope.refresh = function(count) {
-					$log.warn(testPromiseReturn());
-					gridOptions.api.refreshInfiniteCache();
-				}
-
-				$scope.purge = function(count) {
-					gridOptions.api.purgeEnterpriseCache();
-					$scope.dirtyCache = false;
-
-					// TODO keep status cache
-
-					var columns = state.expanded.columns;
-					for (var field in columns) {
-						// FIXME there is no ag-grid method to force group expand for a specific key value
-					}
-				}
-				
-				
-				function testPromiseReturn() {
-					var deferred = $q.defer();
-					
-					deferred.resolve('ciao');
-					
-					return deferred.promise;
-				}
-
-				var CHUNK_SIZE = 15;
-
 				// formatFilter function
 				var formatFilter = $filter("formatFilter");
 
-				// init the foundset
+				// init the root foundset manager
 				var foundset = new FoundSetManager($scope.model.myFoundset, true);
+				// the group manager
 				var groupManager = new GroupManager();
+				
 				var columnDefs = getColumnDefs();
 				var sortModelDefault = getSortModel();
 
-				console.log(columnDefs)
+				$log.debug(columnDefs);
+				$log.debug(sortModelDefault);
 				var gridOptions = {
 
 					debug: false,
@@ -96,7 +89,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					rowGroupPanelShow: 'onlyWhenGrouping', // TODO expose property
 
 					defaultColDef: {
-						width: 100,
+						width: 0,
 						suppressFilter: true,
 						valueFormatter: displayValueFormatter
 					},
@@ -163,11 +156,13 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 				};
 
+				// init the grid
 				var gridDiv = $element.find('.ag-grouping')[0];
 				new agGrid.Grid(gridDiv, gridOptions);
 
 				// default selection
 				selectedRowIndexesChanged();
+				
 				// default sort order
 				gridOptions.api.setSortModel(sortModelDefault);
 
@@ -179,7 +174,18 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 				// listen to group collapsed
 				gridOptions.api.addEventListener('rowGroupOpened', onRowGroupOpened);
+				
+				// TODO rowStyleClassDataprovider
+				if ($scope.model.rowStyleClassProvider) {
+					gridOptions.getRowClass = function(params) {
 
+						if (params.node.rowIndex) {
+							return '';
+						}
+						// TODO return styleClass provider for row index
+					}
+				}				
+				
 				function onSelectionChanged(event) {
 					var selectedNodes = gridOptions.api.getSelectedNodes();
 					console.log(selectedNodes);
@@ -207,7 +213,6 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					// TODO remove foundset from memory when a group is closed
 
 					return;
-
 					var column = event.node;
 					var field = column.field;
 					var key = column.key;
@@ -228,22 +233,6 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						}
 					}
 
-				}
-
-				// TODO
-				if ($scope.model.rowStyleClassProvider) {
-					gridOptions.getRowClass = function(params) {
-
-						if (params.node.rowIndex) {
-							return '';
-						}
-						// TODO return styleClass provider for row index
-					}
-				}
-
-				function onSortChanged(a1, a2, a3) {
-					// not valuable, look side effect on the foundset
-					console.log('sortChanged');
 				}
 
 				function displayValueFormatter(params) {
@@ -306,7 +295,157 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 					return value;
 				}
+				
+				
+				/**************************************************************************************************
+				 **************************************************************************************************
+				 * 
+				 *  Enterprise Model  
+				 *  
+				 **************************************************************************************************
+				 **************************************************************************************************/
+				
+				function FoundsetDatasource(foundsetServer) {
+					this.foundsetServer = foundsetServer;
+				}
 
+				FoundsetDatasource.prototype.getRows = function(params) {
+					$log.debug('FoundsetDatasource.getRows: params = ', params);
+					this.foundsetServer.getData(params.request,
+						function successCallback(resultForGrid, lastRow) {
+							params.successCallback(resultForGrid, lastRow);
+							selectedRowIndexesChanged();
+						});
+				};
+
+				function FoundsetServer(allData) {
+					this.allData = allData;
+				}
+
+				/**
+				 * @param {AgDataRequestType} request
+				 * @param {Function} callback callback(data, isLastRow)
+				 * @protected
+				 * */
+				FoundsetServer.prototype.getData = function(request, callback) {
+
+					console.log(request);
+
+					$log.warn(request);
+
+					// the row group cols, ie the cols that the user has dragged into the 'group by' zone, eg 'Country' and 'Customerid'
+					var rowGroupCols = request.rowGroupCols;
+					// the keys we are looking at. will be empty if looking at top level (either no groups, or looking at top level groups). eg ['United States','2002']
+					var groupKeys = request.groupKeys;
+					// if going aggregation, contains the value columns, eg ['gold','silver','bronze']
+					var valueCols = request.valueCols;
+
+					var filterModel = request.filterModel;
+					var sortModel = request.sortModel;
+
+					var result;
+
+					var foundsetSortModel = getFoundsetSortModel(sortModel);
+					var sortString = foundsetSortModel.sortString;
+
+					$log.warn("Group " + (rowGroupCols[0] ? rowGroupCols[0].displayName : '/') + ' + ' + (groupKeys[0] ? groupKeys[0] : '/') + ' # ' + request.startRow + ' # ' + request.endRow);
+
+					// TODO disable sorting if table is grouped
+					// Handle sorting, skip if grouping
+					if (rowGroupCols.length > 0) {
+						// TODO remove sort icon
+					} else if (sortString && sortString != foundset.getSortColumns()) {
+						$log.error('CHANGE IN SORT HAPPENED');
+
+						// FIXME this is a workaround for issue SVY-11456
+						sortColumnsPromise = $q.defer();
+
+						/** Change the foundset's sort column  */
+						foundset.sort(foundsetSortModel.sortColumns);
+
+						sortColumnsPromise.promise.then(function() {
+							$log.error("yes the promise is resolved");
+							sortColumnsPromise = null;
+							callback(foundset.getViewPortData(request.startRow, request.endRow), foundset.getLastRow());
+						});
+
+						/** Sort has changed, exit since the sort will refresh the viewPort. Cache will be purged as soon sortColumn change status */
+						return;
+					}
+
+					// check grouping
+					$log.debug('grouping');
+					console.log(rowGroupCols);
+					console.log(groupKeys);
+
+					// if not grouping, just return the full set
+					if (rowGroupCols.length === 0) {
+						$log.warn('NO GROUP');
+						getDataFromFoundset(foundset);
+					} else {
+						// otherwise if grouping, a few steps...
+
+						// first, if not the top level, take out everything that is not under the group
+						// we are looking at.
+						//var filteredData = this.filterOutOtherGroups(filteredData, groupKeys, rowGroupCols);
+
+						// get the foundset reference
+						groupManager.getFoundsetRef(rowGroupCols, groupKeys).then(function(foundsetRef) {
+
+							var foundsetRefManager = new FoundSetManager(foundsetRef);
+							getDataFromFoundset(foundsetRefManager);
+
+						}).catch(function(e) {
+							$log.error(e);
+						});
+					}
+
+					// check if sort has changed
+
+					function getDataFromFoundset(foundsetRef) {
+						// load record if endRow is not in viewPort
+						if (request.endRow > foundsetRef.foundset.viewPort.size) {
+
+							// it keeps loading always the same data. Why ?
+							var promise = foundsetRef.loadExtraRecordsAsync(request.startRow, request.endRow - request.startRow, false);
+							promise.then(function() {
+								var lastRow = foundsetRef.getLastRow();
+								result = foundsetRef.getViewPortData(request.startRow, request.endRow);
+								// TODO use viewPort 0
+								//								result = foundsetRef.getViewPortData(0, request.endRow - request.startRow);
+
+								callback(result, lastRow);
+
+							}).catch(function(e) {
+								$log.error(e);
+							});
+						} else {
+							callback(foundsetRef.getViewPortData(request.startRow, request.endRow), foundsetRef.getLastRow());
+						}
+					}
+
+					return;
+
+					var filteredData = this.filterList(this.allData, filterModel);
+					// sort data if needed
+					result = this.sortList(result, sortModel);
+					// we mimic finding the last row. if the request exceeds the length of the
+					// list, then we assume the last row is found. this would be similar to hitting
+					// a database, where we have gone past the last row.
+					var lastRowFound = (result.length <= request.endRow);
+					var lastRow = lastRowFound ? result.length : null;
+					// only return back the rows that the user asked for
+					var result = result.slice(request.startRow, request.endRow);
+
+				};
+				
+				/**************************************************************************************************
+				 **************************************************************************************************
+				 * 
+				 *  Watches
+				 *  
+				 **************************************************************************************************
+				 **************************************************************************************************/
 
 				$scope.$watch("model.myFoundset", function(newValue, oldValue) {
 
@@ -344,6 +483,15 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						}
 
 					}, true);
+				
+				
+				/**************************************************************************************************
+				 **************************************************************************************************
+				 * 
+				 *  Foundset Managment
+				 *  
+				 **************************************************************************************************
+				 **************************************************************************************************/
 
 				/**
 				 * Handle viewPort, row, sort, isLastRow of a foundsetReference object
@@ -519,42 +667,6 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					this.getSortColumns = getSortColumns;
 					this.sort = sort;
 
-				}
-
-				/**
-				 * @param {String} field
-				 * @param {String|Number|Boolean} value
-				 * @param {Object} column
-				 *
-				 * @return {String}
-				 * */
-				function getValuelistValue(field, value, column) {
-					var valuelist = column.valuelist;
-					if (valuelist) {
-						for (i = 0; i < valuelist.length; i++) {
-							if (value === valuelist[i].realValue) {
-								return valuelist[i].displayValue;
-							}
-						}
-
-						// else do the query
-						// what should i do once the result is returned ???
-						return valuelist.getDisplayValue(value);
-
-					}
-
-					return value;
-					// TODO search into the valuelist object
-
-					//					var valuelistsState = state.valuelists;
-					//					var valuelist = valuelistState[field];
-					//					if (valuelist]) {	// search in cache
-					//
-					//						// may need to ask the valuelist value
-					//					} else {	// search in valuelist
-					//
-					//
-					//					}
 				}
 
 				// TODO to be completed, use the GroupHashCache to persist foundset UUID for rowGroupCols/groupKeys combinations
@@ -1210,6 +1322,42 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					}
 					return sortModel;
 				}
+				
+				/**
+				 * @param {String} field
+				 * @param {String|Number|Boolean} value
+				 * @param {Object} column
+				 *
+				 * @return {String}
+				 * */
+				function getValuelistValue(field, value, column) {
+					var valuelist = column.valuelist;
+					if (valuelist) {
+						for (i = 0; i < valuelist.length; i++) {
+							if (value === valuelist[i].realValue) {
+								return valuelist[i].displayValue;
+							}
+						}
+
+						// else do the query
+						// what should i do once the result is returned ???
+						return valuelist.getDisplayValue(value);
+
+					}
+
+					return value;
+					// TODO search into the valuelist object
+
+					//					var valuelistsState = state.valuelists;
+					//					var valuelist = valuelistState[field];
+					//					if (valuelist]) {	// search in cache
+					//
+					//						// may need to ask the valuelist value
+					//					} else {	// search in valuelist
+					//
+					//
+					//					}
+				}	
 
 				/**
 				 * Returns the column identifier
@@ -1287,6 +1435,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 							var column = getColumn(sortModelCol.colId);
 							var columnName = column.dataprovider.idForFoundset;
 							var direction = sortModelCol.sort;
+							if (i > 0) sortString += ',';
 							sortString += columnName + ' ' + direction + '';
 							sortColumns.push({ name: columnName, direction: direction });
 
@@ -1299,143 +1448,6 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						sortColumns: sortColumns
 					};
 				}
-
-				/** Enterprise Model  */
-				function FoundsetDatasource(foundsetServer) {
-					this.foundsetServer = foundsetServer;
-				}
-
-				FoundsetDatasource.prototype.getRows = function(params) {
-					console.log('FoundsetDatasource.getRows: params = ', params);
-
-					console.log(params);
-					this.foundsetServer.getData(params.request,
-						function successCallback(resultForGrid, lastRow) {
-							params.successCallback(resultForGrid, lastRow);
-							selectedRowIndexesChanged();
-						});
-				};
-
-				function FoundsetServer(allData) {
-					this.allData = allData;
-				}
-
-				/**
-				 * @param {AgDataRequestType} request
-				 * @param {Function} callback callback(data, isLastRow)
-				 * @protected
-				 * */
-				FoundsetServer.prototype.getData = function(request, callback) {
-
-					console.log(request);
-
-					$log.warn(request);
-
-					// the row group cols, ie the cols that the user has dragged into the 'group by' zone, eg 'Country' and 'Customerid'
-					var rowGroupCols = request.rowGroupCols;
-					// the keys we are looking at. will be empty if looking at top level (either no groups, or looking at top level groups). eg ['United States','2002']
-					var groupKeys = request.groupKeys;
-					// if going aggregation, contains the value columns, eg ['gold','silver','bronze']
-					var valueCols = request.valueCols;
-
-					var filterModel = request.filterModel;
-					var sortModel = request.sortModel;
-
-					var result;
-
-					var foundsetSortModel = getFoundsetSortModel(sortModel);
-					var sortString = foundsetSortModel.sortString;
-
-					$log.warn("Group " + (rowGroupCols[0] ? rowGroupCols[0].displayName : '/') + ' + ' + (groupKeys[0] ? groupKeys[0] : '/') + ' # ' + request.startRow + ' # ' + request.endRow);
-
-					// TODO disable sorting if table is grouped
-					// Handle sorting, skip if grouping
-					if (rowGroupCols.length > 0) {
-						// TODO remove sort icon
-					} else if (sortString && sortString != foundset.getSortColumns()) {
-						$log.error('CHANGE IN SORT HAPPENED');
-
-						// FIXME this is a workaround for issue SVY-11456
-						sortColumnsPromise = $q.defer();
-
-						/** Change the foundset's sort column  */
-						foundset.sort(foundsetSortModel.sortColumns);
-
-						sortColumnsPromise.promise.then(function() {
-							$log.error("yes the promise is resolved");
-							sortColumnsPromise = null;
-							callback(foundset.getViewPortData(request.startRow, request.endRow), foundset.getLastRow());
-						});
-
-						/** Sort has changed, exit since the sort will refresh the viewPort. Cache will be purged as soon sortColumn change status */
-						return;
-					}
-
-					// check grouping
-					$log.debug('grouping');
-					console.log(rowGroupCols);
-					console.log(groupKeys);
-
-					// if not grouping, just return the full set
-					if (rowGroupCols.length === 0) {
-						$log.warn('NO GROUP');
-						getDataFromFoundset(foundset);
-					} else {
-						// otherwise if grouping, a few steps...
-
-						// first, if not the top level, take out everything that is not under the group
-						// we are looking at.
-						//var filteredData = this.filterOutOtherGroups(filteredData, groupKeys, rowGroupCols);
-
-						// get the foundset reference
-						groupManager.getFoundsetRef(rowGroupCols, groupKeys).then(function(foundsetRef) {
-
-							var foundsetRefManager = new FoundSetManager(foundsetRef);
-							getDataFromFoundset(foundsetRefManager);
-
-						}).catch(function(e) {
-							$log.error(e);
-						});
-					}
-
-					// check if sort has changed
-
-					function getDataFromFoundset(foundsetRef) {
-						// load record if endRow is not in viewPort
-						if (request.endRow > foundsetRef.foundset.viewPort.size) {
-
-							// it keeps loading always the same data. Why ?
-							var promise = foundsetRef.loadExtraRecordsAsync(request.startRow, request.endRow - request.startRow, false);
-							promise.then(function() {
-								var lastRow = foundsetRef.getLastRow();
-								result = foundsetRef.getViewPortData(request.startRow, request.endRow);
-								// TODO use viewPort 0
-								//								result = foundsetRef.getViewPortData(0, request.endRow - request.startRow);
-
-								callback(result, lastRow);
-
-							}).catch(function(e) {
-								$log.error(e);
-							});
-						} else {
-							callback(foundsetRef.getViewPortData(request.startRow, request.endRow), foundsetRef.getLastRow());
-						}
-					}
-
-					return;
-
-					var filteredData = this.filterList(this.allData, filterModel);
-					// sort data if needed
-					result = this.sortList(result, sortModel);
-					// we mimic finding the last row. if the request exceeds the length of the
-					// list, then we assume the last row is found. this would be similar to hitting
-					// a database, where we have gone past the last row.
-					var lastRowFound = (result.length <= request.endRow);
-					var lastRow = lastRowFound ? result.length : null;
-					// only return back the rows that the user asked for
-					var result = result.slice(request.startRow, request.endRow);
-
-				};
 
 				/**************************************************************************************************************************************************************************************************
 				 **************************************************************************************************************************************************************************************************
