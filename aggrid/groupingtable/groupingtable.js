@@ -173,6 +173,11 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				// register listener for selection changed
 				gridOptions.api.addEventListener('selectionChanged', onSelectionChanged);
 
+				// grid handlers
+				gridOptions.api.addEventListener('cellClicked', onCellClicked);
+				gridOptions.api.addEventListener('cellDoubleClicked', onCellDoubleClicked);
+				gridOptions.api.addEventListener('cellContextMenu', onCellContextMenu);
+				
 				// listen to group changes
 				gridOptions.api.addEventListener('columnRowGroupChanged', onColumnRowGroupChanged);
 
@@ -207,7 +212,47 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						// this state is possible when the selected record is not in the visible viewPort
 					}
 				}
+				
+				function onCellClicked(params) {
+					$log.error(params);
+					if ($scope.handlers.onCellClick) {
+						var row = params.data;
+						var foundsetIndex = foundset.getRowIndex(row);
+						var columnIndex = getColumnIndex(params.colDef.field);
+						var record;
+						if (foundsetIndex > -1) {
+							record = foundset.foundset.viewPort.rows[foundsetIndex - foundset.foundset.viewPort.startIndex];
+						}
+						$scope.handlers.onCellClick(foundsetIndex, columnIndex, record, params.event);
+					}
+				}
 
+				function onCellDoubleClicked(params) {
+					$log.error(params);
+					if ($scope.handlers.onCellDoubleClick) {
+						var row = params.data;
+						var foundsetIndex = foundset.getRowIndex(row);
+						var columnIndex = getColumnIndex(params.colDef.field);
+						var record;
+						if (foundsetIndex > -1) {
+							record = foundset.foundset.viewPort.rows[foundsetIndex - foundset.foundset.viewPort.startIndex];
+						}
+						$scope.handlers.onCellDoubleClick(foundsetIndex, columnIndex, record, params.event);					}
+				}
+				
+				function onCellContextMenu(params) {
+					$log.error(params);
+					if ($scope.handlers.onCellRightClick) {
+						var row = params.data;
+						var foundsetIndex = foundset.getRowIndex(row);
+						var columnIndex = getColumnIndex(params.colDef.field);
+						var record;
+						if (foundsetIndex > -1) {
+							record = foundset.foundset.viewPort.rows[foundsetIndex - foundset.foundset.viewPort.startIndex];
+						}
+						$scope.handlers.onCellRightClick(foundsetIndex, columnIndex, record, params.event);					}
+				}
+				
 				function onColumnRowGroupChanged(event) {
 					$log.warn(event);
 				}

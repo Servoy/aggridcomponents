@@ -49,36 +49,61 @@
 				"optional": true
 			}]
 		},
-		"onGroupChanged" : {
-			"parameters": 
-			[
-				{
-					"name": "columnIndex",
-					"type": "int"
-				},
-				{
-					"name": "groupIndex",
-					"type": "int"
-				},
-				{
-					"name": "isGrouped",
-					"type": "boolean"
-				}
-			]
+		"onCellClick": {
+			"description": "Called when the mouse is clicked on a row/cell (foundset and column indexes are given) or\nwhen the ENTER key is used then only the selected foundset index is given\nUse the record to exactly match where the user clicked on",
+			"parameters": [{
+				"name": "foundsetindex",
+				"type": "int"
+			}, {
+				"name": "columnindex",
+				"type": "int",
+				"optional": true
+			}, {
+				"name": "record",
+				"type": "record",
+				"optional": true
+			}, {
+				"name": "event",
+				"type": "JSEvent",
+				"optional": true
+			}]
 		},
-		"onNodeExpanded" : {
-			"parameters": 
-			[
-				{
-					"name": "columnIndex",
-					"type": "int"
-				},
-				{
-					"name": "value",
-					"type": "string"
-				}
-			],
-			"returns" : "dataset"
+		"onCellRightClick": {
+			"description": "Called when the right mouse button is clicked on a row/cell (foundset and column indexes are given) or\nwhen the ENTER key is used then only the selected foundset index is given\nUse the record to exactly match where the user clicked on",
+			"parameters": [{
+				"name": "foundsetindex",
+				"type": "int"
+			}, {
+				"name": "columnindex",
+				"type": "int",
+				"optional": true
+			}, {
+				"name": "record",
+				"type": "record",
+				"optional": true
+			}, {
+				"name": "event",
+				"type": "JSEvent",
+				"optional": true
+			}]
+		},
+		"onCellDoubleClick": {
+			"parameters": [{
+				"name": "foundsetindex",
+				"type": "int"
+			}, {
+				"name": "columnindex",
+				"type": "int",
+				"optional": true
+			}, {
+				"name": "record",
+				"type": "record",
+				"optional": true
+			}, {
+				"name": "event",
+				"type": "JSEvent",
+				"optional": true
+			}]
 		}
 	}, 
 	"internalApi" : {
@@ -147,8 +172,7 @@
 			"visible":  { "type": "boolean", "default": true, "tags" : {"scope": "design"} },
 			"width":  { "type": "int", "default": 0, "tags" : {"scope": "design"} },			
 			"enableRowGroup" : {"type": "boolean", "default" : true, "tags" : {"scope": "design"}},
-			"rowGroupIndex":  {"type": "int", "default": null, "tags" : {"scope": "design"}},
-			"onActionMethodID" : "function"
+			"rowGroupIndex":  {"type": "int", "default": null, "tags" : {"scope": "design"}}
 		},
 		 "hashedFoundset" : {
             "foundset": "foundset",
