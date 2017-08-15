@@ -142,11 +142,12 @@
 			"dataprovider": { "type": "dataprovider", "forFoundset": "myFoundset" },
 			"headerTitle": {"type" : "tagstring"},
 			"styleClass" : {"type" : "styleclass"},
-			"format" : "format",
+			"format" : {"type" : "format",  "for": ["valuelist", "dataprovider"]},
+			"valuelist": { "type": "valuelist", "for": "dataprovider" },
 			"visible":  { "type": "boolean", "default": true },
-			"onActionMethodID" : "function",
 			"enableRowGroup" : {"type": "boolean", "default" : true},
-			"rowGroupIndex":  {"type": "int", "default": null}
+			"rowGroupIndex":  {"type": "int", "default": null},
+			"onActionMethodID" : "function"
 		},
 		 "hashedFoundset" : {
             "foundset": "foundset",

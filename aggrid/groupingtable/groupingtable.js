@@ -1,4 +1,5 @@
-angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable', ['$log', '$q', '$foundsetTypeConstants', function($log, $q, $foundsetTypeConstants) {
+angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable', ['$log', '$q', '$foundsetTypeConstants', '$filter',
+	function($log, $q, $foundsetTypeConstants, $filter) {
 		return {
 			restrict: 'E',
 			scope: {
@@ -33,42 +34,53 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				 *
 				 * */
 				var AgDataRequestType;
-				
-				/** 
+
+				/**
 				 * Store the state of the table. TODO to be persisted
 				 * */
 				var state = {
-					expanded : {
+					/** valuelists stored per field */
+					valuelists: { },
+					expanded: {
 						/** The column collapsed */
-						columns: {
-							
-						},
+						columns: { },
 						buffer: []
 					},
-					grouped : {
-						columns: {
-							
-						}
+					grouped: {
+						columns: { }
 					}
 				}
 
 				$scope.refresh = function(count) {
+					$log.warn(testPromiseReturn());
 					gridOptions.api.refreshInfiniteCache();
 				}
 
 				$scope.purge = function(count) {
 					gridOptions.api.purgeEnterpriseCache();
 					$scope.dirtyCache = false;
-					
+
 					// TODO keep status cache
-					
+
 					var columns = state.expanded.columns;
 					for (var field in columns) {
 						// FIXME there is no ag-grid method to force group expand for a specific key value
 					}
 				}
+				
+				
+				function testPromiseReturn() {
+					var deferred = $q.defer();
+					
+					deferred.resolve('ciao');
+					
+					return deferred.promise;
+				}
 
 				var CHUNK_SIZE = 15;
+
+				// formatFilter function
+				var formatFilter = $filter("formatFilter");
 
 				// init the foundset
 				var foundset = new FoundSetManager($scope.model.myFoundset, true);
@@ -85,7 +97,8 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 					defaultColDef: {
 						width: 100,
-						suppressFilter: true
+						suppressFilter: true,
+						valueFormatter: displayValueFormatter
 					},
 
 					rowHeight: $scope.model.rowHeight, // TODO expose property
@@ -143,9 +156,9 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						params.api.sizeColumnsToFit();
 					},
 					// TODO since i can't use getRowNode(id) in enterprise model, is pointeless to get id per node
-//					getRowNodeId: function(data) {
-//						return data._svyRowId;
-//					}
+					//					getRowNodeId: function(data) {
+					//						return data._svyRowId;
+					//					}
 					// TODO localeText: how to provide localeText to the grid ? can the grid be shipped with i18n ?
 
 				};
@@ -160,10 +173,10 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 				// register listener for selection changed
 				gridOptions.api.addEventListener('selectionChanged', onSelectionChanged);
-				
+
 				// listen to group changes
 				gridOptions.api.addEventListener('columnRowGroupChanged', onColumnRowGroupChanged);
-				
+
 				// listen to group collapsed
 				gridOptions.api.addEventListener('rowGroupOpened', onRowGroupOpened);
 
@@ -184,7 +197,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						// this state is possible when the selected record is not in the visible viewPort
 					}
 				}
-				
+
 				function onColumnRowGroupChanged(event) {
 					$log.warn(event);
 				}
@@ -192,21 +205,21 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				function onRowGroupOpened(event) {
 					$log.warn(event);
 					// TODO remove foundset from memory when a group is closed
-					
+
 					return;
-					
+
 					var column = event.node;
 					var field = column.field;
 					var key = column.key;
 					var groupIndex = column.level;
 					var isExpanded = column.expanded;
-					
+
 					// TODO if ungroup remove a full row group.
 					var expandedState = state.expanded;
-					if (isExpanded) {	// add expanded node to cache
+					if (isExpanded) { // add expanded node to cache
 						if (!expandedState.columns[field]) {
 							expandedState.columns[field] = new Object();
-						} 
+						}
 						var node = expandedState.columns[field];
 						node[key] = groupIndex;
 					} else { // remove expanded node from cache when collapsed
@@ -214,16 +227,9 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 							delete expandedState.columns[field][key];
 						}
 					}
-					
+
 				}
-				
-				function setObjectProperty(object, key, value) {
-					if (!object[key]) {
-						object[key] = new Object();
-					}
-					object[key] = 
-				}
-				
+
 				// TODO
 				if ($scope.model.rowStyleClassProvider) {
 					gridOptions.getRowClass = function(params) {
@@ -239,6 +245,68 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					// not valuable, look side effect on the foundset
 					console.log('sortChanged');
 				}
+
+				function displayValueFormatter(params) {
+					var field = params.colDef.field;
+					var value = params.data[field];
+					var column = getColumn(field);
+					
+					if (column) {
+						value = getValuelistValue(field, value, column);
+
+						// FIXME this doesn't work, try to use value getter
+						// if returns a promise
+						if (value.then instanceof Function) {
+
+							value.then(getDisplayValueSuccess, getDisplayValueFailure);
+
+//							var waitForValue = setTimeout(function () {
+//								value = params.data[field];
+//								wait = false;
+//							}, 1000);
+							
+							// FIXME how to get displayValue when not in client-side ?
+							// TODO the display setter is called each time, should prevent this top happen.
+							// TODO issue should be addressed during getData ?
+							
+							var result;
+							var wait = true;
+							function getDisplayValueSuccess(data) {
+								if ($log.debugEnabled) $log.debug('ag-groupingtable: realValue: ' + value + ' displayValue: ' + data);
+								$log.warn('displayValue ' + data);
+								value = data;
+//								if (waitForValue) {
+//									waitForValue.clearTimeout();
+//								}
+								wait = false;
+								return result;
+							}
+
+							function getDisplayValueFailure(e) {
+//								if (waitForValue) {
+//									waitForValue.clearInterval();
+//								}
+								$log.error(e);
+							}
+							value = params.data[field];
+							
+//							while(wait) {
+//								// do nothing until promise resolved
+//							}
+							
+							
+						} else {
+
+						}
+
+						if (column.format) {
+							value = formatFilter(value, column.format.display, column.format.type);
+						}
+					}
+
+					return value;
+				}
+
 
 				$scope.$watch("model.myFoundset", function(newValue, oldValue) {
 
@@ -325,6 +393,9 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						} else { // if is a referenced foundset rows are already available
 							// TODO how to resolved duplicates !??!?!?
 							data = thisInstance.foundset.viewPort.rows;
+
+							// TODO apply filter&valuelists&columnFormat
+
 							// TODO check limit startIndex/endIndex;
 							result = data.slice(startIndex, endIndex);
 						}
@@ -345,7 +416,37 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 							for (var i = 0; i < $scope.model.columns.length; i++) {
 								var header = $scope.model.columns[i];
 								var field = getColumnID(header, i);
-								r[field] = header.dataprovider[index];
+
+								var value = header.dataprovider[index];
+								// TODO check if has valuelist
+								//								value = getValuelistValue(field,value,header);
+								//
+								//								// FIXME this doesn't work, try to use value getter
+								//								// if returns a promise
+								//								if (value.then instanceof Function) {
+								//
+								//									value.then(getDisplayValueSuccess, getDisplayValueFailure);
+								//
+								//									function getDisplayValueSuccess(data) {
+								//										if ($log.debugEnabled) $log.debug('ag-groupingtable: realValue: ' + value + ' displayValue: ' +  data);
+								//										$log.warn('displayValue ' + data);
+								//										r[field] = data;
+								//									}
+								//
+								//									function getDisplayValueFailure(e) {
+								//										$log.error(e);
+								//									}
+								//
+								//									// restore field value
+								//									value = header.dataprovider[index];
+								//								} else {
+								//
+								//								}
+								//
+								//								if (header.format) {
+								//									value = formatFilter(value, header.format.display, header.format.type);
+								//								}
+								r[field] = value;
 							}
 							return r;
 
@@ -418,6 +519,42 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					this.getSortColumns = getSortColumns;
 					this.sort = sort;
 
+				}
+
+				/**
+				 * @param {String} field
+				 * @param {String|Number|Boolean} value
+				 * @param {Object} column
+				 *
+				 * @return {String}
+				 * */
+				function getValuelistValue(field, value, column) {
+					var valuelist = column.valuelist;
+					if (valuelist) {
+						for (i = 0; i < valuelist.length; i++) {
+							if (value === valuelist[i].realValue) {
+								return valuelist[i].displayValue;
+							}
+						}
+
+						// else do the query
+						// what should i do once the result is returned ???
+						return valuelist.getDisplayValue(value);
+
+					}
+
+					return value;
+					// TODO search into the valuelist object
+
+					//					var valuelistsState = state.valuelists;
+					//					var valuelist = valuelistState[field];
+					//					if (valuelist]) {	// search in cache
+					//
+					//						// may need to ask the valuelist value
+					//					} else {	// search in valuelist
+					//
+					//
+					//					}
 				}
 
 				// TODO to be completed, use the GroupHashCache to persist foundset UUID for rowGroupCols/groupKeys combinations
@@ -811,8 +948,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				 *
 				 *********************************************************************************/
 
-				
-				/** Listener of a group foundset 
+				/** Listener of a group foundset
 				 *  TODO remove changeListener when removing a foundset
 				 * */
 				function childChangeListener(change) {
@@ -821,8 +957,8 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						var updates = change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROW_UPDATES_RECEIVED].updates;
 						updateRows(updates, null, null);
 					}
-				}				
-				
+				}
+
 				/** Listener for the root foundset */
 				function changeListener(change) {
 					$log.error("Change listener is called");
@@ -872,7 +1008,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					var result;
 
 					gridOptions.api.forEachNode(function(rowNode, index) {
-						if (rowNode && rowNode.date && rowNode.data._svyRowId === id) {
+						if (rowNode && rowNode.data && rowNode.data._svyRowId === id) {
 							result = rowNode;
 						}
 					});
@@ -888,22 +1024,22 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				 *
 				 *  */
 				function updateRows(rowUpdates, oldStartIndex, oldSize) {
-					
+
 					// Don't update automatically if the row are grouped
 					var rowGroupCols = gridOptions.columnApi.getRowGroupColumns();
-					if (rowGroupCols.length > 0 ) {
+					if (rowGroupCols.length > 0) {
 						// register update
 						$scope.dirtyCache = true;
 						return;
 					}
-					
+
 					for (var i = 0; i < rowUpdates.length; i++) {
 						var rowUpdate = rowUpdates[i];
 						switch (rowUpdate.type) {
 						case $foundsetTypeConstants.ROWS_CHANGED:
-//							for (var j = rowUpdate.startIndex; j <= rowUpdate.endIndex; j++) {
-//								updateRow(j);
-//							}
+							//							for (var j = rowUpdate.startIndex; j <= rowUpdate.endIndex; j++) {
+							//								updateRow(j);
+							//							}
 							break;
 						case $foundsetTypeConstants.ROWS_INSERTED:
 							break;
@@ -1035,7 +1171,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 						colDefs.push(colDef);
 					}
-					
+
 					// TODO svyRowId should not be visible. I need the id for the selection
 					colDefs.push({
 						field: '_svyRowId',
@@ -1176,6 +1312,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					this.foundsetServer.getData(params.request,
 						function successCallback(resultForGrid, lastRow) {
 							params.successCallback(resultForGrid, lastRow);
+							selectedRowIndexesChanged();
 						});
 				};
 
