@@ -96,6 +96,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						valueFormatter: displayValueFormatter,
 						menuTabs: ['generalMenuTab', 'columnsMenuTab'] // , 'filterMenuTab']
 					},
+					columnDefs: columnDefs,
 					getMainMenuItems: getMainMenuItems,
 
 					rowHeight: $scope.model.rowHeight, // TODO expose property
@@ -104,9 +105,8 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					// rowGroupColumnDef: columnDefs,
 					// groupColumnDef : columnDefs,
 					// enableSorting: false,
-					enableServerSideSorting: true,
-					columnDefs: columnDefs,
-					enableColResize: true,
+					enableServerSideSorting: $scope.model.enableSort,
+					enableColResize: $scope.model.enableColumnResize,
 					suppressAutoSize: true,
 					autoSizePadding: 25,
 					suppressFieldDotNotation: true,
@@ -161,7 +161,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				};
 
 				// init the grid
-				var gridDiv = $element.find('.ag-grouping')[0];
+				var gridDiv = $element.find('.ag-table')[0];
 				new agGrid.Grid(gridDiv, gridOptions);
 				// FIXME set columns to fit when table resizes
 				gridOptions.api.sizeColumnsToFit();
@@ -515,6 +515,10 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 						$scope.model.myFoundset.addChangeListener(changeListener);
 
+						// FIXME fetch rows when root changes
+						if (newValue) {
+							$scope.purge();
+						}
 					});
 
 				var sortColumnsPromise;
@@ -1322,26 +1326,26 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						}
 					}
 				}
-				
+
 				function getMainMenuItems(params) {
 					// default items
-//					pinSubMenu: Submenu for pinning. Always shown.
-//					valueAggSubMenu: Submenu for value aggregation. Always shown.
-//					autoSizeThis: Auto-size the current column. Always shown.
-//					autoSizeAll: Auto-size all columns. Always shown.
-//					rowGroup: Group by this column. Only shown if column is not grouped.
-//					rowUnGroup: Un-group by this column. Only shown if column is grouped.
-//					resetColumns: Reset column details. Always shown.
-//					expandAll: Expand all groups. Only shown if grouping by at least one column.
-//					contractAll: Contract all groups. Only shown if grouping by at least one column.
-//					toolPanel: Show the tool panel.
+					//					pinSubMenu: Submenu for pinning. Always shown.
+					//					valueAggSubMenu: Submenu for value aggregation. Always shown.
+					//					autoSizeThis: Auto-size the current column. Always shown.
+					//					autoSizeAll: Auto-size all columns. Always shown.
+					//					rowGroup: Group by this column. Only shown if column is not grouped.
+					//					rowUnGroup: Un-group by this column. Only shown if column is grouped.
+					//					resetColumns: Reset column details. Always shown.
+					//					expandAll: Expand all groups. Only shown if grouping by at least one column.
+					//					contractAll: Contract all groups. Only shown if grouping by at least one column.
+					//					toolPanel: Show the tool panel.
 					var menuItems = [];
 					var items = ['rowGroup', 'rowUnGroup'];
-					params.defaultItems.forEach( function(item) {
-		                if (items.indexOf(item) > -1) {
-		                	menuItems.push(item);
-		                }
-		            });
+					params.defaultItems.forEach(function(item) {
+						if (items.indexOf(item) > -1) {
+							menuItems.push(item);
+						}
+					});
 					return menuItems;
 				}
 
@@ -1372,12 +1376,11 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						} else {
 							colDef.cellClass = 'ag-table-cell ' + column.styleClass;
 						}
-						
+
 						colDef.enableRowGroup = column.enableRowGroup;
 						if (column.rowGroupIndex || column.rowGroupIndex === 0) colDef.rowGroupIndex = column.rowGroupIndex;
 						if (column.width || column.width === 0) colDef.width = column.width;
 						if (column.visible === false) colDef.hide = true;
-						
 
 						colDefs.push(colDef);
 					}
@@ -1395,16 +1398,15 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 					return colDefs;
 				}
-				
+
 				function getRowClass(params) {
-					
+
 					var index = foundset.foundset.viewPort.startIndex + params.node.rowIndex;
 					// TODO get proper foundset
 					var styleClassProvider = $scope.model.rowStyleClassDataprovider[index];
 					return styleClassProvider;
 				}
-				
-				
+
 				function getCellClass(params) {
 					var styleClassProvider;
 					// TODO get direct access to column is quicker than array scanning
@@ -1414,30 +1416,32 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						// TODO get proper foundset
 						styleClassProvider = column.styleClassDataprovider[index];
 					}
-					return 'ag-table-cell ' + column.styleClass + ' ' + styleClassProvider ;
+					return 'ag-table-cell ' + column.styleClass + ' ' + styleClassProvider;
 				}
 
 				function getSortModel() {
 					var sortModel = [];
 					var sortColumns = foundset.getSortColumns();
-					sortColumns = sortColumns.split(",");
-					for (var i = 0; i < sortColumns.length; i++) {
-						// TODO parse sortColumns into default sort string
-						/** @type {String} */
-						var sortColumn = sortColumns[i];
-						if (!sortColumn) {
-							continue;
-						} else if (sortColumn.substr(sortColumn.length - 5, 5) === " desc") {
+					if (sortColumns) {
+						sortColumns = sortColumns.split(",");
+						for (var i = 0; i < sortColumns.length; i++) {
+							// TODO parse sortColumns into default sort string
+							/** @type {String} */
+							var sortColumn = sortColumns[i];
+							if (!sortColumn) {
+								continue;
+							} else if (sortColumn.substr(sortColumn.length - 5, 5) === " desc") {
 
-							sortModel.push({
-								colId: sortColumn.substring(0, sortColumn.length - 5),
-								sort: "desc"
-							})
-						} else if (sortColumn.substr(sortColumn.length - 4, 4) === " asc") {
-							sortModel.push({
-								colId: sortColumn.substring(0, sortColumn.length - 4),
-								sort: "asc"
-							})
+								sortModel.push({
+									colId: sortColumn.substring(0, sortColumn.length - 5),
+									sort: "desc"
+								})
+							} else if (sortColumn.substr(sortColumn.length - 4, 4) === " asc") {
+								sortModel.push({
+									colId: sortColumn.substring(0, sortColumn.length - 4),
+									sort: "asc"
+								})
+							}
 						}
 					}
 					return sortModel;
@@ -1568,7 +1572,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						sortColumns: sortColumns
 					};
 				}
-				
+
 				/**
 				 * Create a JSEvent
 				 *
