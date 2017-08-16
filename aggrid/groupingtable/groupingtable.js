@@ -65,6 +65,9 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					columns: {
 						
 					},
+					foundsetManagers : {
+						
+					},
 					/** valuelists stored per field */
 					valuelists: { },
 					expanded: {
@@ -460,8 +463,13 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						// get the foundset reference
 						groupManager.getFoundsetRef(rowGroupCols, groupKeys).then(function(foundsetUUID) {
 
-							var foundsetRef = getFoundSetByFoundsetUUID(foundsetUUID);
-							var foundsetRefManager = new FoundSetManager(foundsetRef, foundsetUUID);
+							// TODO search in state first ?
+							// The foundsetUUID exists in the 
+							// foundsetHashmap
+							// groupManager (UUID)
+							// group, in the foundsetHashmap and in the state ?
+							var foundsetRefManager = getFoundsetManagerByFoundsetUUID(foundsetUUID);
+							// var foundsetRefManager = new FoundSetManager(foundsetRef, foundsetUUID);
 							getDataFromFoundset(foundsetRefManager);
 
 						}).catch(function(e) {
@@ -1010,7 +1018,6 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 							var foundsetHash = hashTree.getCachedFoundset(groupCols, keys);
 							if (foundsetHash) { // the foundsetReference is already cached
 								if (index === rowGroupCols.length - 1) { // resolve when last rowColumn foundset has been loaded
-									// var foundsetRef = getFoundSetByFoundsetUUID(foundsetHash);
 									resultPromise.resolve(foundsetHash);
 								} else {
 									parentUUID = foundsetHash;
@@ -1101,7 +1108,6 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 						childFoundsetPromise.then(function(childFoundsetUUID) {
 								$log.warn(childFoundsetUUID);
-								// var childFoundset = getFoundSetByFoundsetUUID(childFoundsetUUID);
 								if (!childFoundsetUUID) {
 									$log.error("why i don't have a childFoundset ?")
 								}
@@ -1138,6 +1144,24 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						}
 					}
 					return null;
+				}
+				
+				function getFoundsetManagerByFoundsetUUID(foundsetHash) {
+					if (foundsetHash === 'root') return foundset;
+					
+					if (state.foundsetManagers[foundsetHash]) {
+						// double check if foundset hashmap still exists
+						if (!getFoundSetByFoundsetUUID(foundsetHash)) {
+							$log.error('This should not happen: could not verify foundset exists in foundsetHashmap ' + foundsetHash);
+							return null;
+						}
+						return state.foundsetManagers[foundsetHash];
+					} else {
+						var foundsetRef = getFoundSetByFoundsetUUID(foundsetHash);
+						var foundsetManager = new FoundSetManager(foundsetRef,foundsetHash,false);
+						state.foundsetManagers[foundsetHash] = foundsetManager;
+						return foundsetManager;
+					}
 				}
 
 				/*************************************************************************************
