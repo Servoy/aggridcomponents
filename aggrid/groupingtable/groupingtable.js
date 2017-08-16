@@ -81,7 +81,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				var formatFilter = $filter("formatFilter");
 
 				// init the root foundset manager
-				var foundset = new FoundSetManager($scope.model.myFoundset, true);
+				var foundset = new FoundSetManager($scope.model.myFoundset, 'root', true);
 				// the group manager
 				var groupManager = new GroupManager();
 
@@ -458,9 +458,10 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						//var filteredData = this.filterOutOtherGroups(filteredData, groupKeys, rowGroupCols);
 
 						// get the foundset reference
-						groupManager.getFoundsetRef(rowGroupCols, groupKeys).then(function(foundsetRef) {
+						groupManager.getFoundsetRef(rowGroupCols, groupKeys).then(function(foundsetUUID) {
 
-							var foundsetRefManager = new FoundSetManager(foundsetRef);
+							var foundsetRef = getFoundSetByFoundsetUUID(foundsetUUID);
+							var foundsetRefManager = new FoundSetManager(foundsetRef, foundsetUUID);
 							getDataFromFoundset(foundsetRefManager);
 
 						}).catch(function(e) {
@@ -577,12 +578,13 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				 * @constructor
 				 *
 				 * */
-				function FoundSetManager(foundsetRef, isRoot) {
+				function FoundSetManager(foundsetRef, foundsetUUID, isRoot) {
 					var thisInstance = this;
 
 					// properties
 					this.foundset = foundsetRef;
 					this.isRoot = isRoot ? true : false;
+					this.foundsetUUID = foundsetUUID;
 
 					// methods
 					this.getViewPortData;
@@ -966,7 +968,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 						// return the root foundset if no grouping criteria
 						if (rowGroupCols.length === 0 && groupKeys.length === 0) { // no group return root foundset
-							return resultPromise.resolve(foundset);
+							return resultPromise.resolve('root');
 						}
 
 						var idx; // the index of the group dept
@@ -1008,8 +1010,8 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 							var foundsetHash = hashTree.getCachedFoundset(groupCols, keys);
 							if (foundsetHash) { // the foundsetReference is already cached
 								if (index === rowGroupCols.length - 1) { // resolve when last rowColumn foundset has been loaded
-									var foundsetRef = getFoundSetByFoundsetUUID(foundsetHash);
-									resultPromise.resolve(foundsetRef);
+									// var foundsetRef = getFoundSetByFoundsetUUID(foundsetHash);
+									resultPromise.resolve(foundsetHash);
 								} else {
 									parentUUID = foundsetHash;
 									getRowColumnHashFoundset(index + 1); // load the foundset for the next group
@@ -1028,7 +1030,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 								}
 
 								var promise = getHashFoundset(groupColumnIndexes, keys);
-								promise.then(getHashFoundsetSuccess)
+								promise.then(getHashFoundsetSuccess);
 								promise.catch(promiseError);
 							}
 
@@ -1036,18 +1038,18 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 							parentIndex = columnIndex;
 
 							/** @return {Object} returns the foundsetRef object */
-							function getHashFoundsetSuccess(childFoundset) {
+							function getHashFoundsetSuccess(foundsetUUID) {
 
-								if (!childFoundset) {
+								if (!foundsetUUID) {
 									$log.error("why i don't have a foundset ref ?")
 									return;
 								} else {
-									$log.warn(foundsetRef);
+									$log.warn(foundsetUUID);
 								}
 
 								// the hash of the parent foundset
-								var foundsetUUID = childFoundset.foundsetUUID;
-								var foundsetRef = childFoundset.foundsetRef;
+								// var foundsetUUID = childFoundset.foundsetUUID;
+								// var foundsetRef = childFoundset.foundsetRef;
 
 								// for the next child
 								parentUUID = foundsetUUID;
@@ -1058,7 +1060,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 								$log.warn('success ' + foundsetUUID);
 
 								if (index === rowGroupCols.length - 1) { // resolve when last rowColumn foundset has been loaded
-									resultPromise.resolve(foundsetRef);
+									resultPromise.resolve(foundsetUUID);
 								} else {
 									getRowColumnHashFoundset(index + 1); // load the foundset for the next group
 								}
@@ -1099,13 +1101,16 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 						childFoundsetPromise.then(function(childFoundsetUUID) {
 								$log.warn(childFoundsetUUID);
-								var childFoundset = getFoundSetByFoundsetUUID(childFoundsetUUID);
-								if (!childFoundset) {
+								// var childFoundset = getFoundSetByFoundsetUUID(childFoundsetUUID);
+								if (!childFoundsetUUID) {
 									$log.error("why i don't have a childFoundset ?")
 								}
 
-								childFoundset.addChangeListener(childChangeListener);
-								resultDeferred.resolve({ foundsetRef: childFoundset, foundsetUUID: childFoundsetUUID });
+								// FIXME add listener somewhere else
+								//childFoundset.addChangeListener(childChangeListener);
+								
+								//resultDeferred.resolve({ foundsetRef: childFoundset, foundsetUUID: childFoundsetUUID });
+								resultDeferred.resolve(childFoundsetUUID);
 								// TODO get data
 								//mergeData('', childFoundset);
 							}, function(e) {
@@ -1123,6 +1128,8 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				 * Get Foundset by UUID
 				 * */
 				function getFoundSetByFoundsetUUID(foundsetHash) {
+					// TODO return something else here ?
+					if (foundsetHash === 'root') return $scope.model.myFoundset;
 					if ($scope.model.hashedFoundsets) {
 						for (var i = 0; i < $scope.model.hashedFoundsets.length; i++) {
 							if ($scope.model.hashedFoundsets[i].foundsetUUID == foundsetHash)
