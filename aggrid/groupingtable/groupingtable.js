@@ -62,12 +62,8 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				 * */
 				var state = {
 					/** column mapping by field name e.g. state.columns[field] */
-					columns: {
-						
-					},
-					foundsetManagers : {
-						
-					},
+					columns: { },
+					foundsetManagers: { },
 					/** valuelists stored per field */
 					valuelists: { },
 					expanded: {
@@ -464,7 +460,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						groupManager.getFoundsetRef(rowGroupCols, groupKeys).then(function(foundsetUUID) {
 
 							// TODO search in state first ?
-							// The foundsetUUID exists in the 
+							// The foundsetUUID exists in the
 							// foundsetHashmap
 							// groupManager (UUID)
 							// group, in the foundsetHashmap and in the state ?
@@ -599,7 +595,6 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					this.getViewPortRow;
 					this.hasMoreRecordsToLoad;
 					this.getLastRow;
-					this.foundsetListener;
 					this.loadExtraRecordsAsync;
 					this.getSortColumns;
 					this.sort;
@@ -705,13 +700,6 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						}
 					}
 
-					var foundsetListener = function(rowUpdates, oldStartIndex, oldSize) {
-						$log.warn('foundset changed listener ');
-						// update all rows
-						// TODO fixme, is adding rows
-						// updateRows(rowUpdates, oldStartIndex, oldSize);
-					}
-
 					var loadExtraRecordsAsync = function(startIndex, size, dontNotifyYet) {
 						// TODO use loadRecordsAsync to keep cache small
 						//	return this.foundset.loadRecordsAsync(startIndex, size, dontNotifyYet);
@@ -744,12 +732,31 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						return -1;
 					}
 
+					var foundsetListener = function(change) {
+						$log.warn('child foundset changed listener ');
+
+						// gridOptions.api.purgeEnterpriseCache();
+						if (change[$foundsetTypeConstants.NOTIFY_SELECTED_ROW_INDEXES_CHANGED]) {
+							selectedRowIndexesChanged(thisInstance);
+						}
+
+						if (change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROW_UPDATES_RECEIVED]) {
+							var updates = change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROW_UPDATES_RECEIVED].updates;
+							updateRows(updates, null, null);
+						}
+
+					}
+
+					if (!this.isRoot) {
+						// add the change listener to the component
+						this.foundset.addChangeListener(foundsetListener);
+					}
+
 					// methods
 					this.getViewPortData = getViewPortData;
 					this.getViewPortRow = getViewPortRow;
 					this.hasMoreRecordsToLoad = hasMoreRecordsToLoad;
 					this.getLastRow = getLastRow;
-					this.foundsetListener = foundsetListener;
 					this.loadExtraRecordsAsync = loadExtraRecordsAsync;
 					this.getSortColumns = getSortColumns;
 					this.sort = sort;
@@ -1114,7 +1121,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 								// FIXME add listener somewhere else
 								//childFoundset.addChangeListener(childChangeListener);
-								
+
 								//resultDeferred.resolve({ foundsetRef: childFoundset, foundsetUUID: childFoundsetUUID });
 								resultDeferred.resolve(childFoundsetUUID);
 								// TODO get data
@@ -1145,10 +1152,10 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					}
 					return null;
 				}
-				
+
 				function getFoundsetManagerByFoundsetUUID(foundsetHash) {
 					if (foundsetHash === 'root') return foundset;
-					
+
 					if (state.foundsetManagers[foundsetHash]) {
 						// double check if foundset hashmap still exists
 						if (!getFoundSetByFoundsetUUID(foundsetHash)) {
@@ -1158,7 +1165,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						return state.foundsetManagers[foundsetHash];
 					} else {
 						var foundsetRef = getFoundSetByFoundsetUUID(foundsetHash);
-						var foundsetManager = new FoundSetManager(foundsetRef,foundsetHash,false);
+						var foundsetManager = new FoundSetManager(foundsetRef, foundsetHash, false);
 						state.foundsetManagers[foundsetHash] = foundsetManager;
 						return foundsetManager;
 					}
@@ -1209,16 +1216,16 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					}
 				}
 
-				/** Listener of a group foundset
-				 *  TODO remove changeListener when removing a foundset
-				 * */
-				function childChangeListener(change) {
-					// TODO keylistener per group, will force the purge of a single group, not all of them
-					if (change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROW_UPDATES_RECEIVED]) {
-						var updates = change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROW_UPDATES_RECEIVED].updates;
-						updateRows(updates, null, null);
-					}
-				}
+				//				/** Listener of a group foundset
+				//				 *  TODO remove changeListener when removing a foundset
+				//				 * */
+				//				function childChangeListener(change) {
+				//					// TODO keylistener per group, will force the purge of a single group, not all of them
+				//					if (change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROW_UPDATES_RECEIVED]) {
+				//						var updates = change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROW_UPDATES_RECEIVED].updates;
+				//						updateRows(updates, null, null);
+				//					}
+				//				}
 
 				/** Listener for the root foundset */
 				function changeListener(change) {
@@ -1241,16 +1248,20 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 				}
 
-				function selectedRowIndexesChanged() {
+				function selectedRowIndexesChanged(foundsetManager) {
 					// FIXME can't select the record when is not in viewPort. Need to synchornize with viewPort record selection
 
 					// CHANGE Seleciton
 					// TODO implement multiselect
-					var rowIndex = foundset.foundset.selectedRowIndexes[0] - foundset.foundset.viewPort.startIndex;
+					if (!foundsetManager) {
+						foundsetManager = foundset;
+					}
+
+					var rowIndex = foundsetManager.foundset.selectedRowIndexes[0] - foundsetManager.foundset.viewPort.startIndex;
 
 					// find rowid
-					if (rowIndex > -1 && rowIndex >= foundset.foundset.viewPort.startIndex && rowIndex <= foundset.foundset.viewPort.size + foundset.foundset.viewPort.startIndex) {
-						var rowId = foundset.foundset.viewPort.rows[rowIndex]._svyRowId;
+					if (rowIndex > -1 && rowIndex >= foundsetManager.foundset.viewPort.startIndex && rowIndex <= foundsetManager.foundset.viewPort.size + foundsetManager.foundset.viewPort.startIndex) {
+						var rowId = foundsetManager.foundset.viewPort.rows[rowIndex]._svyRowId;
 						var node = getTableRow(rowId);
 						if (node) {
 							node.setSelected(true, true);
@@ -1266,7 +1277,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						}
 						var node = selectedNodes[0];
 						if (node) {
-							node.setSelected(false);
+							// node.setSelected(false);
 						}
 					}
 
@@ -1560,7 +1571,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				 * @return {Object}
 				 * */
 				function getColumn(field) {
-					if (state.columns[field]) {	// check if is already cached
+					if (state.columns[field]) { // check if is already cached
 						return state.columns[field];
 					} else {
 						var columns = $scope.model.columns;
