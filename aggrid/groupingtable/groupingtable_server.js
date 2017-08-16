@@ -12,8 +12,8 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 
 	var parentFoundset = $scope.model.myFoundset.foundset
 
-		// I need the full column/key mapping
-		/** @type {QBSelect} */
+	// I need the full column/key mapping
+	/** @type {QBSelect} */
 	var query = parentFoundset.getQuery();
 
 	console.log(query);
@@ -88,11 +88,8 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 	}
 
 	console.log('try')
-	//	if (parentLevelGroupColumnIndex == undefined) { // this is the root column
+
 	// this is the first grouping operation; alter initial query to get all first level groups
-
-	// console.log(databaseManager.getSQL(query));
-
 	var childFoundset = parentFoundset.duplicateFoundSet();
 	childFoundset.loadRecords(query);
 	
@@ -100,14 +97,17 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 
 	// push dataproviders to the clientside foundset
 	var dps = { };
-	var hashedColumns = [];
 	for (var idx = 0; idx < $scope.model.columns.length; idx++) {
+		// the dataprovider name e.g. orderid
 		var dpId = $scope.model.columns[idx].dataprovider;
+		// the idForFoundset(exists only client-side, therefore i need to retrieve it from the client)
 		var idForFoundset = idForFoundsets[idx];
+		// Servoy resolves the real dataprovider name into the dataprovider 'field'
 		dps[idForFoundset] = dpId;
-		hashedColumns.push(dpId);
 	}
-
+	
+	// TODO perhaps R&D can improve this
+	// send the column mapping; clientside i don't have the dataprovider id name and server side i don't have the idForFoundset.
 	$scope.model.hashedFoundsets.push({
 		foundset: {
 			foundset: childFoundset,
@@ -118,10 +118,7 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 		foundsetUUID: childFoundset
 	}); // send it to client as a foundset property with a UUID
 
-	// TODO this is not required
-	// TODO perhaps R&D can improve this
-	// send the column mapping; clientside i don't have the dataprovider id name and server side i don't have the idForFoundset.
-	$scope.model.hashedColumns = hashedColumns;
+
 	console.log('End');
 
 	return childFoundset; // return the UUID that points to this foundset (return type will make it UUID)
@@ -193,12 +190,8 @@ function isRelatedDataprovider(dataProvider) {
 function getJoin(query, alias) {
 
 	var joins = query.joins.getJoins();
-
-	console.log('getJoins ' + joins.length);
 	for (var i = 0; i < joins.length; i++) {
 		var join = joins[i];
-
-		console.log(join.getTableAlias());
 		if (join.getTableAlias() == alias) {
 			return join;
 		}

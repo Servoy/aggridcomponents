@@ -53,17 +53,18 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						// FIXME there is no ag-grid method to force group expand for a specific key value
 					}
 				}
-				
-				$scope.reload = function(count) {
-					
-				}
 
+				$scope.reload = function(count) { }
 				var CHUNK_SIZE = 15;
 
 				/**
 				 * Store the state of the table. TODO to be persisted
 				 * */
 				var state = {
+					/** column mapping by field name e.g. state.columns[field] */
+					columns: {
+						
+					},
 					/** valuelists stored per field */
 					valuelists: { },
 					expanded: {
@@ -304,7 +305,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					var field = params.colDef.field;
 					if (!params.data) {
 						return undefined;
-					} 
+					}
 					var value = params.data[field];
 					var column = getColumn(field);
 
@@ -433,7 +434,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						sortColumnsPromise.promise.then(function() {
 							$log.error("yes the promise is resolved");
 							sortColumnsPromise = null;
-							callback(foundset.getViewPortData(request.startRow, request.endRow), Math.min(foundset.getLastRow(),request.endRow));
+							callback(foundset.getViewPortData(request.startRow, request.endRow), Math.min(foundset.getLastRow(), request.endRow));
 						});
 
 						/** Sort has changed, exit since the sort will refresh the viewPort. Cache will be purged as soon sortColumn change status */
@@ -441,9 +442,9 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					}
 
 					// check grouping
-//					$log.debug('grouping');
-//					console.log(rowGroupCols);
-//					console.log(groupKeys);
+					//					$log.debug('grouping');
+					//					console.log(rowGroupCols);
+					//					console.log(groupKeys);
 
 					// if not grouping, just return the full set
 					if (rowGroupCols.length === 0) {
@@ -517,23 +518,23 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				var foundsetServer = new FoundsetServer([]);
 				var datasource = new FoundsetDatasource(foundsetServer);
 				gridOptions.api.setEnterpriseDatasource(datasource);
-				
+
 				$scope.$watch("model.myFoundset", function(newValue, oldValue) {
 
 						$log.error('myFoundset root changed');
 
 						$scope.model.myFoundset.addChangeListener(changeListener);
 
-//						var callback = function(data) {
-//							foundsetServer.allData = data;
-//							$scope.purge();
-//						}
-						
-//						datasource.getRows({request: {startRow: 0, endRow: CHUNK_SIZE, rowGroupCols: [], groupKeys: []}, successCallback: callback});
+						//						var callback = function(data) {
+						//							foundsetServer.allData = data;
+						//							$scope.purge();
+						//						}
+
+						//						datasource.getRows({request: {startRow: 0, endRow: CHUNK_SIZE, rowGroupCols: [], groupKeys: []}, successCallback: callback});
 						// FIXME fetch rows when root changes
-//						if (newValue) {
-//							$scope.purge();
-//						}
+						//						if (newValue) {
+						//							$scope.purge();
+						//						}
 					});
 
 				var sortColumnsPromise;
@@ -1191,12 +1192,12 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				/** Listener for the root foundset */
 				function changeListener(change) {
 					$log.warn("Change listener is called " + change);
-					
+
 					if (change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROWS_COMPLETELY_CHANGED]) {
 						$scope.purge();
 						return;
 					}
-					
+
 					// gridOptions.api.purgeEnterpriseCache();
 					if (change[$foundsetTypeConstants.NOTIFY_SELECTED_ROW_INDEXES_CHANGED]) {
 						selectedRowIndexesChanged();
@@ -1528,11 +1529,17 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				 * @return {Object}
 				 * */
 				function getColumn(field) {
-					var columnDefsPvt = gridOptions.columnDefs;
-					for (var i = 0; i < columnDefsPvt.length; i++) {
-						var column = columnDefsPvt[i];
-						if (column.field == field) {
-							return $scope.model.columns[i];
+					if (state.columns[field]) {	// check if is already cached
+						return state.columns[field];
+					} else {
+						var columns = $scope.model.columns;
+						for (var i = 0; i < columns.length; i++) {
+							var column = columns[i];
+							if (getColumnID(column, i) === field) {
+								// cache it in hashmap for quick retrieval
+								state.columns[field] = column;
+								return $scope.model.columns[i];
+							}
 						}
 					}
 				}
