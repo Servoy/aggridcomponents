@@ -28,6 +28,7 @@
 		"myFoundset": {"type": "foundset", "dynamicDataproviders": true, "initialPreferredViewPortSize": 15, "sendSelectionViewportInitially": true },
 		"columns": 		{ "type": "column[]", "droppable" : true },
 		"rowHeight" : 	{"type" : "int", "default": 25},
+		"rowStyleClassDataprovider": { "type": "dataprovider", "forFoundset": "myFoundset" },
 		"visible": "visible",
 		"hashedFoundsets": { "type": "hashedFoundset[]", "default": [], "tags": {"scope": "private"}},
 		"hashedColumns": {"type" : "string[]", "default": [], "tags": {"scope": "private"}}
@@ -164,9 +165,11 @@
 	},
 	"types" : {
 		"column" : {
-			"dataprovider": { "type": "dataprovider", "forFoundset": "myFoundset" },
 			"headerTitle": {"type" : "tagstring", "tags" : {"scope": "design"}},
+			"headerStyleClass" : {"type" : "styleclass"},
+			"dataprovider": { "type": "dataprovider", "forFoundset": "myFoundset" },
 			"styleClass" : {"type" : "styleclass"},
+			"styleClassDataprovider": { "type": "dataprovider", "forFoundset": "myFoundset" },
 			"format" : {"type" : "format",  "for": ["valuelist", "dataprovider"], "tags" : {"scope": "design"}},
 			"valuelist": { "type": "valuelist", "for": "dataprovider", "tags" : {"scope": "design"} },
 			"visible":  { "type": "boolean", "default": true, "tags" : {"scope": "design"} },

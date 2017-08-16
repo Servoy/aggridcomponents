@@ -93,8 +93,10 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					defaultColDef: {
 						width: 0,
 						suppressFilter: true,
-						valueFormatter: displayValueFormatter
+						valueFormatter: displayValueFormatter,
+						menuTabs: ['generalMenuTab', 'columnsMenuTab'] // , 'filterMenuTab']
 					},
+					getMainMenuItems: getMainMenuItems,
 
 					rowHeight: $scope.model.rowHeight, // TODO expose property
 					// TODO enable it ?					rowClass: $scope.model.rowStyleClass,	// add the class to each row
@@ -105,7 +107,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					enableServerSideSorting: true,
 					columnDefs: columnDefs,
 					enableColResize: true,
-					suppressAutoSize: false,
+					suppressAutoSize: true,
 					autoSizePadding: 25,
 					suppressFieldDotNotation: true,
 
@@ -185,14 +187,8 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				gridOptions.api.addEventListener('rowGroupOpened', onRowGroupOpened);
 
 				// TODO rowStyleClassDataprovider
-				if ($scope.model.rowStyleClassProvider) {
-					gridOptions.getRowClass = function(params) {
-
-						if (params.node.rowIndex) {
-							return '';
-						}
-						// TODO return styleClass provider for row index
-					}
+				if ($scope.model.rowStyleClassDataprovider) {
+					gridOptions.getRowClass = getRowClass;
 				}
 
 				function onSelectionChanged(event) {
@@ -1175,7 +1171,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 				/** Listener for the root foundset */
 				function changeListener(change) {
-					$log.error("Change listener is called");
+					$log.warn("Change listener is called " + change);
 					// gridOptions.api.purgeEnterpriseCache();
 					if (change[$foundsetTypeConstants.NOTIFY_SELECTED_ROW_INDEXES_CHANGED]) {
 						selectedRowIndexesChanged();
@@ -1326,6 +1322,28 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						}
 					}
 				}
+				
+				function getMainMenuItems(params) {
+					// default items
+//					pinSubMenu: Submenu for pinning. Always shown.
+//					valueAggSubMenu: Submenu for value aggregation. Always shown.
+//					autoSizeThis: Auto-size the current column. Always shown.
+//					autoSizeAll: Auto-size all columns. Always shown.
+//					rowGroup: Group by this column. Only shown if column is not grouped.
+//					rowUnGroup: Un-group by this column. Only shown if column is grouped.
+//					resetColumns: Reset column details. Always shown.
+//					expandAll: Expand all groups. Only shown if grouping by at least one column.
+//					contractAll: Contract all groups. Only shown if grouping by at least one column.
+//					toolPanel: Show the tool panel.
+					var menuItems = [];
+					var items = ['rowGroup', 'rowUnGroup'];
+					params.defaultItems.forEach( function(item) {
+		                if (items.indexOf(item) > -1) {
+		                	menuItems.push(item);
+		                }
+		            });
+					return menuItems;
+				}
 
 				/**
 				 * @public
@@ -1347,9 +1365,19 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 							field: field
 						};
 
+						// styleClass
+						colDef.headerClass = 'ag-table-header ' + column.headerStyleClass;
+						if (column.styleClassDataprovider) {
+							colDef.cellClass = getCellClass;
+						} else {
+							colDef.cellClass = 'ag-table-cell ' + column.styleClass;
+						}
+						
 						colDef.enableRowGroup = column.enableRowGroup;
 						if (column.rowGroupIndex || column.rowGroupIndex === 0) colDef.rowGroupIndex = column.rowGroupIndex;
 						if (column.width || column.width === 0) colDef.width = column.width;
+						if (column.visible === false) colDef.hide = true;
+						
 
 						colDefs.push(colDef);
 					}
@@ -1358,6 +1386,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					colDefs.push({
 						field: '_svyRowId',
 						headerName: '_svyRowId',
+						suppressToolPanel: true,
 						suppressMenu: true,
 						suppressNavigable: true,
 						suppressResize: true,
@@ -1365,6 +1394,27 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					});
 
 					return colDefs;
+				}
+				
+				function getRowClass(params) {
+					
+					var index = foundset.foundset.viewPort.startIndex + params.node.rowIndex;
+					// TODO get proper foundset
+					var styleClassProvider = $scope.model.rowStyleClassDataprovider[index];
+					return styleClassProvider;
+				}
+				
+				
+				function getCellClass(params) {
+					var styleClassProvider;
+					// TODO get direct access to column is quicker than array scanning
+					var column = getColumn(params.colDef.field);
+					if (column) {
+						var index = foundset.foundset.viewPort.startIndex + params.rowIndex;
+						// TODO get proper foundset
+						styleClassProvider = column.styleClassDataprovider[index];
+					}
+					return 'ag-table-cell ' + column.styleClass + ' ' + styleClassProvider ;
 				}
 
 				function getSortModel() {
