@@ -7,9 +7,7 @@
 	else if(typeof exports === 'object')
 		exports["agGrid"] = factory();
 	else
-		root["agGrid"] = facto
-
-		ry();
+		root["agGrid"] = factory();
 })(this, function() {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
