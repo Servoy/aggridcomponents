@@ -177,7 +177,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				gridOptions.api.addEventListener('cellClicked', onCellClicked);
 				gridOptions.api.addEventListener('cellDoubleClicked', onCellDoubleClicked);
 				gridOptions.api.addEventListener('cellContextMenu', onCellContextMenu);
-				
+
 				// listen to group changes
 				gridOptions.api.addEventListener('columnRowGroupChanged', onColumnRowGroupChanged);
 
@@ -196,23 +196,36 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				}
 
 				function onSelectionChanged(event) {
+					// FIXME this works only if node is available on the root foundset
+					// TODO what to do if the record is selected from a child foundset ?
 					var selectedNodes = gridOptions.api.getSelectedNodes();
-					console.log(selectedNodes);
 					if (selectedNodes.length > 1) {
 						// TODO enable multi selection
 						$log.warn("Multiselection is not enabled yet")
 					}
 					var node = selectedNodes[0];
 					if (node) {
-						var rowIndex = foundset.getRowIndex(node.data);
-						if (rowIndex > 1) {
-							foundset.foundset.requestSelectionUpdate([rowIndex]);
+						var row = node.data;
+						var foundsetIndex = foundset.getRowIndex(row);
+						var record;
+						if (foundsetIndex > 1) {
+							foundset.foundset.requestSelectionUpdate([foundsetIndex]);
+							record = foundset.foundset.viewPort.rows[foundsetIndex - foundset.foundset.viewPort.startIndex];
+
+							// onRecordSelected handler
+							if ($scope.handlers.onRecordSelected) {
+								// TODO create mouse event
+								$scope.handlers.onRecordSelected(foundsetIndex, record, createJSEvent());
+							}
+						} else {
+							$log.warn('could not find record ' + row._svyRowId);
 						}
+
 					} else {
 						// this state is possible when the selected record is not in the visible viewPort
 					}
 				}
-				
+
 				function onCellClicked(params) {
 					$log.error(params);
 					if ($scope.handlers.onCellClick) {
@@ -237,9 +250,10 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						if (foundsetIndex > -1) {
 							record = foundset.foundset.viewPort.rows[foundsetIndex - foundset.foundset.viewPort.startIndex];
 						}
-						$scope.handlers.onCellDoubleClick(foundsetIndex, columnIndex, record, params.event);					}
+						$scope.handlers.onCellDoubleClick(foundsetIndex, columnIndex, record, params.event);
+					}
 				}
-				
+
 				function onCellContextMenu(params) {
 					$log.error(params);
 					if ($scope.handlers.onCellRightClick) {
@@ -250,9 +264,10 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						if (foundsetIndex > -1) {
 							record = foundset.foundset.viewPort.rows[foundsetIndex - foundset.foundset.viewPort.startIndex];
 						}
-						$scope.handlers.onCellRightClick(foundsetIndex, columnIndex, record, params.event);					}
+						$scope.handlers.onCellRightClick(foundsetIndex, columnIndex, record, params.event);
+					}
 				}
-				
+
 				function onColumnRowGroupChanged(event) {
 					$log.warn(event);
 				}
@@ -1504,8 +1519,24 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					};
 				}
 				
+				/**
+				 * Create a JSEvent
+				 *
+				 * @return {JSEvent}
+				 * */
+				createJSEvent = function() {
+					var element = $element;
+					var offset = element.offset();
+					var x = offset.left;
+					var y = offset.top;
+
+					var event = document.createEvent("MouseEvents");
+					event.initMouseEvent("click", false, true, window, 1, x, y, x, y, false, false, false, false, 0, null);
+					return event;
+				}
+
 				// FIXME how to force re-fit when table is shown for the first time
-				
+
 				// bind resize event
 				$(window).on('resize', onWindowResize);
 

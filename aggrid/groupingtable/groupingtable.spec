@@ -34,14 +34,14 @@
 	},
 	"handlers" : {
 	
-		"onRowSelected": {
-			"description": "Called when a row is selected",
+		"onRecordSelected": {
+			"description": "Called when a record is selected; to be used when the grid isn't bound to the form's foundset",
 			"parameters": [{
 				"name": "index",
 				"type": "int"
 			}, {
-				"name": "row",
-				"type": "object",
+				"name": "record",
+				"type": "record",
 				"optional": true
 			}, {
 				"name": "event",
