@@ -45,13 +45,14 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					//console.log(gridOptions.api.getInfinitePageState())
 					gridOptions.api.purgeEnterpriseCache();
 					$scope.dirtyCache = false;
+					$log.warn('purge cache');
 
 					// TODO keep status cache
-
-					var columns = state.expanded.columns;
-					for (var field in columns) {
-						// FIXME there is no ag-grid method to force group expand for a specific key value
-					}
+//
+//					var columns = state.expanded.columns;
+//					for (var field in columns) {
+//						// FIXME there is no ag-grid method to force group expand for a specific key value
+//					}
 				}
 
 				$scope.reload = function(count) { }
@@ -431,7 +432,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						foundset.sort(foundsetSortModel.sortColumns);
 
 						sortColumnsPromise.promise.then(function() {
-							$log.error("yes the promise is resolved");
+							$log.error("sort column promise resolved");
 							sortColumnsPromise = null;
 							callback(foundset.getViewPortData(request.startRow, request.endRow), Math.min(foundset.getLastRow(), request.endRow));
 						});
@@ -547,23 +548,23 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				// watch for sort changes and purge the cache
 				$scope.$watch("model.myFoundset.sortColumns", function(newValue, oldValue) {
 
-						// sort changed
-						$log.debug("Change Sort Model " + newValue);
-
-						// FIXME this is a workaround for issue SVY-11456
-						if (sortColumnsPromise) {
-							sortColumnsPromise.resolve(true);
-							return;
-						}
-
-						/** TODO check with R&D, sortColumns is updated only after the viewPort is update or there could be a concurrency race. When i would know when sort is completed ? */
-						if (newValue && oldValue && newValue != oldValue) {
-							$log.debug('myFoundset sort changed');
-							gridOptions.api.setSortModel(getSortModel());
-							gridOptions.api.purgeEnterpriseCache();
-						} else if (newValue == oldValue && !newValue && !oldValue) {
-							$log.warn("this should not be happening");
-						}
+//						// sort changed
+//						$log.debug("Change Sort Model " + newValue);
+//
+//						// FIXME this is a workaround for issue SVY-11456
+//						if (sortColumnsPromise) {
+//							sortColumnsPromise.resolve(true);
+//							return;
+//						}
+//
+//						/** TODO check with R&D, sortColumns is updated only after the viewPort is update or there could be a concurrency race. When i would know when sort is completed ? */
+//						if (newValue && oldValue && newValue != oldValue) {
+//							$log.debug('myFoundset sort changed');
+//							gridOptions.api.setSortModel(getSortModel());
+//							gridOptions.api.purgeEnterpriseCache();
+//						} else if (newValue == oldValue && !newValue && !oldValue) {
+//							$log.warn("this should not be happening");
+//						}
 
 					}, true);
 
@@ -1230,7 +1231,33 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				/** Listener for the root foundset */
 				function changeListener(change) {
 					$log.warn("Change listener is called " + change);
+					
+					if (change[$foundsetTypeConstants.NOTIFY_SORT_COLUMNS_CHANGED]) {
+						var newSort = change[$foundsetTypeConstants.NOTIFY_SORT_COLUMNS_CHANGED].newValue;
+						var oldSort = change[$foundsetTypeConstants.NOTIFY_SORT_COLUMNS_CHANGED].oldValue;
+						
+						// sort changed
+						$log.debug("Change Sort Model " + newSort);
 
+						// FIXME this is a workaround for issue SVY-11456
+						if (sortColumnsPromise) {
+							sortColumnsPromise.resolve(true);
+							return;
+						}
+
+						/** TODO check with R&D, sortColumns is updated only after the viewPort is update or there could be a concurrency race. When i would know when sort is completed ? */
+						if (newSort && oldSort && newSort != oldSort) {
+							$log.debug('myFoundset sort changed');
+							gridOptions.api.setSortModel(getSortModel());
+							gridOptions.api.purgeEnterpriseCache();
+						} else if (newSort == oldSort && !newSort && !oldSort) {
+							$log.warn("this should not be happening");
+						}
+						// do nothing else after a sort ?
+						// sort should skip purge
+						return;
+					}
+					
 					if (change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROWS_COMPLETELY_CHANGED]) {
 						$scope.purge();
 						return;
