@@ -26,14 +26,14 @@
 	"model":
 	{
 		"myFoundset": {"type": "foundset", "dynamicDataproviders": true, "initialPreferredViewPortSize": 15, "sendSelectionViewportInitially": true },
-		"columns": { "type": "column[]", "droppable" : true },
+		"columns": { "type": "column[]", "droppable" : true, "pushToServer": "allow" },
 		"rowHeight" : 	{"type" : "int", "default": 25, "tags": {"scope": "design"} },
 		"rowStyleClassDataprovider": { "type": "dataprovider", "forFoundset": "myFoundset", "tags": {"scope": "design"} },
 		"enableColumnResize": { "type": "boolean", "default": true, "tags": {"scope": "design"} },
 		"enableSort": { "type": "boolean", "default": true, "tags": {"scope": "design"} },
 		"styleClass": { "type": "styleclass" },
 		"visible": "visible",
-		"hashedFoundsets": { "type": "hashedFoundset[]", "default": [], "tags": {"scope": "private"}},
+		"hashedFoundsets": { "type": "hashedFoundset[]", "default": [], "tags": {"scope": "private"}, "pushToServer": "allow"},
 		"hashedColumns": {"type" : "string[]", "default": [], "tags": {"scope": "private"}}
 	},
 	"handlers" : {

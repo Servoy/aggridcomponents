@@ -48,11 +48,11 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					$log.warn('purge cache');
 
 					// TODO keep status cache
-//
-//					var columns = state.expanded.columns;
-//					for (var field in columns) {
-//						// FIXME there is no ag-grid method to force group expand for a specific key value
-//					}
+					//
+					//					var columns = state.expanded.columns;
+					//					for (var field in columns) {
+					//						// FIXME there is no ag-grid method to force group expand for a specific key value
+					//					}
 				}
 
 				$scope.reload = function(count) { }
@@ -79,7 +79,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 				// TODO this is used as workaround because sort doesn't return a promise
 				var sortColumnsPromise;
-				
+
 				// formatFilter function
 				var formatFilter = $filter("formatFilter");
 
@@ -201,12 +201,12 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				}
 
 				function onSelectionChanged(event) {
-					
+
 					// Don't trigger foundset selection if table is grouping
 					if (isTableGrouped()) {
 						return;
 					}
-					
+
 					// FIXME this works only if node is available on the root foundset
 					// TODO what to do if the record is selected from a child foundset ?
 					var selectedNodes = gridOptions.api.getSelectedNodes();
@@ -238,14 +238,13 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						// this state is possible when the selected record is not in the visible viewPort
 					}
 				}
-				
-				
 
 				function onCellClicked(params) {
-					$log.error(params);
+					$log.debug(params);
 					if ($scope.handlers.onCellClick) {
 						var row = params.data;
 						var foundsetManager = getFoundsetManagerByFoundsetUUID(row._svyFoundsetUUID);
+						if (!foundsetManager) foundsetManager = foundset;
 						var foundsetRef = foundsetManager.foundset;
 						var foundsetIndex = foundsetManager.getRowIndex(row);
 						var columnIndex = getColumnIndex(params.colDef.field);
@@ -258,21 +257,22 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						}
 						if (foundsetManager.isRoot === false) {
 							foundsetIndex = -1;
-						} 
-						
+						}
+
 						// no foundset index if record is grouped
 						if (foundsetManager.isRoot === false) {
 							foundsetIndex = -1;
-						} 
+						}
 						$scope.handlers.onCellClick(foundsetIndex, columnIndex, record, params.event);
 					}
 				}
 
 				function onCellDoubleClicked(params) {
-					$log.error(params);
+					$log.debug(params);
 					if ($scope.handlers.onCellDoubleClick) {
 						var row = params.data;
 						var foundsetManager = getFoundsetManagerByFoundsetUUID(row._svyFoundsetUUID);
+						if (!foundsetManager) foundsetManager = foundset;
 						var foundsetRef = foundsetManager.foundset;
 						var foundsetIndex = foundsetManager.getRowIndex(row);
 						var columnIndex = getColumnIndex(params.colDef.field);
@@ -283,20 +283,21 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 							// Can i get the hasmap of columns to get the proper dataProviderID name ?
 							record = foundsetRef.viewPort.rows[foundsetIndex - foundsetRef.viewPort.startIndex];
 						}
-						
+
 						// no foundset index if record is grouped
 						if (foundsetManager.isRoot === false) {
 							foundsetIndex = -1;
-						} 
+						}
 						$scope.handlers.onCellDoubleClick(foundsetIndex, columnIndex, record, params.event);
 					}
 				}
 
 				function onCellContextMenu(params) {
-					$log.error(params);
+					$log.debug(params);
 					if ($scope.handlers.onCellRightClick) {
 						var row = params.data;
 						var foundsetManager = getFoundsetManagerByFoundsetUUID(row._svyFoundsetUUID);
+						if (!foundsetManager) foundsetManager = foundset;
 						var foundsetRef = foundsetManager.foundset;
 						var foundsetIndex = foundsetManager.getRowIndex(row);
 						var columnIndex = getColumnIndex(params.colDef.field);
@@ -304,30 +305,75 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						if (foundsetIndex > -1) {
 							record = foundsetRef.viewPort.rows[foundsetIndex - foundsetRef.viewPort.startIndex];
 						}
-						
+
 						// no foundset index if record is grouped
 						if (foundsetManager.isRoot === false) {
 							foundsetIndex = -1;
-						} 
+						}
 						$scope.handlers.onCellRightClick(foundsetIndex, columnIndex, record, params.event);
 					}
 				}
 
 				function onColumnRowGroupChanged(event) {
+					var rowGroupCols = event.columns;
+					// FIXME why does give an error,  i don't uderstand
+					return;
+					var i;
+					var column;
 					$log.warn(event);
+
+					// store in columns the change
+					if (!rowGroupCols || rowGroupCols.length === 0) {
+						groupManager.clearAll();
+
+						// clear all columns
+						for (i = 0; i < $scope.model.columns.length; i++) {
+							column = $scope.model.columns[i];
+							if (column.hasOwnProperty('rowGroupIndex')) {
+								column.rowGroupIndex = null;
+							}
+						}
+
+					} else {
+						var groupedFields = [];
+
+						// set new rowGroupIndex
+						for (i = 0; i < rowGroupCols.length; i++) {
+							var rowGroupCol = rowGroupCols[i];
+							var field = rowGroupCol.colDef.field;
+							groupedFields.push(field);
+							column = getColumn(field);
+							column.rowGroupIndex = i;
+						}
+
+						// reset all other columns;
+						for (i = 0; i < $scope.model.columns.length; i++) {
+							column = $scope.model.columns[i];
+							if (groupedFields.indexOf(getColumnID(column, i) === -1)) {
+								if (column.hasOwnProperty('rowGroupIndex')) {
+									column.rowGroupIndex = null;
+								}
+							}
+
+						}
+					}
+
+					// persist the change to the server
+					$scope.svyServoyapi.apply("columns");
 				}
 
 				function onRowGroupOpened(event) {
 					$log.warn(event);
 					// TODO remove foundset from memory when a group is closed
 
-					return;
 					var column = event.node;
 					var field = column.field;
 					var key = column.key;
 					var groupIndex = column.level;
 					var isExpanded = column.expanded;
 
+					// TODO doesn't make sense if i can't make a particoular row to open via API
+					// Persist the state of an expanded row
 					// TODO if ungroup remove a full row group.
 					var expandedState = state.expanded;
 					if (isExpanded) { // add expanded node to cache
@@ -341,6 +387,13 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 							delete expandedState.columns[field][key];
 						}
 					}
+					if (isExpanded === false) {
+						// remove the foundset
+						groupManager.removeChildFoundsetRef(column.data._svyFoundsetUUID, column.field, column.data[field]);
+					}
+
+					//var foundsetManager = getFoundsetManagerByFoundsetUUID(column.data._svyFoundsetUUID);
+					//foundsetManager.destroy();
 
 				}
 
@@ -648,9 +701,9 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 							// TODO check limit startIndex/endIndex;
 							// TODO how can i add the foundset UUID to these ?
 							result = data.slice(startIndex, endIndex);
-							
+
 							// TODO could be done directly server side ?
-							result.forEach(function (item) {
+							result.forEach(function(item) {
 								item._svyFoundsetUUID = thisInstance.foundsetUUID;
 							});
 						}
@@ -773,6 +826,16 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 					}
 
+					this.destroy = function() {
+						$log.warn('destroy ' + this.foundsetUUID);
+
+						// remove the listener
+						this.foundset.removeChangeListener(foundsetListener);
+
+						// persistently remove the foundset from other cached objects (model.hashedFoundsets, state.foundsetManager);
+						removeFoundSetByFoundsetUUID(this.foundsetUUID);
+					}
+
 					if (!this.isRoot) {
 						// add the change listener to the component
 						this.foundset.addChangeListener(foundsetListener);
@@ -810,6 +873,8 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					// methods
 					this.getCachedFoundset;
 					this.setCachedFoundset;
+					this.removeCachedFoundset;
+					this.removeChildFoundsets;
 
 					this.getCachedFoundset = function(rowGroupCols, groupKeys) {
 
@@ -839,6 +904,107 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					this.setCachedFoundset = function(rowGroupCols, groupKeys, foundsetUUID) {
 						var tree = getTreeNode(hashTree, rowGroupCols, groupKeys, true);
 						tree.foundsetUUID = foundsetUUID;
+					}
+
+					/** Remove the node */
+					this.removeCachedFoundset = function(foundsetUUID) {
+						return removeFoundset(hashTree, foundsetUUID);
+					}
+
+					/** Remove all it's child node */
+					this.removeChildFoundset = function(foundsetUUID, field, value) {
+						return removeChildFoundsets(hashTree, foundsetUUID, field, value);
+					}
+
+					this.clearAll = function() {
+						for (var nodeKey in hashTree) {
+							var node = hashTree[nodeKey];
+							if (node.foundsetUUID) {
+								removeFoundset(hashTree, nodefoundsetUUID);
+							} else {
+								// TODO is it this possible
+								$log.error('There is a root node without a foundset UUID, it should not happen');
+							}
+						}
+						if ($scope.model.hashedFoundsets.length > 0) {
+							$log.error("Clear All was not successful, please debug");
+						}
+					}
+
+					function removeFoundset(tree, foundsetUUID) {
+						if (!tree) {
+							return true;
+						}
+
+						if (!foundsetUUID) {
+							return true;
+						}
+
+						for (var nodeKey in tree) {
+							var subNodeKey
+							var node = tree[nodeKey];
+							if (node.foundsetUUID === foundsetUUID) {
+								// TODO should delete all subnodes
+
+								if (node.nodes) {
+									for (subNodeKey in node.nodes) {
+										removeFoundset(node.nodes, node.nodes[subNodeKey].foundsetUUID);
+									}
+								}
+								// TODO should this method access the foundsetManager ? is not a good encapsulation
+								var foundsetManager = getFoundsetManagerByFoundsetUUID(foundsetUUID);
+								foundsetManager.destroy();
+								delete tree[nodeKey];
+								return true;
+							} else if (node.nodes) {
+								for (subNodeKey in node.nodes) {
+									if (removeFoundset(node.nodes, foundsetUUID)) {
+										return true;
+									}
+								}
+							}
+						}
+						return false;
+					}
+
+					function removeChildFoundsets(tree, foundsetUUID, field, value) {
+						if (!tree) {
+							return false;
+						}
+
+						if (!foundsetUUID) {
+							return false;
+						}
+
+						for (var nodeKey in tree) {
+							var subNodeKey
+							var node = tree[nodeKey];
+							if (node.foundsetUUID === foundsetUUID) {
+								// delete all subnodes
+								var success = true;
+								if (node.nodes) {
+									for (subNodeKey in node.nodes) {
+										var childFoundsetUUID = node.nodes[subNodeKey].foundsetUUID;
+										var foundsetRef = getFoundsetManagerByFoundsetUUID(childFoundsetUUID);
+										// FIXME this solution is horrible, can break if rows.length === 0 or...
+										// A better solution is to retrieve the proper childFoundsetUUID by rowGroupCols/groupKeys
+										if (foundsetRef && foundsetRef.foundset.viewPort.rows[0] && foundsetRef.foundset.viewPort.rows[0][field] == value) {
+											success = (removeFoundset(node.nodes, childFoundsetUUID) && success);
+										} else {
+											$log.debug('ignore the child foundset');
+										}
+									}
+								}
+								return success;
+							} else if (node.nodes) { // search in subnodes
+								for (subNodeKey in node.nodes) {
+									if (removeChildFoundsets(node.nodes, foundsetUUID)) {
+										return true;
+									}
+								}
+							}
+						}
+						return false;
 					}
 
 					/**
@@ -984,6 +1150,9 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 					// methods
 					this.getFoundsetRef;
+					this.removeFoundsetRef;
+					this.removeChildFoundsetRef;
+					this.clearAll;
 
 					//					this.updateGroupColumns = function(rowGroupCols) {
 					//
@@ -1161,6 +1330,28 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						return resultDeferred.promise;
 					}
 
+					/**
+					 * @private
+					 * Should this method be used ?
+					 *  */
+					this.removeFoundsetRef = function(foundsetUUID) {
+						return hashTree.removeCachedFoundset(foundsetUUID);
+					}
+
+					/**
+					 * @param {String} foundsetUUID
+					 * @param {String} [field] if given delete only the child having field equal to value
+					 * @param {Object} [value] if given delete only the child having field equal to value
+					 *
+					 * */
+					this.removeChildFoundsetRef = function(foundsetUUID, field, value) {
+						return hashTree.removeChildFoundset(foundsetUUID, field, value);
+					}
+
+					this.clearAll = function() {
+						hashTree.clearAll();
+					}
+
 				}
 
 				/**
@@ -1195,6 +1386,29 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						state.foundsetManagers[foundsetHash] = foundsetManager;
 						return foundsetManager;
 					}
+				}
+
+				function removeFoundSetByFoundsetUUID(foundsetHash) {
+
+					if (foundsetHash === 'root') {
+						$log.error('Trying to remove root foundset');
+						return false;
+					}
+
+					// remove the hashedFoundsets
+					if ($scope.model.hashedFoundsets) {
+						for (var i = 0; i < $scope.model.hashedFoundsets.length; i++) {
+							if ($scope.model.hashedFoundsets[i].foundsetUUID == foundsetHash) {
+								$scope.model.hashedFoundsets.splice(i, 1);
+								// remove the hashedFoundset from the memory
+								$scope.svyServoyapi.apply("hashedFoundsets");
+								return true;
+							}
+						}
+					}
+					return false
+
+					delete state.foundsetManagers[foundsetHash];
 				}
 
 				/*************************************************************************************
@@ -1256,11 +1470,11 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				/** Listener for the root foundset */
 				function changeListener(change) {
 					$log.warn("Change listener is called " + change);
-					
+
 					if (change[$foundsetTypeConstants.NOTIFY_SORT_COLUMNS_CHANGED]) {
 						var newSort = change[$foundsetTypeConstants.NOTIFY_SORT_COLUMNS_CHANGED].newValue;
 						var oldSort = change[$foundsetTypeConstants.NOTIFY_SORT_COLUMNS_CHANGED].oldValue;
-						
+
 						// sort changed
 						$log.debug("Change Sort Model " + newSort);
 
@@ -1282,7 +1496,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						// sort should skip purge
 						return;
 					}
-					
+
 					if (change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROWS_COMPLETELY_CHANGED]) {
 						$scope.purge();
 						return;
@@ -1311,7 +1525,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						}
 						return;
 					}
-					
+
 					// CHANGE Seleciton
 					// TODO implement multiselect
 					if (!foundsetManager) {
@@ -1360,14 +1574,14 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 					return result;
 				}
-				
+
 				/**
 				 * Returns true if table is grouping
 				 * @return {Boolean}
 				 *  */
 				function isTableGrouped() {
 					var rowGroupCols = gridOptions.columnApi.getRowGroupColumns();
-					return rowGroupCols && rowGroupCols.length > 0
+					return rowGroupCols && rowGroupCols.length > 0;
 				}
 
 				/**
@@ -1499,7 +1713,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						var field = getColumnID(column, i);
 						//create a column definition based on the properties defined at design time
 						colDef = {
-							headerName: "" + (column["headerTitle"] ? column["headerTitle"] : "")  + "",
+							headerName: "" + (column["headerTitle"] ? column["headerTitle"] : "") + "",
 							field: field
 						};
 
@@ -1529,7 +1743,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						suppressResize: true,
 						hide: true
 					});
-					
+
 					colDefs.push({
 						field: '_svyFoundsetUUID',
 						headerName: '_svyFoundsetUUID',

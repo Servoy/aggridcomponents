@@ -40,6 +40,84 @@ function GroupHashCache() {
 		tree.foundsetUUID = foundsetUUID;
 	}
 
+	/** Remove the node */
+	this.removeCachedFoundset = function(foundsetUUID) {
+		return removeFoundset(hashTree, foundsetUUID);
+	}
+
+	/** Remove all it's child node */
+	this.removeChildFoundset = function(foundsetUUID) {
+		return removeChildFoundsets(hashTree, foundsetUUID);
+	}
+
+	function removeFoundset(tree, foundsetUUID) {
+		if (!tree) {
+			return true;
+		}
+
+		if (!foundsetUUID) {
+			return true;
+		}
+
+		for (var nodeKey in tree) {
+			var subNodeKey
+			var node = tree[nodeKey];
+			if (node.foundsetUUID === foundsetUUID) {
+				// TODO should delete all subnodes
+
+				if (node.nodes) {
+					for (subNodeKey in node.nodes) {
+						removeFoundset(node.nodes, node.nodes[subNodeKey].foundsetUUID);
+					}
+				}
+				// TODO should this method access the foundsetManager ? is not a good encapsulation
+				var foundsetManager = getFoundsetManagerByFoundsetUUID(foundsetUUID);
+				foundsetManager.destroy();
+				delete tree[nodeKey];
+				return true;
+			} else if (node.nodes) {
+				for (subNodeKey in node.nodes) {
+					if (removeFoundset(node.nodes, foundsetUUID)) {
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+
+	function removeChildFoundsets(tree, foundsetUUID) {
+		if (!tree) {
+			return false;
+		}
+
+		if (!foundsetUUID) {
+			return false;
+		}
+
+		for (var nodeKey in tree) {
+			var subNodeKey
+			var node = tree[nodeKey];
+			if (node.foundsetUUID === foundsetUUID) {
+				// delete all subnodes
+				var success = true;
+				if (node.nodes) {
+					for (subNodeKey in node.nodes) {
+						success = (removeFoundset(node.nodes, node.nodes[subNodeKey].foundsetUUID) && success);
+					}
+				}
+				return success;
+			} else if (node.nodes) { // search in subnodes
+				for (subNodeKey in node.nodes) {
+					if (removeChildFoundsets(node.nodes, foundsetUUID)) {
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+
 	/**
 	 * @param {Object} tree
 	 * @param {Array} rowGroupCols
@@ -166,6 +244,19 @@ function GroupHashCache() {
 		return result;
 	}
 
+}
+
+/**
+ * @param foundsetUUID
+ *
+ * @properties={typeid:24,uuid:"D03FC1E1-60FD-4D9F-AB6E-2BD2D5F792F1"}
+ */
+function getFoundsetManagerByFoundsetUUID(foundsetUUID) {
+	return {
+		destroy: function() {
+			application.output('Destroy ' + foundsetUUID)
+		}
+	}
 }
 
 /**
@@ -322,29 +413,282 @@ function test_getCachedFoundset() {
 	cache.setCachedFoundset(rowGroupCols, groupKeys, 'customerid-ALFKI-shipcity');
 	jsunit.assertEquals('customerid-ALFKI-shipcity', cache.getCachedFoundset(rowGroupCols, groupKeys));
 
+}
+
+/**
+ * @properties={typeid:24,uuid:"FD744D7C-CA6D-4BC9-BB76-F65B58FF70A1"}
+ */
+function test_removeCachedFoundset() {
+	var groupKeys = [];
+	var rowGroupCols = [];
+
+	rowGroupCols = [{
+		aggFunc: undefined,
+		displayName: "customerid",
+		field: "B905CBA4-73E2-4317-BE36-48E8E08337E1",
+		id: "B905CBA4-73E2-4317-BE36-48E8E08337E1"
+	}];
+
+	var cache = new GroupHashCache();
+
+	// top level grouping on customerid
+	jsunit.assertEquals(null, cache.getCachedFoundset(rowGroupCols, groupKeys));
+	cache.setCachedFoundset(rowGroupCols, groupKeys, 'customerid');
+	jsunit.assertEquals('customerid', cache.getCachedFoundset(rowGroupCols, groupKeys));
+
+	// top level, expand a leaf node
+	groupKeys = ["ALFKI"];
+	jsunit.assertEquals(null, cache.getCachedFoundset(rowGroupCols, groupKeys));
+	cache.setCachedFoundset(rowGroupCols, groupKeys, 'customerid-ALFKI');
+	jsunit.assertEquals('customerid-ALFKI', cache.getCachedFoundset(rowGroupCols, groupKeys));
+
+	// top level, expand a leaf node
+	groupKeys = ["ANTON"];
+	jsunit.assertEquals(null, cache.getCachedFoundset(rowGroupCols, groupKeys));
+	cache.setCachedFoundset(rowGroupCols, groupKeys, 'customerid-ANTON');
+	jsunit.assertEquals('customerid-ANTON', cache.getCachedFoundset(rowGroupCols, groupKeys));
+
+	groupKeys = ["ALFKI"];
+	jsunit.assertEquals('customerid-ALFKI', cache.getCachedFoundset(rowGroupCols, groupKeys));
+
+	// two grouped columns
+	rowGroupCols = [{
+		aggFunc: undefined,
+		displayName: "customerid",
+		field: "B905CBA4-73E2-4317-BE36-48E8E08337E1",
+		id: "B905CBA4-73E2-4317-BE36-48E8E08337E1"
+	}, {
+		aggFunc: undefined,
+		displayName: "shipcity",
+		field: "B905CBA4-shipcity",
+		id: "B905CBA4-shipcity"
+	}];
+
+	jsunit.assertEquals(null, cache.getCachedFoundset(rowGroupCols, groupKeys));
+	cache.setCachedFoundset(rowGroupCols, groupKeys, 'customerid-ALFKI-shipcity');
+	jsunit.assertEquals('customerid-ALFKI-shipcity', cache.getCachedFoundset(rowGroupCols, groupKeys));
+
+	groupKeys = ["ALFKI", "Athens"];
+
+	jsunit.assertEquals(null, cache.getCachedFoundset(rowGroupCols, groupKeys));
+	cache.setCachedFoundset(rowGroupCols, groupKeys, 'customerid-ALFKI-shipcity-Athens');
+	jsunit.assertEquals('customerid-ALFKI-shipcity-Athens', cache.getCachedFoundset(rowGroupCols, groupKeys));
+
+	groupKeys = ["ALFKI", "Amsterdam"];
+
+	jsunit.assertEquals(null, cache.getCachedFoundset(rowGroupCols, groupKeys));
+	cache.setCachedFoundset(rowGroupCols, groupKeys, 'customerid-ALFKI-shipcity-Amsterdam');
+	jsunit.assertEquals('customerid-ALFKI-shipcity-Amsterdam', cache.getCachedFoundset(rowGroupCols, groupKeys));
+
+	// remove the keys
+	jsunit.assertTrue(cache.removeCachedFoundset('customerid-ALFKI-shipcity-Athens')); // remove id
+	jsunit.assertNull(cache.getCachedFoundset(rowGroupCols, ["ALFKI", "Athens"])); // check id not there
+	jsunit.assertEquals('customerid-ALFKI-shipcity-Amsterdam', cache.getCachedFoundset(rowGroupCols, groupKeys)); // check other id still exists
+
+	// remove the keys
+	jsunit.assertTrue(cache.removeCachedFoundset('customerid-ALFKI-shipcity')); // remove id
+	jsunit.assertNull(cache.getCachedFoundset(rowGroupCols, ["ALFKI", "Athens"])); // check id not there
+	jsunit.assertNull(cache.getCachedFoundset(rowGroupCols, ["ALFKI", "Amsterdam"])); // check other id still exists
+
+	// second test
+
+	// two grouped columns
+	rowGroupCols = [{
+		aggFunc: undefined,
+		displayName: "customerid",
+		field: "B905CBA4-73E2-4317-BE36-48E8E08337E1",
+		id: "B905CBA4-73E2-4317-BE36-48E8E08337E1"
+	}, {
+		aggFunc: undefined,
+		displayName: "shipcity",
+		field: "B905CBA4-shipcity",
+		id: "B905CBA4-shipcity"
+	}];
+
+	groupKeys = [];
+
+	// new object
+	cache = new GroupHashCache();
+
+	jsunit.assertEquals(null, cache.getCachedFoundset(rowGroupCols, groupKeys));
+	cache.setCachedFoundset(rowGroupCols, groupKeys, 'customerid');
+	jsunit.assertEquals('customerid', cache.getCachedFoundset(rowGroupCols, groupKeys));
+
+	groupKeys = ["ALFKI"];
+
+	jsunit.assertEquals(null, cache.getCachedFoundset(rowGroupCols, groupKeys));
+	cache.setCachedFoundset(rowGroupCols, groupKeys, 'customerid-ALFKI-shipcity');
+	jsunit.assertEquals('customerid-ALFKI-shipcity', cache.getCachedFoundset(rowGroupCols, groupKeys));
+
+	groupKeys = ["ALFKI", "Athens"];
+
+	jsunit.assertEquals(null, cache.getCachedFoundset(rowGroupCols, groupKeys));
+	cache.setCachedFoundset(rowGroupCols, groupKeys, 'customerid-ALFKI-shipcity-Athens');
+	jsunit.assertEquals('customerid-ALFKI-shipcity-Athens', cache.getCachedFoundset(rowGroupCols, groupKeys));
+
+	groupKeys = ["ALFKI", "Amsterdam"];
+
+	jsunit.assertEquals(null, cache.getCachedFoundset(rowGroupCols, groupKeys));
+	cache.setCachedFoundset(rowGroupCols, groupKeys, 'customerid-ALFKI-shipcity-Amsterdam');
+	jsunit.assertEquals('customerid-ALFKI-shipcity-Amsterdam', cache.getCachedFoundset(rowGroupCols, groupKeys));
+
+	//groupKeys = ["ALFKI"];
+	//jsunit.assertEquals('customerid-ALFKI', cache.getCachedFoundset(rowGroupCols, groupKeys));
+
+	// remove the keys
+	jsunit.assertTrue(cache.removeCachedFoundset('customerid')); // remove id
+	jsunit.assertNull(cache.getCachedFoundset(rowGroupCols, ["ALFKI", "Athens"])); // check id not there
+	jsunit.assertNull(cache.getCachedFoundset(rowGroupCols, ["ALFKI"])); // check id not there
 
 }
 
+/**
+ * @properties={typeid:24,uuid:"96E8E2E7-64B8-4B86-822F-20F54FA3F346"}
+ */
+function test_removeChildFoundsets() {
+	var groupKeys = [];
+	var rowGroupCols = [];
 
-/* 
- * 
-select min(orderid) from orders where customerid = 'ALFKI' group by shipcity order by shipcity;
+	rowGroupCols = [{
+		aggFunc: undefined,
+		displayName: "customerid",
+		field: "B905CBA4-73E2-4317-BE36-48E8E08337E1",
+		id: "B905CBA4-73E2-4317-BE36-48E8E08337E1"
+	}];
 
-update orders set shipcountry = 'Greece' where shipcity = 'Athens' or shipcity = 'Thessaloniki';
+	var cache = new GroupHashCache();
 
-select * from orders where customerid = 'ALFKI' order by shipcity ;
+	// top level grouping on customerid
+	jsunit.assertEquals(null, cache.getCachedFoundset(rowGroupCols, groupKeys));
+	cache.setCachedFoundset(rowGroupCols, groupKeys, 'customerid');
+	jsunit.assertEquals('customerid', cache.getCachedFoundset(rowGroupCols, groupKeys));
 
-update orders set shipcountry = 'Spain' where shipcity = 'Barcelona' or shipcity = 'Madrid';
+	// top level, expand a leaf node
+	groupKeys = ["ALFKI"];
+	jsunit.assertEquals(null, cache.getCachedFoundset(rowGroupCols, groupKeys));
+	cache.setCachedFoundset(rowGroupCols, groupKeys, 'customerid-ALFKI');
+	jsunit.assertEquals('customerid-ALFKI', cache.getCachedFoundset(rowGroupCols, groupKeys));
 
-update orders set shipcountry = 'Italy' where shipcity = 'Rome' or shipcity = 'Milan';
+	// top level, expand a leaf node
+	groupKeys = ["ANTON"];
+	jsunit.assertEquals(null, cache.getCachedFoundset(rowGroupCols, groupKeys));
+	cache.setCachedFoundset(rowGroupCols, groupKeys, 'customerid-ANTON');
+	jsunit.assertEquals('customerid-ANTON', cache.getCachedFoundset(rowGroupCols, groupKeys));
 
-update orders set shipcountry = 'Norway' where shipcity = 'Oslo';
+	groupKeys = ["ALFKI"];
+	jsunit.assertEquals('customerid-ALFKI', cache.getCachedFoundset(rowGroupCols, groupKeys));
 
-update orders set shipcountry = 'Netherlands' where shipcity = 'Amsterdam';
+	// two grouped columns
+	rowGroupCols = [{
+		aggFunc: undefined,
+		displayName: "customerid",
+		field: "B905CBA4-73E2-4317-BE36-48E8E08337E1",
+		id: "B905CBA4-73E2-4317-BE36-48E8E08337E1"
+	}, {
+		aggFunc: undefined,
+		displayName: "shipcity",
+		field: "B905CBA4-shipcity",
+		id: "B905CBA4-shipcity"
+	}];
 
-update orders set shipcountry = 'France' where shipcity = 'Paris';
+	jsunit.assertEquals(null, cache.getCachedFoundset(rowGroupCols, groupKeys));
+	cache.setCachedFoundset(rowGroupCols, groupKeys, 'customerid-ALFKI-shipcity');
+	jsunit.assertEquals('customerid-ALFKI-shipcity', cache.getCachedFoundset(rowGroupCols, groupKeys));
 
-select * from orders where customerid = 'ALFKI' AND shipcity = 'Madrid'
+	groupKeys = ["ALFKI", "Athens"];
 
+	jsunit.assertEquals(null, cache.getCachedFoundset(rowGroupCols, groupKeys));
+	cache.setCachedFoundset(rowGroupCols, groupKeys, 'customerid-ALFKI-shipcity-Athens');
+	jsunit.assertEquals('customerid-ALFKI-shipcity-Athens', cache.getCachedFoundset(rowGroupCols, groupKeys));
+
+	groupKeys = ["ALFKI", "Amsterdam"];
+
+	jsunit.assertEquals(null, cache.getCachedFoundset(rowGroupCols, groupKeys));
+	cache.setCachedFoundset(rowGroupCols, groupKeys, 'customerid-ALFKI-shipcity-Amsterdam');
+	jsunit.assertEquals('customerid-ALFKI-shipcity-Amsterdam', cache.getCachedFoundset(rowGroupCols, groupKeys));
+
+	// remove the keys
+	jsunit.assertTrue(cache.removeChildFoundset('customerid-ALFKI-shipcity-Athens')); // remove id
+	jsunit.assertEquals('customerid-ALFKI-shipcity-Athens', cache.getCachedFoundset(rowGroupCols, ["ALFKI", "Athens"])); // check other id still exists
+	jsunit.assertEquals('customerid-ALFKI-shipcity-Amsterdam', cache.getCachedFoundset(rowGroupCols, ["ALFKI", "Amsterdam"])); // check other id still exists
+
+	// remove the keys
+	jsunit.assertTrue(cache.removeChildFoundset('customerid-ALFKI-shipcity')); // remove id
+	jsunit.assertEquals('customerid-ALFKI-shipcity', cache.getCachedFoundset(rowGroupCols, ["ALFKI"])); // check other id still exists
+	jsunit.assertNull(cache.getCachedFoundset(rowGroupCols, ["ALFKI", "Athens"])); // check id not there
+	jsunit.assertNull(cache.getCachedFoundset(rowGroupCols, ["ALFKI", "Amsterdam"])); // check other id still exists
+
+	// second test
+
+	// two grouped columns
+	rowGroupCols = [{
+		aggFunc: undefined,
+		displayName: "customerid",
+		field: "B905CBA4-73E2-4317-BE36-48E8E08337E1",
+		id: "B905CBA4-73E2-4317-BE36-48E8E08337E1"
+	}, {
+		aggFunc: undefined,
+		displayName: "shipcity",
+		field: "B905CBA4-shipcity",
+		id: "B905CBA4-shipcity"
+	}];
+
+	groupKeys = [];
+
+	// new object
+	cache = new GroupHashCache();
+
+	jsunit.assertEquals(null, cache.getCachedFoundset(rowGroupCols, groupKeys));
+	cache.setCachedFoundset(rowGroupCols, groupKeys, 'customerid');
+	jsunit.assertEquals('customerid', cache.getCachedFoundset(rowGroupCols, groupKeys));
+
+	groupKeys = ["ALFKI"];
+	cache.setCachedFoundset([rowGroupCols[0]], groupKeys, 'customerid-ALFKI');
+	
+	jsunit.assertEquals(null, cache.getCachedFoundset(rowGroupCols, groupKeys));
+	cache.setCachedFoundset(rowGroupCols, groupKeys, 'customerid-ALFKI-shipcity');
+	jsunit.assertEquals('customerid-ALFKI-shipcity', cache.getCachedFoundset(rowGroupCols, groupKeys));
+
+	groupKeys = ["ALFKI", "Athens"];
+
+	jsunit.assertEquals(null, cache.getCachedFoundset(rowGroupCols, groupKeys));
+	cache.setCachedFoundset(rowGroupCols, groupKeys, 'customerid-ALFKI-shipcity-Athens');
+	jsunit.assertEquals('customerid-ALFKI-shipcity-Athens', cache.getCachedFoundset(rowGroupCols, groupKeys));
+
+	groupKeys = ["ALFKI", "Amsterdam"];
+
+	jsunit.assertEquals(null, cache.getCachedFoundset(rowGroupCols, groupKeys));
+	cache.setCachedFoundset(rowGroupCols, groupKeys, 'customerid-ALFKI-shipcity-Amsterdam');
+	jsunit.assertEquals('customerid-ALFKI-shipcity-Amsterdam', cache.getCachedFoundset(rowGroupCols, groupKeys));
+
+	//groupKeys = ["ALFKI"];
+	//jsunit.assertEquals('customerid-ALFKI', cache.getCachedFoundset(rowGroupCols, groupKeys));
+
+	// remove the keys
+	jsunit.assertTrue(cache.removeChildFoundset('customerid')); // remove id
+	jsunit.assertNull(cache.getCachedFoundset(rowGroupCols, ["ALFKI", "Athens"])); // check id not there
+	jsunit.assertNull(cache.getCachedFoundset(rowGroupCols, ["ALFKI"])); // check id not there
+
+}
+
+/*
+ *
+ select min(orderid) from orders where customerid = 'ALFKI' group by shipcity order by shipcity;
+
+ update orders set shipcountry = 'Greece' where shipcity = 'Athens' or shipcity = 'Thessaloniki';
+
+ select * from orders where customerid = 'ALFKI' order by shipcity ;
+
+ update orders set shipcountry = 'Spain' where shipcity = 'Barcelona' or shipcity = 'Madrid';
+
+ update orders set shipcountry = 'Italy' where shipcity = 'Rome' or shipcity = 'Milan';
+
+ update orders set shipcountry = 'Norway' where shipcity = 'Oslo';
+
+ update orders set shipcountry = 'Netherlands' where shipcity = 'Amsterdam';
+
+ update orders set shipcountry = 'France' where shipcity = 'Paris';
+
+ select * from orders where customerid = 'ALFKI' AND shipcity = 'Madrid'
 
  */
