@@ -104,6 +104,8 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 		var idForFoundset = idForFoundsets[idx];
 		// Servoy resolves the real dataprovider name into the dataprovider 'field'
 		dps[idForFoundset] = dpId;
+		// TODO it could be the hashmap of groupkeys/groupcolumns ?
+		dps._svyFoundsetUUID = '';
 	}
 	
 	// TODO perhaps R&D can improve this

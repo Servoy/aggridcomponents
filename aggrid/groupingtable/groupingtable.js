@@ -77,6 +77,9 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					}
 				}
 
+				// TODO this is used as workaround because sort doesn't return a promise
+				var sortColumnsPromise;
+				
 				// formatFilter function
 				var formatFilter = $filter("formatFilter");
 
@@ -210,7 +213,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						var row = node.data;
 						var foundsetIndex = foundset.getRowIndex(row);
 						var record;
-						if (foundsetIndex > 1) {
+						if (foundsetIndex > -1) {
 							foundset.foundset.requestSelectionUpdate([foundsetIndex]);
 							record = foundset.foundset.viewPort.rows[foundsetIndex - foundset.foundset.viewPort.startIndex];
 
@@ -227,16 +230,20 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						// this state is possible when the selected record is not in the visible viewPort
 					}
 				}
+				
+				
 
 				function onCellClicked(params) {
 					$log.error(params);
 					if ($scope.handlers.onCellClick) {
 						var row = params.data;
-						var foundsetIndex = foundset.getRowIndex(row);
+						var foundsetManager = getFoundsetManagerByFoundsetUUID(row._svyFoundsetUUID);
+						var foundsetRef = foundsetManager.foundset;
+						var foundsetIndex = foundsetManager.getRowIndex(row);
 						var columnIndex = getColumnIndex(params.colDef.field);
 						var record;
 						if (foundsetIndex > -1) {
-							record = foundset.foundset.viewPort.rows[foundsetIndex - foundset.foundset.viewPort.startIndex];
+							record = foundsetRef.viewPort.rows[foundsetIndex - foundsetRef.viewPort.startIndex];
 						}
 						$scope.handlers.onCellClick(foundsetIndex, columnIndex, record, params.event);
 					}
@@ -246,11 +253,13 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					$log.error(params);
 					if ($scope.handlers.onCellDoubleClick) {
 						var row = params.data;
-						var foundsetIndex = foundset.getRowIndex(row);
+						var foundsetManager = getFoundsetManagerByFoundsetUUID(row._svyFoundsetUUID);
+						var foundsetRef = foundsetManager.foundset;
+						var foundsetIndex = foundsetManager.getRowIndex(row);
 						var columnIndex = getColumnIndex(params.colDef.field);
 						var record;
 						if (foundsetIndex > -1) {
-							record = foundset.foundset.viewPort.rows[foundsetIndex - foundset.foundset.viewPort.startIndex];
+							record = foundsetRef.viewPort.rows[foundsetIndex - foundsetRef.viewPort.startIndex];
 						}
 						$scope.handlers.onCellDoubleClick(foundsetIndex, columnIndex, record, params.event);
 					}
@@ -260,11 +269,13 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					$log.error(params);
 					if ($scope.handlers.onCellRightClick) {
 						var row = params.data;
-						var foundsetIndex = foundset.getRowIndex(row);
+						var foundsetManager = getFoundsetManagerByFoundsetUUID(row._svyFoundsetUUID);
+						var foundsetRef = foundsetManager.foundset;
+						var foundsetIndex = foundsetManager.getRowIndex(row);
 						var columnIndex = getColumnIndex(params.colDef.field);
 						var record;
 						if (foundsetIndex > -1) {
-							record = foundset.foundset.viewPort.rows[foundsetIndex - foundset.foundset.viewPort.startIndex];
+							record = foundsetRef.viewPort.rows[foundsetIndex - foundsetRef.viewPort.startIndex];
 						}
 						$scope.handlers.onCellRightClick(foundsetIndex, columnIndex, record, params.event);
 					}
@@ -543,31 +554,6 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						//						}
 					});
 
-				var sortColumnsPromise;
-
-				// watch for sort changes and purge the cache
-				$scope.$watch("model.myFoundset.sortColumns", function(newValue, oldValue) {
-
-//						// sort changed
-//						$log.debug("Change Sort Model " + newValue);
-//
-//						// FIXME this is a workaround for issue SVY-11456
-//						if (sortColumnsPromise) {
-//							sortColumnsPromise.resolve(true);
-//							return;
-//						}
-//
-//						/** TODO check with R&D, sortColumns is updated only after the viewPort is update or there could be a concurrency race. When i would know when sort is completed ? */
-//						if (newValue && oldValue && newValue != oldValue) {
-//							$log.debug('myFoundset sort changed');
-//							gridOptions.api.setSortModel(getSortModel());
-//							gridOptions.api.purgeEnterpriseCache();
-//						} else if (newValue == oldValue && !newValue && !oldValue) {
-//							$log.warn("this should not be happening");
-//						}
-
-					}, true);
-
 				/**************************************************************************************************
 				 **************************************************************************************************
 				 *
@@ -628,7 +614,13 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 							// TODO apply filter&valuelists&columnFormat
 
 							// TODO check limit startIndex/endIndex;
+							// TODO how can i add the foundset UUID to these ?
 							result = data.slice(startIndex, endIndex);
+							
+							// TODO could be done directly server side ?
+							result.forEach(function (item) {
+								item._svyFoundsetUUID = thisInstance.foundsetUUID;
+							});
 						}
 						$log.warn('Next line is the result data to be loaded in table')
 						console.log(result);
@@ -642,6 +634,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 							r = new Object();
 							// push the id so the rows can be merged
 							r._svyRowId = thisInstance.foundset.viewPort.rows[index]._svyRowId;
+							r._svyFoundsetUUID = this.foundsetUUID;
 
 							// push each dataprovider
 							for (var i = 0; i < $scope.model.columns.length; i++) {
@@ -1247,7 +1240,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 						/** TODO check with R&D, sortColumns is updated only after the viewPort is update or there could be a concurrency race. When i would know when sort is completed ? */
 						if (newSort && oldSort && newSort != oldSort) {
-							$log.debug('myFoundset sort changed');
+							$log.warn('myFoundset sort changed ' + newSort);
 							gridOptions.api.setSortModel(getSortModel());
 							gridOptions.api.purgeEnterpriseCache();
 						} else if (newSort == oldSort && !newSort && !oldSort) {
@@ -1457,7 +1450,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						var field = getColumnID(column, i);
 						//create a column definition based on the properties defined at design time
 						colDef = {
-							headerName: "" + column["headerTitle"] + "",
+							headerName: "" + (column["headerTitle"] ? column["headerTitle"] : "")  + "",
 							field: field
 						};
 
@@ -1486,6 +1479,16 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						suppressNavigable: true,
 						suppressResize: true,
 						hide: true
+					});
+					
+					colDefs.push({
+						field: '_svyFoundsetUUID',
+						headerName: '_svyFoundsetUUID',
+						suppressToolPanel: true,
+						suppressMenu: true,
+						suppressNavigable: true,
+						suppressResize: true,
+						hide: false
 					});
 
 					return colDefs;
