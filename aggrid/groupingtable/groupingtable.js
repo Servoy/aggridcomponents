@@ -201,6 +201,12 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				}
 
 				function onSelectionChanged(event) {
+					
+					// Don't trigger foundset selection if table is grouping
+					if (isTableGrouped()) {
+						return;
+					}
+					
 					// FIXME this works only if node is available on the root foundset
 					// TODO what to do if the record is selected from a child foundset ?
 					var selectedNodes = gridOptions.api.getSelectedNodes();
@@ -219,7 +225,9 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 							// onRecordSelected handler
 							if ($scope.handlers.onRecordSelected) {
-								// TODO create mouse event
+								// FIXME cannot resolve the record when grouped, how can i rebuild the record ?
+								// Can i pass in the array ok pks ? do i know the pks ?
+								// Can i get the hasmap of columns to get the proper dataProviderID name ?
 								$scope.handlers.onRecordSelected(foundsetIndex, record, createJSEvent());
 							}
 						} else {
@@ -243,8 +251,19 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						var columnIndex = getColumnIndex(params.colDef.field);
 						var record;
 						if (foundsetIndex > -1) {
+							// FIXME cannot resolve the record when grouped, how can i rebuild the record ?
+							// Can i pass in the array ok pks ? do i know the pks ?
+							// Can i get the hasmap of columns to get the proper dataProviderID name ?
 							record = foundsetRef.viewPort.rows[foundsetIndex - foundsetRef.viewPort.startIndex];
 						}
+						if (foundsetManager.isRoot === false) {
+							foundsetIndex = -1;
+						} 
+						
+						// no foundset index if record is grouped
+						if (foundsetManager.isRoot === false) {
+							foundsetIndex = -1;
+						} 
 						$scope.handlers.onCellClick(foundsetIndex, columnIndex, record, params.event);
 					}
 				}
@@ -259,8 +278,16 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						var columnIndex = getColumnIndex(params.colDef.field);
 						var record;
 						if (foundsetIndex > -1) {
+							// FIXME cannot resolve the record when grouped, how can i rebuild the record ?
+							// Can i pass in the array ok pks ? do i know the pks ?
+							// Can i get the hasmap of columns to get the proper dataProviderID name ?
 							record = foundsetRef.viewPort.rows[foundsetIndex - foundsetRef.viewPort.startIndex];
 						}
+						
+						// no foundset index if record is grouped
+						if (foundsetManager.isRoot === false) {
+							foundsetIndex = -1;
+						} 
 						$scope.handlers.onCellDoubleClick(foundsetIndex, columnIndex, record, params.event);
 					}
 				}
@@ -277,6 +304,11 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						if (foundsetIndex > -1) {
 							record = foundsetRef.viewPort.rows[foundsetIndex - foundsetRef.viewPort.startIndex];
 						}
+						
+						// no foundset index if record is grouped
+						if (foundsetManager.isRoot === false) {
+							foundsetIndex = -1;
+						} 
 						$scope.handlers.onCellRightClick(foundsetIndex, columnIndex, record, params.event);
 					}
 				}
@@ -1271,6 +1303,15 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				function selectedRowIndexesChanged(foundsetManager) {
 					// FIXME can't select the record when is not in viewPort. Need to synchornize with viewPort record selection
 
+					// Disable selection when table is grouped
+					if (isTableGrouped()) {
+						var selectedNodes = gridOptions.api.getSelectedNodes();
+						for (var i = 0; i < selectedNodes.length; i++) {
+							selectedNodes[i].setSelected(false);
+						}
+						return;
+					}
+					
 					// CHANGE Seleciton
 					// TODO implement multiselect
 					if (!foundsetManager) {
@@ -1319,6 +1360,15 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 					return result;
 				}
+				
+				/**
+				 * Returns true if table is grouping
+				 * @return {Boolean}
+				 *  */
+				function isTableGrouped() {
+					var rowGroupCols = gridOptions.columnApi.getRowGroupColumns();
+					return rowGroupCols && rowGroupCols.length > 0
+				}
 
 				/**
 				 * Update the uiGrid row with given viewPort index
@@ -1330,8 +1380,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				function updateRows(rowUpdates, oldStartIndex, oldSize) {
 
 					// Don't update automatically if the row are grouped
-					var rowGroupCols = gridOptions.columnApi.getRowGroupColumns();
-					if (rowGroupCols.length > 0) {
+					if (isTableGrouped()) {
 						// register update
 						$scope.dirtyCache = true;
 						return;
