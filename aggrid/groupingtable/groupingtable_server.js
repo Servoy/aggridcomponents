@@ -10,7 +10,7 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 	console.log(groupColumns);
 	console.log(groupKeys);
 
-	var parentFoundset = $scope.model.myFoundset.foundset
+	var parentFoundset = $scope.model.myFoundset.foundset;
 
 	// I need the full column/key mapping
 	/** @type {QBSelect} */
@@ -97,6 +97,7 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 
 	// push dataproviders to the clientside foundset
 	var dps = { };
+	// FIXME this creates an issue
 	for (var idx = 0; idx < $scope.model.columns.length; idx++) {
 		// the dataprovider name e.g. orderid
 		var dpId = $scope.model.columns[idx].dataprovider;
@@ -105,7 +106,7 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 		// Servoy resolves the real dataprovider name into the dataprovider 'field'
 		dps[idForFoundset] = dpId;
 		// TODO it could be the hashmap of groupkeys/groupcolumns ?
-		dps._svyFoundsetUUID = '';
+		// dps._svyFoundsetUUID = null;
 	}
 	
 	// TODO perhaps R&D can improve this

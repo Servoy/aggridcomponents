@@ -56,7 +56,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				}
 
 				$scope.reload = function(count) { }
-				var CHUNK_SIZE = 15;
+				var CHUNK_SIZE = 50;
 
 				/**
 				 * Store the state of the table. TODO to be persisted
@@ -315,9 +315,9 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				}
 
 				function onColumnRowGroupChanged(event) {
+					// return;
 					var rowGroupCols = event.columns;
 					// FIXME why does give an error,  i don't uderstand
-					return;
 					var i;
 					var column;
 					$log.warn(event);
@@ -349,7 +349,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						// reset all other columns;
 						for (i = 0; i < $scope.model.columns.length; i++) {
 							column = $scope.model.columns[i];
-							if (groupedFields.indexOf(getColumnID(column, i) === -1)) {
+							if (groupedFields.indexOf(getColumnID(column, i)) === -1) {
 								if (column.hasOwnProperty('rowGroupIndex')) {
 									column.rowGroupIndex = null;
 								}
@@ -357,9 +357,6 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 						}
 					}
-
-					// persist the change to the server
-					$scope.svyServoyapi.apply("columns");
 				}
 
 				function onRowGroupOpened(event) {
@@ -427,7 +424,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 							var wait = true;
 							function getDisplayValueSuccess(data) {
 								if ($log.debugEnabled) $log.debug('ag-groupingtable: realValue: ' + value + ' displayValue: ' + data);
-								$log.warn('displayValue ' + data);
+								// $log.warn('displayValue ' + data);
 								value = data;
 								//								if (waitForValue) {
 								//									waitForValue.clearTimeout();
@@ -920,7 +917,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						for (var nodeKey in hashTree) {
 							var node = hashTree[nodeKey];
 							if (node.foundsetUUID) {
-								removeFoundset(hashTree, nodefoundsetUUID);
+								removeFoundset(hashTree, node.foundsetUUID);
 							} else {
 								// TODO is it this possible
 								$log.error('There is a root node without a foundset UUID, it should not happen');
@@ -1399,9 +1396,8 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					if ($scope.model.hashedFoundsets) {
 						for (var i = 0; i < $scope.model.hashedFoundsets.length; i++) {
 							if ($scope.model.hashedFoundsets[i].foundsetUUID == foundsetHash) {
-								$scope.model.hashedFoundsets.splice(i, 1);
 								// remove the hashedFoundset from the memory
-								$scope.svyServoyapi.apply("hashedFoundsets");
+								$scope.model.hashedFoundsets.splice(i, 1);
 								return true;
 							}
 						}
