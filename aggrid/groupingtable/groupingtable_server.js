@@ -38,12 +38,12 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 
 			var join = query;
 			
-			// FIXME how do i know if has already a relation ?
 			for (var j = 0; j < relationNames.length; j++) {
 				var relationName = relationNames[j];
 				// use unique name for multiple level relations
 				var relationPath = relationNames.slice(0, j+1).join("____");
 				console.log(relationPath)
+				// check if already has a relation
 				var existingJoin = getJoin(join, relationPath);
 				if (existingJoin) {
 					join = existingJoin;
@@ -77,6 +77,22 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 		for (var i = 0; i < pkColumns.length; i++) {
 			query.result.add(pkColumns[i].min);
 		}
+		if (pkColumns.length > 1) {
+			console.warn('The component does not support multiple primary keys');
+			
+			if (pkColumns.length === 2) {
+				
+//				 WHERE order_details.productid = (\
+//							select order_details2.productid \
+//							 from order_details order_details2 \
+//							 left outer join products order_details_to_products2 on order_details2.productid=order_details_to_products2.productid \
+//							 left outer join categories products_to_categories2 on order_details_to_products2.categoryid=products_to_categories2.categoryid \
+//							 where products_to_categories2.categoryname = products_to_categories.categoryname and order_details2.orderid = order_details.orderid limit 1\
+//					 )\
+				
+			}
+		}
+		
 		query.groupBy.add(groupColumn);
 		query.sort.clear();
 		query.sort.add(groupColumn);
