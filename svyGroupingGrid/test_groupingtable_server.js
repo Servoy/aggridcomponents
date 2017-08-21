@@ -65,13 +65,7 @@ function test_relatedDataProviders() {
 	var fs = datasources.db.example_data.order_details.getFoundSet();
 	fs.loadRecords(sql);
 	
-	var dataset = databaseManager.getDataSetByQuery("example_data",sql,[],-1);
-	
-	for (var i = 1; i <= dataset.getMaxRowIndex(); i++) {
-		var row = dataset.getRowAsArray(i);
-		application.output(row[0] + ' - ' + row[1]);
-	}
-	
+
 	var sql2 = "select min(order_details.orderid) orderid, min(order_details.productid) productid from order_details order_details left outer join products order_details_to_products on order_details.productid=order_details_to_products.productid group by order_details_to_products.productname order by order_details_to_products.productname asc"
 
 	
@@ -84,9 +78,48 @@ function test_relatedDataProviders() {
 				group by order_details_to_products____products_to_suppliers.companyname\
 				order by order_details_to_products____products_to_suppliers.companyname asc;"
 		
-	fs.loadRecords(sql3);
+	var sql4= "select min(order_details.orderid) orderid, min(o2.minproductid) productid \
+				FROM \
+						(SELECT min(order_details.productid) minproductid, products_to_categories.categoryname\
+						FROM order_details order_details \
+						left outer join products order_details_to_products on order_details.productid=order_details_to_products.productid \
+						left outer join categories products_to_categories on order_details_to_products.categoryid=products_to_categories.categoryid \
+						group by products_to_categories.categoryname order by products_to_categories.categoryname asc) AS o2,\
+				 order_details left outer join products order_details_to_products on order_details.productid=order_details_to_products.productid \
+				 left outer join categories products_to_categories on order_details_to_products.categoryid=products_to_categories.categoryid\
+				 WHERE order_details.productid = o2.minproductid AND products_to_categories.categoryname = o2.categoryname\
+				 group by products_to_categories.categoryname\
+				 order by products_to_categories.categoryname asc"
+		
+	var sql5 = "select min(order_details.orderid) orderid, min(order_details.productid) productid FROM\
+ order_details left outer join products order_details_to_products on order_details.productid=order_details_to_products.productid \
+ left outer join categories products_to_categories on order_details_to_products.categoryid=products_to_categories.categoryid\
+ WHERE order_details.productid = (\
+		select order_details2.productid \
+		 from order_details order_details2 \
+		 left outer join products order_details_to_products2 on order_details2.productid=order_details_to_products2.productid \
+		 left outer join categories products_to_categories2 on order_details_to_products2.categoryid=products_to_categories2.categoryid \
+		 where products_to_categories2.categoryname = products_to_categories.categoryname and order_details2.orderid = order_details.orderid limit 1\
+ )\
+ group by products_to_categories.categoryname\
+ order by products_to_categories.categoryname asc;"
+	
+	var dataset = databaseManager.getDataSetByQuery("example_data",sql5,[],-1);
+	
+	for (var i = 1; i <= dataset.getMaxRowIndex(); i++) {
+		var row = dataset.getRowAsArray(i);
+		application.output(row[0] + ' - ' + row[1]);
+	}
+	
+	
+	fs.loadRecords(sql5);
 
-	return fs;
+	for (var index = 1; index <= fs.getSize(); index++) {
+		var record = fs.getRecord(index);
+		application.output(record.orderid + ' - ' + record.productid);
+	}
+	
+	//return fs;
 	
 	jsunit.assertTrue(dataset.getMaxRowIndex() > 0);
 	jsunit.assertTrue(dataset.getMaxRowIndex() > 1);

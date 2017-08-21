@@ -43,3 +43,39 @@ function test_groupOrders() {
 	jsunit.assertEquals(dataset.getMaxRowIndex() , databaseManager.getFoundSetCount(childFoundset));
 	
 }
+
+
+/**
+ * @properties={typeid:24,uuid:"AC5AEE74-A4E9-449B-8E79-0147D3239871"}
+ * @AllowToRunInFind
+ */
+function duplicateOrders() {
+	
+	var fs = datasources.db.example_data.orders.getFoundSet();
+	fs.find()
+	fs.customerid = 'ALFKI'
+	fs.search()
+	//fs.loadAllRecords();
+	
+	var f2 = fs.duplicateFoundSet();
+	
+	var cities = ['Rome', 'Milan', 'Thessaloniki', 'Athens', 'Amsterdam', 'Berlin', 'Paris', 'London', 'Madrid', 'Barcelona', 'Oslo', 'Alexandroupolis'];
+	
+	for (var j = 1; j <= 500; j++) {
+		for (var i = 1; i < 2; i++) {
+			var record = f2.getRecord(i);
+			
+			var idx = fs.newRecord(false, false)
+			var order = fs.getRecord(idx);
+			application.output(record.orderid + ' - ' + i + ' - ' + idx)
+
+			databaseManager.copyMatchingFields(record, order);
+			var x = Math.round(Math.random() * 10);
+			order.shipcity = cities[x];
+		}
+		
+		if (!databaseManager.saveData()) {
+			throw 'cannot save'
+		}
+	}
+}
