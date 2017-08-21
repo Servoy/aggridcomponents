@@ -25,7 +25,7 @@
 		}],
 	"model":
 	{
-		"myFoundset": {"type": "foundset", "dynamicDataproviders": true, "initialPreferredViewPortSize": 50, "sendSelectionViewportInitially": true },
+		"myFoundset": {"type": "foundset", "dynamicDataproviders": true, "initialPreferredViewPortSize": 15, "sendSelectionViewportInitially": true },
 		"columns": { "type": "column[]", "droppable" : true, "pushToServer": "shallow" },
 		"rowHeight" : 	{"type" : "int", "default": 25, "tags": {"scope": "design"} },
 		"rowStyleClassDataprovider": { "type": "dataprovider", "forFoundset": "myFoundset", "tags": {"scope": "design"} },

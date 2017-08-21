@@ -56,12 +56,16 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				}
 
 				$scope.reload = function(count) { }
-				var CHUNK_SIZE = 50;
+				var CHUNK_SIZE = 15;
 
 				/**
 				 * Store the state of the table. TODO to be persisted
 				 * */
 				var state = {
+					waitfor: {
+						sort: 0,
+						loadRecords: 0
+					},
 					/** column mapping by field name e.g. state.columns[field] */
 					columns: { },
 					foundsetManagers: { },
@@ -74,7 +78,11 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					},
 					grouped: {
 						columns: { }
-					}
+					},
+					/** Store the latest rowGroupCols */
+					rowGroupCols: [],
+					/** Stor the latest groupKeys*/
+					groupKeys: []
 				}
 
 				// TODO this is used as workaround because sort doesn't return a promise
@@ -153,10 +161,10 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 					rowBuffer: 0,
 					// restrict to 2 server side calls concurrently
-					maxConcurrentDatasourceRequests: 2,
+					maxConcurrentDatasourceRequests: 3,
 					cacheBlockSize: CHUNK_SIZE,
 					paginationInitialRowCount: CHUNK_SIZE, // TODO should be the foundset default (also for grouping ?)
-					maxBlocksInCache: 2,
+					maxBlocksInCache: 3,
 					purgeClosedRowNodes: true,
 					onGridReady: function(params) {
 						params.api.sizeColumnsToFit();
@@ -168,6 +176,8 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					// TODO localeText: how to provide localeText to the grid ? can the grid be shipped with i18n ?
 
 				};
+				
+				//https://www.screencast.com/t/JdS6Yz00i
 
 				// init the grid
 				var gridDiv = $element.find('.ag-table')[0];
@@ -511,6 +521,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 					$log.warn("Group " + (rowGroupCols[0] ? rowGroupCols[0].displayName : '/') + ' + ' + (groupKeys[0] ? groupKeys[0] : '/') + ' # ' + request.startRow + ' # ' + request.endRow);
 
+					// check if sort has changed
 					// TODO disable sorting if table is grouped
 					// Handle sorting, skip if grouping
 					if (rowGroupCols.length > 0) {
@@ -527,7 +538,11 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						sortColumnsPromise.promise.then(function() {
 							$log.error("sort column promise resolved");
 							sortColumnsPromise = null;
-							callback(foundset.getViewPortData(request.startRow, request.endRow), Math.min(foundset.getLastRow(), request.endRow));
+							// callback(foundset.getViewPortData(request.startRow, request.endRow), Math.min(foundset.getLastRowIndex(), request.endRow));
+							var viewPortStartIndex = request.startRow - foundsetRef.foundset.viewPort.startIndex;
+							var viewPortEndIndex = request.endRow - foundsetRef.foundset.viewPort.startIndex;
+							
+							callback(foundset.getViewPortData(viewPortStartIndex, viewPortEndIndex), foundset.getLastRowIndex());
 						});
 
 						/** Sort has changed, exit since the sort will refresh the viewPort. Cache will be purged as soon sortColumn change status */
@@ -567,27 +582,48 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						});
 					}
 
-					// check if sort has changed
 
-					function getDataFromFoundset(foundsetRef) {
+					/**
+					 * @param {FoundsetManager} foundsetRef the foundsetManager object
+					 * 
+					 *  */
+					function getDataFromFoundset(foundsetManager) {
 						// load record if endRow is not in viewPort
-						if (request.endRow > foundsetRef.foundset.viewPort.size && foundsetRef.getLastRow() === -1) {
+						var startIndex = foundsetManager.foundset.viewPort.startIndex;
+						var viewPortSize = foundsetManager.foundset.viewPort.size;
+						
+						var viewPortStartIndex = request.startRow - startIndex;
+						var viewPortEndIndex = request.endRow - startIndex;
+						
+						if (request.startRow < startIndex || (request.endRow > (startIndex + viewPortSize) && foundsetManager.getLastRowIndex() === -1)) {
 
+							var errorTimeout = setTimeout(function () {
+								$log.error('Could not load records for foundset ' + foundsetManager.foundsetUUID + ' Start ' + request.startRow + ' End ' + request.endRow );
+							}, 2000)
 							// it keeps loading always the same data. Why ?
-							var promise = foundsetRef.loadExtraRecordsAsync(request.startRow, request.endRow - request.startRow, false);
+							var promise = foundsetManager.loadExtraRecordsAsync(request.startRow, request.endRow - request.startRow, false);
 							promise.then(function() {
-								var lastRow = foundsetRef.getLastRow();
-								result = foundsetRef.getViewPortData(request.startRow, request.endRow);
-								// TODO use viewPort 0
-								//								result = foundsetRef.getViewPortData(0, request.endRow - request.startRow);
-
-								callback(result, Math.min(lastRow, request.endRow));
+								
+								if (errorTimeout) {
+									clearTimeout(errorTimeout);
+								}
+								
+								var lastRowIndex = foundsetManager.getLastRowIndex();
+								// result = foundsetManager.getViewPortData(request.startRow, request.endRow);
+										
+								// update viewPortStatIndex
+								viewPortStartIndex = request.startRow - foundsetManager.foundset.viewPort.startIndex;
+								viewPortEndIndex = request.endRow - foundsetManager.foundset.viewPort.startIndex;
+								
+								result = foundsetManager.getViewPortData(viewPortStartIndex, viewPortEndIndex);
+								callback(result, lastRowIndex);
 
 							}).catch(function(e) {
 								$log.error(e);
+								callback([], -1);
 							});
 						} else {
-							callback(foundsetRef.getViewPortData(request.startRow, request.endRow), Math.min(foundsetRef.getLastRow(), request.endRow));
+							callback(foundsetManager.getViewPortData(viewPortStartIndex, viewPortEndIndex), foundsetManager.getLastRowIndex());
 						}
 					}
 
@@ -605,6 +641,21 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					var result = result.slice(request.startRow, request.endRow);
 
 				};
+				
+				function init() {
+					
+					foundset = new FoundSetManager($scope.model.myFoundset,'root',true);
+					
+					var foundsetServer = new FoundsetServer([]);
+					var datasource = new FoundsetDatasource(foundsetServer);
+					gridOptions.api.setEnterpriseDatasource(datasource);
+				}
+				
+				function refreshDatasource() {
+					var foundsetServer = new FoundsetServer([]);
+					var datasource = new FoundsetDatasource(foundsetServer);
+					gridOptions.api.setEnterpriseDatasource(datasource);
+				}
 
 				/**************************************************************************************************
 				 **************************************************************************************************
@@ -614,14 +665,15 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				 **************************************************************************************************
 				 **************************************************************************************************/
 
-				var foundsetServer = new FoundsetServer([]);
-				var datasource = new FoundsetDatasource(foundsetServer);
-				gridOptions.api.setEnterpriseDatasource(datasource);
 
 				$scope.$watch("model.myFoundset", function(newValue, oldValue) {
 
 						$log.error('myFoundset root changed');
-
+						
+						init();
+						
+						// TODO ASK R&D should i remove and add the previous listener ?
+						$scope.model.myFoundset.removeChangeListener(changeListener);
 						$scope.model.myFoundset.addChangeListener(changeListener);
 
 						//						var callback = function(data) {
@@ -663,7 +715,8 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					this.getViewPortData;
 					this.getViewPortRow;
 					this.hasMoreRecordsToLoad;
-					this.getLastRow;
+					this.isLastRow;
+					this.getLastRowIndex;
 					this.loadExtraRecordsAsync;
 					this.getSortColumns;
 					this.sort;
@@ -686,7 +739,8 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 						if (this.isRoot) { // if is the root foundset is should build the rows
 							for (var j = startIndex; j < endIndex; j++) {
-								data.push(thisInstance.getViewPortRow(j));
+								var row = thisInstance.getViewPortRow(j);
+								if (row) data.push(row);
 							}
 							result = data;
 						} else { // if is a referenced foundset rows are already available
@@ -715,7 +769,13 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						try {
 							r = new Object();
 							// push the id so the rows can be merged
-							r._svyRowId = thisInstance.foundset.viewPort.rows[index]._svyRowId;
+							var viewPortRow = this.foundset.viewPort.rows[index];
+							if (!viewPortRow) {
+								$log.error("Cannot find row " + index + ' in foundset ' + this.foundsetUUID + ' size ' + this.foundset.viewPort.size + ' startIndex ' + this.foundset.viewPort.startIndex )
+								return null;
+							}
+							
+							r._svyRowId = viewPortRow._svyRowId;
 							r._svyFoundsetUUID = this.foundsetUUID;
 
 							// push each dataprovider
@@ -768,7 +828,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						//						return thisInstance.foundset.hasMoreRows || thisInstance.foundset.viewPort.size < thisInstance.foundset.serverSize;
 					}
 
-					var getLastRow = function() {
+					var getLastRowIndex = function() {
 						if (this.hasMoreRecordsToLoad()) {
 							return -1;
 						} else {
@@ -778,9 +838,31 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 					var loadExtraRecordsAsync = function(startIndex, size, dontNotifyYet) {
 						// TODO use loadRecordsAsync to keep cache small
-						//	return this.foundset.loadRecordsAsync(startIndex, size, dontNotifyYet);
+						if (thisInstance.hasMoreRecordsToLoad() === false) {
+							size = this.foundset.serverSize - startIndex;
+						}
+						if (size < 0 ) {
+							$log.error('Load size should not be negative: startIndex ' + startIndex + ' server size ' + this.foundset.serverSize);
+							size = 0;
+						}
+						
+						// Wait for response
+						var requestId = 1 + Math.random();
+						state.waitfor.loadRecords = requestId;
+						// TODO can it handle multiple requests ?
+						var promise = this.foundset.loadRecordsAsync(startIndex, size);
+						promise.finally(function (e) {
+							if (state.waitfor.loadRecords !== requestId) {
+								// FIXME if this happen reduce parallel async requests to 1
+								$log.error("Load record request id '" + state.waitfor.loadRecords +"' is different from the resolved promise '" + requestId +"'; this should not happen !!!");
+							}
+							
+							state.waitfor.loadRecords = 0;
+						});
+						
+						return promise;
 
-						return this.foundset.loadExtraRecordsAsync(size, dontNotifyYet);
+						//return this.foundset.loadExtraRecordsAsync(size, dontNotifyYet);
 					}
 
 					var getSortColumns = function() {
@@ -842,7 +924,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					this.getViewPortData = getViewPortData;
 					this.getViewPortRow = getViewPortRow;
 					this.hasMoreRecordsToLoad = hasMoreRecordsToLoad;
-					this.getLastRow = getLastRow;
+					this.getLastRowIndex = getLastRowIndex;
 					this.loadExtraRecordsAsync = loadExtraRecordsAsync;
 					this.getSortColumns = getSortColumns;
 					this.sort = sort;
@@ -1203,8 +1285,8 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 							var groupCols = rowGroupCols.slice(0, index + 1);
 							var keys = groupKeys.slice(0, index + 1);
 
-							$log.warn(groupCols)
-							$log.warn(keys);
+							$log.debug(groupCols)
+							$log.debug(keys);
 
 							// get a foundset for each grouped level
 							// resolve promise when got to the last level
@@ -1250,7 +1332,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 									$log.error("why i don't have a foundset ref ?")
 									return;
 								} else {
-									$log.warn(foundsetUUID);
+									$log.warn('Get hashed foundset success ' + foundsetUUID);
 								}
 
 								// the hash of the parent foundset
@@ -1306,7 +1388,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 							[groupColumns, groupKeys, idForFoundsets]);
 
 						childFoundsetPromise.then(function(childFoundsetUUID) {
-								$log.warn(childFoundsetUUID);
+								$log.debug(childFoundsetUUID);
 								if (!childFoundsetUUID) {
 									$log.error("why i don't have a childFoundset ?")
 								}
@@ -1465,7 +1547,8 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 				/** Listener for the root foundset */
 				function changeListener(change) {
-					$log.warn("Change listener is called " + change);
+					$log.warn("Change listener is called " + state.waitfor.loadRecords);
+					console.log(change)
 
 					if (change[$foundsetTypeConstants.NOTIFY_SORT_COLUMNS_CHANGED]) {
 						var newSort = change[$foundsetTypeConstants.NOTIFY_SORT_COLUMNS_CHANGED].newValue;
@@ -1493,9 +1576,13 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						return;
 					}
 
-					if (change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROWS_COMPLETELY_CHANGED]) {
-						$scope.purge();
+					// if viewPort changes and startIndex does not change is the result of a sort or of a loadRecords
+					if (change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROWS_COMPLETELY_CHANGED] && !state.waitfor.loadRecords) {
+						$log.warn("Foundset changed serverside ");
+						refreshDatasource();
 						return;
+					} else {
+						$log.warn("wait for loadRecords request " + state.waitfor.loadRecords);
 					}
 
 					// gridOptions.api.purgeEnterpriseCache();
@@ -1541,7 +1628,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						// TODO selected record is not in viewPort: how to render it ?
 						// deselect existing node
 						var selectedNodes = gridOptions.api.getSelectedNodes();
-						console.log(selectedNodes);
+						$log.debug(selectedNodes);
 						if (selectedNodes.length > 1) {
 							// TODO enable multi selection
 							$log.warn("Multiselection is not enabled yet")
@@ -1956,6 +2043,13 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 				var destroyListenerUnreg = $scope.$on('$destroy', function() { // unbind resize on destroy
 						$(window).off('resize', onWindowResize);
+						
+						$scope.model.myFoundset.removeChangeListener(changeListener);
+						
+						// TODO remove change listener from each hashedFoundset
+						$log.warn('TODO remove change listener from each hashedFoundset')
+						// Restore change listener from each hashedFoundset when showing again
+						
 					});
 
 				function onWindowResize() { // resize
@@ -1966,6 +2060,9 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						}, 150);
 					// resize element using height and width
 				}
+				
+				$log.warn('TODO restore change listener from each hashedFoundset');
+
 
 				/**************************************************************************************************************************************************************************************************
 				 **************************************************************************************************************************************************************************************************
