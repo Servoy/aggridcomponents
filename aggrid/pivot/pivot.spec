@@ -4,25 +4,7 @@
 	"version": 1,
 	"definition": "aggrid/pivot/pivot.js",
 	"serverscript": "aggrid/pivot/pivot_server.js",
-	"libraries": [
-		{
-			"name": "ag-grid.js",
-			"version": "1",
-			"url": "aggrid/groupingtable/lib/dist/ag-grid.js",
-			"mimetype": "text/javascript"
-		},
-		{
-			"name": "ag-grid-enterprise.js",
-			"version": "1",
-			"url": "aggrid/groupingtable/lib/dist/ag-grid-enterprise.js",
-			"mimetype": "text/javascript"
-		},
-		{
-			"name": "ag-grid.css",
-			"version": "1",
-			"url": "aggrid/groupingtable/lib/dist/styles/ag-grid.css",
-			"mimetype": "text/css"
-		}],
+	"libraries": [],
 	"model":
 	{
 		"config": 		{ "type": "string", "pushToServer": "allow", "tags": { "scope": "private" } },

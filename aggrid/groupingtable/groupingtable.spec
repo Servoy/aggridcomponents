@@ -5,24 +5,7 @@
 	"definition": "aggrid/groupingtable/groupingtable.js",
 	"serverscript": "aggrid/groupingtable/groupingtable_server.js",
 	"libraries": [
-		{
-			"name": "ag-grid.js",
-			"version": "1",
-			"url": "aggrid/groupingtable/lib/dist/ag-grid.js",
-			"mimetype": "text/javascript"
-		},
-		{
-			"name": "ag-grid-enterprise.js",
-			"version": "1",
-			"url": "aggrid/groupingtable/lib/dist/ag-grid-enterprise.js",
-			"mimetype": "text/javascript"
-		},
-		{
-			"name": "ag-grid.css",
-			"version": "1",
-			"url": "aggrid/groupingtable/lib/dist/styles/ag-grid.css",
-			"mimetype": "text/css"
-		}],
+		],
 	"model":
 	{
 		"myFoundset": {"type": "foundset", "dynamicDataproviders": true, "initialPreferredViewPortSize": 15, "sendSelectionViewportInitially": true },
