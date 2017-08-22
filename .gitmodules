@@ -1,0 +1,3 @@
+[submodule "svyMicroSamples"]
+	path = svyMicroSamples
+	url = https://github.com/Servoy/svyMicroSamples
