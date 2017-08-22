@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<buildpath>
-	<buildpathentry excluding=".stp/|medias/" kind="src" path=""/>
-	<buildpathentry exported="true" kind="prj" path="/exampleDataModel"/>
-	<buildpathentry exported="true" kind="prj" path="/svyMicroSamples"/>
-</buildpath>
