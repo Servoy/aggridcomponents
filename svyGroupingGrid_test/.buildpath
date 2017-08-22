@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<buildpath>
+	<buildpathentry excluding=".stp/|medias/" kind="src" path=""/>
+	<buildpathentry exported="true" kind="prj" path="/svyGroupingGrid"/>
+	<buildpathentry exported="true" kind="prj" path="/svyGroupingGridDemo"/>
+	<buildpathentry exported="true" kind="prj" path="/svyPivotDemo"/>
+</buildpath>

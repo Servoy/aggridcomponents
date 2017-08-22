@@ -1,0 +1,12 @@
+addEmptyValue:1,
+customProperties:"lazyLoading:false",
+dataProviderID1:"orderid",
+dataProviderID2:"orderid",
+dataProviderID3:"customerid",
+dataSource:"db:/example_data/orders",
+name:"orders",
+returnDataProviders:1,
+showDataProviders:6,
+typeid:34,
+uuid:"D4D05441-BE77-41F6-BAD7-B5C22792AED0",
+valueListType:1
