@@ -175,6 +175,11 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					//					}
 					// TODO localeText: how to provide localeText to the grid ? can the grid be shipped with i18n ?
 
+					icons : {
+						
+						groupExpanded: '<i class="fa fa-minus"/>',
+				        groupContracted: '<i class="fa fa-plus"/>',
+					}
 				};
 				
 				//https://www.screencast.com/t/JdS6Yz00i
@@ -334,7 +339,8 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 					// store in columns the change
 					if (!rowGroupCols || rowGroupCols.length === 0) {
-						groupManager.clearAll();
+						// TODO clear group when changed
+						// groupManager.clearAll();
 
 						// clear all columns
 						for (i = 0; i < $scope.model.columns.length; i++) {
@@ -395,8 +401,8 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						}
 					}
 					if (isExpanded === false) {
-						// remove the foundset
-						groupManager.removeChildFoundsetRef(column.data._svyFoundsetUUID, column.field, column.data[field]);
+						// TODO remove the foundset
+						// groupManager.removeChildFoundsetRef(column.data._svyFoundsetUUID, column.field, column.data[field]);
 					}
 
 					//var foundsetManager = getFoundsetManagerByFoundsetUUID(column.data._svyFoundsetUUID);
