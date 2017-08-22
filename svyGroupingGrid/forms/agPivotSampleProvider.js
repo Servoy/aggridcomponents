@@ -27,3 +27,12 @@ function getDescription() {
 function getIconStyleClass() {
 	return "fa fa-list-alt"
 }
+
+
+/**
+ * @protected 
+ * @properties={typeid:24,uuid:"040CEF88-7E31-4C62-BABB-CD26DF120653"}
+ */
+function allowFormIncludedInMenu() {
+	return false;
+}

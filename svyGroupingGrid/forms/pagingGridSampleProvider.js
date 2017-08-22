@@ -25,5 +25,13 @@ function getDescription() {
 * @properties={typeid:24,uuid:"C30FE8B6-F4FE-48B7-9F4B-3B85ED4BF5B0"}
 */
 function getIconStyleClass() {
-	return "fa fa-list-alt"
+	return "fa fa-table"
+}
+
+
+/**
+ * @properties={typeid:24,uuid:"2B0045A3-E648-40EE-A2F1-79A8C9F72344"}
+ */
+function allowFormIncludedInMenu() {
+	return false;
 }

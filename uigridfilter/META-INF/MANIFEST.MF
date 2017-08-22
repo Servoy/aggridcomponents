@@ -1,11 +1,11 @@
 Manifest-Version: 1.0
-Bundle-SymbolicName: uigridfilter
-Bundle-Name: uigridfilter
 Package-Type: Web-Component
-
-Name: uigridDataset/uigridDataset.spec
-Web-Component: True
+Bundle-Name: uigridfilter
+Bundle-SymbolicName: uigridfilter
 
 Name: uigridfilter/uigridfilter.spec
+Web-Component: True
+
+Name: uigridDataset/uigridDataset.spec
 Web-Component: True
 

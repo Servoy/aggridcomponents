@@ -5,10 +5,10 @@
 	<projects>
 		<project>resources</project>
 		<project>servoy-extra-components</project>
-		<project>uigridfilter</project>
 		<project>svyMicroSamples</project>
 		<project>exampleDataModel</project>
 		<project>aggrid</project>
+		<project>uigridfilter</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

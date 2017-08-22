@@ -50,7 +50,7 @@ typeid:19,
 uuid:"E6D22876-8A47-438C-BE19-CCDC75566231"
 }
 ],
-name:"gridBase",
+name:"gridBaseForm",
 navigatorID:"-1",
 onLoadMethodID:"FD2B79E7-C023-4516-A0A5-35AFE9238660",
 onShowMethodID:"9BADD431-5705-4103-961D-951C27635618",
