@@ -2580,6 +2580,6 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 		};
 	}]).run(function() {
 
-	agGrid.LicenseManager.setLicenseKey("ag-Grid_Evaluation_License_Not_for_Production_100Devs2_August_2017__MTUwMTYyODQwMDAwMA==f340cff658f8e3245fee29659b49a674");
+	agGrid.LicenseManager.setLicenseKey("Servoy_Servoy_7Devs_1OEM_22_August_2018__MTUzNDg5MjQwMDAwMA==bf70d060fe7e90b9550a7821a54f6fa8");
 
 });
