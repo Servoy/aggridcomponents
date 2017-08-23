@@ -16,15 +16,22 @@ angular.module('aggridPivot', ['servoy']).directive('aggridPivot', function($log
 
 				var gridOptions = {
 					// set rowData to null or undefined to show loading panel by default
-					pivotMode: false,
-					// pivotPanelShow : 'always',
+					pivotMode: true,
+					pivotPanelShow: 'always',
 					showToolPanel: true,
-					// pivotTotals : true,
+					pivotTotals: true,
 					enableColResize: true,
 					columnDefs: columnDefs,
-					floatingFilter: true,
+					floatingFilter: false,
 					enableSorting: true,
-					rowData: modelData
+					enableFilter: true,
+					rowData: modelData,
+					suppressMovableColumns: true,
+
+					groupMultiAutoColumn: false,
+					groupIncludeFooter: true,
+
+					groupDefaultExpanded: true
 				};
 
 				var gridDiv = document.querySelector('#myGrid');
@@ -81,7 +88,7 @@ angular.module('aggridPivot', ['servoy']).directive('aggridPivot', function($log
 						$log.warn('rowGroupOpened');
 						$log.warn(rowGroupOpened);
 
-						$scope.addRows();
+						//	$scope.addRows();
 						// TODO push more rows
 					})
 
@@ -159,7 +166,9 @@ angular.module('aggridPivot', ['servoy']).directive('aggridPivot', function($log
 					var colDefs = [{
 							field: '_svyRowId',
 							headerName: '_svyRowId',
-							hide: false
+							hide: false,
+							width: 0,
+							openByDefault: true
 						}];
 					var colDef = { };
 					var column;
@@ -182,7 +191,11 @@ angular.module('aggridPivot', ['servoy']).directive('aggridPivot', function($log
 						if (column["rowGroup"]) colDef.rowGroup = column["rowGroup"];
 						if (column["aggFunc"]) colDef.aggFunc = column["aggFunc"];
 						if (column["enableValue"]) colDef.enableValue = column["enableValue"];
+						if (column["width"]) {
 
+							//colDef.width = column["width"];
+							colDef.maxWidth = column["width"]*2;
+						}
 						colDefs.push(colDef);
 					}
 

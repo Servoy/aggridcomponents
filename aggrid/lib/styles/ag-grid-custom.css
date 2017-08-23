@@ -27,7 +27,6 @@
 	color: #333;
 	background: #ddd;
 	border: 1px solid #ccc;
-	display: inline-block;
     padding: 6px 12px;
     margin-bottom: 0;
     font-size: 14px;
@@ -77,4 +76,54 @@
 .ag-table .ag-column-drop-horizontal,
 .ag-table.ag-fresh .ag-column-drop-horizontal {
 	padding: 4px;
+}
+
+.ag-table.ag-fresh .ag-row-odd {
+	background-color: #fff;
+}
+
+.ag-row-level-0 {
+}
+
+.ag-row-level-1 > .ag-cell-value:nth-child(1) {
+	border-bottom: none !important;
+}
+
+.ag-row-level-2 > .ag-cell-value:nth-child(1),
+.ag-row-level-2 > .ag-cell-value:nth-child(2) {
+	border-bottom: none !important;
+}
+
+.ag-row-level-3 > .ag-cell-value:nth-child(1),
+.ag-row-level-3 > .ag-cell-value:nth-child(2),
+.ag-row-level-3 > .ag-cell-value:nth-child(3) {
+	border-bottom: none !important;
+}
+
+.ag-row-level-4 > .ag-cell-value:nth-child(1),
+.ag-row-level-4 > .ag-cell-value:nth-child(2),
+.ag-row-level-4 > .ag-cell-value:nth-child(3),
+.ag-row-level-4 > .ag-cell-value:nth-child(4) {
+	border-bottom: none !important;
+}
+
+.ag-row-level-5 > .ag-cell-value:nth-child(1),
+.ag-row-level-5 > .ag-cell-value:nth-child(2),
+.ag-row-level-5 > .ag-cell-value:nth-child(3),
+.ag-row-level-5 > .ag-cell-value:nth-child(4),
+.ag-row-level-5 > .ag-cell-value:nth-child(5) {
+	border-bottom: none !important;
+}
+
+.ag-table .ag-group-cell.ag-cell-value,
+.ag-table.ag-fresh .ag-group-cell.ag-cell-value {
+}
+
+.ag-table .ag-cell-value,
+.ag-table.ag-fresh .ag-cell-value {
+	border-bottom: 1px solid #808080;
+}
+
+.ag-table.ag-fresh .ag-ltr .ag-cell-no-focus {
+	border-right: 1px solid #808080;
 }

@@ -8,7 +8,7 @@
 	"model":
 	{
 		"config": 		{ "type": "string", "pushToServer": "allow", "tags": { "scope": "private" } },
-		"myFoundset": {"type": "foundset", "dynamicDataproviders": true, "initialPreferredViewPortSize": 200, "sendSelectionViewportInitially": true },
+		"myFoundset": {"type": "foundset", "dynamicDataproviders": true, "initialPreferredViewPortSize": 400, "sendSelectionViewportInitially": true },
 		"columns": 		{ "type": "column[]", "droppable" : true },
 		"hashedFoundsets": { "type": "hashedFoundset[]", "default": [], "tags": {"scope": "private"}},
 		"hashedColumns": {"type" : "string[]", "default": [], "tags": {"scope": "private"}},
@@ -147,7 +147,8 @@
 			"styleClass" : {"type" : "styleclass"},
 			"format" : "format",
 			"visible":  { "type": "boolean", "default": true },
-			"onActionMethodID" : "function"
+			"onActionMethodID" : "function",
+			"width" : "int"
 		},
 		 "hashedFoundset" : {
             "foundset": "foundset",
