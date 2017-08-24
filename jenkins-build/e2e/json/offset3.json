@@ -1,0 +1,21 @@
+{
+    "snapshotDate": {
+        "day":26,
+        "month":6,
+        "year":2017,
+        "hour": 13,
+        "minute": 23
+    },
+    "alterDates" :{
+        "offset":
+        [{
+            "table": "Orders",
+            "column": "orderdate",
+            "where": ""
+        }, {
+            "table": "Orders",
+            "column": "orderdate",
+            "where": "WHERE id = 1"
+        }]
+    }
+}

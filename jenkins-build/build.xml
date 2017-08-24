@@ -1,0 +1,216 @@
+<project name="Ant Solution Exporter" default="ALL" basedir="..">
+
+    <property environment="env"/>
+    <property name="WORKSPACE" value="${env.WORKSPACE}"/>
+    <property file="jenkins-build/build.properties"/>
+
+    <import file="shared_utils.xml" />
+    <import file="servoy_utils.xml" />
+    <import file="code_coverage.xml" />
+    <import file="code_analyis.xml" />
+    <import file="tomcat_utils.xml" />
+    <import file="e2e.xml" />
+
+    <taskdef resource="net/sf/antcontrib/antlib.xml" >
+        <classpath>
+            <pathelement location="${ANT_CONTRIB_JAR}"/>
+        </classpath>
+    </taskdef>
+
+    <!-- Fixed workspace path for windows -->
+    <propertyregex property="WORKSPACE_FIX" input="${WORKSPACE}" regexp="\\" replace="/" global="true" />
+    <condition property="WORKSPACE_FIX" value="${WORKSPACE}">
+        <not>  
+            <isset property="WORKSPACE_FIX"/>
+        </not>
+    </condition>
+    
+    <if>
+        <os family="unix" />
+        <then>
+            <property name="OS.COMMAND.EXECUTER" value="bash" />
+            <property name="OS.COMMAND.CALL" value="-c" />
+            <property name="OS.NODE.EXTENTION" value="" />
+        </then>
+        <else>
+            <property name="OS.COMMAND.EXECUTER" value="cmd" />
+            <property name="OS.COMMAND.CALL" value="/C"/>
+            <property name="OS.NODE.EXTENTION" value=".cmd" />
+        </else>
+    </if>
+
+    <target name="ALL" depends="1-SetupEnvironment, 2-SetupCodecoverage, 3-RunJSUnitTest, 4-RunE2ETests, 5-ExportDeployWarFile, 6-GenerateReports, 7-StoreData" />
+
+
+    <target name="1-SetupEnvironment">
+        <echo level="info" message="*** Setting up folders and files for build***" />
+        <move-folder fromDir="${WORKSPACE}/resources" toDir="${WORKSPACE}/tempJenkinsResource" />
+        <delete includeEmptyDirs="true">
+            <fileset dir="${WORKSPACE}">
+                <include name="**/resources/"/>
+            </fileset>
+        </delete>
+        <move-folder fromDir="${WORKSPACE}/tempJenkinsResource" toDir="${WORKSPACE}/resources" />
+
+        <make-clean-dir dir="${TOOLS-DIR}" />
+        <make-clean-dir dir="${OUTPUT.DIR}" />
+        <make-clean-dir dir="${LOG.DIR}" />
+        <make-clean-dir dir="${OUTPUT.DIR.TEST.EXPORTS}" />
+        <make-clean-dir dir="${ARTIFACTS.DIR}" />
+        <make-clean-dir dir="${PROTRACTOR.REPORT.DIR}" />
+
+        <script language="javascript"><![CDATA[
+            var testSolution = project.getProperty('SERVOY.TEST-SOLUTION');
+
+            if (testSolution.slice(-5) === '_test') {
+                project.setProperty('SERVOY.SOLUTION_UNDER_TESTING', testSolution.slice(0,-5));
+            } else {
+                project.setProperty('SERVOY.SOLUTION_UNDER_TESTING', testSolution);
+            }
+        ]]></script>
+
+        <exec executable="node" dir="${WORKSPACE}" outputproperty="unmergedChanged" failonerror="true" append="true">
+                <arg value="${LIB-DIR}/pendingSourceMerges.js" />
+                <arg value="${WORKSPACE_FIX}" />
+        </exec>
+        <condition property="unmergedfiles.found">
+                <matches pattern="FOUND*" string="${unmergedChanged}"/>
+        </condition>
+        <fail message="${unmergedChanged}" if="unmergedfiles.found" />
+    </target>
+
+    <target name="2-SetupCodecoverage">
+        <if>
+            <isfalse value="${CODE.COVERAGE.ENABLED}"/>
+            <then>
+                <echo level="info" message="*** Code Coverage Reporting disabled (Skip step) ***" />
+            </then>
+            <else>
+                <echo level="info" message="*** Setting up folders for Code Coverage ***" />
+                <antcall target="code_coverage_reporting_preparation" />
+                <antcall target="code_coverage_instrument_workspace" />
+                <antcall target="code_coverage_fix_instrumented_workspace_for_servoy" />
+            </else>
+        </if>
+    </target>
+
+    <target name="3-RunJSUnitTest" depends="get_equinox_jar, prepare_classpath">
+        <if>
+            <isfalse value="${SERVOY.JUNIT.ENABLED}"/>
+            <then>
+               <echo level="info" message="*** Servoy JSUnit Test disabled (Skip step) ***" />
+            </then>
+            <else>
+                <setup-servoy-properties dbName="${DB.NAME}" dbServerUrl="${DB.URL}" dbServerPort="${DB.PORT}" dbServerUsername="${DB.USERNAME}" dbServerPassword="${DB.PASSWORD}"/>
+                <if>
+                    <istrue value="${CODE.COVERAGE.ENABLED}"/>
+                    <then>
+                        <export-solution-as-dot-servoy workspace="${CODE.COVERAGE.INSTRUMENTED.WORKSPACE}" solutionNames="${SERVOY.TEST-SOLUTION}"/>
+                    </then>
+                    <else>
+                        <export-solution-as-dot-servoy solutionNames="${SERVOY.TEST-SOLUTION}"/>
+                    </else>
+                </if>
+                
+                <run_servoy_jsunit_tests/>
+           </else>
+       </if>
+    </target>
+
+    <target name="4-RunE2ETests" depends="get_equinox_jar">
+        <if>
+            <and>
+                <not>
+                    <isset property="${TEST.FAILED}" />
+                </not>
+                <istrue value="${E2E.ENABLED}" />
+            </and>
+            <then>
+                <setup-servoy-properties dbName="${DB.NAME}" dbServerUrl="${DB.URL}" dbServerPort="${DB.PORT}" dbServerUsername="${DB.USERNAME}" dbServerPassword="${DB.PASSWORD}"/>
+                <export-solution-as-war solutionNames="${SERVOY.SOLUTION}" workspace="${WORKSPACE}" warFileName="${PROTRACTOR.E2E.WAR-FILE.NAME}"/>
+                <deploy-war-on-tomcat-server applicationName="${PROTRACTOR.E2E.WAR-FILE.NAME}" warFile="${PROTRACTOR.E2E.WAR-FILE}"/>
+                <antcall target="run_e2e_tests" />
+                <undeploy-war-on-tomcat-server applicationName="${PROTRACTOR.E2E.WAR-FILE.NAME}" warFile="${PROTRACTOR.E2E.WAR-FILE}"/>
+            </then>
+            <else>
+                <echo level="info" message="*** E2E Test disabled (Skip step) ***" />
+            </else>
+        </if>
+    </target>
+
+    <target name="5-ExportDeployWarFile" depends="get_equinox_jar">
+        <if>
+            <and>
+                <not>
+                    <isset property="${TEST.FAILED}" />
+                </not>
+                <not>
+                    <isset property="${E2E.FAILED}"/>
+                </not>
+            </and>
+            <then>
+                <setup-servoy-properties dbName="${DB.NAME}" dbServerUrl="${DB.URL}" dbServerPort="${DB.PORT}" dbServerUsername="${DB.USERNAME}" dbServerPassword="${DB.PASSWORD}"/>
+                <export-solution-as-war solutionNames="${SERVOY.SOLUTION}" workspace="${WORKSPACE}" warFileName="${WAR-FILE.NAME}"/>
+                <if>
+                    <and>
+                        <not>
+                            <isset property="${EXPORT.FAILED}" />
+                        </not>
+                        <istrue value="${TOMCAT.WAR_DEPLOY.ENABLED}" />
+                    </and>
+                    <then>
+                        <deploy-war-on-tomcat-server />
+                    </then>
+                </if>
+            </then>
+        </if>
+    </target>
+
+    <target name="6-GenerateReports">
+        <if>
+            <and>
+                <istrue value="${CODE.COVERAGE.ENABLED}" />
+                <not>
+                    <isset property="${TEST.FAILED}"/>
+                </not>
+            </and>
+            <then>
+                <antcall target="generate_code_coverage_reports"/>
+           </then>
+        </if>
+        
+        <if>
+            <and>
+                <istrue value="${CODE.ANALYSIS.ENABLED}"/>
+                <not>
+                    <isset property="${TEST.FAILED}"/>
+                </not>
+            </and>
+            <then>
+                <antcall target="generate_code_analysis_reports"/>
+           </then>
+        </if>
+    </target>
+
+    <target name="7-StoreData">
+        <!-- Move the collected logs to the folder for the specific Jenkins build as artifacts -->
+        <move todir="${ARTIFACTS.DIR}" failonerror="false">
+            <fileset dir="${LOG.DIR}" includes="*.*" />
+        </move>
+
+        <!-- Move .servoy JSUnit test to archive folder -->
+        <move todir="${ARTIFACTS.DIR}" failonerror="false">
+            <fileset dir="${OUTPUT.DIR.TEST.EXPORTS}" includes="*.servoy" />
+        </move>
+
+        <!-- Move war file to archive folder -->
+        <move todir="${ARTIFACTS.DIR}" failonerror="false">
+            <fileset dir="${OUTPUT.DIR}" includes="*.war" />
+        </move>
+
+        <fail-if-e2e-failed />
+        <fail-if-export-failed />
+        <fail-if-unittests-failed />
+    </target>
+
+</project>

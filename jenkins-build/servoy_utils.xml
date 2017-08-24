@@ -1,0 +1,287 @@
+<project>
+    <macrodef name="export-solution-as-dot-servoy">
+         <attribute name="solutionNames"/>
+         <attribute name="workspace" default="${WORKSPACE}"/>
+         <attribute name="outputDir" default="${OUTPUT.DIR.TEST.EXPORTS}"/>
+         <attribute name="failOnError" default="true"/>
+
+         <sequential>
+             <echo level="info" message="*** Preparing build directory for export .servoy file ***"/>
+             <delete failonerror="false" file="@{workspace}/.metadata/.log" />
+
+             <var name="export.result" unset="true"/>
+             <echo level="verbose" message="Exporting @{solutionNames} from workspace @{workspace}"/>
+
+             <java   classname="org.eclipse.equinox.launcher.Main"
+                     classpathref="equinox.launcher.jar.location"
+                     failonerror="@{failOnError}"
+                     resultproperty="export.result"
+                     fork="true">
+
+                 <jvmarg value="${SERVOY.EXPORTER.MEMORY.XMS}" />
+                 <jvmarg value="${SERVOY.EXPORTER.MEMORY.XMX}" />
+                 <jvmarg value="${SERVOY.EXPORTER.MEMORY.MAXPERM}" />
+                 <jvmarg value="-Dosgi.configuration.cascaded=false" />
+                 <jvmarg value="-Dservoy.application_server.dir=${SERVOY.INSTALL.APPSERVER.DIR}" />
+                 <jvmarg value="-Djava.awt.headless=true" />
+
+                 <arg value="-application" />
+                 <arg value="com.servoy.eclipse.exporter.solution.application" />
+
+                 <arg value="-data" />
+                 <arg value="@{workspace}" />
+                 <arg value="-s" />
+                 <arg value="@{solutionNames}" />
+                 <arg value="-o" />
+                 <arg value="@{outputDir}" />
+                 <arg value="-as" />
+                 <arg value="${SERVOY.INSTALL.APPSERVER.DIR}" />
+                 <arg value="-p" />
+                 <arg value="${SERVOY.PROPERTIES.FILE}" />
+                 <arg value="-verbose" />
+                 <arg value="-pl" />
+                 <arg value="-dbi" />
+                 <arg value="-md ws" />
+                 <arg value="-i18n" />
+                 <arg value="-users" />
+                 <arg value="-tables" />
+                 <arg value="-modules" />
+             </java>
+            <move-log-to-logDir logFileToCopy="${SERVOY.INSTALL.APPSERVER.DIR}/servoy_log.txt" newName="export-solution-as-dot-servoy$servoy_log.txt"/>
+            <move-log-to-logDir logFileToCopy="@{workspace}/.metadata/.log" newName="export-solution-as-dot-servoy$workspace_log.log"/>
+            
+            <condition property="EXPORT.FAILED">
+                 <not>
+                     <equals arg1="${export.result}" arg2="0"/>
+                 </not>
+             </condition>
+
+         </sequential>
+     </macrodef>
+
+    <macrodef name="export-solution-as-war">
+        <attribute name="solutionNames"/>
+        <attribute name="workspace" default="${WORKSPACE}"/>
+        <attribute name="outputDir" default="${OUTPUT.DIR}"/>
+        <attribute name="failOnError" default="true"/>
+        <attribute name="warFileName"/>
+
+        <sequential>
+            <echo level="info" message="*** Preparing build directory for export .war file ***"/>
+            <delete failonerror="false" file="@{workspace}/.metadata/.log" />
+
+            <!-- now we are ready to start the workspace exporter -->
+            <echo level="verbose" message="Exporting @{solutionNames} from workspace @{workspace}"/>
+
+            <java   classname="org.eclipse.equinox.launcher.Main"
+                    classpathref="equinox.launcher.jar.location"
+                    failonerror="@{failOnError}"
+                    resultproperty="export.result"
+                    fork="true">
+                <jvmarg value="${SERVOY.EXPORTER.MEMORY.XMS}" />
+                <jvmarg value="${SERVOY.EXPORTER.MEMORY.XMX}" />
+                <jvmarg value="${SERVOY.EXPORTER.MEMORY.MAXPERM}" />
+                <jvmarg value="-Dosgi.configuration.cascaded=false" />
+                <jvmarg value="-Dservoy.application_server.dir=${SERVOY.INSTALL.APPSERVER.DIR}" />
+                <jvmarg value="-Djava.awt.headless=true" />
+
+                <arg value="-application" />
+                <arg value="com.servoy.eclipse.exporter.war.application" />
+
+                <arg value="-data" />
+                <arg value="@{workspace}" />
+                <arg value="-s" />
+                <arg value="@{solutionNames}" />
+                <arg value="-o" />
+                <arg value="@{outputDir}" />
+                <arg value="-as" />
+                <arg value="${SERVOY.INSTALL.APPSERVER.DIR}" />
+                <arg value="-p" />
+                <arg value="${SERVOY.PROPERTIES.FILE}" />
+                <arg value="-warFileName" />
+                <arg value="@{warFileName}" />
+                <arg value="-pluginLocations ${SERVOY.EXPORTER.PLUGIN.DIR}" />
+                <arg value="-allowSQLKeywords" />
+                <arg value="-pl" />
+                <arg value="-dbi" />
+                <arg value="-md ws" />
+                <arg value="-i18n" />
+                <arg value="-users" />
+                <arg value="-tables" />
+                <arg value="-modules" />
+                <arg value="-verbose" />
+                <arg value="-defaultAdminUser" />
+                <arg value="${SERVOY.DEFAULT.ADMIN}" />
+                <arg value="-defaultAdminPassword" />
+                <arg value="${SERVOY.DEFAULT.PASSWORD}" />
+
+            </java>
+            <move-log-to-logDir logFileToCopy="${SERVOY.INSTALL.APPSERVER.DIR}/servoy_log.txt" newName="export-solution-as-war$servoy_log.txt"/>
+            <move-log-to-logDir logFileToCopy="@{workspace}/.metadata/.log" newName="export-solution-as-war$workspace_log.log"/>
+            
+            <condition property="EXPORT.FAILED">
+                <not>
+                    <equals arg1="${export.result}" arg2="0"/>
+                </not>
+            </condition>
+        </sequential>
+    </macrodef>
+
+    <macrodef name="run_servoy_jsunit_tests">
+        <sequential>
+            <echo level="info" message="*** Preparing build directory for Unit Tests ***"/>
+            <make-clean-dir dir="${SERVOY.TEST.JUNIT.REPORT.DIR}" />
+            <delete includeemptydirs="true" quiet="true">
+                <fileset dir="${BUILD.DIR}" includes="junit*.properties" />
+            </delete>
+
+            <script language="javascript"><![CDATA[
+                //Set internal property for test timeout in milliseconds
+                var value = parseInt(project.getProperty('test.timeout.minutes'))||2;
+                project.setProperty('test.timeout', value * 60 * 1000);
+                //Set internal property for solution load timeout in milliseconds
+                value = parseInt(project.getProperty('solution-load.timeout.minutes')||project.getProperty('test.timeout.minutes'))
+                project.setProperty('servoy.test.solution-load.timeout', value * 60 * 1000);
+
+                //Record startTime for logging total duration after finishing running the tests
+                project.setProperty('servoy.test.start-time', Date.now());
+            ]]></script>
+
+            <echo level="info" message="*** Running Unit Tests ***"/>
+            <!-- Define a timeout so we know the test will finish eventually -->
+            <junit fork="yes" forkmode="once" timeout="${SERVOY.TEST.TIMEOUT}" dir="${SERVOY.INSTALL.APPSERVER.DIR}" haltonfailure="false" haltonerror="false" showoutput="true" errorProperty="TEST.FAILED" failureProperty="TEST.FAILED" printsummary="on">
+                <jvmarg value="-XX:MaxPermSize=128m" />
+                <!--<jvmarg value="${SERVOY.TEST.MEMORY.XMS}" />
+                <jvmarg value="${SERVOY.TEST.MEMORY.XMX}" />
+                <jvmarg value="${SERVOY.TEST.MEMORY.MAXPERM}" />
+                <jvmarg value="-Dservoy.application_server.dir=${SERVOY.INSTALL.APPSERVER.DIR}" />
+                <jvmarg value="-Dtest.log.location=${LOG.DIR}/test.log" /> -->
+                <classpath refid="classpath.run_test" />
+
+                <sysproperty key="servoy.test.target-exports" value="${OUTPUT.DIR.TEST.EXPORTS}" />
+                <sysproperty key="servoy.test.property-file" value="${SERVOY.PROPERTIES.FILE}" />
+
+                <formatter type="brief" usefile="false" />
+                <formatter type="xml" />
+
+                <test name="com.servoy.automation.jsunit.smartclient.ServoyJSUnitTestRunner" todir="${SERVOY.TEST.JUNIT.REPORT.DIR}" />
+            </junit>
+
+            <move-log-to-logDir logFileToCopy="${SERVOY.INSTALL.APPSERVER.DIR}/servoy_log.txt" newName="junit$servoy_log.txt"/>
+            <move-log-to-logDir logFileToCopy="${WORKSPACE}/.metadata/.log" newName="junit$workspace_log.log"/>
+            <antcall target="create_test_report"/>
+           </sequential>
+    </macrodef>
+
+    <macrodef name="fail-if-unittests-failed">
+        <sequential>
+            <fail message="Unit tests failed: please check test reports." if="${TEST.FAILED}" />
+        </sequential>
+    </macrodef>
+
+    <macrodef name="fail-if-export-failed">
+        <sequential>
+            <fail message="Exports failed: please check the exporter log files." if="${EXPORT.FAILED}" />
+        </sequential>
+    </macrodef>
+
+    <target name="create_test_report">
+        <junitreport todir="${SERVOY.TEST.JUNIT.REPORT.DIR}">
+            <fileset dir="${SERVOY.TEST.JUNIT.REPORT.DIR}">
+                <include name="TEST-*.xml" />
+            </fileset>
+
+            <report format="noframes" todir="${SERVOY.TEST.JUNIT.REPORT.DIR}" />
+        </junitreport>
+    </target>
+
+    <target name="get_equinox_jar">
+        <!-- store path to newest Eclipse launcher JAR in path id 'newest.equinox.launcher.path.id' -->
+        <!-- and turn the path into a property -->
+        <latest_jar pathName="equinox.launcher.jar.location" dir="${SERVOY.INSTALL.DEVELOPER.DIR}/plugins" includes="**/org.eclipse.equinox.launcher_*.jar"/>
+    </target>
+
+    <target name="prepare_classpath">
+        <mkdir dir="${LIB-DIR}/jsUnit"/>
+
+        <latest_jar pathName="cse.jsunit.jar.location" dir="${SERVOY.INSTALL.DEVELOPER.DIR}/plugins" includes="**/com.servoy.eclipse.jsunit_*.jar"/>
+        <latest_jar pathName="cse.model.jar.location" dir="${SERVOY.INSTALL.DEVELOPER.DIR}/plugins" includes="**/com.servoy.eclipse.model_*.jar"/>
+        <latest_jar pathName="servoy_debug.jar.location" dir="${SERVOY.INSTALL.DEVELOPER.DIR}/plugins" includes="**/servoy_debug_*.jar"/>
+        <latest_jar pathName="cse.exporter.mobile.location" dir="${SERVOY.INSTALL.DEVELOPER.DIR}/plugins" includes="**/com.servoy.eclipse.exporter.mobile_*.jar"/>
+        <echo level="verbose" message="Using in importer classpath: ${cse.jsunit.jar.location_property}" />
+        <echo level="verbose" message="Using in importer classpath: ${cse.model.jar.location_property}" />
+        <echo level="verbose" message="Using in importer classpath: ${servoy_debug.jar.location_property}" />
+        <echo level="verbose" message="Using in importer classpath: ${cse.exporter.mobile.location_property}" />
+
+        <unzip src="${cse.jsunit.jar.location_property}" dest="${LIB-DIR}/jsUnit">
+            <patternset>
+                <include name="jsunit-*.jar"/>
+                <include name="j2db_test.jar"/>
+            </patternset>
+        </unzip>
+
+        <path id="classpath.run_test">
+            <fileset dir="${SERVOY.INSTALL.APPSERVER.DIR}/lib">
+                <include name="*.jar" />
+                <exclude name="slf4j-jdk14.jar"/>
+            </fileset>
+            <fileset dir="${LIB-DIR}/jsUnit">
+                <include name="*.jar" />
+            </fileset>
+            <fileset file="${cse.jsunit.jar.location_property}"/>
+            <fileset file="${cse.model.jar.location_property}"/>
+            <fileset file="${servoy_debug.jar.location_property}"/>
+            <fileset file="${cse.exporter.mobile.location_property}"/>
+            <fileset dir="${SERVOY.INSTALL.DEVELOPER.DIR}/plugins">
+                <include name="org.junit*4*/junit*.jar"/>
+            </fileset>
+        </path>
+    </target>
+
+    <macrodef name="setup-servoy-properties">
+        <attribute name="dbName"/>
+        <attribute name="dbServerUrl"/>
+        <attribute name="dbServerPort" />
+        <attribute name="dbServerUsername" />
+        <attribute name="dbServerPassword" />
+        <sequential>
+            <echo level="info" message="Updating servoy.properties with databasename information" />
+            <delete file="${SERVOY.PROPERTIES.FILE}" />
+            <copy file="${SERVOY.PROPERTIES.TEMP.FILE}" tofile="${SERVOY.PROPERTIES.FILE}" />
+
+            <replace file="${SERVOY.PROPERTIES.FILE}" token="##DbServerUrl##" value="@{dbServerUrl}" />
+            <replace file="${SERVOY.PROPERTIES.FILE}" token="##dbServerPort##" value="@{dbServerPort}" />
+            <replace file="${SERVOY.PROPERTIES.FILE}" token="##DbName##" value="@{dbName}" />
+            <replace file="${SERVOY.PROPERTIES.FILE}" token="##dbServerUsername##" value="@{dbServerUsername}" />
+            <replace file="${SERVOY.PROPERTIES.FILE}" token="##dbServerPassword##" value="@{dbServerPassword}" />
+            <replace file="${SERVOY.PROPERTIES.FILE}" token="##ServoyLicKey##" value="${SERVOY.LIC.KEY}"/>
+            <replace file="${SERVOY.PROPERTIES.FILE}" token="##ServoyLicName##" value="${SERVOY.LIC.NAME}"/>
+            <replace file="${SERVOY.PROPERTIES.FILE}" token="##ServoyLicType##" value="${SERVOY.LIC.TYPE}"/>
+
+        </sequential>
+    </macrodef>
+
+
+    <macrodef name="latest_jar">
+        <attribute name="pathName"/>
+        <attribute name="propertyName" default="@{pathName}_property"/>
+        <attribute name="dir"/>
+        <attribute name="includes"/>
+        <sequential>
+            <!-- store path to newest JAR -->
+            <path id="@{pathName}">
+                <first count="1">
+                    <sort>
+                        <fileset dir="@{dir}" includes="@{includes}" />
+                        <reverse xmlns="antlib:org.apache.tools.ant.types.resources.comparators">
+                            <date />
+                        </reverse>
+                    </sort>
+                </first>
+            </path>
+
+            <!-- create a property as well -->
+           <property name="@{propertyName}" refid="@{pathName}" />
+       </sequential>
+    </macrodef>
+</project>

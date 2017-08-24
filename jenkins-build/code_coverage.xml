@@ -1,0 +1,85 @@
+<project>
+    <!-- Step 1: clean the instrumented workspace -->
+    <target name="code_coverage_reporting_preparation">
+            <make-clean-dir dir="${CODE.COVERAGE.INSTRUMENTED.WORKSPACE.TEMP}" />
+            <make-clean-dir dir="${CODE.COVERAGE.REPORT.DIR}" />
+            <make-clean-dir dir="${CODE.COVERAGE.INSTRUMENTED.WORKSPACE}" />
+            <copy todir="${CODE.COVERAGE.INSTRUMENTED.WORKSPACE}">
+                <fileset dir="${WORKSPACE}" />
+            </copy>
+
+            <copy todir="${CODE.COVERAGE.INSTRUMENTED.WORKSPACE}/${SERVOY.TEST-SOLUTION}">
+                <fileset dir="${LIB-DIR}">
+                    <include name="scopes.codeCoverageReporting.js" />
+                </fileset>
+                <globmapper from="scopes.codeCoverageReporting.js" to="codeCoverageReporting.js"/>
+            </copy>
+            <!--<exec executable="node" failonerror="true">
+                <arg value="${LIB-DIR}/servoyIstanbulInstrumentCleaner.js" />
+                <arg value="${CODE.COVERAGE.INSTRUMENTED.WORKSPACE}" />
+            </exec>-->
+    </target>
+
+    <!-- Step 2: instrument all code from workspace into the temp instrumented workspace-->
+    <target name="code_coverage_instrument_workspace">
+        <echo level="verbose" message="instrumenting ${SERVOY.SOLUTION_UNDER_TESTING} into ${CODE.COVERAGE.INSTRUMENTED.WORKSPACE.TEMP}"/>
+        <exec executable="istanbul${OS.NODE.EXTENTION}" dir="${WORKSPACE}" failonerror="true">
+            <arg value="instrument"/>
+            <arg value="${WORKSPACE}"/>
+            <arg value="--output"/>
+            <arg value="${CODE.COVERAGE.INSTRUMENTED.WORKSPACE.TEMP}"/>
+            <arg value="--preserve-comments"/>
+            <arg value="--no-compact"/>
+            <arg value="--save-baseline"/>
+            <arg value="--baseline-file"/>
+            <arg value="${CODE.COVERAGE.REPORT.DIR}/coverage-baseline.json"/>
+        </exec>
+    </target>
+
+    <!-- Step 3: parse all the instrumented code from the temp instrumented workspace and save the modified instrumented file into the instrumented workspace-->
+    <target name="code_coverage_fix_instrumented_workspace_for_servoy">
+        <echo level="verbose" message="Processing instrumented code from ${CODE.COVERAGE.INSTRUMENTED.WORKSPACE.TEMP} to ${CODE.COVERAGE.INSTRUMENTED.WORKSPACE}, fixing Servoy incompatibilities"/>
+        <exec executable="node" failonerror="true">
+            <arg value="${LIB-DIR}/servoyCodeCoverageInstrumentationFixer.js"/>
+            <arg value="--d"/>
+            <arg value="${CODE.COVERAGE.INSTRUMENTED.WORKSPACE}"/>
+            <arg value="${CODE.COVERAGE.INSTRUMENTED.WORKSPACE.TEMP}"/>
+            <arg value="--tsp"/>
+            <arg value="${CODE.COVERAGE.INSTRUMENTED.WORKSPACE}/${SERVOY.TEST-SOLUTION}"/>
+            <arg value="--rp"/>
+            <arg value="${CODE.COVERAGE.REPORT.DIR}"/>
+            <arg value="--i"/>
+            <arg value="${CODE.COVERAGE.INSTRUMENTED.INCLUDE}"/>
+            <arg value="--x"/>
+            <arg value="${CODE.COVERAGE.INSTRUMENTED.EXCLUDE}"/>
+            <arg value="--e"/>
+            <arg value="true"/>
+            <arg value="--v"/>
+            <arg value="false"/>
+        </exec>
+    </target>
+
+    <!-- Generate Code Coverage reports after the tests have run -->
+    <target name="generate_code_coverage_reports">
+        <if>
+            <not>
+                <isset property="${TEST.FAILED}" />
+            </not>
+            <then>
+                <for list="${CODE.COVERAGE.REPORT-FORMATS}" param="format">
+                <sequential>
+                    <echo level="info" message="Generating @{format} report"/>
+                    <exec executable="istanbul${OS.NODE.EXTENTION}" dir="${WORKSPACE}" failonerror="true">
+                        <arg value="report" />
+                        <arg value="--root" />
+                        <arg value="${CODE.COVERAGE.REPORT.DIR}" />
+                        <arg value="--dir" />
+                        <arg value="${CODE.COVERAGE.REPORT.DIR}" />
+                        <arg value="@{format}" />
+                    </exec>
+                </sequential>
+                </for>
+            </then>
+        </if>
+    </target>
+</project>

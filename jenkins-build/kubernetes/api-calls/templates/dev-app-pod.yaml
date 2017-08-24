@@ -1,0 +1,32 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: POD_NAME
+  namespace: K8S_NAMESPACE
+  labels:
+    app: APP_LABEL
+spec:
+  containers:
+    - name: CONTAINER_NAME
+      image: SOURCE_IMAGE
+      volumeMounts:
+      - mountPath: /usr/local/servoy
+        name: servoy-volume
+      resources:
+        requests:
+          cpu: "0.25"
+          memory: "1G"
+        limits:
+          cpu: "1"
+          memory: "1.2G"
+      ports:
+        - containerPort: 111
+          protocol: UDP
+        - containerPort: 2049
+          protocol: TCP
+      securityContext:
+        privileged: true
+  volumes:
+    - name: servoy-volume
+      emptyDir: {}
