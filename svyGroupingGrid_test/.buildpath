@@ -2,5 +2,4 @@
 <buildpath>
 	<buildpathentry excluding=".stp/|medias/" kind="src" path=""/>
 	<buildpathentry exported="true" kind="prj" path="/svyGroupingGridDemo"/>
-	<buildpathentry exported="true" kind="prj" path="/svyPivotDemo"/>
 </buildpath>
