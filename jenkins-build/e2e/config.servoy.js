@@ -3,8 +3,6 @@ var find = require('find');
 var fs = require('fs-extra');
 var jsonDir = 'reports/cucumber_reports/';
 var screenshotDir = 'screenshots/';
-var proc = require('process');
-
 exports.config = {
   seleniumAddress: 'http://127.0.0.1:4444/wd/hub',
   framework: 'custom',
@@ -88,6 +86,7 @@ function removeScreenshots() {
 
 function createReportFolder() {
   var path = require('path');
+  var proc = require('process');
   var fs = require('fs');
   var pathToCreate = params.reportDirectory;
   pathToCreate.split(path.sep).reduce(function(currentPath, folder){
