@@ -1,250 +1,296 @@
 /**
  * @properties={typeid:24,uuid:"AE08FCFB-7052-4D97-82A7-B49E2E6A2CDA"}
  */
-function GroupHashCache() {
+	function GroupHashCache() {
 
-	// private properties
-	var hashTree = new Object(); // the foundsetRef mapping
+		// private properties
+		var hashTree = new Object(); // the foundsetRef mapping
 
-	// methods
-	this.getCachedFoundset;
-	this.setCachedFoundset;
+		// methods
+		this.getCachedFoundset;
+		this.setCachedFoundset;
+		this.removeCachedFoundset;
+		this.removeChildFoundsets;
 
-	this.getCachedFoundset = function(rowGroupCols, groupKeys) {
+		this.getCachedFoundset = function(rowGroupCols, groupKeys) {
 
-		var tree = hashTree;
-		var node = getTreeNode(tree, rowGroupCols, groupKeys);
-		return node ? node.foundsetUUID : null;
+			var tree = hashTree;
+			var node = getTreeNode(tree, rowGroupCols, groupKeys);
+			return node ? node.foundsetUUID : null;
 
-		//						for (var colIdx = 0; colIdx < rowGroupCols.length; colIdx++) {
-		//							var columnId = rowGroupCols[colIdx].field;
-		//							if (colIdx === groupKeys.length -2 ) {	// last node is not a leaf
-		//								parentTree = parentTree[columnId];
-		//							} else {	//
-		//								if (parentTree[columnId]) {
-		//									parentTree = parentTree[columnId].nodes;
-		//								} else {
-		//									return null;
-		//								}
-		//							}
-		//						}
-		//
-		//						if (parentTree) {
-		//							return parentTree.foundsetUUID;
-		//						}
-		//
-	}
-
-	this.setCachedFoundset = function(rowGroupCols, groupKeys, foundsetUUID) {
-		var tree = getTreeNode(hashTree, rowGroupCols, groupKeys, true);
-		tree.foundsetUUID = foundsetUUID;
-	}
-
-	/** Remove the node */
-	this.removeCachedFoundset = function(foundsetUUID) {
-		return removeFoundset(hashTree, foundsetUUID);
-	}
-
-	/** Remove all it's child node */
-	this.removeChildFoundset = function(foundsetUUID) {
-		return removeChildFoundsets(hashTree, foundsetUUID);
-	}
-
-	function removeFoundset(tree, foundsetUUID) {
-		if (!tree) {
-			return true;
+			//						for (var colIdx = 0; colIdx < rowGroupCols.length; colIdx++) {
+			//							var columnId = rowGroupCols[colIdx].field;
+			//							if (colIdx === groupKeys.length -2 ) {	// last node is not a leaf
+			//								parentTree = parentTree[columnId];
+			//							} else {	//
+			//								if (parentTree[columnId]) {
+			//									parentTree = parentTree[columnId].nodes;
+			//								} else {
+			//									return null;
+			//								}
+			//							}
+			//						}
+			//
+			//						if (parentTree) {
+			//							return parentTree.foundsetUUID;
+			//						}
+			//
 		}
 
-		if (!foundsetUUID) {
-			return true;
+		this.setCachedFoundset = function(rowGroupCols, groupKeys, foundsetUUID) {
+			var tree = getTreeNode(hashTree, rowGroupCols, groupKeys, true);
+			tree.foundsetUUID = foundsetUUID;
+		}
+		
+		this.updateCachedFoundset = function(rowGroupCols, groupKeys, foundsetUUID) {
+			var tree = getTreeNode(hashTree, rowGroupCols, groupKeys, false);
+			tree.foundsetUUID = foundsetUUID;
+		} 
+
+		/** Remove the node */
+		this.removeCachedFoundset = function(foundsetUUID) {
+			return removeFoundset(hashTree, foundsetUUID);
 		}
 
-		for (var nodeKey in tree) {
-			var subNodeKey
-			var node = tree[nodeKey];
-			if (node.foundsetUUID === foundsetUUID) {
-				// TODO should delete all subnodes
+		/** Remove all it's child node */
+		this.removeChildFoundset = function(foundsetUUID, field, value) {
+			return removeChildFoundsets(hashTree, foundsetUUID, field, value);
+		}
 
-				if (node.nodes) {
-					for (subNodeKey in node.nodes) {
-						removeFoundset(node.nodes, node.nodes[subNodeKey].foundsetUUID);
-					}
+		this.clearAll = function() {
+			for (var nodeKey in hashTree) {
+				var node = hashTree[nodeKey];
+				if (node.foundsetUUID) {
+					removeFoundset(hashTree, node.foundsetUUID);
+				} else {
+					// TODO is it this possible
+					$log.error('There is a root node without a foundset UUID, it should not happen');
 				}
-				// TODO should this method access the foundsetManager ? is not a good encapsulation
-				var foundsetManager = getFoundsetManagerByFoundsetUUID(foundsetUUID);
-				foundsetManager.destroy();
-				delete tree[nodeKey];
+			}
+			if ($scope.model.hashedFoundsets.length > 0) {
+				$log.error("Clear All was not successful, please debug");
+			}
+		}
+
+		function removeFoundset(tree, foundsetUUID) {
+			if (!tree) {
 				return true;
-			} else if (node.nodes) {
-				for (subNodeKey in node.nodes) {
-					if (removeFoundset(node.nodes, foundsetUUID)) {
-						return true;
-					}
-				}
 			}
-		}
-		return false;
-	}
 
-	function removeChildFoundsets(tree, foundsetUUID) {
-		if (!tree) {
-			return false;
-		}
+			if (!foundsetUUID) {
+				return true;
+			}
 
-		if (!foundsetUUID) {
-			return false;
-		}
+			for (var nodeKey in tree) {
+				var subNodeKey
+				var node = tree[nodeKey];
+				if (node.foundsetUUID === foundsetUUID) {
+					// TODO should delete all subnodes
 
-		for (var nodeKey in tree) {
-			var subNodeKey
-			var node = tree[nodeKey];
-			if (node.foundsetUUID === foundsetUUID) {
-				// delete all subnodes
-				var success = true;
-				if (node.nodes) {
+					if (node.nodes) {
+						for (subNodeKey in node.nodes) {
+							removeFoundset(node.nodes, node.nodes[subNodeKey].foundsetUUID);
+						}
+					}
+					// TODO should this method access the foundsetManager ? is not a good encapsulation
+					var foundsetManager = getFoundsetManagerByFoundsetUUID(foundsetUUID);
+					foundsetManager.destroy();
+					delete tree[nodeKey];
+					return true;
+				} else if (node.nodes) {
 					for (subNodeKey in node.nodes) {
-						success = (removeFoundset(node.nodes, node.nodes[subNodeKey].foundsetUUID) && success);
-					}
-				}
-				return success;
-			} else if (node.nodes) { // search in subnodes
-				for (subNodeKey in node.nodes) {
-					if (removeChildFoundsets(node.nodes, foundsetUUID)) {
-						return true;
+						if (removeFoundset(node.nodes, foundsetUUID)) {
+							return true;
+						}
 					}
 				}
 			}
-		}
-		return false;
-	}
-
-	/**
-	 * @param {Object} tree
-	 * @param {Array} rowGroupCols
-	 * @param {Array} groupKeys
-	 * @param {Boolean} [create]
-	 *
-	 * */
-	function getTreeNode(tree, rowGroupCols, groupKeys, create) {
-
-		var result = null;
-
-		if (rowGroupCols.length > groupKeys.length + 1) {
-			//			$log.warn('discard row groups ' + (rowGroupCols.length - groupKeys.length));
-			rowGroupCols = rowGroupCols.slice(0, groupKeys.length + 1);
+			return false;
 		}
 
-		/*
-		 * {
-		 * 	columnId {
-		 * 		foundsetUUID: uuid
-		 * 		nodes: {
-		 * 			keyValue : {
-		 * 				foundsetUUID : uuid
-		 * 				nodes : {
-		 * 					subColumnId { ... }
-		 * 				}
-		 * 			},
-		 * 			keyValue2 : { ... }
-		 * 		}
-		 * 	  }
-		 * }
-		 *
+		function removeChildFoundsets(tree, foundsetUUID, field, value) {
+			if (!tree) {
+				return false;
+			}
+
+			if (!foundsetUUID) {
+				return false;
+			}
+
+			for (var nodeKey in tree) {
+				var subNodeKey
+				var node = tree[nodeKey];
+				if (node.foundsetUUID === foundsetUUID) {
+					// delete all subnodes
+					var success = true;
+					if (node.nodes) {
+						for (subNodeKey in node.nodes) {
+							var childFoundsetUUID = node.nodes[subNodeKey].foundsetUUID;
+							var foundsetRef = getFoundsetManagerByFoundsetUUID(childFoundsetUUID);
+							// FIXME this solution is horrible, can break if rows.length === 0 or...
+							// A better solution is to retrieve the proper childFoundsetUUID by rowGroupCols/groupKeys
+							if (foundsetRef && foundsetRef.foundset.viewPort.rows[0] && foundsetRef.foundset.viewPort.rows[0][field] == value) {
+								success = (removeFoundset(node.nodes, childFoundsetUUID) && success);
+							} else {
+								$log.debug('ignore the child foundset');
+							}
+						}
+					}
+					return success;
+				} else if (node.nodes) { // search in subnodes
+					for (subNodeKey in node.nodes) {
+						if (removeChildFoundsets(node.nodes, foundsetUUID)) {
+							return true;
+						}
+					}
+				}
+			}
+			return false;
+		}
+
+		/**
+		 * @param {Object} tree
+		 * @param {Array} rowGroupCols
+		 * @param {Array} groupKeys
+		 * @param {Boolean} [create]
 		 *
 		 * */
+		function getTreeNode(tree, rowGroupCols, groupKeys, create) {
 
-		if (!tree) {
-			return null;
-		}
+			var result = null;
 
-		// the column id e.g. customerid, shipcity
-		var columnId = rowGroupCols[0].field;
-
-		// the tree for the given column
-		var colTree = tree[columnId];
-
-		// create the tree node if does not exist
-		if (!colTree && create) {
-			colTree = {
-				nodes: { },
-				foundsetUUID: null
-			};
-			tree[columnId] = colTree;
-		} else if (!colTree) { // or return null
-			return null;
-		}
-
-		if (rowGroupCols.length === 1) { // the last group
-
-			if (groupKeys.length === 0) { // is a leaf child
-				result = colTree;
-			} else if (groupKeys.length === 1) { // is a leaf child
-
-				// get the subtree matching the rowGroupCols
-				var key = groupKeys[0];
-				var keyTree = colTree.nodes[key];
-
-				// create the key tree node if does not exist
-				if (!keyTree && create) {
-					keyTree = {
-						foundsetUUID: null,
-						nodes: new Object()
-					}
-					colTree.nodes[key] = keyTree;
-				} else if (!keyTree) { // or return null
-					return null;
-				}
-
-				result = keyTree;
-
-			} else { // no group key criteria
-				$log.warn("this should not happen");
+			if (rowGroupCols.length > groupKeys.length + 1) {
+				//							$log.warn('discard row groups ' + (rowGroupCols.length - groupKeys.length));
+				rowGroupCols = rowGroupCols.slice(0, groupKeys.length + 1);
 			}
 
-		} else if (rowGroupCols.length > 1) { // is not the last group
-			var key = groupKeys.length ? groupKeys[0] : null;
+			/*
+			 * {
+			 * 	columnId {
+			 * 		foundsetUUID: uuid
+			 * 		nodes: {
+			 * 			keyValue : {
+			 * 				foundsetUUID : uuid
+			 * 				nodes : {
+			 * 					subColumnId { ... }
+			 * 				}
+			 * 			},
+			 * 			keyValue2 : { ... }
+			 * 		}
+			 * 	  }
+			 * }
+			 *
+			 *
+			 * */
 
-			if (!colTree) {
-				$log.warn("this should not happen")
+			if (!tree) {
 				return null;
 			}
 
-			var subTree = colTree;
+			// the column id e.g. customerid, shipcity
+			var columnId = rowGroupCols[0].field;
 
-			if (key !== null) {
-				var keyTree = colTree.nodes[key];
+			// the tree for the given column
+			var colTree = tree[columnId];
 
-				// create the key tree node if does not exist
-				if (!keyTree && create) {
-					keyTree = {
-						foundsetUUID: null,
-						nodes: new Object()
+			// create the tree node if does not exist
+			if (!colTree && create) {
+				colTree = {
+					nodes: { },
+					foundsetUUID: null
+				};
+				tree[columnId] = colTree;
+			} else if (!colTree) { // or return null
+				return null;
+			}
+
+			if (rowGroupCols.length === 1) { // the last group
+
+				if (groupKeys.length === 0) { // is a leaf child
+					result = colTree;
+				} else if (groupKeys.length === 1) { // is a leaf child
+
+					// get the subtree matching the rowGroupCols
+					var key = groupKeys[0];
+					var keyTree = colTree.nodes[key];
+
+					// create the key tree node if does not exist
+					if (!keyTree && create) {
+						keyTree = {
+							foundsetUUID: null,
+							nodes: new Object()
+						}
+						colTree.nodes[key] = keyTree;
+					} else if (!keyTree) { // or return null
+						return null;
 					}
-					colTree.nodes[key] = keyTree;
-				} else if (!keyTree) {
+
+					result = keyTree;
+
+				} else { // no group key criteria
+					$log.warn("this should not happen");
+				}
+
+			} else if (rowGroupCols.length > 1) { // is not the last group
+				var key = groupKeys.length ? groupKeys[0] : null;
+
+				if (!colTree) {
+					$log.warn("this should not happen")
 					return null;
 				}
 
-				subTree = keyTree;
+				var subTree = colTree;
+
+				if (key !== null) {
+					var keyTree = colTree.nodes[key];
+
+					// create the key tree node if does not exist
+					if (!keyTree && create) {
+						keyTree = {
+							foundsetUUID: null,
+							nodes: new Object()
+						}
+						colTree.nodes[key] = keyTree;
+					} else if (!keyTree) {
+						return null;
+					}
+
+					subTree = keyTree;
+
+				} else {
+					// if is not the last group, should always have a key criteria
+					$log.warn("this should not happen")
+				}
+
+				rowGroupCols = rowGroupCols.slice(1);
+				groupKeys = groupKeys.slice(1);
+
+				result = getTreeNode(subTree.nodes, rowGroupCols, groupKeys, create);
 
 			} else {
-				// if is not the last group, should always have a key criteria
-				$log.warn("this should not happen")
+				$log.warn("No group criteria, should not happen");
 			}
 
-			rowGroupCols = rowGroupCols.slice(1);
-			groupKeys = groupKeys.slice(1);
-
-			result = getTreeNode(subTree.nodes, rowGroupCols, groupKeys, create);
-
-		} else {
-			$log.warn("No group criteria, should not happen");
+			return result;
 		}
 
-		return result;
 	}
 
-}
+	
+	/**
+ * @properties={typeid:35,uuid:"D3E7564F-71F2-4B80-85B0-CAB98625744E",variableType:-4}
+ */
+var $log = {
+		debug: function(msg) {
+			application.output(msg);
+		},
+		warn: function (msg) {
+			application.output(msg, LOGGINGLEVEL.WARNING);
+		},
+		error: function (msg) {
+			application.output(msg, LOGGINGLEVEL.ERROR);
+		}
+	}
 
 /**
  * @param foundsetUUID
@@ -255,8 +301,60 @@ function getFoundsetManagerByFoundsetUUID(foundsetUUID) {
 	return {
 		destroy: function() {
 			application.output('Destroy ' + foundsetUUID)
+		},
+		foundset: {
+			viewPort: {
+				rows: [],
+				size: 0,
+				startIndex: 0
+			}
 		}
 	}
+}
+
+
+/**
+ * @properties={typeid:24,uuid:"5162040D-6DAC-4209-957E-C6C2CB075183"}
+ */
+function test_getCachedFoundset() {
+
+	var groupKeys = [];
+	var rowGroupCols = [];
+
+	var cache = new GroupHashCache();
+
+	// two grouped columns
+	rowGroupCols = [{
+		aggFunc: undefined,
+		displayName: "customerid",
+		field: "B905CBA4-73E2-4317-BE36-48E8E08337E1",
+		id: "B905CBA4-73E2-4317-BE36-48E8E08337E1"
+	}];
+
+	groupKeys = ['ALFKI'];
+
+	jsunit.assertEquals(null, cache.getCachedFoundset(rowGroupCols, groupKeys));
+	cache.setCachedFoundset(rowGroupCols, groupKeys, 'customerid');
+	jsunit.assertEquals('customerid', cache.getCachedFoundset(rowGroupCols, groupKeys));
+
+	rowGroupCols = [{
+		aggFunc: undefined,
+		displayName: "customerid",
+		field: "B905CBA4-73E2-4317-BE36-48E8E08337E1",
+		id: "B905CBA4-73E2-4317-BE36-48E8E08337E1"
+	}, {
+		aggFunc: undefined,
+		displayName: "shipcity",
+		field: "B905CBA4-shipcity",
+		id: "B905CBA4-shipcity"
+	}];
+
+	groupKeys = ['ALFKI'];
+
+	jsunit.assertEquals(null, cache.getCachedFoundset(rowGroupCols, groupKeys));
+	cache.setCachedFoundset(rowGroupCols, groupKeys, 'customerid-ALFKI-shipcity');
+	jsunit.assertEquals('customerid-ALFKI-shipcity', cache.getCachedFoundset(rowGroupCols, groupKeys));
+
 }
 
 /**
@@ -372,16 +470,12 @@ function test_setCachedFoundset() {
 }
 
 /**
- * @properties={typeid:24,uuid:"5162040D-6DAC-4209-957E-C6C2CB075183"}
+ * @properties={typeid:24,uuid:"48C46FBD-0324-4C8C-ACDC-586517F9CD38"}
  */
-function test_getCachedFoundset() {
-
+function test_updateCachedFoundset() {
 	var groupKeys = [];
 	var rowGroupCols = [];
 
-	var cache = new GroupHashCache();
-
-	// two grouped columns
 	rowGroupCols = [{
 		aggFunc: undefined,
 		displayName: "customerid",
@@ -389,12 +483,35 @@ function test_getCachedFoundset() {
 		id: "B905CBA4-73E2-4317-BE36-48E8E08337E1"
 	}];
 
-	groupKeys = ['ALFKI'];
+	var cache = new GroupHashCache();
 
+	// top level grouping on customerid
 	jsunit.assertEquals(null, cache.getCachedFoundset(rowGroupCols, groupKeys));
 	cache.setCachedFoundset(rowGroupCols, groupKeys, 'customerid');
 	jsunit.assertEquals('customerid', cache.getCachedFoundset(rowGroupCols, groupKeys));
+	cache.updateCachedFoundset(rowGroupCols,groupKeys,'u-customerid');
+	jsunit.assertEquals('u-customerid', cache.getCachedFoundset(rowGroupCols, groupKeys));
 
+	// top level, expand a leaf node
+	groupKeys = ["ALFKI"];
+	jsunit.assertEquals(null, cache.getCachedFoundset(rowGroupCols, groupKeys));
+	cache.setCachedFoundset(rowGroupCols, groupKeys, 'customerid-ALFKI');
+	jsunit.assertEquals('customerid-ALFKI', cache.getCachedFoundset(rowGroupCols, groupKeys));
+	cache.updateCachedFoundset(rowGroupCols,groupKeys,'u-customerid-ALFKI');
+	jsunit.assertEquals('u-customerid-ALFKI', cache.getCachedFoundset(rowGroupCols, groupKeys));
+
+	// top level, expand a leaf node
+	groupKeys = ["ANTON"];
+	jsunit.assertEquals(null, cache.getCachedFoundset(rowGroupCols, groupKeys));
+	cache.setCachedFoundset(rowGroupCols, groupKeys, 'customerid-ANTON');
+	jsunit.assertEquals('customerid-ANTON', cache.getCachedFoundset(rowGroupCols, groupKeys));
+	cache.updateCachedFoundset(rowGroupCols, groupKeys, 'u-customerid-ANTON');
+	jsunit.assertEquals('u-customerid-ANTON', cache.getCachedFoundset(rowGroupCols, groupKeys));
+
+	groupKeys = ["ALFKI"];
+	jsunit.assertEquals('u-customerid-ALFKI', cache.getCachedFoundset(rowGroupCols, groupKeys));
+
+	// two grouped columns
 	rowGroupCols = [{
 		aggFunc: undefined,
 		displayName: "customerid",
@@ -407,11 +524,71 @@ function test_getCachedFoundset() {
 		id: "B905CBA4-shipcity"
 	}];
 
-	groupKeys = ['ALFKI'];
+	jsunit.assertEquals(null, cache.getCachedFoundset(rowGroupCols, groupKeys));
+	cache.setCachedFoundset(rowGroupCols, groupKeys, 'customerid-ALFKI-shipcity');
+	jsunit.assertEquals('customerid-ALFKI-shipcity', cache.getCachedFoundset(rowGroupCols, groupKeys));
+	cache.updateCachedFoundset(rowGroupCols, groupKeys, 'u-customerid-ALFKI-shipcity');
+	jsunit.assertEquals('u-customerid-ALFKI-shipcity', cache.getCachedFoundset(rowGroupCols, groupKeys));
+	
+	groupKeys = ["ALFKI", "Athens"];
+
+	jsunit.assertEquals(null, cache.getCachedFoundset(rowGroupCols, groupKeys));
+	cache.setCachedFoundset(rowGroupCols, groupKeys, 'customerid-ALFKI-shipcity-Athens');
+	jsunit.assertEquals('customerid-ALFKI-shipcity-Athens', cache.getCachedFoundset(rowGroupCols, groupKeys));
+	cache.updateCachedFoundset(rowGroupCols, groupKeys, 'u-customerid-ALFKI-shipcity-Athens');
+	jsunit.assertEquals('u-customerid-ALFKI-shipcity-Athens', cache.getCachedFoundset(rowGroupCols, groupKeys));
+	
+	groupKeys = ["ALFKI", "Amsterdam"];
+
+	jsunit.assertEquals(null, cache.getCachedFoundset(rowGroupCols, groupKeys));
+	cache.setCachedFoundset(rowGroupCols, groupKeys, 'customerid-ALFKI-shipcity-Amsterdam');
+	jsunit.assertEquals('customerid-ALFKI-shipcity-Amsterdam', cache.getCachedFoundset(rowGroupCols, groupKeys));
+	cache.updateCachedFoundset(rowGroupCols, groupKeys, 'u-customerid-ALFKI-shipcity-Amsterdam');
+	jsunit.assertEquals('u-customerid-ALFKI-shipcity-Amsterdam', cache.getCachedFoundset(rowGroupCols, groupKeys));
+	// second test
+
+	// two grouped columns
+	rowGroupCols = [{
+		aggFunc: undefined,
+		displayName: "customerid",
+		field: "B905CBA4-73E2-4317-BE36-48E8E08337E1",
+		id: "B905CBA4-73E2-4317-BE36-48E8E08337E1"
+	}, {
+		aggFunc: undefined,
+		displayName: "shipcity",
+		field: "B905CBA4-shipcity",
+		id: "B905CBA4-shipcity"
+	}];
+
+	groupKeys = [];
+
+	// new object
+	cache = new GroupHashCache();
+
+	jsunit.assertEquals(null, cache.getCachedFoundset(rowGroupCols, groupKeys));
+	cache.setCachedFoundset(rowGroupCols, groupKeys, 'customerid');
+	jsunit.assertEquals('customerid', cache.getCachedFoundset(rowGroupCols, groupKeys));
+
+	groupKeys = ["ALFKI"];
 
 	jsunit.assertEquals(null, cache.getCachedFoundset(rowGroupCols, groupKeys));
 	cache.setCachedFoundset(rowGroupCols, groupKeys, 'customerid-ALFKI-shipcity');
 	jsunit.assertEquals('customerid-ALFKI-shipcity', cache.getCachedFoundset(rowGroupCols, groupKeys));
+
+	groupKeys = ["ALFKI", "Athens"];
+
+	jsunit.assertEquals(null, cache.getCachedFoundset(rowGroupCols, groupKeys));
+	cache.setCachedFoundset(rowGroupCols, groupKeys, 'customerid-ALFKI-shipcity-Athens');
+	jsunit.assertEquals('customerid-ALFKI-shipcity-Athens', cache.getCachedFoundset(rowGroupCols, groupKeys));
+
+	groupKeys = ["ALFKI", "Amsterdam"];
+
+	jsunit.assertEquals(null, cache.getCachedFoundset(rowGroupCols, groupKeys));
+	cache.setCachedFoundset(rowGroupCols, groupKeys, 'customerid-ALFKI-shipcity-Amsterdam');
+	jsunit.assertEquals('customerid-ALFKI-shipcity-Amsterdam', cache.getCachedFoundset(rowGroupCols, groupKeys));
+
+	//groupKeys = ["ALFKI"];
+	//jsunit.assertEquals('customerid-ALFKI', cache.getCachedFoundset(rowGroupCols, groupKeys));
 
 }
 
@@ -615,7 +792,7 @@ function test_removeChildFoundsets() {
 	// remove the keys
 	jsunit.assertTrue(cache.removeChildFoundset('customerid-ALFKI-shipcity')); // remove id
 	jsunit.assertEquals('customerid-ALFKI-shipcity', cache.getCachedFoundset(rowGroupCols, ["ALFKI"])); // check other id still exists
-	jsunit.assertNull(cache.getCachedFoundset(rowGroupCols, ["ALFKI", "Athens"])); // check id not there
+	jsunit.assertEquals(cache.getCachedFoundset(rowGroupCols, ["ALFKI", "Athens"]), null); // check id not there
 	jsunit.assertNull(cache.getCachedFoundset(rowGroupCols, ["ALFKI", "Amsterdam"])); // check other id still exists
 
 	// second test

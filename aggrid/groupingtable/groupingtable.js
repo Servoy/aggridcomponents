@@ -196,11 +196,16 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					//					}
 					// TODO localeText: how to provide localeText to the grid ? can the grid be shipped with i18n ?
 
-					icons: {
-						groupExpanded: '<i class="fa fa-minus"/>',
-						groupContracted: '<i class="fa fa-plus"/>',
-					}
 				};
+				
+				
+				var icons = new Object();
+				if ($scope.model.iconGroupExpanded) icons.groupExpanded = getIconElement($scope.model.iconGroupExpanded);
+				if ($scope.model.iconGroupContracted) icons.groupContracted = getIconElement($scope.model.iconGroupContracted);
+				
+				console.log(icons)
+				
+				gridOptions.icons = icons;
 
 				//https://www.screencast.com/t/JdS6Yz00i
 
@@ -238,13 +243,6 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				// TODO rowStyleClassDataprovider
 				if ($scope.model.rowStyleClassDataprovider) {
 					gridOptions.getRowClass = getRowClass;
-				}
-
-				/**
-				 * Resize all columns so they can fit the horizontal space
-				 *  */
-				function sizeColumnsToFit() {
-					gridOptions.api.sizeColumnsToFit();
 				}
 
 				function onSelectionChanged(event) {
@@ -448,6 +446,12 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 				}
 
+				/**
+				 * Returns the formatted value
+				 * Compute value format and column valuelist
+				 * 
+				 * @return {Object}
+				 *  */
 				function displayValueFormatter(params) {
 					var field = params.colDef.field;
 					if (!params.data) {
@@ -509,6 +513,24 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					}
 
 					return value;
+				}
+				
+				
+				/**
+				 * Resize all columns so they can fit the horizontal space
+				 *  */
+				function sizeColumnsToFit() {
+					gridOptions.api.sizeColumnsToFit();
+				}
+				
+				
+				/**
+				 * Return the icon element with the given font icon class
+				 * 
+				 * @return {String} <i class="iconStyleClass"/>
+				 *  */
+				function getIconElement(iconStyleClass) {
+					return '<i class="' + iconStyleClass + '"/>';
 				}
 
 				/**************************************************************************************************

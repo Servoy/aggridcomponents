@@ -15,6 +15,11 @@
 		"enableColumnResize": { "type": "boolean", "default": true, "tags": {"scope": "design"} },
 		"enableSort": { "type": "boolean", "default": true, "tags": {"scope": "design"} },
 		"styleClass": { "type": "styleclass" },
+		"iconGroupExpanded": { "type": "styleclass", "default" : "glyphicon glyphicon-minus ag-icon"},
+		"iconGroupContracted": { "type": "styleclass", "default" : "glyphicon glyphicon-plus ag-icon"},
+		"iconSortAscending": { "type": "styleclass"},
+		"iconSortDescending": { "type": "styleclass"},		
+		"iconSortUnSort": { "type": "styleclass"},
 		"visible": "visible",
 		"hashedFoundsets": { "type": "hashedFoundset[]", "default": [], "tags": {"scope": "private"}, "pushToServer": "shallow"},
 		"hashedColumns": {"type" : "string[]", "default": [], "tags": {"scope": "private"}}
