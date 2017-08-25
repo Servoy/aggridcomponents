@@ -1,4 +1,11 @@
+<!--
 <button class="btn btn-default" svy-click="refresh()">Refresh</button>
 <button class="btn btn-default" svy-click="purge()" ng-disabled="!dirtyCache">Purge</button>
 <button class="btn btn-default" svy-click="purge()">Pagination</button>
-<div style="height: 100%;" class="ag-table ag-fresh" ng-class="model.styleClass"></div>
+-->
+<div style="height:100%; width:100%; position: relative;">
+	<div style="height: 100%;" class="ag-table ag-fresh" ng-class="model.styleClass"></div>
+	<span class="ag-table-info" ng-if="dirtyCache" svy-tooltip="$scope.model.tooltipTextRefreshData">
+		<i class="glyphicon glyphicon-refresh" svy-click="purge()"/>
+	</span>
+</div>

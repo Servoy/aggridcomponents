@@ -2,6 +2,16 @@ customProperties:"formComponent:false",
 encapsulation:60,
 items:[
 {
+location:"255,4",
+onActionMethodID:"A6441F31-8C2F-433C-9648-7A194DDB5BA4",
+size:"40,32",
+styleClass:"btn-default",
+text:"<span class=\"fa fa-sort\"/>",
+toolTipText:"Sort by Customer",
+typeid:7,
+uuid:"03BB488F-BCAC-4581-A769-F1FADB2EEF17"
+},
+{
 height:480,
 partType:5,
 typeid:19,
@@ -19,7 +29,7 @@ uuid:"28C5FBC7-4F24-4ECA-B019-FBDDFF1A2391"
 {
 displaysTags:true,
 location:"165,4",
-onActionMethodID:"-1",
+onActionMethodID:"F0A998FD-A8E9-46E9-BEE1-3BF2DCFB29C3",
 size:"40,32",
 styleClass:"btn-primary",
 text:"<span class=\"fa fa-plus\"/>",
@@ -27,8 +37,8 @@ typeid:7,
 uuid:"5592C005-2509-4DE2-BBE5-0CD086CC72D2"
 },
 {
-location:"209,4",
-onActionMethodID:"-1",
+location:"210,4",
+onActionMethodID:"71639D4A-AA54-4593-B608-6033DBD54A88",
 size:"40,32",
 styleClass:"btn-default",
 text:"<span class=\"fa fa-trash\"/>",
@@ -58,6 +68,18 @@ size:"550,158",
 typeName:"aggrid-groupingtable",
 typeid:47,
 uuid:"80C5E232-25D0-4169-A8E8-3DD8794FA17E"
+},
+{
+displaysTags:true,
+location:"300,4",
+name:"btnAutosave",
+onActionMethodID:"0FD08778-5C08-4926-9AB1-6E45A9694EF3",
+size:"40,32",
+styleClass:"btn-success",
+text:"<span class=\"glyphicon glyphicon-saved\"/>",
+toolTipText:"Toggle Autosave",
+typeid:7,
+uuid:"AFF99201-92C4-4655-83F1-519F31C59C36"
 },
 {
 location:"0,0",

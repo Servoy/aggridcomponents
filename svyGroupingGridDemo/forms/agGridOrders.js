@@ -14,8 +14,8 @@ var searchText;
  *
  * @properties={typeid:24,uuid:"CF3260E7-6238-4DE8-8964-4C6C6491BB39"}
  */
-function onSortCustomerID(event) {
-	foundset.sort('customerid asc');
+function onActionSort(event) {
+	foundset.sort('shipcity asc');
 }
 
 /**
@@ -29,7 +29,7 @@ function onSortCustomerID(event) {
  */
 function onNewRecord(event) {
 	
-	foundset.newRecord();
+	_super.onNewRecord(event);
 	foundset.customerid = 'ALFKI';
 	foundset.shipcity = foundset.orders_to_customers.city;
 	foundset.shipcountry = foundset.orders_to_customers.country;
@@ -39,21 +39,6 @@ function onNewRecord(event) {
 	foundset.orderdate = new Date();
 	foundset.requireddate = scopes.svyDateUtils.addDays(new Date(),15);
 }
-
-/**
- * Perform the element default action.
- *
- * @param {JSEvent} event the event that triggered the action
- *
- * @protected
- *
- * @properties={typeid:24,uuid:"D20B776D-9DB7-49DF-8C80-A9CEB27C0724"}
- */
-function onDeleteRecord(event) {
-	
-	foundset.deleteRecord();
-}
-
 
 
 /**

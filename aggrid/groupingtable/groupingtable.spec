@@ -20,6 +20,7 @@
 		"iconSortAscending": { "type": "styleclass"},
 		"iconSortDescending": { "type": "styleclass"},		
 		"iconSortUnSort": { "type": "styleclass"},
+		"tooltipTextRefreshData" : { "type": "tagstring", "default" : "Refresh for latest data !" },
 		"visible": "visible",
 		"hashedFoundsets": { "type": "hashedFoundset[]", "default": [], "tags": {"scope": "private"}, "pushToServer": "shallow"},
 		"hashedColumns": {"type" : "string[]", "default": [], "tags": {"scope": "private"}}

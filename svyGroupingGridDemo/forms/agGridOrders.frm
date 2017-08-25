@@ -70,18 +70,9 @@ typeid:7,
 uuid:"3D1B9A80-DDE0-4F5E-9CF8-AD86D28A7DEC"
 },
 {
-location:"252,4",
-onActionMethodID:"CF3260E7-6238-4DE8-8964-4C6C6491BB39",
-size:"40,32",
-styleClass:"btn-default",
-text:"<span class=\"fa fa-sort\"/>",
-toolTipText:"Sort by Customer",
-typeid:7,
-uuid:"4581D731-E38E-4482-839D-771E2F007F2A"
-},
-{
 anchors:3,
-location:"857,237",
+formIndex:1,
+location:"857,238",
 onActionMethodID:"AE4DC05B-779F-4430-89F4-946AF6F01885",
 showClick:false,
 showFocus:false,
@@ -194,7 +185,7 @@ parameters:null\
 }\
 }",
 extendsID:"7AA3A173-6CC4-469C-842C-C1D7099A6352",
-onActionMethodID:"D20B776D-9DB7-49DF-8C80-A9CEB27C0724",
+onActionMethodID:"71639D4A-AA54-4593-B608-6033DBD54A88",
 toolTipText:"Delete record",
 typeid:7,
 uuid:"AA5DC896-FFAF-4F7E-A9A6-1E0BCF415796"
@@ -272,35 +263,33 @@ svyUUID:"16D6DB35-291E-4DC7-AAE2-DE3273D4A2BA"
 {
 dataprovider:"orders_to_customers.companyname",
 headerTitle:"Customer",
-rowGroupIndex:0,
 svyUUID:"651B9C41-8084-4B90-9754-20A24E9F5BE1"
 },
 {
 dataprovider:"shipcity",
 headerTitle:"City",
+rowGroupIndex:1,
 svyUUID:"ED1503BF-14FC-45E6-A2BC-6BF0E32A7AB0"
 },
 {
 dataprovider:"shipcountry",
 headerTitle:"Country",
+rowGroupIndex:0,
 svyUUID:"705E1CF4-A2DB-4512-AAE8-A1A77FACE32E"
 },
 {
 dataprovider:"orders_to_customers.contactname",
 headerTitle:"Customer Name",
-rowGroupIndex:1,
 svyUUID:"12EB58B7-B8D6-45B6-813B-F1E29384375F"
 },
 {
 dataprovider:"orders_to_customers.city",
 headerTitle:"Customer City",
-rowGroupIndex:2,
 svyUUID:"F87447F8-6C20-4401-97CA-24442E69D925"
 },
 {
 dataprovider:"orders_to_customers.country",
 headerTitle:"Customer Country",
-rowGroupIndex:3,
 svyUUID:"9C0ED4B1-D13B-4254-AA7C-613ACF7F0031"
 },
 {
