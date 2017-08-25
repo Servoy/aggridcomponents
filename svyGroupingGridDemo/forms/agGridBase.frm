@@ -20,7 +20,7 @@ uuid:"051EBA19-0882-4A4C-886B-04FA6D15ABDA"
 {
 anchors:3,
 displaysTags:true,
-location:"486,36",
+location:"525,43",
 size:"110,20",
 text:"%%pageCount%%",
 typeid:7,

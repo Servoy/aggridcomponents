@@ -49,6 +49,7 @@ function onNewRecord(event) {
  */
 function onSearch(event) {
 	search();
+	getTableCount();
 }
 
 /**

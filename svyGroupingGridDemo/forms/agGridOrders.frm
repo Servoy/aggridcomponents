@@ -244,7 +244,7 @@ typeid:7,
 uuid:"D53348F1-CED9-42F4-BB47-6A33D9BD02B0"
 },
 {
-anchors:11,
+anchors:15,
 customProperties:"methods:{\
 onNodeExpanded:{\
 arguments:null,\
@@ -253,7 +253,6 @@ parameters:null\
 }",
 extendsID:"80C5E232-25D0-4169-A8E8-3DD8794FA17E",
 json:{
-anchors:11,
 columns:[
 {
 dataprovider:"orderid",

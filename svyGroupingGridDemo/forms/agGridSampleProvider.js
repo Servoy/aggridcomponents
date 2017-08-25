@@ -12,7 +12,7 @@ function allowFormIncludedInMenu() {
  * @properties={typeid:24,uuid:"7749A1EE-DC14-4B12-8133-A2052AAC1F35"}
  */
 function getName() {
-	return "Ag Grid";
+	return "Customer's orders";
 }
 
 /**
@@ -22,7 +22,7 @@ function getName() {
 * @properties={typeid:24,uuid:"3CC05D81-F428-492D-9E0E-6FD38B1F6A45"}
 */
 function getDescription() {
-	return "Ag Grid";
+	return "Group Customer's Orders";
 }
 
 /**
@@ -33,4 +33,12 @@ function getDescription() {
 */
 function getIconStyleClass() {
 	return "fa fa-list-alt"
+}
+
+
+/**
+ * @properties={typeid:24,uuid:"47558331-7C62-4A3F-86DF-C950665FDDDB"}
+ */
+function getParent() {
+	return forms.agGridParentProvider;
 }

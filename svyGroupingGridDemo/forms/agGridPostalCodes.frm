@@ -27,7 +27,7 @@ typeid:7,
 uuid:"2D437172-318E-455C-9146-A43B331E3AE4"
 },
 {
-anchors:11,
+anchors:15,
 customProperties:"methods:{\
 onNodeExpanded:{\
 arguments:null,\
@@ -36,7 +36,7 @@ parameters:null\
 }",
 extendsID:"80C5E232-25D0-4169-A8E8-3DD8794FA17E",
 json:{
-anchors:11,
+anchors:15,
 columns:[
 {
 dataprovider:"city",
@@ -79,12 +79,19 @@ typeid:47,
 uuid:"3145F557-C7AB-41D4-A8F5-226D448767D4"
 },
 {
+enabled:false,
+extendsID:"AFF99201-92C4-4655-83F1-519F31C59C36",
+typeid:7,
+uuid:"3646C8F9-B4D8-49A3-97A3-368F3EBDD9E8"
+},
+{
 customProperties:"methods:{\
 onActionMethodID:{\
 arguments:null,\
 parameters:null\
 }\
 }",
+enabled:false,
 extendsID:"5592C005-2509-4DE2-BBE5-0CD086CC72D2",
 onActionMethodID:"199535DA-744B-483A-9983-96E582104363",
 toolTipText:"Add Record",
@@ -161,6 +168,7 @@ arguments:null,\
 parameters:null\
 }\
 }",
+enabled:false,
 extendsID:"7AA3A173-6CC4-469C-842C-C1D7099A6352",
 onActionMethodID:"C47C5F4B-1736-41B6-B013-9FEB3D755A76",
 toolTipText:"Delete record",
@@ -173,16 +181,6 @@ location:"172,78",
 size:"180,25",
 typeid:4,
 uuid:"E82A4C5A-5FD8-46A0-89FD-50D364D2EC1D"
-},
-{
-location:"252,4",
-onActionMethodID:"A438A521-7605-4F12-964C-C851B3F3CB3D",
-size:"40,32",
-styleClass:"btn-default",
-text:"<span class=\"fa fa-sort\"/>",
-toolTipText:"Sort by Customer",
-typeid:7,
-uuid:"F3E3B1BD-335E-495E-B57F-7DB85F8523AA"
 }
 ],
 name:"agGridPostalCodes",

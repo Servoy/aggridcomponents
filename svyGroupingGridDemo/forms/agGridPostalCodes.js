@@ -14,8 +14,8 @@ var searchText = '';
  *
  * @properties={typeid:24,uuid:"A438A521-7605-4F12-964C-C851B3F3CB3D"}
  */
-function onSortCustomerID(event) {
-	foundset.sort('customerid asc');
+function onActionSort(event) {
+	foundset.sort('code asc');
 }
 
 /**

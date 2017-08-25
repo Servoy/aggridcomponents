@@ -88,7 +88,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				}
 
 				$scope.reload = function(count) { }
-				var CHUNK_SIZE = 15;
+				var CHUNK_SIZE = 50;
 
 				/**
 				 * Store the state of the table. TODO to be persisted
@@ -197,7 +197,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					maxConcurrentDatasourceRequests: 3,
 					cacheBlockSize: CHUNK_SIZE,
 					paginationInitialRowCount: CHUNK_SIZE, // TODO should be the foundset default (also for grouping ?)
-					maxBlocksInCache: 3,
+					maxBlocksInCache: 2,
 					purgeClosedRowNodes: true,
 					onGridReady: function() {
 						$log.debug("gridReady");
@@ -1980,7 +1980,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						suppressMenu: true,
 						suppressNavigable: true,
 						suppressResize: true,
-						hide: false
+						hide: true
 					});
 
 					return colDefs;
