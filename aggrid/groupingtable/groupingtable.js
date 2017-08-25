@@ -9,17 +9,15 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				svyServoyapi: '='
 			},
 			controller: function($scope, $element, $attrs) {
-				
-				
+
 				/*
 				 * TODO clear cached foundsets when unused (column order changed) -> write tests ?
 				 * TODO clear nodes when collapsed ?
 				 * TODO Sort on Group by Default, by id doesn't make much sense, when grouping setTableSort to the group
 				 * TODO test create new records (new groups/ are taken into account ?)
-				 * 
+				 *
 				 * */
-				
-				
+
 				/**
 				 * @typedef{{
 				 * 	resolve: Function,
@@ -31,18 +29,40 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				 * @SuppressWarnings(unused)
 				 * */
 				var PromiseType;
-
+				
+				/**
+				 * @typedef{{
+				 * 	colId: String,
+				 *  sort: String 
+				 * }}
+				 *
+				 * @SuppressWarnings(unused)
+				 * */
+				var SortModelType;
+				
+				/**
+				 * @typedef{{
+				 * aggFunc: String,
+				 * displayName: String,
+				 * field: String,
+				 * id: String
+				 * }}
+				 *
+				 * @SuppressWarnings(unused)
+				 * */
+				var RowGroupColType;
+				
 				/**
 				 * @typedef {{
 				 * endRow:Number,
 				 * filterModel:Object,
-				 * groupKeys:Array,
-				 * rowGroupCols:Array,
-				 * sortModel:Array,
+				 * groupKeys:Array<String>,
+				 * rowGroupCols:Array<RowGroupColType>,
+				 * sortModel:Array<SortModelType>,
 				 * startRow: Number,
 				 * valueCols: Array
 				 * }}
-				 *
+				 * @SuppressWarnings(unused)
 				 * */
 				var AgDataRequestType;
 
@@ -197,14 +217,17 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					// TODO localeText: how to provide localeText to the grid ? can the grid be shipped with i18n ?
 
 				};
-				
-				
+
+				// https://www.ag-grid.com/javascript-grid-icons/#gsc.tab=0
 				var icons = new Object();
 				if ($scope.model.iconGroupExpanded) icons.groupExpanded = getIconElement($scope.model.iconGroupExpanded);
 				if ($scope.model.iconGroupContracted) icons.groupContracted = getIconElement($scope.model.iconGroupContracted);
-				
+				if ($scope.model.iconSortAscending) icons.sortAscending = getIconElement($scope.model.iconSortAscending);
+				if ($scope.model.iconSortDescending) icons.sortDescending = getIconElement($scope.model.iconSortDescending);
+				if ($scope.model.iconSortUnSort) icons.sortUnSort = getIconElement($scope.model.iconSortUnSort);
+
 				console.log(icons)
-				
+
 				gridOptions.icons = icons;
 
 				//https://www.screencast.com/t/JdS6Yz00i
@@ -449,7 +472,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				/**
 				 * Returns the formatted value
 				 * Compute value format and column valuelist
-				 * 
+				 *
 				 * @return {Object}
 				 *  */
 				function displayValueFormatter(params) {
@@ -514,19 +537,17 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 					return value;
 				}
-				
-				
+
 				/**
 				 * Resize all columns so they can fit the horizontal space
 				 *  */
 				function sizeColumnsToFit() {
 					gridOptions.api.sizeColumnsToFit();
 				}
-				
-				
+
 				/**
 				 * Return the icon element with the given font icon class
-				 * 
+				 *
 				 * @return {String} <i class="iconStyleClass"/>
 				 *  */
 				function getIconElement(iconStyleClass) {
@@ -591,39 +612,8 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					// TODO disable sorting if table is grouped
 					// Handle sorting, skip if grouping
 					if (rowGroupCols.length > 0) {
-						// TODO remove sort icon
-						// FIXME this is a workaround for issue SVY-11456
-						sortGroupColumnsPromise = $q.defer();
-						
-						// TODO get last column
-						var groupField = rowGroupCols[0].field;
-						// TODO i should add the group column to sort group
-						var sortGroupModel = [{colId: groupField, sort: 'asc'}]
-						sortModel = sortGroupModel.concat(sortModel);
-						foundsetSortModel = getFoundsetSortModel(sortModel)
 
-						var promise = groupManager.getFoundsetRef(rowGroupCols, groupKeys);
-						promise.then(function(foundsetHash) {
-							var foundsetRef = getFoundsetManagerByFoundsetUUID(foundsetHash)
-							/** Change the foundset's sort column  */
-							foundsetRef.sort(foundsetSortModel.sortColumns);
-
-							sortGroupColumnsPromise.promise.then(function() {
-								$log.error("sort column promise resolved");
-								sortColumnsPromise = null;
-								// callback(foundset.getViewPortData(request.startRow, request.endRow), Math.min(foundset.getLastRowIndex(), request.endRow));
-								var viewPortStartIndex = request.startRow - foundsetRef.foundset.viewPort.startIndex;
-								var viewPortEndIndex = request.endRow - foundsetRef.foundset.viewPort.startIndex;
-
-								callback(foundsetRef.getViewPortData(viewPortStartIndex, viewPortEndIndex), foundsetRef.getLastRowIndex());
-							});
-						}).catch(function(e) {
-							$log.error(e);
-						});
-
-						// cancel other operations
-						return;
-					} else if (sortString && sortString != foundset.getSortColumns()) {
+					} else if (sortString && sortString != foundset.getSortColumns()) { // sort the plain table
 						$log.error('CHANGE IN SORT HAPPENED');
 
 						// FIXME this is a workaround for issue SVY-11456
@@ -646,11 +636,6 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						return;
 					}
 
-					// check grouping
-					//					$log.debug('grouping');
-					//					console.log(rowGroupCols);
-					//					console.log(groupKeys);
-
 					// if not grouping, just return the full set
 					if (rowGroupCols.length === 0) {
 						$log.debug('NO GROUP');
@@ -671,9 +656,26 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 							// groupManager (UUID)
 							// group, in the foundsetHashmap and in the state ?
 							var foundsetRefManager = getFoundsetManagerByFoundsetUUID(foundsetUUID);
-							// var foundsetRefManager = new FoundSetManager(foundsetRef, foundsetUUID);
-							getDataFromFoundset(foundsetRefManager);
 
+							if (rowGroupCols.length === groupKeys.length && sortString && sortString != foundsetRefManager.getSortColumns()) {		// if is a group column and sort string is different
+
+								// TODO remove sort icon
+								// FIXME this is a workaround for issue SVY-11456
+								sortGroupColumnsPromise = $q.defer();
+								foundsetSortModel = getFoundsetSortModel(sortModel)
+
+								/** Change the foundset's sort column  */
+								foundsetRefManager.sort(foundsetSortModel.sortColumns);
+
+								sortGroupColumnsPromise.promise.then(function() {
+									$log.error("sort group column promise resolved");
+									sortColumnsPromise = null;
+									getDataFromFoundset(foundsetRefManager);
+								});
+
+							} else {	// no sort need to be applied
+								getDataFromFoundset(foundsetRefManager);
+							}
 						}).catch(function(e) {
 							$log.error(e);
 						});
@@ -2004,6 +2006,12 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					return 'ag-table-cell ' + column.styleClass + ' ' + styleClassProvider;
 				}
 
+				/** 
+				 * TODO parametrize foundset or add it into foundsetManager object
+				 * Returns the sort model for the root foundset
+				 * 
+				 * @return {SortModelType}
+				 * */
 				function getSortModel() {
 					var sortModel = [];
 					var sortColumns = foundset.getSortColumns();
@@ -2138,6 +2146,10 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				}
 
 				/**
+				 * @type {SortModelType}
+				 * 
+				 * Returns the sortString and sortColumns array for the given sortModel
+				 * 
 				 * @return {{sortString: String, sortColumns: Array<{name:String, direction:String}>}}
 				 * */
 				function getFoundsetSortModel(sortModel) {

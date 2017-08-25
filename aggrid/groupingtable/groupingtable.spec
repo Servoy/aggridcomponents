@@ -78,24 +78,6 @@
 				"type": "JSEvent",
 				"optional": true
 			}]
-		},
-		"onCellDoubleClick": {
-			"parameters": [{
-				"name": "foundsetindex",
-				"type": "int"
-			}, {
-				"name": "columnindex",
-				"type": "int",
-				"optional": true
-			}, {
-				"name": "record",
-				"type": "record",
-				"optional": true
-			}, {
-				"name": "event",
-				"type": "JSEvent",
-				"optional": true
-			}]
 		}
 	}, 
 	"internalApi" : {
