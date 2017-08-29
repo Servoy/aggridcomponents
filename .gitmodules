@@ -1,6 +1,8 @@
 [submodule "svyMicroSamples"]
 	path = svyMicroSamples
 	url = https://github.com/Servoy/svyMicroSamples
+	branch = master
 [submodule "example-solutions"]
 	path = example-solutions
 	url = https://github.com/Servoy/example-solutions
+	branch = feature-svymicrosamples
