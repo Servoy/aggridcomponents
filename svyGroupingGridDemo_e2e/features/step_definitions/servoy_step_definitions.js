@@ -83,7 +83,7 @@ defineSupportCode(({ Given, Then, When, Before, After }) => {
 						}
 					});
 				} else {
-					if(clearGrouping()){
+					if (clearGrouping()) {
 						wrapUp(callback, "removeTableFilterEvent");
 					}
 				}
@@ -93,15 +93,29 @@ defineSupportCode(({ Given, Then, When, Before, After }) => {
 		});
 	});
 
-	Then('servoy data-aggrid-groupingtable component with name {elementName} I expect there will be {orderCount} orders placed', {timeout: 20*1000}, function(elementName, orderCount){		
-		// element.all(by.xpath("//div[@class='ag-row-level-2'")).count().then(function(count){
-		// 	console.log(count + ' ' + orderCount);
-		// 	validate(count, orderCount);
-		// });
-
-		$$('.ag-row-level-2').count().then(function (count) {
-			console.log('Test')
-			validate(count, orderCount);
+	Then('servoy data-aggrid-groupingtable component with name {elementName} I expect there will be {orderCount} orders placed', { timeout: 20 * 1000 }, function (elementName, orderCount, callback) {
+		//works. Now to add a scroll effect when not all elements are visible
+		browser.sleep(2000).then(function () {
+			var grid = element.all(by.xpath("//data-aggrid-groupingtable[@data-svy-name='" + elementName + "']"));
+			grid.each(function (menuItems) {
+				menuItems.all(by.css(".ag-body-container")).each(function (tableElements) {
+					//if the last element equals the highest row count, then browser has to scroll down
+					var lastElement = menuItems.all(by.xpath("//div[@role='row']")).last();
+					lastElement.getAttribute('class').then(function (elemClass) {
+						console.log(elemClass);
+						if (elemClass.indexOf("ag-row-level-2") === -1) {
+							tableElements.all(by.css('.ag-row-level-2')).count().then(function (count) {
+								console.log(count + ' ' + orderCount);
+								if (count == orderCount) {
+									callback();
+								}
+							});
+						} else {							
+							console.log('scrolllllllllllllllllll');
+						}
+					});
+				});
+			});
 		});
 	});
 
@@ -591,7 +605,7 @@ function createDirIfNotExists(dir) {
 function clearGrouping() {
 	$$('.ag-column-drop-cell-button').count().then(function (limit) {
 		if (limit > 0) {
-			$$('.ag-column-drop-cell-button').get(limit-1).click().then(function () {
+			$$('.ag-column-drop-cell-button').get(limit - 1).click().then(function () {
 				clearGrouping();
 			});
 		} else {
@@ -599,40 +613,3 @@ function clearGrouping() {
 		}
 	});
 }
-
-
-
-
-
-// function findRecord(elementName, recordText, callback) {
-// 	var found = false;
-// 	var click = 0;
-// 	element.all(by.xpath("//div[@data-svy-name='" + elementName + "']")).each(function (childElement) {
-// 		childElement.all(by.xpath("//div[@class='ui-grid-row ng-scope']")).each(function (grandChild) {
-// 			grandChild.getText().then(function (text) {
-// 				if (text.indexOf(recordText) > -1) {
-// 					found = true;
-// 					if (click === 0) {
-// 						clickElement(grandChild).then(function () {
-// 							wrapUp(callback, "Scroll event");
-// 						});
-// 						click++;
-// 					}
-// 				}
-// 			});
-// 		});
-// 	}).then(function () {
-// 		if (!found) {
-// 			scrollToElement(elementName, recordText, callback);
-// 		}
-// 	});
-// }
-
-// function scrollToElement(elementName, recordText, callback) {
-// 	element.all(by.xpath("//div[@data-svy-name='" + elementName + "']")).each(function (childElement) {
-// 		var elem = childElement.all(by.xpath("//div[@class='ui-grid-row ng-scope']")).last();
-// 		browser.executeScript("arguments[0].scrollIntoView(true);", elem.getWebElement()).then(function () {
-// 			findRecord(elementName, recordText, callback);
-// 		});
-// 	});
-// }

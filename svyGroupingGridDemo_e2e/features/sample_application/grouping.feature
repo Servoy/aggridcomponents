@@ -1,10 +1,10 @@
-Feature: Testing the Servoy Sample Galery - Cyptogrophy
+Feature: Testing the aagrid component
     Scenario Outline: Protractor and Cucumber Test
 
 Given I go to http://localhost:8080/solutions/svyGroupingGridDemo/index.html?f=agGridOrders
 
 #group/ungroup - Grouping works hard coded. Ungrouping works fine
-When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to group the table by Customer
+# When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to group the table by Customer
 # When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to ungroup the table by Country
 
 #remove all groupings - works
@@ -15,12 +15,13 @@ When servoy data-aggrid-groupingtable component with name agGridOrders.groupingt
 # When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to sort the table by Customer City
 
 #expand/collapse - all works (based upon 'group' rows)
-When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to expand the row with Greenland as text
-When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to expand the child row with Nuuk as text
+When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to expand the row with Algeria as text
+When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to expand the child row with Algiers as text
 # When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to collapse the child row with Nuuk as text
 # When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to collapse the row with Greenland as text
 
-Then servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I expect there will be 13 orders placed
+#works under certain conditions: the elements checked are the ones of 'ag-row-level-2' and all have to be visible
+Then servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I expect there will be 10 orders placed
 # Then servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I expect there will be 13 orders placed by Ernst Handel
 # Then servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I expect there will be 13 orders placed in London
 # Then servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I expect there will be 13 orders placed in France
@@ -40,5 +41,16 @@ Then servoy data-aggrid-groupingtable component with name agGridOrders.groupingt
 @data_table_servoy
 Examples:
 | algorithm     |
+| DES           |
+| DES           |
+| DES           |
+| DES           |
+| DES           |
+| DES           |
+| DES           |
+| DES           |
+| DES           |
+| DES           |
+| DES           |
 | DES           |
 # | AES           |
