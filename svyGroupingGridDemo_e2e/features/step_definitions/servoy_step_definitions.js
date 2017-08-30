@@ -53,13 +53,15 @@ defineSupportCode(({ Given, Then, When, Before, After }) => {
 	});
 
 	When('servoy data-aggrid-groupingtable component with name {elementName} I want to group the table by {tableHeaderText}', { timeout: 20 * 1000 }, function (elementName, tableHeaderText, callback) {
+		var tableHeaderCount = 0;
 		var grid = element.all(by.xpath("//data-aggrid-groupingtable[@data-svy-name='" + elementName + "']"));
 		grid.each(function (menuItems) {
 			menuItems.all(by.css(".ag-header-cell.ag-header-cell-sortable.ag-table-header")).each(function (tableHeader) {
 				tableHeader.element(by.cssContainingText("span", tableHeaderText)).isPresent().then(function (result) {
-					var orderIconLocation = tableHeader.all(by.xpath("//span[@ref='eMenu']")).get(2);
+					tableHeaderCount++;
 					if (result) {
-						browser.executeScript("arguments[0].click()", orderIconLocation).then(function () {
+						var orderByIconLocation = tableHeader.all(by.xpath("//span[@ref='eMenu']")).get(lol);
+						browser.executeScript("arguments[0].click()", orderByIconLocation).then(function () {
 							clickElement(menuItems.element(by.cssContainingText("span", "Group by " + tableHeaderText))).then(function () {
 								wrapUp(callback, "tableGroupingEvent");
 							});
@@ -110,7 +112,7 @@ defineSupportCode(({ Given, Then, When, Before, After }) => {
 									callback();
 								}
 							});
-						} else {							
+						} else {
 							console.log('scrolllllllllllllllllll');
 						}
 					});
