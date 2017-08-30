@@ -29,14 +29,80 @@ defineSupportCode(({ Given, Then, When, Before, After }) => {
 		wrapUp(callback, 'setupEnvironment');
 	});
 
-
-	
-	When('servoy data-aggrid-groupingtable component with name {elementName} I want to {rowOption} the row with {rowText} as text', { timeout: 20 * 1000 }, function (elementName, rowOption, rowText, callback) {		
-		findRecord(elementName, rowText, rowOption, callback);
+	When('servoy data-aggrid-groupingtable component with name {elementName} I want to {rowOption} the row with {rowText} as text', { timeout: 20 * 1000 }, function (elementName, rowOption, rowText, callback) {
+		findRecord(elementName, rowText, rowOption, 0, callback);
 	});
 
-	When('servoy data-aggrid-groupingtable component with name {elementName} I want to {rowOption} the child row with {rowText} as text', { timeout: 20 * 1000 }, function (elementName, rowOption, rowText, callback) {		
-		findRecord(elementName, rowText, rowOption, callback);
+	When('servoy data-aggrid-groupingtable component with name {elementName} I want to {rowOption} the child row with {rowText} as text', { timeout: 20 * 1000 }, function (elementName, rowOption, rowText, callback) {
+		findRecord(elementName, rowText, rowOption, 1, callback);
+	});
+
+	When('servoy data-aggrid-groupingtable component with name {elementName} I want to sort the table by {sortBy}', { timeout: 20 * 1000 }, function (elementName, sortBy, callback) {
+		var grid = element.all(by.xpath("//data-aggrid-groupingtable[@data-svy-name='" + elementName + "']"));
+		grid.each(function (menuItems) {
+			menuItems.all(by.css('.ag-table-header')).each(function (sortHeader) {
+				sortHeader.getText().then(function (text) {
+					if (text.indexOf(sortBy) > -1) {
+						clickElement(sortHeader).then(function () {
+							wrapUp(callback, "tableSortingEvent");
+						});
+					}
+				});
+			});
+		});
+	});
+
+	When('servoy data-aggrid-groupingtable component with name {elementName} I want to group the table by {tableHeaderText}', { timeout: 20 * 1000 }, function (elementName, tableHeaderText, callback) {
+		var grid = element.all(by.xpath("//data-aggrid-groupingtable[@data-svy-name='" + elementName + "']"));
+		grid.each(function (menuItems) {
+			menuItems.all(by.css(".ag-header-cell.ag-header-cell-sortable.ag-table-header")).each(function (tableHeader) {
+				tableHeader.element(by.cssContainingText("span", tableHeaderText)).isPresent().then(function (result) {
+					var orderIconLocation = tableHeader.all(by.xpath("//span[@ref='eMenu']")).get(2);
+					if (result) {
+						browser.executeScript("arguments[0].click()", orderIconLocation).then(function () {
+							clickElement(menuItems.element(by.cssContainingText("span", "Group by " + tableHeaderText))).then(function () {
+								wrapUp(callback, "tableGroupingEvent");
+							});
+						});
+					}
+				});
+			});
+		});
+	});
+
+	When('servoy data-aggrid-groupingtable component with name {elementName} I want to ungroup the table by {tableHeaderText}', { timeout: 20 * 1000 }, function (elementName, filterTableText, callback) {
+		var grid = element.all(by.xpath("//data-aggrid-groupingtable[@data-svy-name='" + elementName + "']"));
+		grid.each(function (menuItems) {
+			menuItems.all(by.css(".ag-column-drop-cell")).each(function (orderByElement) {
+				if (filterTableText !== "Everything") {
+					orderByElement.element(by.cssContainingText('.ag-column-drop-cell-text', filterTableText)).isPresent().then(function (present) {
+						if (present) {
+							clickElement(orderByElement.element(by.css(".ag-column-drop-cell-button"))).then(function () {
+								wrapUp(callback, "removeTableFilterEvent");
+							});
+						}
+					});
+				} else {
+					if(clearGrouping()){
+						wrapUp(callback, "removeTableFilterEvent");
+					}
+				}
+			}).then(function () {
+				wrapUp(callback, "removeTableFilterEvent");
+			});
+		});
+	});
+
+	Then('servoy data-aggrid-groupingtable component with name {elementName} I expect there will be {orderCount} orders placed', {timeout: 20*1000}, function(elementName, orderCount){		
+		// element.all(by.xpath("//div[@class='ag-row-level-2'")).count().then(function(count){
+		// 	console.log(count + ' ' + orderCount);
+		// 	validate(count, orderCount);
+		// });
+
+		$$('.ag-row-level-2').count().then(function (count) {
+			console.log('Test')
+			validate(count, orderCount);
+		});
 	});
 
 	//FOUNDSET SAMPLE GALERY FUNCTIONS//
@@ -462,15 +528,14 @@ function tierdown(hasError) {
 	}
 }
 
-function findRecord(elementName, recordText, rowOption, callback) {
+function findRecord(elementName, recordText, rowOption, level, callback) {
 	var found = false;
 	var click = 0;
 	var grid = element.all(by.xpath("//data-aggrid-groupingtable[@data-svy-name='" + elementName + "']"));
 	grid.each(function (menuItems) {
-		menuItems.all(by.xpath("//div[@role='row']")).each(function (row) {
+		menuItems.all(by.css(".ag-row-level-" + level + "")).each(function (row) {
 			row.element(by.cssContainingText('span', recordText)).isPresent().then(function (result) {
 				if (result) {
-					console.log(rowOption);
 					if (rowOption == 'expand') {
 						clickElement(row.element(by.css(".glyphicon.glyphicon-plus.ag-icon"))).then(function () {
 							found = true;
@@ -487,16 +552,16 @@ function findRecord(elementName, recordText, rowOption, callback) {
 		});
 	}).then(function () {
 		if (!found) {
-			scrollToElement(elementName, recordText, rowOption, callback);
+			scrollToElement(elementName, recordText, rowOption, level, callback);
 		}
 	});
 }
 
-function scrollToElement(elementName, recordText, rowOption, callback) {
+function scrollToElement(elementName, recordText, rowOption, level, callback) {
 	element.all(by.xpath("//data-aggrid-groupingtable[@data-svy-name='" + elementName + "']")).each(function (childElement) {
 		var elem = childElement.all(by.css(".ag-cell-no-focus.ag-cell.ag-group-cell.ag-cell-not-inline-editing.ag-cell-value.ag-table-cell")).last();
 		browser.executeScript("arguments[0].scrollIntoView(true);", elem.getWebElement()).then(function () {
-			findRecord(elementName, recordText, rowOption, callback);
+			findRecord(elementName, recordText, rowOption, level, callback);
 		});
 	});
 }
@@ -523,7 +588,17 @@ function createDirIfNotExists(dir) {
 	}
 }
 
-
+function clearGrouping() {
+	$$('.ag-column-drop-cell-button').count().then(function (limit) {
+		if (limit > 0) {
+			$$('.ag-column-drop-cell-button').get(limit-1).click().then(function () {
+				clearGrouping();
+			});
+		} else {
+			return true;
+		}
+	});
+}
 
 
 
