@@ -7,7 +7,7 @@
   "author": "",
   "version": "1.0.0",
   "dependencies": {
-    "cucumber": "*",
+    "cucumber": "2.3.1",
     "expect": "*",
     "protractor": "*",
     "restler": "*",
