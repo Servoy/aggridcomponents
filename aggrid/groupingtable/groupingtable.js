@@ -95,6 +95,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 				$scope.reload = function(count) { }
 				var CHUNK_SIZE = 50;
+				var CACHED_CHUNK_BLOCKS = 2;
 
 				/**
 				 * Store the state of the table. TODO to be persisted
@@ -203,7 +204,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					maxConcurrentDatasourceRequests: 3,
 					cacheBlockSize: CHUNK_SIZE,
 					paginationInitialRowCount: CHUNK_SIZE, // TODO should be the foundset default (also for grouping ?)
-					maxBlocksInCache: 2,
+					maxBlocksInCache: CACHED_CHUNK_BLOCKS,
 					purgeClosedRowNodes: true,
 					onGridReady: function() {
 						$log.debug("gridReady");
@@ -291,7 +292,15 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					var node = selectedNodes[0];
 					if (node) {
 						var row = node.data;
-						var foundsetIndex = foundset.getRowIndex(row);
+						// search for id in foundset. It Fails because of cache issues
+						// var foundsetIndex = foundset.getRowIndex(row);
+						var foundsetIndex;
+						if (isTableGrouped()) {
+							// TODO search for grouped record in grouped foundset (may not work because of caching issues);
+							log.warn('select grouped record not supported yet')
+						} else {
+							foundsetIndex = node.rowIndex;
+						}
 						var record;
 						if (foundsetIndex > -1) {
 							foundset.foundset.requestSelectionUpdate([foundsetIndex]);
@@ -963,6 +972,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 					var loadExtraRecordsAsync = function(startIndex, size, dontNotifyYet) {
 						// TODO use loadRecordsAsync to keep cache small
+						size = size*CACHED_CHUNK_BLOCKS;
 						if (thisInstance.hasMoreRecordsToLoad() === false) {
 							size = this.foundset.serverSize - startIndex;
 						}
