@@ -16,6 +16,12 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				 * TODO Sort on Group by Default, by id doesn't make much sense, when grouping setTableSort to the group
 				 * TODO test create new records (new groups/ are taken into account ?)
 				 *
+				 * TODO BUGS
+				 * Sort on groupi criteria
+				 * onRecordSelection/onClick
+				 * Broadcast
+				 * Valuelist
+				 *
 				 * */
 
 				/**
@@ -29,17 +35,17 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				 * @SuppressWarnings(unused)
 				 * */
 				var PromiseType;
-				
+
 				/**
 				 * @typedef{{
 				 * 	colId: String,
-				 *  sort: String 
+				 *  sort: String
 				 * }}
 				 *
 				 * @SuppressWarnings(unused)
 				 * */
 				var SortModelType;
-				
+
 				/**
 				 * @typedef{{
 				 * aggFunc: String,
@@ -51,7 +57,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				 * @SuppressWarnings(unused)
 				 * */
 				var RowGroupColType;
-				
+
 				/**
 				 * @typedef {{
 				 * endRow:Number,
@@ -602,7 +608,14 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					var sortModel = request.sortModel;
 
 					var result;
+					var sortRootGroup = false;
 
+					// if clicking sort on the grouping column
+					if (rowGroupCols.length > 0 && sortModel[0] && sortModel[0].colId === "ag-Grid-AutoColumn") {
+						// replace colFd with the id of the grouped column
+						sortRootGroup = true;
+						sortModel = [{ colId: rowGroupCols[0].field, sort: sortModel[0].sort }];
+					}
 					var foundsetSortModel = getFoundsetSortModel(sortModel);
 					var sortString = foundsetSortModel.sortString;
 
@@ -647,8 +660,24 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						// we are looking at.
 						//var filteredData = this.filterOutOtherGroups(filteredData, groupKeys, rowGroupCols);
 
-						// get the foundset reference
-						groupManager.getFoundsetRef(rowGroupCols, groupKeys).then(function(foundsetUUID) {
+						if (sortRootGroup) { // no sort need to be applied
+							// Should change the foundset with a different sort order
+							// FIXME doesn't sort
+//							groupManager.createOrReplaceFoundsetRef(rowGroupCols, groupKeys, sortModel[0].sort).then(getFoundsetRefSuccess).catch(function(e) {
+//								$log.error(e);
+//							});
+							groupManager.getFoundsetRef(rowGroupCols, groupKeys).then(getFoundsetRefSuccess).catch(function(e) {
+								$log.error(e);
+							});
+							
+						} else {
+							// get the foundset reference
+							groupManager.getFoundsetRef(rowGroupCols, groupKeys).then(getFoundsetRefSuccess).catch(function(e) {
+								$log.error(e);
+							});
+						}
+
+						function getFoundsetRefSuccess(foundsetUUID) {
 
 							// TODO search in state first ?
 							// The foundsetUUID exists in the
@@ -657,7 +686,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 							// group, in the foundsetHashmap and in the state ?
 							var foundsetRefManager = getFoundsetManagerByFoundsetUUID(foundsetUUID);
 
-							if (rowGroupCols.length === groupKeys.length && sortString && sortString != foundsetRefManager.getSortColumns()) {		// if is a group column and sort string is different
+							if (rowGroupCols.length === groupKeys.length && sortString && sortString != foundsetRefManager.getSortColumns()) { // if is a group column and sort string is different
 
 								// TODO remove sort icon
 								// FIXME this is a workaround for issue SVY-11456
@@ -673,12 +702,11 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 									getDataFromFoundset(foundsetRefManager);
 								});
 
-							} else {	// no sort need to be applied
+							} else {
 								getDataFromFoundset(foundsetRefManager);
 							}
-						}).catch(function(e) {
-							$log.error(e);
-						});
+						}
+
 					}
 
 					/**
@@ -1343,6 +1371,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					this.updateFoundsetRefs;
 					this.removeFoundsetRef;
 					this.removeChildFoundsetRef;
+					this.createOrReplaceFoundsetRef;
 					this.clearAll;
 
 					//					this.updateGroupColumns = function(rowGroupCols) {
@@ -1358,10 +1387,11 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					 *
 					 * @param {Array} rowGroupCols
 					 * @param {Array} groupKeys
+					 * @param {String} [sort] desc or asc. Default asc
 					 *
 					 * @return {PromiseType} returns a promise
 					 * */
-					this.getFoundsetRef = function(rowGroupCols, groupKeys) {
+					this.getFoundsetRef = function(rowGroupCols, groupKeys, sort) {
 
 						// create a promise
 						/** @type {PromiseType} */
@@ -1429,7 +1459,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 									groupColumnIndexes.push(columnIndex);
 								}
 
-								var promise = getHashFoundset(groupColumnIndexes, keys);
+								var promise = getHashFoundset(groupColumnIndexes, keys, sort);
 								promise.then(getHashFoundsetSuccess);
 								promise.catch(promiseError);
 							}
@@ -1481,10 +1511,11 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					 * Returns the foundset in a promise
 					 * @param {Array<Number>} groupColumns index of all grouped columns
 					 * @param {Array} groupKeys value for each grouped column
+					 * @param {String} [sort] 
 					 *
 					 * @return {PromiseType}
 					 *  */
-					function getHashFoundset(groupColumns, groupKeys) {
+					function getHashFoundset(groupColumns, groupKeys, sort) {
 
 						var resultDeferred = $q.defer();
 
@@ -1495,9 +1526,11 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						for (var i = 0; i < $scope.model.columns.length; i++) {
 							idForFoundsets.push(getColumnID($scope.model.columns[i], i));
 						}
+						
+						console.log(sort);
 
 						childFoundsetPromise = $scope.svyServoyapi.callServerSideApi("getGroupedFoundsetUUID",
-							[groupColumns, groupKeys, idForFoundsets]);
+							[groupColumns, groupKeys, idForFoundsets, sort]);
 
 						childFoundsetPromise.then(function(childFoundsetUUID) {
 								$log.debug(childFoundsetUUID);
@@ -1528,7 +1561,19 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						return this.getFoundsetRef([rowGroupCols[0]], []);
 					}
 
-					this.updateFoundsetRef = function() { }
+					/** 
+					 * Creates a new foundset reference with the given group criterias.
+					 * If a foundset reference with the given references already exists, will be overriden
+					 * 
+					 * */
+					this.createOrReplaceFoundsetRef = function(groupColumns, groupKeys, sort) { 
+						var foundsetHash = hashTree.getCachedFoundset(groupColumns, groupKeys)
+						if (foundsetHash) {
+							this.removeFoundsetRef(foundsetHash);
+							
+						}
+						return this.getFoundsetRef(groupColumns, groupKeys, sort);
+					}
 					/**
 					 * @private
 					 * Should this method be used ?
@@ -2006,10 +2051,10 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					return 'ag-table-cell ' + column.styleClass + ' ' + styleClassProvider;
 				}
 
-				/** 
+				/**
 				 * TODO parametrize foundset or add it into foundsetManager object
 				 * Returns the sort model for the root foundset
-				 * 
+				 *
 				 * @return {SortModelType}
 				 * */
 				function getSortModel() {
@@ -2147,9 +2192,9 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 				/**
 				 * @type {SortModelType}
-				 * 
+				 *
 				 * Returns the sortString and sortColumns array for the given sortModel
-				 * 
+				 *
 				 * @return {{sortString: String, sortColumns: Array<{name:String, direction:String}>}}
 				 * */
 				function getFoundsetSortModel(sortModel) {
@@ -2160,12 +2205,13 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						for (var i = 0; i < sortModel.length; i++) {
 							var sortModelCol = sortModel[i];
 							var column = getColumn(sortModelCol.colId);
-							var columnName = column.dataprovider.idForFoundset;
-							var direction = sortModelCol.sort;
-							if (i > 0) sortString += ',';
-							sortString += columnName + ' ' + direction + '';
-							sortColumns.push({ name: columnName, direction: direction });
-
+							if (column) {
+								var columnName = column.dataprovider.idForFoundset;
+								var direction = sortModelCol.sort;
+								if (i > 0) sortString += ',';
+								sortString += columnName + ' ' + direction + '';
+								sortColumns.push({ name: columnName, direction: direction });
+							}
 						}
 						sortString = sortString.trim();
 					}

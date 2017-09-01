@@ -2,9 +2,10 @@
  * @param {Array<Number>} groupColumns
  * @param {Array} groupKeys
  * @param {Array} idForFoundsets
+ * @param {String} [sort]
  *
  * */
-$scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets) {
+$scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets, sort) {
 	// root is the parent
 	console.log('SERVER SIDE');
 	console.log(groupColumns);
@@ -95,7 +96,12 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 		
 		query.groupBy.add(groupColumn);
 		query.sort.clear();
-		query.sort.add(groupColumn);
+		console.log(sort)
+		if (sort === 'desc') {
+			query.sort.add(groupColumn.desc);
+		} else {
+			query.sort.add(groupColumn.asc);
+		}
 
 		console.log('Run Query ' + query);
 
@@ -103,7 +109,7 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 
 	}
 
-	console.log('try')
+	console.log('try');
 
 	// this is the first grouping operation; alter initial query to get all first level groups
 	var childFoundset = parentFoundset.duplicateFoundSet();

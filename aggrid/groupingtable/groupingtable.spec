@@ -26,22 +26,6 @@
 		"hashedColumns": {"type" : "string[]", "default": [], "tags": {"scope": "private"}}
 	},
 	"handlers" : {
-	
-		"onRecordSelected": {
-			"description": "Called when a record is selected; to be used when the grid isn't bound to the form's foundset",
-			"parameters": [{
-				"name": "index",
-				"type": "int"
-			}, {
-				"name": "record",
-				"type": "record",
-				"optional": true
-			}, {
-				"name": "event",
-				"type": "JSEvent",
-				"optional": true
-			}]
-		},
 		"onCellClick": {
 			"description": "Called when the mouse is clicked on a row/cell (foundset and column indexes are given) or\nwhen the ENTER key is used then only the selected foundset index is given\nUse the record to exactly match where the user clicked on",
 			"parameters": [{
@@ -94,6 +78,9 @@
                 }, {
                 	"name" : "idForFoundsets",
                 	"type" : "string[]"
+                }, {
+                	"name" : "sort",
+                	"type" : "string"
                 }
             ]
         },
@@ -145,7 +132,7 @@
 			"styleClass" : {"type" : "styleclass"},
 			"styleClassDataprovider": { "type": "dataprovider", "forFoundset": "myFoundset" },
 			"format" : {"type" : "format",  "for": ["valuelist", "dataprovider"], "tags" : {"scope": "design"}},
-			"valuelist": { "type": "valuelist", "for": "dataprovider", "tags" : {"scope": "design"} },
+			"valuelist": { "type": "valuelist", "for": "dataprovider", "tags" : {"scope": "private"} },
 			"visible":  { "type": "boolean", "default": true, "tags" : {"scope": "design"} },
 			"width":  { "type": "int", "default": 0, "tags" : {"scope": "design"} },			
 			"enableRowGroup" : {"type": "boolean", "default" : true, "tags" : {"scope": "design"}},
