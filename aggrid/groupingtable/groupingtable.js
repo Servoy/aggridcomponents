@@ -17,13 +17,21 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				 * TODO test create new records (new groups/ are taken into account ?)
 				 *
 				 * TODO BUGS
-				 * Sort on groupi criteria (sort is ascending, could not sort descending)
-				 * onRecordSelection/onClick (R&D cannot retrieve record when grouped, parse it or what ?)
+				 * FIXME Sort on groupi criteria (sort is ascending, could not sort descending)
+				 * FIXME onRecordSelection/onClick (R&D cannot retrieve record when grouped, parse it or what ?)
 				 * Broadcast
 				 * Valuelist (Let it do it to R&D)
 				 * 
 				 * FIXME is retrieving 2 foundses when expanding a node, why ?
 				 *
+				 * */
+				
+				/*
+				 * TODO handle runtimeChanges
+				 * rowGroupIndex changes
+				 * - Change ColDefs in Grid
+				 * - Trigger onRowColumnGroupChanged to persist cache 
+				 * 
 				 * */
 
 				/**
@@ -475,8 +483,15 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 							// if the column has been removed or order of columns has been changed
 							if (i >= event.columns.length || state.grouped.columns[i] != event.columns[i].colId) {
 								
-								//TODO Clear Column X and all it's child
-								groupManager.removeFoundsetRefAtLevel(i);
+								if (i===0) {
+									// FIXME does it breaks it, why does it happen ? concurrency issue ?
+									//	groupManager.clearAll();
+									// FIXME this is a workadound, i don't why does it fail when i change a root level (same issue of sort and expand/collapse)
+									groupManager.removeFoundsetRefAtLevel(1);									
+								} else {
+									// Clear Column X and all it's child
+									groupManager.removeFoundsetRefAtLevel(i);
+								}
 								break;
 							}
 						}
@@ -1504,7 +1519,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 						var parentUUID = null;
 
-						// recursevely load hashFoundset
+						// recursevely load hashFoundset. this is done so the whole tree is generated without holes in the structure. Do i actually need to get a foundset for it ? Probably no, can i simulate it ?
 						getRowColumnHashFoundset(0);
 
 						function getRowColumnHashFoundset(index) {
@@ -1512,7 +1527,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 							var groupCols = rowGroupCols.slice(0, index + 1);
 							var keys = groupKeys.slice(0, index + 1);
 
-							$log.debug(groupCols)
+							$log.debug(groupCols);
 							$log.debug(keys);
 
 							// get a foundset for each grouped level
