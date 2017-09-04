@@ -33,6 +33,29 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				 * - Trigger onRowColumnGroupChanged to persist cache 
 				 * 
 				 * */
+				
+				/*
+				 * Test Cases
+				 * RowGroupChanged
+				 * 1. Expand nodes A->B
+				 * 	  Add A group
+				 *    Remove the group in the middle
+				 *    Expand nodes A->X
+				 *    Reset Group as it was before
+				 *    Expand same nodes A->B
+				 * 2. Expand nodes A->B
+				 *    Clear all groups
+				 *    Expand same nodes A->B
+				 * 3. Expand nodes A->B
+				 *    Invert position of Group A with Group B (CRITIC)
+				 *    Expand nodes
+				 *    Restore original position and expand nodes again
+				 *    
+				 * Sort
+				 * 1. Expand nodes, sort on a column, expand nodes again
+				 * 2. Sort on Group column (CRITIC/FAIL)
+				 * 
+				 *  */
 
 				/**
 				 * @typedef{{
