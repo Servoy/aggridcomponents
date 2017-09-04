@@ -7,7 +7,7 @@
  * */
 $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets, sort) {
 	// root is the parent
-	console.log('SERVER SIDE');
+	console.log('START SERVER SIDE ------------------------------------------ ');
 	console.log(groupColumns);
 	console.log(groupKeys);
 
@@ -35,7 +35,7 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 			var relationNames = getDataProviderRelations(groupDataprovider);
 			var columnName = getDataProviderColumn(groupDataprovider);
 
-			console.log('is a join on ' + columnName);
+			// console.log('is a join on ' + columnName);
 
 			var join = query;
 			
@@ -109,7 +109,7 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 
 	}
 
-	console.log('try');
+	// console.log('try');
 
 	// this is the first grouping operation; alter initial query to get all first level groups
 	var childFoundset = parentFoundset.duplicateFoundSet();
@@ -144,7 +144,7 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 	}); // send it to client as a foundset property with a UUID
 
 
-	console.log('End');
+	console.log('END SERVER SIDE QUERY');
 
 	return childFoundset; // return the UUID that points to this foundset (return type will make it UUID)
 };
