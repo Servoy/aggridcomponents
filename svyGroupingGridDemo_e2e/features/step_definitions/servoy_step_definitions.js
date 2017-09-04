@@ -29,12 +29,20 @@ defineSupportCode(({ Given, Then, When, Before, After }) => {
 		wrapUp(callback, 'setupEnvironment');
 	});
 
+	Then('I want to sleep', function () {
+		browser.sleep(3000);
+	})
+
 	When('servoy data-aggrid-groupingtable component with name {elementName} I want to {rowOption} the row with {rowText} as text', { timeout: 20 * 1000 }, function (elementName, rowOption, rowText, callback) {
 		findRecord(elementName, rowText, rowOption, 0, callback);
 	});
 
 	When('servoy data-aggrid-groupingtable component with name {elementName} I want to {rowOption} the child row with {rowText} as text', { timeout: 20 * 1000 }, function (elementName, rowOption, rowText, callback) {
 		findRecord(elementName, rowText, rowOption, 1, callback);
+	});
+
+	When('servoy data-aggrid-groupingtable component with name {elementName} I want to {rowOption} the child row with {rowText} as text test', { timeout: 20 * 1000 }, function (elementName, rowOption, rowText, callback) {
+		findRecord(elementName, rowText, rowOption, 2, callback);
 	});
 
 	When('servoy data-aggrid-groupingtable component with name {elementName} I want to sort the table by {sortBy}', { timeout: 20 * 1000 }, function (elementName, sortBy, callback) {
@@ -60,7 +68,7 @@ defineSupportCode(({ Given, Then, When, Before, After }) => {
 				tableHeader.element(by.cssContainingText("span", tableHeaderText)).isPresent().then(function (result) {
 					tableHeaderCount++;
 					if (result) {
-						var orderByIconLocation = tableHeader.all(by.xpath("//span[@ref='eMenu']")).get(lol);
+						var orderByIconLocation = tableHeader.all(by.xpath("//span[@ref='eMenu']")).get(tableHeaderCount);
 						browser.executeScript("arguments[0].click()", orderByIconLocation).then(function () {
 							clickElement(menuItems.element(by.cssContainingText("span", "Group by " + tableHeaderText))).then(function () {
 								wrapUp(callback, "tableGroupingEvent");
@@ -97,29 +105,77 @@ defineSupportCode(({ Given, Then, When, Before, After }) => {
 
 	Then('servoy data-aggrid-groupingtable component with name {elementName} I expect there will be {orderCount} orders placed', { timeout: 20 * 1000 }, function (elementName, orderCount, callback) {
 		//works. Now to add a scroll effect when not all elements are visible
-		browser.sleep(2000).then(function () {
-			var grid = element.all(by.xpath("//data-aggrid-groupingtable[@data-svy-name='" + elementName + "']"));
-			grid.each(function (menuItems) {
-				menuItems.all(by.css(".ag-body-container")).each(function (tableElements) {
-					//if the last element equals the highest row count, then browser has to scroll down
-					var lastElement = menuItems.all(by.xpath("//div[@role='row']")).last();
-					lastElement.getAttribute('class').then(function (elemClass) {
-						console.log(elemClass);
-						if (elemClass.indexOf("ag-row-level-2") === -1) {
-							tableElements.all(by.css('.ag-row-level-2')).count().then(function (count) {
-								console.log(count + ' ' + orderCount);
-								if (count == orderCount) {
-									callback();
+		//determines the level it needs to validate
+		element.all(by.css('.ag-column-drop.ag-font-style.ag-column-drop-horizontal.ag-column-drop-row-group')).each(function (orderByItems) {
+			orderByItems.all(by.css('.ag-column-drop-cell')).count().then(function (count) {
+				return count;
+			}).then(function (count) {
+				browser.sleep(2000).then(function () {
+					var grid = element.all(by.xpath("//data-aggrid-groupingtable[@data-svy-name='" + elementName + "']"));
+					grid.each(function (menuItems) {
+						menuItems.all(by.css(".ag-body-container")).each(function (tableElements) {
+							//if the last element equals the highest row count, then browser has to scroll down
+							var lastElement = menuItems.all(by.xpath("//div[@role='row']")).last();
+							lastElement.getAttribute('class').then(function (elemClass) {
+								//if every validation row fits on the screen, the browser does not have to scroll
+								if (elemClass.indexOf("ag-row-level-" + count) === -1) {
+									tableElements.all(by.css('.ag-row-level-' + count)).count().then(function (count) {
+										if (count == orderCount) {
+											wrapUp(callback, "validatingChildRows");
+										}
+									});
+								} else {
+									calcRows(elementName, count, orderCount, callback);
 								}
 							});
-						} else {
-							console.log('scrolllllllllllllllllll');
+						});
+					});
+				});
+
+			});
+		});
+	});
+
+	var rowCount = 0;
+	var lastRow = 0;
+	function calcRows(elementName, count, orderCount, callback) {
+		var grid = element.all(by.xpath("//data-aggrid-groupingtable[@data-svy-name='" + elementName + "']"));
+		grid.each(function (menuItems) {
+			//calcs the amount of child rows currently visible
+			var firstRow = menuItems.all(by.xpath("//div[contains(@class, 'ag-row-level-" + count + "') and @row > " + lastRow + "]")).first(); //it needs to start calculating from where it left of
+			var lastRowElement = menuItems.all(by.xpath("//div[contains(@class, 'ag-row-level-" + count + "') and @row > " + lastRow + "]")).last();
+			firstRow.getAttribute('row').then(function (firstNumber) {
+				console.log('first: ' + firstNumber);
+				lastRowElement.getAttribute('row').then(function (lastNumber) {
+					rowCount += lastNumber - firstNumber + 1;
+					lastRow = lastNumber;
+					//all elements are calculated now. Now calculate if the scroll function is required
+					var lastElementCheck = menuItems.all(by.xpath("//div[@role='row']")).last();
+					lastElementCheck.getAttribute('class').then(function (elemClass) {
+						console.log("Last element class: " + elemClass);
+						//last element contains the same row, scroll again
+						console.log("check: " + elemClass.indexOf("ag-row-level-" + count));
+						if (elemClass.indexOf("ag-row-level-" + count) !== -1) {
+							scroll(elementName, lastRowElement, count, orderCount, callback);
+						} else { //all elements have been checked. Validate and finalize the step
+							if (rowCount == orderCount) {
+								wrapUp(callback, "validatingChildRows");
+							} else {
+								console.log("Elements found: " + rowCount);
+								console.log("Elements expected: " + orderCount);
+							}
 						}
 					});
 				});
 			});
 		});
-	});
+	}
+
+	function scroll(elementName, elem, count, orderCount, callback) {
+		browser.executeScript("arguments[0].scrollIntoView(true);", elem.getWebElement()).then(function () {
+			calcRows(elementName, count, orderCount, callback);
+		});
+	}
 
 	//FOUNDSET SAMPLE GALERY FUNCTIONS//
 	When('servoy sidenav component with name {elementName} tab {tabName} is clicked', { timeout: 10 * 1000 }, function (elementName, tabName, callback) {
@@ -546,7 +602,7 @@ function tierdown(hasError) {
 
 function findRecord(elementName, recordText, rowOption, level, callback) {
 	var found = false;
-	var click = 0;
+	// var click = 0;
 	var grid = element.all(by.xpath("//data-aggrid-groupingtable[@data-svy-name='" + elementName + "']"));
 	grid.each(function (menuItems) {
 		menuItems.all(by.css(".ag-row-level-" + level + "")).each(function (row) {
