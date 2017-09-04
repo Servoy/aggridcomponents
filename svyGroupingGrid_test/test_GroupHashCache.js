@@ -129,7 +129,7 @@
 							var foundsetRef = getFoundsetManagerByFoundsetUUID(childFoundsetUUID);
 							// FIXME this solution is horrible, can break if rows.length === 0 or...
 							// A better solution is to retrieve the proper childFoundsetUUID by rowGroupCols/groupKeys
-							if (foundsetRef && foundsetRef.foundset.viewPort.rows[0] && foundsetRef.foundset.viewPort.rows[0][field] == value) {
+							if (foundsetRef && ((field === null || field === undefined) || (field !== null && field !== undefined && foundsetRef.foundset.viewPort.rows[0] && foundsetRef.foundset.viewPort.rows[0][field] == value))) {
 								success = (removeFoundset(node.nodes, childFoundsetUUID) && success);
 							} else {
 								$log.debug('ignore the child foundset');

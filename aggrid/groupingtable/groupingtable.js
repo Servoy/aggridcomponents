@@ -1329,7 +1329,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 										var foundsetRef = getFoundsetManagerByFoundsetUUID(childFoundsetUUID);
 										// FIXME this solution is horrible, can break if rows.length === 0 or...
 										// A better solution is to retrieve the proper childFoundsetUUID by rowGroupCols/groupKeys
-										if (foundsetRef && foundsetRef.foundset.viewPort.rows[0] && foundsetRef.foundset.viewPort.rows[0][field] == value) {
+										if (foundsetRef && ((field === null || field === undefined) || (field !== null && field !== undefined && foundsetRef.foundset.viewPort.rows[0] && foundsetRef.foundset.viewPort.rows[0][field] == value))) {
 											success = (removeFoundset(node.nodes, childFoundsetUUID) && success);
 										} else {
 											$log.debug('ignore the child foundset');
@@ -1526,7 +1526,6 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						}
 
 						var idx; // the index of the group dept
-						var parentIndex; // the index of the parent column
 						var columnIndex; // the index of the grouped column
 
 						// ignore rowGroupColumns which are still collapsed (don't have a matchig key)
@@ -1539,8 +1538,6 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						// is a second level group CustomerID, ShipCity
 
 						// is a third level group CustomerID, ShipCity, ShipCountry
-
-						var parentUUID = null;
 
 						// recursevely load hashFoundset. this is done so the whole tree is generated without holes in the structure. Do i actually need to get a foundset for it ? Probably no, can i simulate it ?
 						getRowColumnHashFoundset(0);
@@ -1566,7 +1563,6 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 								if (index === rowGroupCols.length - 1) { // resolve when last rowColumn foundset has been loaded
 									resultPromise.resolve(foundsetHash);
 								} else {
-									parentUUID = foundsetHash;
 									// FIXME do i need to get multiple hashed foundsets ? probably not
 									getRowColumnHashFoundset(index + 1); // load the foundset for the next group
 								}
@@ -1588,9 +1584,6 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 								promise.catch(promiseError);
 							}
 
-							// update the parent index
-							parentIndex = columnIndex;
-
 							/** @return {Object} returns the foundsetRef object */
 							function getHashFoundsetSuccess(foundsetUUID) {
 
@@ -1604,9 +1597,6 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 								// the hash of the parent foundset
 								// var foundsetUUID = childFoundset.foundsetUUID;
 								// var foundsetRef = childFoundset.foundsetRef;
-
-								// for the next child
-								parentUUID = foundsetUUID;
 
 								// cache the foundsetRef
 								hashTree.setCachedFoundset(groupCols, keys, foundsetUUID);

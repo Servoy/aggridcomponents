@@ -16,6 +16,7 @@ function test_getJoin() {
  * @properties={typeid:24,uuid:"865F6ECB-6035-47C8-8555-F6CD04055FA5"}
  */
 function test_getJoinFromFoundset() {
+	return;
 	
 	var query = datasources.db.example_data.orders.createSelect();
 	query.result.addPk();
@@ -54,6 +55,8 @@ function getJoin(query, alias) {
  * @properties={typeid:24,uuid:"25CD620B-898C-4CF5-AB62-C0CD726D4922"}
  */
 function test_relatedDataProviders() {
+	
+	return;
 	
 
 	var sql = "select min(order_details.orderid) orderid, min(order_details.productid) productid\
