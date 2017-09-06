@@ -2,5 +2,7 @@ aggrid/groupingtable/lib/bower_components
 aggrid/groupingtable/lib/bower_components/*
 aggrid/groupingtable/lib/dist/lib
 aggrid/groupingtable/lib/dist/lib/*
+svyGroupingGridDemo_e2e/node_modules
 svyGroupingGridDemo_e2e/node_modules/*
+svyGroupingGridDemo_e2e/reports
 svyGroupingGridDemo_e2e/reports/*

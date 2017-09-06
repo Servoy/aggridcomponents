@@ -20,7 +20,6 @@ var searchText;
  * @properties={typeid:24,uuid:"FD98E513-5921-4CE2-AB4F-D67CC3035178"}
  */
 function onActionNext(event) {
-	// TODO Auto-generated method stub
 	foundset.setSelectedIndex(foundset.getSelectedIndex() + 1)	
 }
 
@@ -31,7 +30,6 @@ function onActionNext(event) {
  * @properties={typeid:24,uuid:"D1D08995-613A-485B-B00F-C42F0B889C85"}
  */
 function onActionPrev(event) {
-	// TODO Auto-generated method stub
 	foundset.setSelectedIndex(foundset.getSelectedIndex() - 1);
 }
 
@@ -43,7 +41,6 @@ function onActionPrev(event) {
  * @properties={typeid:24,uuid:"699DB6D4-4F49-4543-892D-5F05A30EC879"}
  */
 function onGoTo2000(event) {
-	// TODO Auto-generated method stub
 	foundset.getRecord(2000);
 	foundset.setSelectedIndex(2000);
 
@@ -125,7 +122,6 @@ function onCellDoubleClick(foundsetindex, columnindex, record, event) {
  * @properties={typeid:24,uuid:"8D5C3339-9E5C-48C7-BBE4-4FD6A6699D72"}
  */
 function onHideColumn(event) {
-	// TODO Auto-generated method stub
 	var column = elements.groupingtable.columns[2];
 	column.visible = !column.visible;
 }
@@ -189,7 +185,6 @@ function search(event, fs) {
  * @properties={typeid:24,uuid:"842C05E7-8441-4555-8274-2596EC9B0DA5"}
  */
 function onResetSearch(event) {
-	// TODO Auto-generated method stub
 	searchProductId = null;
 	searchText = null;
 	foundset.loadAllRecords();

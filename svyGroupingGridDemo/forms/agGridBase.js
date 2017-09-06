@@ -94,7 +94,6 @@ function onNodeExpanded(columnIndex, value) { }
  * @properties={typeid:24,uuid:"8B55B361-0A80-4B45-88DD-7D671CF1D665"}
  */
 function onGroupChanged(columnIndex, groupIndex, isGrouped) {
-	// TODO Auto-generated method stub
 
 }
 

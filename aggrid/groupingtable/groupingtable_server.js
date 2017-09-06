@@ -149,6 +149,23 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 	return childFoundset; // return the UUID that points to this foundset (return type will make it UUID)
 };
 
+/** 
+ * @type {Object} parentFoundset
+ * @type {Object} parentRecordFinder
+ * 
+ * */
+$scope.getFoundsetRecord = function(parentFoundset, parentRecordFinder) {
+    if (!parentFoundset) parentFoundset = $scope.model.myFoundset.foundset;
+    var record = parentRecordFinder(parentFoundset);
+    var result = new Object();
+    for(var prop in record) {
+    	if (!(record[prop] instanceof Function)) {
+    		result[prop] = record[prop];
+    	} 
+    }
+    return result;
+}
+
 /**
  * @private
  * @return {QBSelect}

@@ -37,7 +37,7 @@
 				"optional": true
 			}, {
 				"name": "record",
-				"type": "record",
+				"type": "object",
 				"optional": true
 			}, {
 				"name": "event",
@@ -56,7 +56,7 @@
 				"optional": true
 			}, {
 				"name": "record",
-				"type": "record",
+				"type": "object",
 				"optional": true
 			}, {
 				"name": "event",
@@ -84,8 +84,8 @@
                 }
             ]
         },
-		"getGroupedChildFoundsetUUID" : {
-            "returns" : "foundsetRef",
+		"getFoundsetRecord" : {
+            "returns" : "object",
             "parameters" :
             [{
                     "name" : "parentFoundset",
@@ -93,33 +93,6 @@
                 }, {
                     "name" : "parentRecordFinder",
                     "type" : "rowRef"
-                }, {
-                    "name": "parentLevelGroupColumnIndex",
-                    "type": "int"
-                }, {
-                    "name": "newLevelGroupColumnIndex",
-                    "type": "int"
-                }, {
-                	"name" : "idForFoundsets",
-                	"type" : "string[]"
-                }
-            ]
-        },
-        "getLeafChildFoundsetUUID" : {
-            "returns" : "foundsetRef",
-            "parameters" :
-            [{
-                    "name" : "parentFoundset",
-                    "type" : "foundsetRef"
-                }, {
-                    "name" : "parentRecordFinder",
-                    "type" : "object"
-                }, {
-                    "name": "parentLevelGroupColumnIndex",
-                    "type": "int"
-                }, {
-                	"name" : "idForFoundsets",
-                	"type" : "string[]"
                 }
             ]
         }
