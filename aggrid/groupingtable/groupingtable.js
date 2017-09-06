@@ -413,7 +413,8 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					var foundsetIndex;
 					if (isTableGrouped()) {
 						$log.warn('select grouped record not supported yet');
-						foundsetIndex = -1
+						foundsetIndex = -1;
+						// TODO use serverside API getRecordIndex
 					} else {
 						foundsetIndex = params.node.rowIndex;
 					}

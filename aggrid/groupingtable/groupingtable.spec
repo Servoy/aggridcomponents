@@ -95,6 +95,18 @@
                     "type" : "rowRef"
                 }
             ]
+        },
+        "getRecordIndex" : {
+            "returns" : "int",
+            "parameters" :
+            [{
+                    "name" : "parentFoundset",
+                    "type" : "foundsetRef"
+                }, {
+                    "name" : "parentRecordFinder",
+                    "type" : "rowRef"
+                }
+            ]
         }
 	},
 	"types" : {
