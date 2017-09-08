@@ -122,6 +122,10 @@ function logMsg(msg, title) {
  * @properties={typeid:24,uuid:"A47657E6-14E5-43FA-B763-6AD110004071"}
  */
 function onCellClick(foundsetindex, columnindex, record, event) {
+	if (foundsetindex === -1) {
+//		scopes.svyDataUtils.selectRecordByPks(foundset, record.orderid);
+	} 
+	
 	var msg = 'Click ' + foundsetindex + ' - ' + columnindex + ' - ' + (record ? record.orderid : ' undefined ') + ' - ' + event.getElementName();
 	logMsg(msg, 'Click');
 }

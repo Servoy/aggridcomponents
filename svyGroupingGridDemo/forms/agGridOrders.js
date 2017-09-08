@@ -66,3 +66,23 @@ function search() {
 		foundset.loadRecords(fs);
 	}
 }
+
+
+/**
+ * @param foundsetindex
+ * @param columnindex
+ * @param record
+ * @param event
+ * 
+ * @protected 
+ * @override 
+ *
+ *
+ * @properties={typeid:24,uuid:"DE1CE5A9-6E1B-4D75-82B4-4F6BE92434F2"}
+ */
+function onCellRightClick(foundsetindex,columnindex,record,event) {
+	_super.onCellRightClick(foundsetindex,columnindex,record,event);
+	if (foundsetindex == -1) {
+		scopes.svyDataUtils.selectRecordByPks(foundset, record.orderid);
+	} 
+}
