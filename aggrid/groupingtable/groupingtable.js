@@ -18,7 +18,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				 *
 				 * TODO BUGS
 				 * FIXME Sort on groupi criteria (sort is ascending, could not sort descending)
-				 * FIXME onRecordSelection/onClick (R&D cannot retrieve record when grouped, parse it or what ?)
+				 * Half Done onRecordSelection/onClick (R&D cannot retrieve record when grouped, parse it or what ?)
 				 * Broadcast
 				 * Valuelist (Let it do it to R&D)
 				 * 
@@ -30,7 +30,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				 * TODO handle runtimeChanges
 				 * rowGroupIndex changes
 				 * - Change ColDefs in Grid
-				 * - Trigger onRowColumnGroupChanged to persist cache 
+				 * - DONE Trigger onRowColumnGroupChanged to persist cache 
 				 * 
 				 * */
 				
@@ -202,6 +202,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					suppressAutoSize: true,
 					autoSizePadding: 25,
 					suppressFieldDotNotation: true,
+					
 
 					enableServerSideFilter: false, // TODO implement serverside filtering
 
@@ -571,7 +572,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					$log.warn(event);
 					
 					// enable or disable the selection
-					enableRowSelection(isTableGrouped());
+					enableRowSelection(!rowGroupCols || rowGroupCols.length === 0);
 
 					// store in columns the change
 					if (!rowGroupCols || rowGroupCols.length === 0) {
@@ -995,18 +996,6 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 							var errorTimeout = setTimeout(function() {
 									$log.error('Could not load records for foundset ' + foundsetManager.foundsetUUID + ' Start ' + request.startRow + ' End ' + request.endRow);
-									
-									
-									var lastRowIndex = foundsetManager.getLastRowIndex();
-									// result = foundsetManager.getViewPortData(request.startRow, request.endRow);
-
-									// update viewPortStatIndex
-									viewPortStartIndex = request.startRow - foundsetManager.foundset.viewPort.startIndex;
-									viewPortEndIndex = request.endRow - foundsetManager.foundset.viewPort.startIndex;
-
-									result = foundsetManager.getViewPortData(viewPortStartIndex, viewPortEndIndex);
-									callback(result, lastRowIndex);
-									
 								}, 2000)
 							// it keeps loading always the same data. Why ?
 							var promise = foundsetManager.loadExtraRecordsAsync(request.startRow, request.endRow - request.startRow, false);
@@ -1299,7 +1288,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					}
 
 					var foundsetListener = function(change) {
-						$log.warn('child foundset changed listener ');
+						$log.warn('child foundset changed listener ' + thisInstance.foundset);
 
 						if (change[$foundsetTypeConstants.NOTIFY_SORT_COLUMNS_CHANGED]) {
 							var newSort = change[$foundsetTypeConstants.NOTIFY_SORT_COLUMNS_CHANGED].newValue;
@@ -1322,6 +1311,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 						if (change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROW_UPDATES_RECEIVED]) {
 							var updates = change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROW_UPDATES_RECEIVED].updates;
+							console.log(updates)
 							updateRows(updates, null, null);
 						}
 
@@ -2019,7 +2009,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 				/** Listener for the root foundset */
 				function changeListener(change) {
-					$log.warn("Change listener is called " + state.waitfor.loadRecords);
+					$log.warn("Root change listener is called " + state.waitfor.loadRecords);
 					console.log(change)
 
 					if (change[$foundsetTypeConstants.NOTIFY_SORT_COLUMNS_CHANGED]) {
@@ -2104,7 +2094,14 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					var rowIndex = foundsetManager.foundset.selectedRowIndexes[0] - foundsetManager.foundset.viewPort.startIndex;
 
 					// find rowid
-					if (rowIndex > -1 && rowIndex >= foundsetManager.foundset.viewPort.startIndex && rowIndex <= foundsetManager.foundset.viewPort.size + foundsetManager.foundset.viewPort.startIndex) {
+					if (rowIndex > -1 && foundsetManager.foundset.viewPort.rows[rowIndex]) {
+						//rowIndex >= foundsetManager.foundset.viewPort.startIndex && rowIndex <= foundsetManager.foundset.viewPort.size + foundsetManager.foundset.viewPort.startIndex) {
+						if (!foundsetManager.foundset.viewPort.rows[rowIndex]) {
+							$log.error('how is possible there is no rowIndex ' + rowIndex + ' on viewPort size ' + foundsetManager.foundset.viewPort.rows.length);
+							// TODO deselect node
+							return;
+						}
+						
 						var rowId = foundsetManager.foundset.viewPort.rows[rowIndex]._svyRowId;
 						var node = getTableRow(rowId);
 						if (node) {
