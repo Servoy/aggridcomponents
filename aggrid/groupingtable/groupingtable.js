@@ -17,12 +17,20 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				 * TODO test create new records (new groups/ are taken into account ?)
 				 *
 				 * TODO BUGS
-				 * FIXME Sort on groupi criteria (sort is ascending, could not sort descending)
+				 * FIXME Sort on group criteria (sort is ascending, could not sort descending)
 				 * Half Done onRecordSelection/onClick (R&D cannot retrieve record when grouped, parse it or what ?)
 				 * Broadcast
 				 * Valuelist (Let it do it to R&D)
 				 * 
-				 * FIXME is retrieving 2 foundses when expanding a node, why ?
+				 * FIXME is retrieving 2 foundses when expanding a node, because each tree node is asking for childs
+				 * FIXME databroadcasting doesn't always work. The grid may cache record which are not in the foundset view, these record won't listen to databroacasting changes.
+				 * I should check which records are kept in memory and align the foundset to the same view (there is an enterprise API to see cached records)
+				 * 
+				 * TODO Databroacast
+				 * Databroacast on groups. 
+				 * It can't catch all the record changes
+				 * Nodes are not well sorted when purging cache from broadcast (user won't find the new node) Perform an hard clean of the record ?
+				 * 
 				 *
 				 * */
 				
@@ -54,6 +62,19 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				 * Sort
 				 * 1. Expand nodes, sort on a column, expand nodes again
 				 * 2. Sort on Group column (CRITIC/FAIL)
+				 * 
+				 * Databroacast - No Groups
+				 * 1. Update a record value
+				 * 2. Navigate to record 51, and update a record with index < 50
+				 * 3. Delete a record
+				 * 	  Should select the record below, instead it selects 2 records below itself
+				 * 4. Add a record and change selection
+				 * 5. Add a record and don't change selection
+				 * 
+				 * FAIL
+				 * 1. Create record on top and change selection
+				 * 	  Change selected record on grid
+				 *    Select new record on grid. Record dataproviders are reset to 0 !!
 				 * 
 				 *  */
 
@@ -671,7 +692,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					var rowGroupCols = [];
 					for (var i = 0; $scope.model.columns && i < $scope.model.columns.length; i++) {
 						var column =  $scope.model.columns[i];
-						if (column.hasOwnProperty("rowGroupIndex")) {
+						if (column.rowGroupIndex !== null && !isNaN(column.rowGroupIndex)) {
 							/** @type {RowGroupColType} */
 							var rowGroupCol = new Object();
 							rowGroupCol.id = getColumnID(column,i);
