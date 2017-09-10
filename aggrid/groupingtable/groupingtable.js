@@ -2031,9 +2031,13 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				/** Listener for the root foundset */
 				function changeListener(change) {
 					$log.warn("Root change listener is called " + state.waitfor.loadRecords);
-					console.log(change)
+					console.log(change);
+					
+					// Floor
+					var idRandom = Math.floor(1000 * Math.random());
 
 					if (change[$foundsetTypeConstants.NOTIFY_SORT_COLUMNS_CHANGED]) {
+						$log.warn(idRandom + ' - 1. Sort');
 						var newSort = change[$foundsetTypeConstants.NOTIFY_SORT_COLUMNS_CHANGED].newValue;
 						var oldSort = change[$foundsetTypeConstants.NOTIFY_SORT_COLUMNS_CHANGED].oldValue;
 
@@ -2061,6 +2065,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 					// if viewPort changes and startIndex does not change is the result of a sort or of a loadRecords
 					if (change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROWS_COMPLETELY_CHANGED] && !state.waitfor.loadRecords) {
+						$log.warn(idRandom + ' - 2. Change foundset serverside');
 						$log.warn("Foundset changed serverside ");
 
 						if (isTableGrouped()) {
@@ -2082,21 +2087,27 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						$log.warn("wait for loadRecords request " + state.waitfor.loadRecords);
 					}
 
-					// gridOptions.api.purgeEnterpriseCache();
-					if (change[$foundsetTypeConstants.NOTIFY_SELECTED_ROW_INDEXES_CHANGED]) {
-						selectedRowIndexesChanged();
-					}
-
 					if (change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROW_UPDATES_RECEIVED]) {
+						$log.warn(idRandom + ' - 4. Notify viewport row update');
 						var updates = change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROW_UPDATES_RECEIVED].updates;
 						updateRows(updates, null, null);
+						// i don't need a selection update in case of purge
+						return;
+					}
+					
+					// gridOptions.api.purgeEnterpriseCache();
+					if (change[$foundsetTypeConstants.NOTIFY_SELECTED_ROW_INDEXES_CHANGED]) {
+						$log.warn(idRandom + ' - 3. Request selection changed');
+						selectedRowIndexesChanged();
 					}
 
 				}
 
 				function selectedRowIndexesChanged(foundsetManager) {
 					// FIXME can't select the record when is not in viewPort. Need to synchornize with viewPort record selection
+					$log.warn(' - 2.1 Request selection changes');
 
+					
 					// Disable selection when table is grouped
 					if (isTableGrouped()) {
 						var selectedNodes = gridOptions.api.getSelectedNodes();
