@@ -12,7 +12,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 				/*
 				 * TODO clear cached foundsets when unused (column order changed) -> write tests ?
-				 * TODO clear nodes when collapsed ?
+				 * TODO clear nodes when collapsed ? Make it a configuration
 				 * TODO Sort on Group by Default, by id doesn't make much sense, when grouping setTableSort to the group
 				 * TODO test create new records (new groups/ are taken into account ?)
 				 *
@@ -21,27 +21,27 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				 * Half Done onRecordSelection/onClick (R&D cannot retrieve record when grouped, parse it or what ?)
 				 * Broadcast
 				 * Valuelist (Let it do it to R&D)
-				 * 
+				 *
 				 * FIXME is retrieving 2 foundses when expanding a node, because each tree node is asking for childs
 				 * FIXME databroadcasting doesn't always work. The grid may cache record which are not in the foundset view, these record won't listen to databroacasting changes.
 				 * I should check which records are kept in memory and align the foundset to the same view (there is an enterprise API to see cached records)
-				 * 
+				 *
 				 * TODO Databroacast
-				 * Databroacast on groups. 
+				 * Databroacast on groups.
 				 * It can't catch all the record changes
 				 * Nodes are not well sorted when purging cache from broadcast (user won't find the new node) Perform an hard clean of the record ?
-				 * 
+				 *
 				 *
 				 * */
-				
+
 				/*
 				 * TODO handle runtimeChanges
 				 * rowGroupIndex changes
 				 * - Change ColDefs in Grid
-				 * - DONE Trigger onRowColumnGroupChanged to persist cache 
-				 * 
+				 * - DONE Trigger onRowColumnGroupChanged to persist cache
+				 *
 				 * */
-				
+
 				/*
 				 * Test Cases
 				 * RowGroupChanged
@@ -58,11 +58,11 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				 *    Invert position of Group A with Group B (CRITIC)
 				 *    Expand nodes
 				 *    Restore original position and expand nodes again
-				 *    
+				 *
 				 * Sort
 				 * 1. Expand nodes, sort on a column, expand nodes again
 				 * 2. Sort on Group column (CRITIC/FAIL)
-				 * 
+				 *
 				 * Databroacast - No Groups
 				 * 1. Update a record value
 				 * 2. Navigate to record 51, and update a record with index < 50
@@ -70,12 +70,12 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				 * 	  Should select the record below, instead it selects 2 records below itself
 				 * 4. Add a record and change selection
 				 * 5. Add a record and don't change selection
-				 * 
+				 *
 				 * FAIL
 				 * 1. Create record on top and change selection
 				 * 	  Change selected record on grid
 				 *    Select new record on grid. Record dataproviders are reset to 0 !!
-				 * 
+				 *
 				 *  */
 
 				/**
@@ -145,6 +145,34 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					//					for (var field in columns) {
 					//						// FIXME there is no ag-grid method to force group expand for a specific key value
 					//					}
+				}
+
+				$scope.printCache = function() {
+					console.log(foundset.foundset.viewPort);
+					console.log(gridOptions.api.getCacheBlockState());
+				}
+
+				/* Test Root Foundset Cache */
+				function test_validateCache() {
+					var cacheBlocks = gridOptions.api.getCacheBlockState();
+					for (var i in cacheBlocks) {
+						var cacheBlock = cacheBlocks[i];
+						var startIndex = foundset.foundset.viewPort.startIndex;
+						var endIndex = startIndex + foundset.foundset.viewPort.size;
+						if (cacheBlock.startRow < startIndex) {
+							$log.error("Block " + cacheBlock.startRow + ' - ' + cacheBlock.endRow + ' is < then cached foundset ' + startIndex + ' - ' + endIndex);
+						}
+						if (cacheBlock.startRow > endIndex) {
+							$log.error("Block " + cacheBlock.startRow + ' - ' + cacheBlock.endRow + ' is > then cached foundset ' + startIndex + ' - ' + endIndex);
+						}
+						if (cacheBlock.endRow < startIndex) {
+							$log.error("Block " + cacheBlock.startRow + ' - ' + cacheBlock.endRow + ' is < then cached foundset ' + startIndex + ' - ' + endIndex);
+						}
+						if (cacheBlock.endRow > endIndex) {
+							$log.error("Block " + cacheBlock.startRow + ' - ' + cacheBlock.endRow + ' is > then cached foundset ' + startIndex + ' - ' + endIndex);
+						}
+					}
+
 				}
 
 				$scope.reload = function(count) { }
@@ -223,7 +251,6 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					suppressAutoSize: true,
 					autoSizePadding: 25,
 					suppressFieldDotNotation: true,
-					
 
 					enableServerSideFilter: false, // TODO implement serverside filtering
 
@@ -377,60 +404,60 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						// this state is possible when the selected record is not in the visible viewPort
 					}
 				}
-				/** 
+				/**
 				 * On ClickEvent
-				 * 
-				 * @private 
+				 *
+				 * @private
 				 * */
 				function onCellClicked(params) {
 					$log.debug(params);
 					if ($scope.handlers.onCellClick) {
-//						var row = params.data;
-//						var foundsetManager = getFoundsetManagerByFoundsetUUID(row._svyFoundsetUUID);
-//						if (!foundsetManager) foundsetManager = foundset;
-//						var foundsetRef = foundsetManager.foundset;
-//						
-//						var foundsetIndex;
-//						if (isTableGrouped()) {
-//							// TODO search for grouped record in grouped foundset (may not work because of caching issues);
-//							$log.warn('select grouped record not supported yet');
-//							foundsetIndex = foundsetManager.getRowIndex(row);
-//						} else {
-//							foundsetIndex = params.node.rowIndex;
-//						}
-//						
-//						var columnIndex = getColumnIndex(params.colDef.field);
-//						var record;
-//						if (foundsetIndex > -1) {
-//							// FIXME cannot resolve the record when grouped, how can i rebuild the record ?
-//							// Can i pass in the array ok pks ? do i know the pks ?
-//							// Can i get the hasmap of columns to get the proper dataProviderID name ?
-//							record = foundsetRef.viewPort.rows[foundsetIndex - foundsetRef.viewPort.startIndex];
-//						}
-//						// no foundset index if record is grouped
-//						if (foundsetManager.isRoot === false) {
-//							foundsetIndex = -1;
-//						}
+						//						var row = params.data;
+						//						var foundsetManager = getFoundsetManagerByFoundsetUUID(row._svyFoundsetUUID);
+						//						if (!foundsetManager) foundsetManager = foundset;
+						//						var foundsetRef = foundsetManager.foundset;
+						//
+						//						var foundsetIndex;
+						//						if (isTableGrouped()) {
+						//							// TODO search for grouped record in grouped foundset (may not work because of caching issues);
+						//							$log.warn('select grouped record not supported yet');
+						//							foundsetIndex = foundsetManager.getRowIndex(row);
+						//						} else {
+						//							foundsetIndex = params.node.rowIndex;
+						//						}
+						//
+						//						var columnIndex = getColumnIndex(params.colDef.field);
+						//						var record;
+						//						if (foundsetIndex > -1) {
+						//							// FIXME cannot resolve the record when grouped, how can i rebuild the record ?
+						//							// Can i pass in the array ok pks ? do i know the pks ?
+						//							// Can i get the hasmap of columns to get the proper dataProviderID name ?
+						//							record = foundsetRef.viewPort.rows[foundsetIndex - foundsetRef.viewPort.startIndex];
+						//						}
+						//						// no foundset index if record is grouped
+						//						if (foundsetManager.isRoot === false) {
+						//							foundsetIndex = -1;
+						//						}
 
 						var foundsetIndex = getFoundsetIndexFromEvent(params);
 						var columnIndex = getColumnIndex(params.colDef.field);
 						var recordPromise = getFoundsetRecord(params);
-						
-						recordPromise.then(function (record) {
-							
-							// FIXME with R&D, doesn't translate the record when grouped (because not from root foundset cache). 
+
+						recordPromise.then(function(record) {
+
+							// FIXME with R&D, doesn't translate the record when grouped (because not from root foundset cache).
 							// How to retrieve the record ? Via Mapping or via PK ?
 							$scope.handlers.onCellClick(foundsetIndex, columnIndex, record, params.event);
-						}).catch(function (e){
+						}).catch(function(e) {
 							$log.error(e);
 							$scope.handlers.onCellClick(foundsetIndex, columnIndex, null, params.event);
 						});
 
 					}
 				}
-				
+
 				/**
-				 * @return {Number} 
+				 * @return {Number}
 				 * */
 				function getFoundsetIndexFromEvent(params) {
 					var foundsetIndex;
@@ -443,8 +470,8 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					}
 					return foundsetIndex;
 				}
-				
-				/** 
+
+				/**
 				 * @return {PromiseType}
 				 * */
 				function getFoundsetRecord(params) {
@@ -455,134 +482,134 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					if (!foundsetManager) foundsetManager = foundset;
 					var foundsetRef = foundsetManager.foundset;
 					var foundsetUUID = foundsetManager.foundsetUUID;
-					
+
 					// if is a root resolve immediately
 					if (foundsetManager.isRoot) {
 						foundsetUUID = null;
-						
-//						var foundsetIndex = getFoundsetIndexFromEvent(params);
-//						var record = foundsetRef.viewPort.rows[foundsetIndex - foundsetRef.viewPort.startIndex];
-//						promiseResult.resolve(record);
-					} 
+
+						//						var foundsetIndex = getFoundsetIndexFromEvent(params);
+						//						var record = foundsetRef.viewPort.rows[foundsetIndex - foundsetRef.viewPort.startIndex];
+						//						promiseResult.resolve(record);
+					}
 					//else {
-						$scope.svyServoyapi.callServerSideApi("getFoundsetRecord",
-							[foundsetUUID, row._svyRowId]).then(function (record) {
-								console.log(record);
-							promiseResult.resolve(record);
-						}).catch(function(e) {
-							$log.error(e);
-							promiseResult.resolve(null);
-						});
+					$scope.svyServoyapi.callServerSideApi("getFoundsetRecord",
+						[foundsetUUID, row._svyRowId]).then(function(record) {
+						console.log(record);
+						promiseResult.resolve(record);
+					}).catch(function(e) {
+						$log.error(e);
+						promiseResult.resolve(null);
+					});
 					//}
 					return promiseResult.promise;
 				}
 
-				/** 
+				/**
 				 * On Double Click Event
-				 * 
-				 * @private 
+				 *
+				 * @private
 				 * */
 				function onCellDoubleClicked(params) {
 					$log.debug(params);
 					if ($scope.handlers.onCellDoubleClick) {
-//						var row = params.data;
-//						var foundsetManager = getFoundsetManagerByFoundsetUUID(row._svyFoundsetUUID);
-//						if (!foundsetManager) foundsetManager = foundset;
-//						var foundsetRef = foundsetManager.foundset;
-//						var foundsetIndex;
-//						if (isTableGrouped()) {
-//							// TODO search for grouped record in grouped foundset (may not work because of caching issues);
-//							$log.warn('select grouped record not supported yet');
-//							foundsetIndex = foundsetManager.getRowIndex(row);
-//						} else {
-//							foundsetIndex = params.node.rowIndex;
-//						}
-//						
-//						var columnIndex = getColumnIndex(params.colDef.field);
-//						var record;
-//						if (foundsetIndex > -1) {
-//							// FIXME cannot resolve the record when grouped, how can i rebuild the record ?
-//							// Can i pass in the array ok pks ? do i know the pks ?
-//							// Can i get the hasmap of columns to get the proper dataProviderID name ?
-//							record = foundsetRef.viewPort.rows[foundsetIndex - foundsetRef.viewPort.startIndex];
-//						}
-//
-//						// no foundset index if record is grouped
-//						if (foundsetManager.isRoot === false) {
-//							foundsetIndex = -1;
-//						}
-//						$scope.handlers.onCellDoubleClick(foundsetIndex, columnIndex, record, params.event);
-						
+						//						var row = params.data;
+						//						var foundsetManager = getFoundsetManagerByFoundsetUUID(row._svyFoundsetUUID);
+						//						if (!foundsetManager) foundsetManager = foundset;
+						//						var foundsetRef = foundsetManager.foundset;
+						//						var foundsetIndex;
+						//						if (isTableGrouped()) {
+						//							// TODO search for grouped record in grouped foundset (may not work because of caching issues);
+						//							$log.warn('select grouped record not supported yet');
+						//							foundsetIndex = foundsetManager.getRowIndex(row);
+						//						} else {
+						//							foundsetIndex = params.node.rowIndex;
+						//						}
+						//
+						//						var columnIndex = getColumnIndex(params.colDef.field);
+						//						var record;
+						//						if (foundsetIndex > -1) {
+						//							// FIXME cannot resolve the record when grouped, how can i rebuild the record ?
+						//							// Can i pass in the array ok pks ? do i know the pks ?
+						//							// Can i get the hasmap of columns to get the proper dataProviderID name ?
+						//							record = foundsetRef.viewPort.rows[foundsetIndex - foundsetRef.viewPort.startIndex];
+						//						}
+						//
+						//						// no foundset index if record is grouped
+						//						if (foundsetManager.isRoot === false) {
+						//							foundsetIndex = -1;
+						//						}
+						//						$scope.handlers.onCellDoubleClick(foundsetIndex, columnIndex, record, params.event);
+
 						var foundsetIndex = getFoundsetIndexFromEvent(params);
 						var columnIndex = getColumnIndex(params.colDef.field);
 						var recordPromise = getFoundsetRecord(params);
-						
-						recordPromise.then(function (record) {
-							
-							// FIXME with R&D, doesn't translate the record when grouped (because not from root foundset cache). 
+
+						recordPromise.then(function(record) {
+
+							// FIXME with R&D, doesn't translate the record when grouped (because not from root foundset cache).
 							// How to retrieve the record ? Via Mapping or via PK ?
 							$scope.handlers.onCellDoubleClick(foundsetIndex, columnIndex, record, params.event);
-						}).catch(function (e){
+						}).catch(function(e) {
 							$log.error(e);
 							$scope.handlers.onCellDoubleClick(foundsetIndex, columnIndex, null, params.event);
 						});
-						
+
 					}
 				}
 
-				/** 
+				/**
 				 * On Right Click event
-				 * 
-				 * @private 
+				 *
+				 * @private
 				 * */
 				function onCellContextMenu(params) {
 					$log.debug(params);
 					if ($scope.handlers.onCellRightClick) {
-//						var row = params.data;
-//						var foundsetManager = getFoundsetManagerByFoundsetUUID(row._svyFoundsetUUID);
-//						if (!foundsetManager) foundsetManager = foundset;
-//						var foundsetRef = foundsetManager.foundset;
-//						var foundsetIndex;
-//						if (isTableGrouped()) {
-//							// TODO search for grouped record in grouped foundset (may not work because of caching issues);
-//							$log.warn('select grouped record not supported yet');
-//							foundsetIndex = foundsetManager.getRowIndex(row);
-//						} else {
-//							foundsetIndex = params.node.rowIndex;
-//						}
-//						
-//						var columnIndex = getColumnIndex(params.colDef.field);
-//						var record;
-//						if (foundsetIndex > -1) {
-//							record = foundsetRef.viewPort.rows[foundsetIndex - foundsetRef.viewPort.startIndex];
-//						}
-//
-//						// no foundset index if record is grouped
-//						if (foundsetManager.isRoot === false) {
-//							foundsetIndex = -1;
-//						}
-//						$scope.handlers.onCellRightClick(foundsetIndex, columnIndex, record, params.event);
+						//						var row = params.data;
+						//						var foundsetManager = getFoundsetManagerByFoundsetUUID(row._svyFoundsetUUID);
+						//						if (!foundsetManager) foundsetManager = foundset;
+						//						var foundsetRef = foundsetManager.foundset;
+						//						var foundsetIndex;
+						//						if (isTableGrouped()) {
+						//							// TODO search for grouped record in grouped foundset (may not work because of caching issues);
+						//							$log.warn('select grouped record not supported yet');
+						//							foundsetIndex = foundsetManager.getRowIndex(row);
+						//						} else {
+						//							foundsetIndex = params.node.rowIndex;
+						//						}
+						//
+						//						var columnIndex = getColumnIndex(params.colDef.field);
+						//						var record;
+						//						if (foundsetIndex > -1) {
+						//							record = foundsetRef.viewPort.rows[foundsetIndex - foundsetRef.viewPort.startIndex];
+						//						}
+						//
+						//						// no foundset index if record is grouped
+						//						if (foundsetManager.isRoot === false) {
+						//							foundsetIndex = -1;
+						//						}
+						//						$scope.handlers.onCellRightClick(foundsetIndex, columnIndex, record, params.event);
 
 						var foundsetIndex = getFoundsetIndexFromEvent(params);
 						var columnIndex = getColumnIndex(params.colDef.field);
 						var recordPromise = getFoundsetRecord(params);
-						
-						recordPromise.then(function (record) {
-							
-							// FIXME with R&D, doesn't translate the record when grouped (because not from root foundset cache). 
+
+						recordPromise.then(function(record) {
+
+							// FIXME with R&D, doesn't translate the record when grouped (because not from root foundset cache).
 							// How to retrieve the record ? Via Mapping or via PK ?
 							$scope.handlers.onCellRightClick(foundsetIndex, columnIndex, record, params.event);
-						}).catch(function (e){
+						}).catch(function(e) {
 							$log.error(e);
 							$scope.handlers.onCellRightClick(foundsetIndex, columnIndex, null, params.event);
 						});
-						
+
 					}
 				}
 
-				/** 
+				/**
 				 * When Column Group Changes
-				 * @private 
+				 * @private
 				 * */
 				function onColumnRowGroupChanged(event) {
 					// return;
@@ -591,13 +618,13 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					var i;
 					var column;
 					$log.warn(event);
-					
+
 					// enable or disable the selection
 					enableRowSelection(!rowGroupCols || rowGroupCols.length === 0);
 
 					// store in columns the change
 					if (!rowGroupCols || rowGroupCols.length === 0) {
-						
+
 						// TODO clear group when changed
 						groupManager.clearAll();
 
@@ -610,7 +637,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						}
 
 					} else {
-						
+
 						var groupedFields = [];
 
 						// set new rowGroupIndex
@@ -632,17 +659,17 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 							}
 
 						}
-						
+
 						// clear HashTreeCache if column group state changed
 						for (i = 0; state.grouped.columns && i < state.grouped.columns.length; i++) {
 							// if the column has been removed or order of columns has been changed
 							if (i >= event.columns.length || state.grouped.columns[i] != event.columns[i].colId) {
-								
-								if (i===0) {
+
+								if (i === 0) {
 									// FIXME does it breaks it, why does it happen ? concurrency issue ?
 									//	groupManager.clearAll();
 									// FIXME this is a workadound, i don't why does it fail when i change a root level (same issue of sort and expand/collapse)
-									groupManager.removeFoundsetRefAtLevel(1);									
+									groupManager.removeFoundsetRefAtLevel(1);
 								} else {
 									// Clear Column X and all it's child
 									groupManager.removeFoundsetRefAtLevel(i);
@@ -653,9 +680,9 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						// TODO remove logs
 						console.log($scope.model.hashedFoundsets);
 						console.log(state.foundsetManagers);
-						
+
 					}
-					
+
 					// persist grouped columns state
 					setStateGroupedColumns(event.columns);
 
@@ -665,13 +692,12 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						}, 50);
 
 				}
-				
-				
-				/** 
+
+				/**
 				 * Suppress or enable row slection
 				 * @param {Boolean} enabled
-				 * @private 
-				 * */				
+				 * @private
+				 * */
 				function enableRowSelection(enabled) {
 					if (enabled) {
 						// enable selection
@@ -686,22 +712,22 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						}
 					}
 				}
-				
+
 				/** @return {Array<RowGroupColType>} */
 				function getDefaultRowGroupCols() {
 					var rowGroupCols = [];
 					for (var i = 0; $scope.model.columns && i < $scope.model.columns.length; i++) {
-						var column =  $scope.model.columns[i];
+						var column = $scope.model.columns[i];
 						if (column.rowGroupIndex !== null && !isNaN(column.rowGroupIndex)) {
 							/** @type {RowGroupColType} */
 							var rowGroupCol = new Object();
-							rowGroupCol.id = getColumnID(column,i);
+							rowGroupCol.id = getColumnID(column, i);
 							rowGroupCol.field = rowGroupCol.id;
 							rowGroupCol.displayName = column.headerTitle;
 							// rowGroupCols should be well sorted
 							var rowGroupIndex = column.rowGroupIndex
 							if (rowGroupCols[rowGroupIndex]) { // there is already an item at position rowGroupIndex
-								if (rowGroupIndex === rowGroupCols.length -1) {
+								if (rowGroupIndex === rowGroupCols.length - 1) {
 									rowGroupCols = rowGroupCols.push(rowGroupCol);
 								} else {
 									rowGroupCols = rowGroupCols.slice(0, rowGroupIndex + 1).concat([rowGroupCol]).concat(rowGroupCols.slice(rowGroupIndex + 1));
@@ -714,8 +740,8 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					return rowGroupCols;
 				}
 
-				/** 
-				 * @private 
+				/**
+				 * @private
 				 * */
 				function onRowGroupOpened(event) {
 					$log.warn(event);
@@ -758,7 +784,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				/**
 				 * Returns the formatted value
 				 * Compute value format and column valuelist
-				 * @private 
+				 * @private
 				 *
 				 * @return {Object}
 				 *  */
@@ -874,9 +900,8 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				 * */
 				FoundsetServer.prototype.getData = function(request, callback) {
 
-					console.log(request);
 
-					// $log.warn(request);
+					$log.debug(request);
 
 					// the row group cols, ie the cols that the user has dragged into the 'group by' zone, eg 'Country' and 'Customerid'
 					var rowGroupCols = request.rowGroupCols;
@@ -902,114 +927,99 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 					$log.warn("Group " + (rowGroupCols[0] ? rowGroupCols[0].displayName : '/') + ' + ' + (groupKeys[0] ? groupKeys[0] : '/') + ' # ' + request.startRow + ' # ' + request.endRow);
 
-					// check if sort has changed
-					// TODO disable sorting if table is grouped
-					// Handle sorting, skip if grouping
-					if (rowGroupCols.length > 0) {
-
-					} else if (sortString && sortString != foundset.getSortColumns()) { // sort the plain table
-						$log.error('CHANGE IN SORT HAPPENED');
-
-						// FIXME this is a workaround for issue SVY-11456
-						sortColumnsPromise = $q.defer();
-
-						/** Change the foundset's sort column  */
-						foundset.sort(foundsetSortModel.sortColumns);
-
-						sortColumnsPromise.promise.then(function() {
-							$log.error("sort column promise resolved");
-							sortColumnsPromise = null;
-							// callback(foundset.getViewPortData(request.startRow, request.endRow), Math.min(foundset.getLastRowIndex(), request.endRow));
-							var viewPortStartIndex = request.startRow - foundset.foundset.viewPort.startIndex;
-							var viewPortEndIndex = request.endRow - foundset.foundset.viewPort.startIndex;
-
-							callback(foundset.getViewPortData(viewPortStartIndex, viewPortEndIndex), foundset.getLastRowIndex());
-						});
-
-						/** Sort has changed, exit since the sort will refresh the viewPort. Cache will be purged as soon sortColumn change status */
-						return;
+					// init state of grouped columns. Is normally done by onRowColumnsChanged but is not triggered if rowGroupIndex is set at design time
+					// FIXME should handle runtime changes to model.columns. It does not at the moment
+					if (!state.grouped.columns.length) {
+						for (var i = 0; i < rowGroupCols.length; i++) {
+							state.grouped.columns.push(rowGroupCols[i].field);
+						}
 					}
 
-					// if not grouping, just return the full set
-					if (rowGroupCols.length === 0) {
-						$log.debug('NO GROUP');
-						getDataFromFoundset(foundset);
-						// TODO enable selection
+					// TODO disable selection
+
+					// first, if not the top level, take out everything that is not under the group
+					// we are looking at.
+					//var filteredData = this.filterOutOtherGroups(filteredData, groupKeys, rowGroupCols);
+
+					// Sort on the foundset Group
+					if (sortRootGroup) { // no sort need to be applied
+						// Should change the foundset with a different sort order
+						// FIXME doesn't sort
+						//							groupManager.createOrReplaceFoundsetRef(rowGroupCols, groupKeys, sortModel[0].sort).then(getFoundsetRefSuccess).catch(function(e) {
+						//								$log.error(e);
+						//							});
+						groupManager.getFoundsetRef(rowGroupCols, groupKeys).then(getFoundsetRefSuccess).catch(function(e) {
+							$log.error(e);
+						});
+
 					} else {
-						// init state of grouped columns. Is normally done by onRowColumnsChanged but is not triggered if rowGroupIndex is set at design time
-						// FIXME should handle runtime changes to model.columns. It does not at the moment
-						if (!state.grouped.columns.length) {							
-							for (var i = 0; i < rowGroupCols.length; i++) {
-								state.grouped.columns.push(rowGroupCols[i].field);
-							}
-						}
-						
-						// TODO disable selection
-						
-						// otherwise if grouping, a few steps...
-
-						// first, if not the top level, take out everything that is not under the group
-						// we are looking at.
-						//var filteredData = this.filterOutOtherGroups(filteredData, groupKeys, rowGroupCols);
-
-						if (sortRootGroup) { // no sort need to be applied
-							// Should change the foundset with a different sort order
-							// FIXME doesn't sort
-//							groupManager.createOrReplaceFoundsetRef(rowGroupCols, groupKeys, sortModel[0].sort).then(getFoundsetRefSuccess).catch(function(e) {
-//								$log.error(e);
-//							});
-							groupManager.getFoundsetRef(rowGroupCols, groupKeys).then(getFoundsetRefSuccess).catch(function(e) {
-								$log.error(e);
-							});
-							
-						} else {
-							// get the foundset reference
-							groupManager.getFoundsetRef(rowGroupCols, groupKeys).then(getFoundsetRefSuccess).catch(function(e) {
-								$log.error(e);
-							});
-						}
-
-						function getFoundsetRefSuccess(foundsetUUID) {
-
-							// TODO search in state first ?
-							// The foundsetUUID exists in the
-							// foundsetHashmap
-							// groupManager (UUID)
-							// group, in the foundsetHashmap and in the state ?
-							var foundsetRefManager = getFoundsetManagerByFoundsetUUID(foundsetUUID);
-
-							if (rowGroupCols.length === groupKeys.length && sortString && sortString != foundsetRefManager.getSortColumns()) { // if is a group column and sort string is different
-
-								// TODO remove sort icon
-								// FIXME this is a workaround for issue SVY-11456
-								sortGroupColumnsPromise = $q.defer();
-								foundsetSortModel = getFoundsetSortModel(sortModel)
-
-								/** Change the foundset's sort column  */
-								foundsetRefManager.sort(foundsetSortModel.sortColumns);
-
-								sortGroupColumnsPromise.promise.then(function() {
-									$log.error("sort group column promise resolved");
-									sortColumnsPromise = null;
-									getDataFromFoundset(foundsetRefManager);
-								});
-
-							} else {
-								getDataFromFoundset(foundsetRefManager);
-							}
-						}
-
+						// get the foundset reference
+						groupManager.getFoundsetRef(rowGroupCols, groupKeys).then(getFoundsetRefSuccess).catch(function(e) {
+							$log.error(e);
+						});
 					}
 
 					/**
-					 * @param {FoundsetManager} foundsetRef the foundsetManager object
+					 * GetFoundserRef Promise Callback
 					 *
+					 * @param {String} foundsetUUID
+					 * @protected
+					 *  */
+					function getFoundsetRefSuccess(foundsetUUID) {
+
+						// TODO search in state first ?
+						// The foundsetUUID exists in the
+						// foundsetHashmap
+						// groupManager (UUID)
+						// group, in the foundsetHashmap and in the state ?
+						var foundsetRefManager = getFoundsetManagerByFoundsetUUID(foundsetUUID);
+
+						// if not sorting on a group column
+						if (rowGroupCols.length === groupKeys.length && sortString && sortString != foundsetRefManager.getSortColumns()) { // if is a group column and sort string is different
+							$log.warn('CHANGE SORT REQUEST');
+							var sortPromise = $q.defer();
+
+							// TODO remove sort icon
+							// FIXME this is a workaround for issue SVY-11456
+							if (foundsetRefManager.isRoot) {
+								sortColumnsPromise = sortPromise;
+							} else {
+								sortGroupColumnsPromise = sortPromise;
+							}
+
+							foundsetSortModel = getFoundsetSortModel(sortModel)
+
+							/** Change the foundset's sort column  */
+							foundsetRefManager.sort(foundsetSortModel.sortColumns);
+
+							sortPromise.promise.then(function() {
+								$log.error("sort column promise resolved");
+								sortPromise = null;
+								sortColumnsPromise = null;
+								sortGroupColumnsPromise = null;
+								getDataFromFoundset(foundsetRefManager);
+							});
+
+						} else {
+							getDataFromFoundset(foundsetRefManager);
+						}
+					}
+
+					/**
+					 * GetDataFromFoundset Promise Callback
+					 *
+					 * @param {FoundsetManager} foundsetRef the foundsetManager object
+					 * @protected
 					 *  */
 					function getDataFromFoundset(foundsetManager) {
+						// TODO remove test
+						if (!isTableGrouped()) test_validateCache();
+
 						// load record if endRow is not in viewPort
 						var startIndex = foundsetManager.foundset.viewPort.startIndex;
 						var viewPortSize = foundsetManager.foundset.viewPort.size;
 
+						// index in the cached viewPort (0-based);
 						var viewPortStartIndex = request.startRow - startIndex;
 						var viewPortEndIndex = request.endRow - startIndex;
 
@@ -1175,7 +1185,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 								item._svyFoundsetUUID = thisInstance.foundsetUUID;
 							});
 						}
-						$log.warn('Next line is the result data to be loaded in table')
+						$log.debug('Next line is the result data to be loaded in table')
 						console.log(result);
 						return result;
 					}
@@ -1255,7 +1265,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 					var loadExtraRecordsAsync = function(startIndex, size, dontNotifyYet) {
 						// TODO use loadRecordsAsync to keep cache small
-						size = size*CACHED_CHUNK_BLOCKS;
+						size = size * CACHED_CHUNK_BLOCKS;
 						if (thisInstance.hasMoreRecordsToLoad() === false) {
 							size = this.foundset.serverSize - startIndex;
 						}
@@ -1420,14 +1430,14 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						tree.foundsetUUID = foundsetUUID;
 					}
 
-					/** 
+					/**
 					 * @param {String} foundsetUUID
 					 * Remove the node */
 					this.removeCachedFoundset = function(foundsetUUID) {
 						return removeFoundset(hashTree, foundsetUUID);
 					}
-					
-					/** 
+
+					/**
 					 * @param {Number} level
 					 * Remove the node */
 					this.removeCachedFoundsetAtLevel = function(level) {
@@ -1459,16 +1469,16 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 							return true;
 						}
 
-						if (!foundsetUUID && level===undefined) {
+						if (!foundsetUUID && level === undefined) {
 							return true;
 						}
 
 						for (var nodeKey in tree) {
 							var subNodeKey
 							var node = tree[nodeKey];
-							
+
 							// remove the foundset and all it's child nodes if foundsetUUID or level === 0
-							if ((foundsetUUID && node.foundsetUUID === foundsetUUID) || (level === 0)) {
+							if ( (foundsetUUID && node.foundsetUUID === foundsetUUID) || (level === 0)) {
 								// TODO should delete all subnodes
 
 								if (node.nodes) {
@@ -1484,7 +1494,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 							} else if (node.nodes) {
 								for (subNodeKey in node.nodes) {
 									// if level, remove one item to level ( 0 is root )
-									if (removeFoundset(node.nodes, foundsetUUID, level ? level-1 : undefined)) {
+									if (removeFoundset(node.nodes, foundsetUUID, level ? level - 1 : undefined)) {
 										return true;
 									}
 								}
@@ -1514,7 +1524,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 										var foundsetRef = getFoundsetManagerByFoundsetUUID(childFoundsetUUID);
 										// FIXME this solution is horrible, can break if rows.length === 0 or...
 										// A better solution is to retrieve the proper childFoundsetUUID by rowGroupCols/groupKeys
-										if (foundsetRef && ((field === null || field === undefined) || (field !== null && field !== undefined && foundsetRef.foundset.viewPort.rows[0] && foundsetRef.foundset.viewPort.rows[0][field] == value))) {
+										if (foundsetRef && ( (field === null || field === undefined) || (field !== null && field !== undefined && foundsetRef.foundset.viewPort.rows[0] && foundsetRef.foundset.viewPort.rows[0][field] == value))) {
 											success = (removeFoundset(node.nodes, childFoundsetUUID) && success);
 										} else {
 											$log.debug('ignore the child foundset');
@@ -1707,7 +1717,8 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 						// return the root foundset if no grouping criteria
 						if (rowGroupCols.length === 0 && groupKeys.length === 0) { // no group return root foundset
-							return resultPromise.resolve('root');
+							resultPromise.resolve('root');
+							return resultPromise.promise;
 						}
 
 						var idx; // the index of the group dept
@@ -1810,7 +1821,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					 * Returns the foundset in a promise
 					 * @param {Array<Number>} groupColumns index of all grouped columns
 					 * @param {Array} groupKeys value for each grouped column
-					 * @param {String} [sort] 
+					 * @param {String} [sort]
 					 *
 					 * @return {PromiseType}
 					 *  */
@@ -1825,7 +1836,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						for (var i = 0; i < $scope.model.columns.length; i++) {
 							idForFoundsets.push(getColumnID($scope.model.columns[i], i));
 						}
-						
+
 						childFoundsetPromise = $scope.svyServoyapi.callServerSideApi("getGroupedFoundsetUUID",
 							[groupColumns, groupKeys, idForFoundsets, sort]);
 
@@ -1858,16 +1869,16 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						return this.getFoundsetRef([rowGroupCols[0]], []);
 					}
 
-					/** 
+					/**
 					 * Creates a new foundset reference with the given group criterias.
 					 * If a foundset reference with the given references already exists, will be overriden
-					 * 
+					 *
 					 * */
-					this.createOrReplaceFoundsetRef = function(groupColumns, groupKeys, sort) { 
+					this.createOrReplaceFoundsetRef = function(groupColumns, groupKeys, sort) {
 						var foundsetHash = hashTree.getCachedFoundset(groupColumns, groupKeys)
 						if (foundsetHash) {
 							this.removeFoundsetRef(foundsetHash);
-							
+
 						}
 						return this.getFoundsetRef(groupColumns, groupKeys, sort);
 					}
@@ -1878,10 +1889,10 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					this.removeFoundsetRef = function(foundsetUUID) {
 						return hashTree.removeCachedFoundset(foundsetUUID);
 					}
-					
+
 					/**
 					 * @param {Number} level
-					 * 
+					 *
 					 *  */
 					this.removeFoundsetRefAtLevel = function(level) {
 						return hashTree.removeCachedFoundsetAtLevel(level);
@@ -1957,12 +1968,11 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					}
 					return false
 				}
-				
-				
+
 				/**
 				 * TODO rename grouped columns into stateGroupedColumns
-				 * 
-				 * @type {Array} 
+				 *
+				 * @type {Array}
 				 * */
 				function setStateGroupedColumns(columns) {
 					// cache order of grouped columns
@@ -2032,7 +2042,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				function changeListener(change) {
 					$log.warn("Root change listener is called " + state.waitfor.loadRecords);
 					console.log(change);
-					
+
 					// Floor
 					var idRandom = Math.floor(1000 * Math.random());
 
@@ -2047,6 +2057,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						// FIXME this is a workaround for issue SVY-11456
 						if (sortColumnsPromise) {
 							sortColumnsPromise.resolve(true);
+							$log.warn('sort has been requested clientside, no need to update the changeListener');
 							return;
 						}
 
@@ -2094,7 +2105,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						// i don't need a selection update in case of purge
 						return;
 					}
-					
+
 					// gridOptions.api.purgeEnterpriseCache();
 					if (change[$foundsetTypeConstants.NOTIFY_SELECTED_ROW_INDEXES_CHANGED]) {
 						$log.warn(idRandom + ' - 3. Request selection changed');
@@ -2107,7 +2118,6 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					// FIXME can't select the record when is not in viewPort. Need to synchornize with viewPort record selection
 					$log.warn(' - 2.1 Request selection changes');
 
-					
 					// Disable selection when table is grouped
 					if (isTableGrouped()) {
 						var selectedNodes = gridOptions.api.getSelectedNodes();
@@ -2133,7 +2143,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 							// TODO deselect node
 							return;
 						}
-						
+
 						var rowId = foundsetManager.foundset.viewPort.rows[rowIndex]._svyRowId;
 						var node = getTableRow(rowId);
 						if (node) {
