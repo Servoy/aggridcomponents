@@ -38,11 +38,11 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 			// console.log('is a join on ' + columnName);
 
 			var join = query;
-			
+
 			for (var j = 0; j < relationNames.length; j++) {
 				var relationName = relationNames[j];
 				// use unique name for multiple level relations
-				var relationPath = relationNames.slice(0, j+1).join("____");
+				var relationPath = relationNames.slice(0, j + 1).join("____");
 				console.log(relationPath)
 				// check if already has a relation
 				var existingJoin = getJoin(join, relationPath);
@@ -80,20 +80,20 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 		}
 		if (pkColumns.length > 1) {
 			console.warn('The component does not support multiple primary keys');
-			
+
 			if (pkColumns.length === 2) {
-				
-//				 WHERE order_details.productid = (\
-//							select order_details2.productid \
-//							 from order_details order_details2 \
-//							 left outer join products order_details_to_products2 on order_details2.productid=order_details_to_products2.productid \
-//							 left outer join categories products_to_categories2 on order_details_to_products2.categoryid=products_to_categories2.categoryid \
-//							 where products_to_categories2.categoryname = products_to_categories.categoryname and order_details2.orderid = order_details.orderid limit 1\
-//					 )\
-				
+
+				//				 WHERE order_details.productid = (\
+				//							select order_details2.productid \
+				//							 from order_details order_details2 \
+				//							 left outer join products order_details_to_products2 on order_details2.productid=order_details_to_products2.productid \
+				//							 left outer join categories products_to_categories2 on order_details_to_products2.categoryid=products_to_categories2.categoryid \
+				//							 where products_to_categories2.categoryname = products_to_categories.categoryname and order_details2.orderid = order_details.orderid limit 1\
+				//					 )\
+
 			}
 		}
-		
+
 		query.groupBy.add(groupColumn);
 		query.sort.clear();
 		console.log(sort)
@@ -114,7 +114,7 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 	// this is the first grouping operation; alter initial query to get all first level groups
 	var childFoundset = parentFoundset.duplicateFoundSet();
 	childFoundset.loadRecords(query);
-	
+
 	console.log('Matching records ' + childFoundset.getSize());
 
 	// push dataproviders to the clientside foundset
@@ -130,7 +130,7 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 		// TODO it could be the hashmap of groupkeys/groupcolumns ?
 		// dps._svyFoundsetUUID = null;
 	}
-	
+
 	// TODO perhaps R&D can improve this
 	// send the column mapping; clientside i don't have the dataprovider id name and server side i don't have the idForFoundset.
 	$scope.model.hashedFoundsets.push({
@@ -143,49 +143,59 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 		foundsetUUID: childFoundset
 	}); // send it to client as a foundset property with a UUID
 
-
-	console.log('END SERVER SIDE QUERY');
+	console.log('END SERVER SIDE QUERY ' + $scope.model.hashedFoundsets[$scope.model.hashedFoundsets.length - 1]);
 
 	return childFoundset; // return the UUID that points to this foundset (return type will make it UUID)
 };
 
-/** 
- * @type {Object} parentFoundset
- * @type {Object} parentRecordFinder
- * 
- * */
-$scope.getFoundsetRecord = function(parentFoundset, parentRecordFinder) {
-    if (!parentFoundset) parentFoundset = $scope.model.myFoundset.foundset;
-    var record = parentRecordFinder(parentFoundset);
-    var result = new Object();
-    for(var prop in record) {
-    	if (!(record[prop] instanceof Function)) {
-    		result[prop] = record[prop];
-    	} 
-    }
-    return result;
+$scope.removeGroupedFoundsetUUID = function(parentFoundset) {
+	for (var i = 0; i < $scope.model.hashedFoundsets.length; i++) {
+		var hashedFoundset = $scope.model.hashedFoundsets[i];
+		if (hashedFoundset.foundsetUUID === parentFoundset) {
+			console.warn('found the parent foundset and removed ');
+			$scope.model.hashedFoundsets.splice(i, 1);
+			return true;
+		}
+	}
+	return false;
 }
 
-/** 
+/**
+ * @type {Object} parentFoundset
+ * @type {Object} parentRecordFinder
+ *
+ * */
+$scope.getFoundsetRecord = function(parentFoundset, parentRecordFinder) {
+	if (!parentFoundset) parentFoundset = $scope.model.myFoundset.foundset;
+	var record = parentRecordFinder(parentFoundset);
+	var result = new Object();
+	for (var prop in record) {
+		if (! (record[prop] instanceof Function)) {
+			result[prop] = record[prop];
+		}
+	}
+	return result;
+}
+
+/**
  * The only use case is to retrieve the record index while gruped.
  * Don't implement for now
- * @deprecated 
+ * @deprecated
  * Get the foundset index of the given record
  * @type {Object} parentFoundset
  * @type {Object} parentRecordFinder
- * 
+ *
  * */
 $scope.getRecordIndex = function(parentFoundset, parentRecordFinder) {
-    if (!parentFoundset) parentFoundset = $scope.model.myFoundset.foundset;
-    var rootFoundset = $scope.model.myFoundset.foundset;
-    var record = parentRecordFinder(parentFoundset);
+	if (!parentFoundset) parentFoundset = $scope.model.myFoundset.foundset;
+	var rootFoundset = $scope.model.myFoundset.foundset;
+	var record = parentRecordFinder(parentFoundset);
 	if (record) {
 		return rootFoundset.getRecordIndex(record);
 	} else {
 		return -1;
 	}
 }
-
 
 /**
  * @private
@@ -262,3 +272,13 @@ function getJoin(query, alias) {
 	return null;
 }
 
+/**
+ * @deprecated is not actually used
+ * Generate an UUID
+ *  */
+function generateUUID() {
+	function chr4() {
+		return (new Date().getTime() * Math.random()).toString(16).slice(-4).toUpperCase();
+	}
+	return chr4() + chr4() + '-' + chr4() + '-' + chr4() + '-' + chr4() + '-' + chr4() + chr4() + chr4();
+}

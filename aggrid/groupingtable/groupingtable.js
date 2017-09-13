@@ -768,9 +768,11 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 							delete expandedState.columns[field][key];
 						}
 					}
-					if (isExpanded === false) {
+					
+					// TODO expose model property to control perfomance
+					if (isExpanded === false && $scope.model.perfomanceClearCacheStateOnCollapse === true) {
 						// TODO remove the foundset
-						// groupManager.removeChildFoundsetRef(column.data._svyFoundsetUUID, column.field, column.data[field]);
+						groupManager.removeChildFoundsetRef(column.data._svyFoundsetUUID, column.field, column.data[field]);
 					}
 					// TODO remove logs
 					console.log($scope.model.hashedFoundsets);
@@ -900,7 +902,6 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				 * */
 				FoundsetServer.prototype.getData = function(request, callback) {
 
-
 					$log.debug(request);
 
 					// the row group cols, ie the cols that the user has dragged into the 'group by' zone, eg 'Country' and 'Customerid'
@@ -944,14 +945,9 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					// Sort on the foundset Group
 					if (sortRootGroup) { // no sort need to be applied
 						// Should change the foundset with a different sort order
-						// FIXME doesn't sort
-						//							groupManager.createOrReplaceFoundsetRef(rowGroupCols, groupKeys, sortModel[0].sort).then(getFoundsetRefSuccess).catch(function(e) {
-						//								$log.error(e);
-						//							});
-						groupManager.getFoundsetRef(rowGroupCols, groupKeys).then(getFoundsetRefSuccess).catch(function(e) {
+						groupManager.createOrReplaceFoundsetRef(rowGroupCols, groupKeys, sortModel[0].sort).then(getFoundsetRefSuccess).catch(function(e) {
 							$log.error(e);
 						});
-
 					} else {
 						// get the foundset reference
 						groupManager.getFoundsetRef(rowGroupCols, groupKeys).then(getFoundsetRefSuccess).catch(function(e) {
@@ -1915,7 +1911,8 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				}
 
 				/**
-				 * Get Foundset by UUID
+				 * @public
+				 * Get Foundset in hashMap by UUID
 				 * */
 				function getFoundSetByFoundsetUUID(foundsetHash) {
 					// TODO return something else here ?
@@ -1930,6 +1927,11 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					return null;
 				}
 
+				/**
+				 * Returns the foundset manager for the given hash
+				 * @return {FoundSetManager}
+				 * @public
+				 *  */
 				function getFoundsetManagerByFoundsetUUID(foundsetHash) {
 					if (foundsetHash === 'root') return foundset;
 
@@ -1948,6 +1950,11 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					}
 				}
 
+				/**
+				 * remove the given foundset hash from the model hashmap.
+				 * User to clear the memory
+				 * @public
+				 *  */
 				function removeFoundSetByFoundsetUUID(foundsetHash) {
 
 					if (foundsetHash === 'root') {
@@ -1956,17 +1963,16 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					}
 
 					// remove the hashedFoundsets
-					if ($scope.model.hashedFoundsets) {
-						for (var i = 0; i < $scope.model.hashedFoundsets.length; i++) {
-							if ($scope.model.hashedFoundsets[i].foundsetUUID == foundsetHash) {
-								// remove the hashedFoundset from the memory
-								$scope.model.hashedFoundsets.splice(i, 1);
-								delete state.foundsetManagers[foundsetHash];
-								return true;
-							}
+					$scope.svyServoyapi.callServerSideApi("removeGroupedFoundsetUUID", [foundsetHash]).then(function(removed) {
+						if (removed) {
+							delete state.foundsetManagers[foundsetHash];
+						} else {
+							$log.error("could not delete hashed foundset " + foundsetHash);
 						}
-					}
-					return false
+					}).catch(function(e) {
+						$log.error(e);
+					});
+
 				}
 
 				/**

@@ -107,6 +107,14 @@
                     "type" : "rowRef"
                 }
             ]
+        },
+        "removeGroupedFoundsetUUID" : {
+            "returns" : "boolean",
+            "parameters" : [{
+                    "name": "parentFoundset",
+                    "type": "foundsetRef"
+                }
+            ]
         }
 	},
 	"types" : {
@@ -126,7 +134,7 @@
 		 "hashedFoundset" : {
             "foundset": "foundset",
             "foundsetUUID": "foundsetRef",
-            "query" : "object"
+            "uuid" : "string"
         }  
 	}
 }
