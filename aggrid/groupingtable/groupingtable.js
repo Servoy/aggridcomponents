@@ -800,52 +800,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					var column = getColumn(field);
 
 					if (column) {
-						value = getValuelistValue(field, value, column);
-
-						// FIXME this doesn't work, try to use value getter
-						// if returns a promise
-						if (value && value.then instanceof Function) {
-
-							value.then(getDisplayValueSuccess, getDisplayValueFailure);
-
-							//							var waitForValue = setTimeout(function () {
-							//								value = params.data[field];
-							//								wait = false;
-							//							}, 1000);
-
-							// FIXME how to get displayValue when not in client-side ?
-							// TODO the display setter is called each time, should prevent this top happen.
-							// TODO issue should be addressed during getData ?
-
-							var result;
-							var wait = true;
-							function getDisplayValueSuccess(data) {
-								if ($log.debugEnabled) $log.debug('ag-groupingtable: realValue: ' + value + ' displayValue: ' + data);
-								// $log.warn('displayValue ' + data);
-								value = data;
-								//								if (waitForValue) {
-								//									waitForValue.clearTimeout();
-								//								}
-								wait = false;
-								return result;
-							}
-
-							function getDisplayValueFailure(e) {
-								//								if (waitForValue) {
-								//									waitForValue.clearInterval();
-								//								}
-								$log.error(e);
-							}
-							value = params.data[field];
-
-							//							while(wait) {
-							//								// do nothing until promise resolved
-							//							}
-
-						} else {
-
-						}
-
+						// value = getValuelistValue(field, value, column);
 						if (column.format) {
 							value = formatFilter(value, column.format.display, column.format.type);
 						}

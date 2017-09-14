@@ -9,7 +9,7 @@
 	"model":
 	{
 		"myFoundset": {"type": "foundset", "dynamicDataproviders": true, "initialPreferredViewPortSize": 50, "sendSelectionViewportInitially": true },
-		"columns": { "type": "column[]", "droppable" : true, "pushToServer": "shallow" },
+		"columns": { "type": "column[]", "droppable" : true, "pushToServer": "shallow", "tags": {"scope": "design"} },
 		"rowHeight" : 	{"type" : "int", "default": 25, "tags": {"scope": "design"} },
 		"rowStyleClassDataprovider": { "type": "dataprovider", "forFoundset": "myFoundset", "tags": {"scope": "design"} },
 		"enableColumnResize": { "type": "boolean", "default": true, "tags": {"scope": "design"} },
@@ -121,11 +121,11 @@
 		"column" : {
 			"headerTitle": {"type" : "tagstring", "tags" : {"scope": "design"}},
 			"headerStyleClass" : {"type" : "styleclass"},
-			"dataprovider": { "type": "dataprovider", "forFoundset": "myFoundset" },
+			"dataprovider": { "type": "dataprovider", "forFoundset": "myFoundset", "resolveValuelist" : true },
 			"styleClass" : {"type" : "styleclass"},
 			"styleClassDataprovider": { "type": "dataprovider", "forFoundset": "myFoundset" },
 			"format" : {"type" : "format",  "for": ["valuelist", "dataprovider"], "tags" : {"scope": "design"}},
-			"valuelist": { "type": "valuelist", "for": "dataprovider", "tags" : {"scope": "private"} },
+			"valuelist": { "type": "valuelist", "for": "dataprovider"},
 			"visible":  { "type": "boolean", "default": true, "tags" : {"scope": "design"} },
 			"width":  { "type": "int", "default": 0, "tags" : {"scope": "design"} },			
 			"enableRowGroup" : {"type": "boolean", "default" : true, "tags" : {"scope": "design"}},
