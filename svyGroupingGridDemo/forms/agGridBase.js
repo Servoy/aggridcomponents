@@ -7,6 +7,14 @@
 var pageCount;
 
 /**
+ * @type {Number}
+ * @protected 
+ *
+ * @properties={typeid:35,uuid:"B2FCA001-3FB1-4034-BD93-E9BB2B686067",variableType:4}
+ */
+var foundsetIndex;
+
+/**
  * Callback method when form is (re)loaded.
  *
  * @param {JSEvent} event the event that triggered the action
@@ -187,7 +195,9 @@ function onRecordSelected(index, record, event) {
  * @properties={typeid:24,uuid:"F0A998FD-A8E9-46E9-BEE1-3BF2DCFB29C3"}
  */
 function onNewRecord(event) {
-	foundset.newRecord();
+	var index = foundsetIndex ? foundsetIndex : null;
+	logMsg(foundset.newRecord(index), 'index');
+	// logMsg(foundset.newRecord(foundset.getSize(), true), 'index');
 }
 
 /**
@@ -197,7 +207,18 @@ function onNewRecord(event) {
  * @properties={typeid:24,uuid:"71639D4A-AA54-4593-B608-6033DBD54A88"}
  */
 function onDeleteRecord(event) {
-	foundset.deleteRecord();
+	var index = foundsetIndex ? foundsetIndex : null;
+	foundset.deleteRecord(index);
+}
+
+/**
+ * @param {JSEvent} event
+ * @protected 
+ *
+ * @properties={typeid:24,uuid:"9840890B-5994-4876-81E9-F0547584FFA8"}
+ */
+function onGotoIndex(event) {
+	foundset.setSelectedIndex(foundsetIndex);
 }
 
 /**

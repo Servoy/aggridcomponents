@@ -33,11 +33,20 @@ When servoy data-aggrid-groupingtable component with name agGridOrders.groupingt
 When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to expand the child row with Harare as text
 # Then servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I expect there will be 13 orders placed
 
+# Test 2.0 Change Group Criteria
+#------------------------------------------------------
+# Expand the first node
+When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to expand the row with Afghanistan as text
+# Ungroup By Country
+When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to ungroup the table by Country
+# Expand the first node
+When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to expand the row with Amsterdam as text
+
 # Test 2.1 - Group by Customer City
 #------------------------------------------------------
 # Group by Customer - City
 When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to group the table by Customer
-When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to ungroup the table by Country
+# When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to ungroup the table by Country
 When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to ungroup the table by City
 When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to group the table by City
 

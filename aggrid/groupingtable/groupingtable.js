@@ -246,6 +246,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					// rowGroupColumnDef: columnDefs,
 					// groupColumnDef : columnDefs,
 					// enableSorting: false,
+					suppressMovableColumns: true, 		// TODO persist column order changes
 					enableServerSideSorting: $scope.model.enableSort,
 					enableColResize: $scope.model.enableColumnResize,
 					suppressAutoSize: true,
@@ -969,6 +970,11 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						// groupManager (UUID)
 						// group, in the foundsetHashmap and in the state ?
 						var foundsetRefManager = getFoundsetManagerByFoundsetUUID(foundsetUUID);
+						
+						if (sortString === "") {
+							// TODO restore a default sort order when sort is removed
+							$log.error(" Use the default foundset sort.. which is ? ");
+						}
 
 						// if not sorting on a group column
 						if (rowGroupCols.length === groupKeys.length && sortString && sortString != foundsetRefManager.getSortColumns()) { // if is a group column and sort string is different
