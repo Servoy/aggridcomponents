@@ -14,16 +14,19 @@ var userAnalytics = require('universal-analytics');
 var analytics = userAnalytics('UA-93980847-1');
 var find = require('find');
 var fs = require('fs-extra');
-var timeoutAgAction = 60 * 1000;
 
 defineSupportCode(({ Given, Then, When, Before, After }) => {
-	//BASIC NAGIVATION
 	Given('I go to {url}', { timeout: 60 * 1000 }, function (url) {
 		return browser.get(url);
 	});
-	//END BASIC NAVIGATION
 
-	//ENVIRONMENT SETUP
+	Then('I want to refresh the page', { timeout: 15 * 1000 }, function () {
+		browser.sleep(1500).then(function () {
+			browser.driver.navigate().refresh();
+			browser.sleep(2000);
+		});
+	});
+
 	Given('I setup the environment', { timeout: 30 * 1000 }, function (callback) {
 		createDirIfNotExists(browser.params.htmlDirectory);
 		createDirIfNotExists(browser.params.screenshotDirectory);
@@ -31,23 +34,179 @@ defineSupportCode(({ Given, Then, When, Before, After }) => {
 		removeScreenshots(browser.params.screenshotDirectory);
 		wrapUp(callback, 'setupEnvironment');
 	});
-	//END ENVORONMENT SETUP
 
-	//SERVOY SIDENAV COMPONENT
+	Then('I want to sleep', { timeout: 60 * 1000 }, function (callback) {
+		browser.sleep(10000).then(function () {
+			callback();
+		});
+	});
+
+	When('servoy data-aggrid-groupingtable component with name {elementName} I want to {rowOption} row level {int} with {rowText} as text', { timeout: 20 * 1000 }, function (elementName, rowOption, rowLevel, rowText, callback) {
+		findRecord(elementName, rowText, rowOption, rowLevel - 1, callback);
+	});
+
+	When('servoy data-aggrid-groupingtable component with name {elementName} I want to scroll to the top', { timeout: 60 * 1000 }, function (elementName, callback) {
+		scrollToTop(elementName, callback);
+	});
+
+	function scrollToTop(elementName, callback) {
+		var table = element(by.xpath("//div[@class='ag-body-container']"));
+		browser.executeScript("arguments[0].scrollIntoView(true);", table.getWebElement()).then(function () {
+			wrapUp(callback, "tableScrollEvent");
+		});
+	}
+
+	When('servoy data-aggrid-groupingtable component with name {elementName} I want to sort the table by {sortBy}', { timeout: 20 * 1000 }, function (elementName, sortBy, callback) {
+		var grid = element.all(by.xpath("//data-aggrid-groupingtable[@data-svy-name='" + elementName + "']"));
+		grid.each(function (menuItems) {
+			menuItems.all(by.css('.ag-table-header')).each(function (sortHeader) {
+				sortHeader.getText().then(function (text) {
+					if (text.toLowerCase().indexOf(sortBy.toLowerCase()) > -1) {
+						clickElement(sortHeader).then(function () {
+							wrapUp(callback, "tableSortingEvent");
+						});
+					}
+				});
+			});
+		});
+	});
+
+	When('servoy data-aggrid-groupingtable component with name {elementName} I want to group the table by {tableHeaderText}', { timeout: 20 * 1000 }, function (elementName, tableHeaderText, callback) {
+		var tableHeaderCount = 0;
+		var grid = element.all(by.xpath("//data-aggrid-groupingtable[@data-svy-name='" + elementName + "']"));
+		grid.each(function (menuItems) {
+			menuItems.all(by.css(".ag-header-cell.ag-header-cell-sortable.ag-table-header")).each(function (tableHeader) {
+				tableHeader.element(by.cssContainingText("span", tableHeaderText)).isPresent().then(function (result) {
+					tableHeaderCount++;
+					if (result) {
+						var orderByIconLocation = tableHeader.all(by.xpath("//span[@ref='eMenu']")).get(tableHeaderCount);
+						browser.executeScript("arguments[0].click()", orderByIconLocation).then(function () {
+							clickElement(menuItems.element(by.cssContainingText("span", "Group by " + tableHeaderText))).then(function () {
+								wrapUp(callback, "tableGroupingEvent");
+							});
+						});
+					}
+				});
+			});
+		});
+	});
+
+	When('servoy data-aggrid-groupingtable component with name {elementName} I want to ungroup the table by {tableHeaderText}', { timeout: 20 * 1000 }, function (elementName, filterTableText, callback) {
+		var grid = element.all(by.xpath("//data-aggrid-groupingtable[@data-svy-name='" + elementName + "']"));
+		grid.each(function (menuItems) {
+			menuItems.all(by.css(".ag-column-drop-cell")).each(function (orderByElement) {
+				if (filterTableText.toLowerCase() !== "everything") {
+					orderByElement.element(by.cssContainingText('.ag-column-drop-cell-text', filterTableText)).isPresent().then(function (present) {
+						if (present) {
+							clickElement(orderByElement.element(by.css(".ag-column-drop-cell-button"))).then(function () {
+								wrapUp(callback, "removeTableFilterEvent");
+							});
+						}
+					});
+				} else {
+					if (clearGrouping()) {
+						wrapUp(callback, "removeTableFilterEvent");
+					}
+				}
+			}).then(function () {
+				wrapUp(callback, "removeTableFilterEvent");
+			});
+		});
+	});
+	// servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to drag the grouping item with Customer to the start
+	When('servoy data-aggrid-groupingtable component with name {elementName} I want to drag the grouping item with {groupingText} as text to the start', { timeout: 20 * 1000 }, function (elementName, groupingText, callback) {
+		element.all(by.xpath("//data-aggrid-groupingtable[@data-svy-name='" + elementName + "']")).each(function (gridItems) {
+			var dropElement = element(by.xpath("//img[@role='presentation' and @class='ag-column-drop-icon']"));
+			var groupItem = element(by.css(".ag-column-drop.ag-font-style.ag-column-drop-horizontal.ag-column-drop-row-group"))
+				.element(by.xpath("//span[@class='ag-column-drop-cell-text' and .='" + groupingText + "']"));
+
+			browser.actions().mouseMove(groupItem).mouseDown().mouseMove(dropElement).mouseUp().perform().then(function () {
+				wrapUp(callback, "aggridDragEvent");
+			});
+		});
+	});
+	var rowCount = 0;
+	var lastRow = 0;
+	Then('servoy data-aggrid-groupingtable component with name {elementName} I expect there will be {orderCount} orders placed', { timeout: 20 * 1000 }, function (elementName, orderCount, callback) {
+		element.all(by.css('.ag-column-drop-cell')).count().then(function (count) {
+			return count;
+		}).then(function (count) {
+			browser.sleep(2000).then(function () {
+				calcRows(elementName, count, orderCount, callback);
+			});
+		});
+	});
+
+	Then('servoy data-aggrid-groupingtable component with name {elementName} I expect there will be {orderCount} orders placed by {customerName}', { timeout: 20 * 1000 }, function (elementName, orderCount, customerName, callback) {
+		element.all(by.css('.ag-column-drop-cell')).count().then(function (count) {
+			return count;
+		}).then(function (count) {
+			browser.sleep(2000).then(function () {
+				calcRows(elementName, count, orderCount, callback);
+			});
+		});
+	});
+
+	var rowCount = 0;
+	var lastRow = 0;
+	function calcRows(elementName, count, orderCount, callback) {
+		var grid = element.all(by.xpath("//data-aggrid-groupingtable[@data-svy-name='" + elementName + "']"));
+		grid.each(function (menuItems) {
+			//if there are no level n nodes visible, the browser has to scroll
+			menuItems.all(by.xpath("//div[contains(@class, 'ag-row-level-" + count + "')]")).count().then(function (amount) {
+				if (amount === 0) {
+					browser.executeScript("arguments[0].scrollIntoView(true);", element.all(by.xpath("//div[@role='row']")).last()).then(function(){
+						calcRows(elementName, count, orderCount, callback);
+					});
+				} else {
+					//calcs the amount of child rows currently visible
+					var firstRow = menuItems.all(by.xpath("//div[contains(@class, 'ag-row-level-" + count + "') and @row > " + lastRow + "]")).first(); //it needs to start calculating from where it left of
+					var lastRowElement = menuItems.all(by.xpath("//div[contains(@class, 'ag-row-level-" + count + "') and @row > " + lastRow + "]")).last();
+					firstRow.getAttribute('row').then(function (firstNumber) {
+						lastRowElement.getAttribute('row').then(function (lastNumber) {
+							rowCount += lastNumber - firstNumber + 1;
+							lastRow = lastNumber;
+							//all elements are calculated now. Now calculate if the scroll function is required
+							var lastElementCheck = menuItems.all(by.xpath("//div[@role='row']")).last();
+							lastElementCheck.getAttribute('class').then(function (elemClass) {
+								//last element contains the same row, scroll again
+								if (elemClass.indexOf("ag-row-level-" + count) !== -1) {
+									scroll(elementName, lastRowElement, count, orderCount, callback);
+								} else { //all elements have been checked. Validate and finalize the step
+									if (rowCount == orderCount) {
+										wrapUp(callback, "validatingChildRows");
+									} else {
+										console.log("Elements found: " + rowCount);
+										console.log("Elements expected: " + orderCount);
+									}
+								}
+							});
+						});
+					});
+				}
+			});
+		});
+	}
+
+	function scroll(elementName, elem, count, orderCount, callback) {
+		browser.executeScript("arguments[0].scrollIntoView(true);", elem.getWebElement()).then(function () {
+			calcRows(elementName, count, orderCount, callback);
+		});
+	}
+
+	//FOUNDSET SAMPLE GALERY FUNCTIONS//
 	When('servoy sidenav component with name {elementName} tab {tabName} is clicked', { timeout: 10 * 1000 }, function (elementName, tabName, callback) {
 		var menuItems = element.all(by.xpath("//data-servoyextra-sidenav[@data-svy-name='" + elementName + "']"));
 		menuItems.each(function (menuItem) {
 			clickElement(menuItem.element(by.cssContainingText('a', tabName))).then(function () {
 				wrapUp(callback, "Click event");
-			})
+			});
 		}).catch(function (error) {
 			console.log(error.message);
 			tierdown(true);
 		});
 	});
-	//END SERVOY SIDENAV COMPONENT
 
-	//SERVOY CALENDAR COMPONENT
 	When('servoy calendar component with name {month} is clicked', { timeout: 60 * 1000 }, function (elementName, callback) {
 		clickElement(element(by.xpath("//data-servoydefault-calendar[@data-svy-name='" + elementName + "']/div/span[1]"))).then(function () {
 			wrapUp(callback, "Click event");
@@ -124,9 +283,7 @@ defineSupportCode(({ Given, Then, When, Before, After }) => {
 			tierdown(true);
 		})
 	});
-	//END SERVOY CALENDAR COMPONENT
 
-	//SERVOY SELECT2TOKENIZER COMPONENT
 	When('servoy select2tokenizer component with name {elementName} is clicked', { timeout: 60 * 1000 }, function (elementName, callback) {
 		clickElement(element(by.xpath("//data-servoyextra-select2tokenizer[@data-svy-name='" + elementName + "']/div/span/span/span/ul/li/input"))).then(function () {
 			wrapUp(callback, "Click event");
@@ -172,9 +329,7 @@ defineSupportCode(({ Given, Then, When, Before, After }) => {
 			tierdown(true);
 		});
 	});
-	//END SERVOY SELECT2TOKENIZER COMPONENT
 
-	//BROWSER ACTION
 	When('I press {browserAction}', { timeout: 60 * 1000 }, function (browserAction, callback) {
 		browserAction = browserAction.toLowerCase();
 		switch (browserAction) {
@@ -199,17 +354,15 @@ defineSupportCode(({ Given, Then, When, Before, After }) => {
 				tierdown(true);
 		}
 	});
-	//END BROWSER ACTION
 
-	//SERVOY TABLE COMPONENT
 	When('servoy table component with name {elementName} I scroll to the record with {string} as text', { timeout: 60 * 1000 }, function (elementName, recordText, callback) {
 		findRecordTableComponent(elementName, recordText, callback);
 	});
-	//END SERVOY TABLE COMPONENT
 
-	//SERVOY COMBOBOX
+	//END FOUNDSET SAMPLE GALERY FUNCTIONS//
+	//CRYPTOGRAPHY SAMPLE GALERY FUNCTIONS//	
 	When('servoy combobox component with name {elementName} is clicked', { timeout: 60 * 1000 }, function (elementName, callback) {
-		clickElement(element(by.xpath("//data-servoydefault-combobox[@data-svy-name='" + elementName + "']"))).then(function () {
+		clickElement(element(by.xpath("//data-servoydefault-combobox[@data-svy-name='" + elementName + "']/div/div/span"))).then(function () {
 			wrapUp(callback, "Click event");
 		}).catch(function (error) {
 			console.log(error.message);
@@ -219,15 +372,15 @@ defineSupportCode(({ Given, Then, When, Before, After }) => {
 
 	When('servoy combobox component with name {elementName} the text {text} is inserted', { timeout: 60 * 1000 }, function (elementName, text, callback) {
 		sendKeys(element(by.xpath("//data-servoydefault-combobox[@data-svy-name='" + elementName + "']/div/input[1]")), text).then(function () {
-			wrapUp(callback, "Insert value event");
+			element(by.xpath("//data-servoydefault-combobox[@data-svy-name='" + elementName + "']/div/input[1]")).sendKeys(protractor.Key.RETURN).then(function () {
+				wrapUp(callback, "Insert value event");
+			});
 		}).catch(function (error) {
 			console.log(error.message);
 			tierdown(true);
 		});
 	});
-	//END SERVOY COMBOBOX
 
-	//SERVOY BUTTON
 	When('servoy button component with name {elementName} is clicked', { timeout: 60 * 1000 }, function (elementName, callback) {
 		clickElement(element(by.xpath("//data-servoydefault-button[starts-with(@data-svy-name, '" + elementName + "')]/button"))).then(function () {
 			wrapUp(callback, "Click event");
@@ -236,100 +389,7 @@ defineSupportCode(({ Given, Then, When, Before, After }) => {
 			tierdown(true);
 		});
 	});
-	//END SERVOY BUTTON
 
-	//SERVOY AGGRID COMPONENT
-	When('servoy data-aggrid-groupingtable component with name {elementName} I want to {rowOption} row level {int} with {rowText} as text', { timeout: timeoutAgAction }, function (elementName, rowOption, rowLevel, rowText, callback) {
-		findRecord(elementName, rowText, rowOption, rowLevel - 1, callback);
-	});
-
-	When('servoy data-aggrid-groupingtable component with name {elementName} I want to sort the table by {sortBy}', { timeout: timeoutAgAction }, function (elementName, sortBy, callback) {
-		var grid = element.all(by.xpath("//data-aggrid-groupingtable[@data-svy-name='" + elementName + "']"));
-		grid.each(function (menuItems) {
-			menuItems.all(by.css('.ag-table-header')).each(function (sortHeader) {
-				sortHeader.getText().then(function (text) {
-					if (text.toLowerCase().indexOf(sortBy.toLowerCase()) > -1) {
-						clickElement(sortHeader).then(function () {
-							wrapUp(callback, "tableSortingEvent");
-						});
-					}
-				});
-			});
-		});
-	});
-
-	When('servoy data-aggrid-groupingtable component with name {elementName} I want to group the table by {tableHeaderText}', { timeout: timeoutAgAction }, function (elementName, tableHeaderText, callback) {
-		var tableHeaderCount = 0;
-		var grid = element.all(by.xpath("//data-aggrid-groupingtable[@data-svy-name='" + elementName + "']"));
-		grid.each(function (menuItems) {
-			menuItems.all(by.css(".ag-header-cell.ag-header-cell-sortable.ag-table-header")).each(function (tableHeader) {
-				tableHeader.element(by.cssContainingText("span", tableHeaderText)).isPresent().then(function (result) {
-					tableHeaderCount++;
-					if (result) {
-						var orderByIconLocation = tableHeader.all(by.xpath("//span[@ref='eMenu']")).get(tableHeaderCount);
-						browser.executeScript("arguments[0].click()", orderByIconLocation).then(function () {
-							clickElement(menuItems.element(by.cssContainingText("span", "Group by " + tableHeaderText))).then(function () {
-								wrapUp(callback, "tableGroupingEvent");
-							});
-						});
-					}
-				});
-			});
-		});
-	});
-
-	When('servoy data-aggrid-groupingtable component with name {elementName} I want to ungroup the table by {tableHeaderText}', { timeout: timeoutAgAction }, function (elementName, filterTableText, callback) {
-		var grid = element.all(by.xpath("//data-aggrid-groupingtable[@data-svy-name='" + elementName + "']"));
-		grid.each(function (menuItems) {
-			menuItems.all(by.css(".ag-column-drop-cell")).each(function (orderByElement) {
-				if (filterTableText.toLowerCase() !== "everything") {
-					orderByElement.element(by.cssContainingText('.ag-column-drop-cell-text', filterTableText)).isPresent().then(function (present) {
-						if (present) {
-							clickElement(orderByElement.element(by.css(".ag-column-drop-cell-button"))).then(function () {
-								wrapUp(callback, "removeTableFilterEvent");
-							});
-						}
-					});
-				} else {
-					if (clearGrouping()) {
-						wrapUp(callback, "removeTableFilterEvent");
-					}
-				}
-			}).then(function () {
-				wrapUp(callback, "removeTableFilterEvent");
-			});
-		});
-	});
-
-	When('servoy data-aggrid-groupingtable component with name {elementName} I want to drag the grouping item with {groupingText} as text to the start', { timeout: timeoutAgAction }, function (elementName, groupingText, callback) {
-		element.all(by.xpath("//data-aggrid-groupingtable[@data-svy-name='" + elementName + "']")).each(function (gridItems) {
-			var dropElement = element(by.xpath("//img[@role='presentation' and @class='ag-column-drop-icon']"));
-			var groupItem = element(by.css(".ag-column-drop.ag-font-style.ag-column-drop-horizontal.ag-column-drop-row-group"))
-				.element(by.xpath("//span[@class='ag-column-drop-cell-text' and .='" + groupingText + "']"));
-
-			browser.actions().mouseMove(groupItem).mouseDown().mouseMove(dropElement).mouseUp().perform().then(function () {
-				wrapUp(callback, "aggridDragEvent");
-			});
-		});
-	});
-	var rowCount = 0;
-	var lastRow = 0;
-	Then('servoy data-aggrid-groupingtable component with name {elementName} I expect there will be {orderCount} orders placed', { timeout: timeoutAgAction }, function (elementName, orderCount, callback) {
-		element.all(by.css('.ag-column-drop-cell')).count().then(function (count) {
-			return count;
-		}).then(function (count) {
-			browser.sleep(2000).then(function () {
-				calcRows(elementName, count, orderCount, callback);
-			});
-		});
-	});
-
-	When('servoy data-aggrid-groupingtable component with name {elementName} I want to scroll to the top', { timeout: 60 * 1000 }, function (elementName, callback) {
-		scrollToTop(elementName, callback);
-	});
-	//END AGGRID COMPONENT
-
-	//DEFAULT HTML COMPONENTS
 	When('default textarea component with name {elementName} the text {text} is inserted', { timeout: 60 * 1000 }, function (elementName, text, callback) {
 		sendKeys(element(by.xpath("//textarea[@data-svy-name='" + elementName + "']")), text).then(function () {
 			wrapUp(callback, "Insert value event");
@@ -338,18 +398,15 @@ defineSupportCode(({ Given, Then, When, Before, After }) => {
 			tierdown(true);
 		});
 	});
-	//END DEFAULT HTML COMPONENTS
 
-	//PERFORMANCE LOGGING
 	When('I want to log the time it toke to do the {event} event', { timeout: 60 * 1000 }, function (event, callback) {
 		var duration = calcBlockDuration(new Date());
 		console.log('The ' + event + ' event toke ' + duration + ' miliseconds');
 		analytics.event('Scenario 1', "Performance", event, duration).send();
 		callback();
 	});
-	//END PERFORMANCE LOGGING
 
-
+	//ENDCRYPTOGRAPHY SAMPLE GALERY FUNCTIONS//
 	After(function () {
 		console.log('Completed scenario');
 		if (!hasErrorDuringSuite) {
@@ -370,7 +427,7 @@ function validate(input, inputToCompare) {
 function wrapUp(callback, performanceEvent) {
 	var duration = calcStepDuration(new Date());
 	console.log('Step toke ' + duration + ' miliseconds');
-	//analytics.event('Scenario 1', "Performance", performanceEvent, duration).send();
+	// analytics.event('Scenario 1', "Performance", performanceEvent, duration).send();
 	callback();
 }
 
@@ -429,115 +486,8 @@ function tierdown(hasError) {
 	}
 }
 
-function findRecord(elementName, recordText, callback) {
-	var found = false;
-	var click = 0;
-	element.all(by.xpath("//div[@data-svy-name='" + elementName + "']")).each(function (childElement) {
-		childElement.all(by.xpath("//div[@class='ui-grid-row ng-scope']")).each(function (grandChild) {
-			grandChild.getText().then(function (text) {
-				if (text.indexOf(recordText) > -1) {
-					found = true;
-					if (click === 0) {
-						clickElement(grandChild).then(function () {
-							wrapUp(callback, "Scroll event");
-						});
-						click++;
-					}
-				}
-			});
-		});
-	}).then(function () {
-		if (!found) {
-			scrollToElement(elementName, recordText, callback);
-		}
-	});
-}
-
-function scrollToElement(elementName, recordText, callback) {
-	element.all(by.xpath("//div[@data-svy-name='" + elementName + "']")).each(function (childElement) {
-		var elem = childElement.all(by.xpath("//div[@class='ui-grid-row ng-scope']")).last();
-		browser.executeScript("arguments[0].scrollIntoView(true);", elem.getWebElement()).then(function () {
-			findRecord(elementName, recordText, callback);
-		});
-	});
-}
-
-function scrollToTop(elementName, callback) {
-	var table = element(by.xpath("//div[@class='ag-body-container']"));
-	browser.executeScript("arguments[0].scrollIntoView(true);", table.getWebElement()).then(function () {
-		wrapUp(callback, "tableScrollEvent");
-	});
-}
-//deletes previously used reports and files
-
-function removeHtmlReports(htmlDirectory) {
-	var files = find.fileSync(/\.html/, htmlDirectory);
-	files.map(function (file) {
-		fs.unlinkSync(file);
-	});
-}
-
-function removeScreenshots(screenshotDirectory) {
-	var files = find.fileSync(/\.png/, screenshotDirectory);
-	files.map(function (file) {
-		fs.unlinkSync(file);
-	});
-}
-
-function createDirIfNotExists(dir) {
-	if (!fs.existsSync(dir)) {
-		fs.mkdirSync(dir);
-	}
-}
-
-function calcRows(elementName, count, orderCount, callback) {
-	var grid = element.all(by.xpath("//data-aggrid-groupingtable[@data-svy-name='" + elementName + "']"));
-	grid.each(function (menuItems) {
-		//if there are no level n nodes visible, the browser has to scroll
-		menuItems.all(by.xpath("//div[contains(@class, 'ag-row-level-" + count + "')]")).count().then(function (amount) {
-			if (amount === 0) {
-				browser.executeScript("arguments[0].scrollIntoView(true);", element.all(by.xpath("//div[@role='row']")).last()).then(function(){
-					calcRows(elementName, count, orderCount, callback);
-				});
-			} else {
-				//calcs the amount of child rows currently visible
-				var firstRow = menuItems.all(by.xpath("//div[contains(@class, 'ag-row-level-" + count + "') and @row > " + lastRow + "]")).first(); //it needs to start calculating from where it left of
-				var lastRowElement = menuItems.all(by.xpath("//div[contains(@class, 'ag-row-level-" + count + "') and @row > " + lastRow + "]")).last();
-				firstRow.getAttribute('row').then(function (firstNumber) {
-					lastRowElement.getAttribute('row').then(function (lastNumber) {
-						rowCount += lastNumber - firstNumber + 1;
-						lastRow = lastNumber;
-						//all elements are calculated now. Now calculate if the scroll function is required
-						var lastElementCheck = menuItems.all(by.xpath("//div[@role='row']")).last();
-						lastElementCheck.getAttribute('class').then(function (elemClass) {
-							//last element contains the same row, scroll again
-							if (elemClass.indexOf("ag-row-level-" + count) !== -1) {
-								scroll(elementName, lastRowElement, count, orderCount, callback);
-							} else { //all elements have been checked. Validate and finalize the step
-								if (rowCount == orderCount) {
-									wrapUp(callback, "validatingChildRows");
-								} else {
-									console.log("Elements found: " + rowCount);
-									console.log("Elements expected: " + orderCount);
-								}
-							}
-						});
-					});
-				});
-			}
-		});
-	});
-}
-
-function scroll(elementName, elem, count, orderCount, callback) {
-	browser.executeScript("arguments[0].scrollIntoView(true);", elem.getWebElement()).then(function () {
-		calcRows(elementName, count, orderCount, callback);
-	});
-}
-
 function findRecord(elementName, recordText, rowOption, level, callback) {
 	var found = false;
-	// var click = 0;
 	var grid = element.all(by.xpath("//data-aggrid-groupingtable[@data-svy-name='" + elementName + "']"));
 	grid.each(function (menuItems) {
 		menuItems.all(by.css(".ag-row-level-" + level + "")).each(function (row) {
@@ -570,6 +520,40 @@ function scrollToElement(elementName, recordText, rowOption, level, callback) {
 		browser.executeScript("arguments[0].scrollIntoView(true);", elem.getWebElement()).then(function () {
 			findRecord(elementName, recordText, rowOption, level, callback);
 		});
+	});
+}
+
+//deletes previously used reports and files
+
+function removeHtmlReports(htmlDirectory) {
+	var files = find.fileSync(/\.html/, htmlDirectory);
+	files.map(function (file) {
+		fs.unlinkSync(file);
+	});
+}
+
+function removeScreenshots(screenshotDirectory) {
+	var files = find.fileSync(/\.png/, screenshotDirectory);
+	files.map(function (file) {
+		fs.unlinkSync(file);
+	});
+}
+
+function createDirIfNotExists(dir) {
+	if (!fs.existsSync(dir)) {
+		fs.mkdirSync(dir);
+	}
+}
+
+function clearGrouping() {
+	$$('.ag-column-drop-cell-button').count().then(function (limit) {
+		if (limit > 0) {
+			$$('.ag-column-drop-cell-button').get(limit - 1).click().then(function () {
+				clearGrouping();
+			});
+		} else {
+			return true;
+		}
 	});
 }
 

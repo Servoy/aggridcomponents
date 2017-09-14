@@ -8,45 +8,47 @@ Given I go to http://localhost:8080/solutions/svyGroupingGridDemo/index.html?f=a
 # Test 1 - Expand and collapse nodes
 #------------------------------------------------------------------------------------
 # Expand the first node
-When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to expand the row with Afghanistan as text
-When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to expand the child row with Kabul as text
+When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to expand row level 1 with Austria as text
+When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to expand row level 2 with Graz as text
 # Then servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I expect there will be 13 orders placed
 
 # Go on France
-When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to expand the row with France as text
-When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to expand the child row with Paris as text
+When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to expand row level 1 with France as text
+When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to expand row level 2 with Paris as text
 
 # Collapse France
-When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to collapse the row with France as text
+When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to collapse row level 1 with France as text
 
 # Go on the last node and expand Zimbabwe
-When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to expand the row with Zimbabwe as text
-When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to expand the child row with Harare as text
+When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to expand row level 1 with Venezuela as text
+When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to expand row level 2 with Caracas as text
 # Then servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I expect there will be 12 orders placed
 
 # Collapse Zimbabwe
-When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to collapse the child row with Harare as text
-When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to collapse the row with Zimbabwe as text
+When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to collapse row level 2 with Caracas as text
+When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to collapse row level 1 with Venezuela as text
 
 # Expand Zimbabwe again
-When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to expand the row with Zimbabwe as text
-When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to expand the child row with Harare as text
+When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to expand row level 1 with Venezuela as text
+When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to expand row level 2 with Caracas as text
 # Then servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I expect there will be 13 orders placed
 
 # Test 2.0 Change Group Criteria
 #------------------------------------------------------
 # Expand the first node
-When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to expand the row with Afghanistan as text
+### When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to expand row level 1 with Austria as text
+### When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to expand row level 2 with Graz as text
 # Ungroup By Country
-When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to ungroup the table by Country
+When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to drag the grouping item with City as text to the start
 # Expand the first node
-When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to expand the row with Amsterdam as text
+When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to expand row level 1 with Amsterdam as text
+When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to expand row level 2 with Netherlands as text
 
 # Test 2.1 - Group by Customer City
 #------------------------------------------------------
 # Group by Customer - City
 When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to group the table by Customer
-# When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to ungroup the table by Country
+When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to ungroup the table by Country
 When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to ungroup the table by City
 When servoy data-aggrid-groupingtable component with name agGridOrders.groupingtable_1 I want to group the table by City
 
