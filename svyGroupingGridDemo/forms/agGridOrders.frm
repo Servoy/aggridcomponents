@@ -295,6 +295,11 @@ svyUUID:"9C0ED4B1-D13B-4254-AA7C-613ACF7F0031"
 dataprovider:"orders_to_employees.lastname",
 headerTitle:"Employee",
 svyUUID:"EC50F9A1-8089-4DD9-AAE8-A4C35FA0D68D"
+},
+{
+dataprovider:"shippostalcode",
+headerTitle:"Zipcode",
+svyUUID:"00E30368-A604-4ECD-A254-83F2E302F766"
 }
 ],
 location:{

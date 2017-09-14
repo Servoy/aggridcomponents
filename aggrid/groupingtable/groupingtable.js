@@ -160,16 +160,16 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						var startIndex = foundset.foundset.viewPort.startIndex;
 						var endIndex = startIndex + foundset.foundset.viewPort.size;
 						if (cacheBlock.startRow < startIndex) {
-							$log.error("Block " + cacheBlock.startRow + ' - ' + cacheBlock.endRow + ' is < then cached foundset ' + startIndex + ' - ' + endIndex);
+							$log.error((cacheBlock.pageStatus === "loading" ? "...Loading " : "" ) + "Block " + cacheBlock.startRow + ' - ' + cacheBlock.endRow + ' is < then cached foundset ' + startIndex + ' - ' + endIndex);
 						}
 						if (cacheBlock.startRow > endIndex) {
-							$log.error("Block " + cacheBlock.startRow + ' - ' + cacheBlock.endRow + ' is > then cached foundset ' + startIndex + ' - ' + endIndex);
+							$log.error((cacheBlock.pageStatus === "loading" ? "...Loading " : "" ) + "Block " + cacheBlock.startRow + ' - ' + cacheBlock.endRow + ' is > then cached foundset ' + startIndex + ' - ' + endIndex);
 						}
 						if (cacheBlock.endRow < startIndex) {
-							$log.error("Block " + cacheBlock.startRow + ' - ' + cacheBlock.endRow + ' is < then cached foundset ' + startIndex + ' - ' + endIndex);
+							$log.error((cacheBlock.pageStatus === "loading" ? "...Loading " : "" ) + "Block " + cacheBlock.startRow + ' - ' + cacheBlock.endRow + ' is < then cached foundset ' + startIndex + ' - ' + endIndex);
 						}
 						if (cacheBlock.endRow > endIndex) {
-							$log.error("Block " + cacheBlock.startRow + ' - ' + cacheBlock.endRow + ' is > then cached foundset ' + startIndex + ' - ' + endIndex);
+							$log.error((cacheBlock.pageStatus === "loading" ? "...Loading " : "" ) + "Block " + cacheBlock.startRow + ' - ' + cacheBlock.endRow + ' is > then cached foundset ' + startIndex + ' - ' + endIndex);
 						}
 					}
 
@@ -937,12 +937,6 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						}
 					}
 
-					// TODO disable selection
-
-					// first, if not the top level, take out everything that is not under the group
-					// we are looking at.
-					//var filteredData = this.filterOutOtherGroups(filteredData, groupKeys, rowGroupCols);
-
 					// Sort on the foundset Group
 					if (sortRootGroup) { // no sort need to be applied
 						// Should change the foundset with a different sort order
@@ -1018,32 +1012,61 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						if (!isTableGrouped()) test_validateCache();
 
 						// load record if endRow is not in viewPort
-						var startIndex = foundsetManager.foundset.viewPort.startIndex;
-						var viewPortSize = foundsetManager.foundset.viewPort.size;
+						var startIndex = foundsetManager.foundset.viewPort.startIndex;		// start index of view port (0-based)
+						var viewPortSize = foundsetManager.foundset.viewPort.size;			// viewport size
+						var endIndex = startIndex + viewPortSize;							// end index of the view port (0-based)
 
 						// index in the cached viewPort (0-based);
 						var viewPortStartIndex = request.startRow - startIndex;
 						var viewPortEndIndex = request.endRow - startIndex;
 
-						if (request.startRow < startIndex || (request.endRow > (startIndex + viewPortSize) && foundsetManager.getLastRowIndex() === -1)) {
+//						// check if the requested rows are already in viewport
+//						if (request.startRow >= startIndex && request.endRow <= endIndex) {
+//							
+//						} else {
+//							
+//						}
+ 						
+						if (request.startRow < startIndex || (request.endRow > endIndex && foundsetManager.getLastRowIndex() === -1)) {
 
 							var errorTimeout = setTimeout(function() {
 									$log.error('Could not load records for foundset ' + foundsetManager.foundsetUUID + ' Start ' + request.startRow + ' End ' + request.endRow);
-								}, 2000)
+								}, 10000); // TODO set timeout
 							// it keeps loading always the same data. Why ?
-							var promise = foundsetManager.loadExtraRecordsAsync(request.startRow, request.endRow - request.startRow, false);
+							// Calculate the size
+							
+							
+							var requestViewPortStartIndex;
+							// keep the previous chunk in cache
+							if (request.startRow >= CHUNK_SIZE && request.endRow >= endIndex) {
+								requestViewPortStartIndex = request.startRow - CHUNK_SIZE;
+							} else {
+								requestViewPortStartIndex = request.startRow;
+							}
+							
+							var requestViewPortEndIndex = request.endRow - requestViewPortStartIndex;
+							var size = request.endRow - request.startRow;
+							
+							console.log('Load async ' + requestViewPortStartIndex + ' - ' + requestViewPortEndIndex + ' with size ' + size);
+							var promise = foundsetManager.loadExtraRecordsAsync(requestViewPortStartIndex, size, false);
 							promise.then(function() {
 
+								// load complete
 								if (errorTimeout) {
 									clearTimeout(errorTimeout);
 								}
 
+								// get the index of the last row
 								var lastRowIndex = foundsetManager.getLastRowIndex();
-								// result = foundsetManager.getViewPortData(request.startRow, request.endRow);
-
+								
 								// update viewPortStatIndex
 								viewPortStartIndex = request.startRow - foundsetManager.foundset.viewPort.startIndex;
 								viewPortEndIndex = request.endRow - foundsetManager.foundset.viewPort.startIndex;
+								
+//								viewPortStartIndex = requestViewPortStartIndex - foundsetManager.foundset.viewPort.startIndex;
+//								viewPortEndIndex = requestViewPortEndIndex - foundsetManager.foundset.viewPort.startIndex;
+								
+								console.log('Get View Port ' + viewPortStartIndex + ' - ' + viewPortEndIndex + ' on ' + foundsetManager.foundset.viewPort.startIndex +' with size ' + foundsetManager.foundset.viewPort.size);
 
 								result = foundsetManager.getViewPortData(viewPortStartIndex, viewPortEndIndex);
 								callback(result, lastRowIndex);
@@ -2383,7 +2406,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						suppressMenu: true,
 						suppressNavigable: true,
 						suppressResize: true,
-						hide: false
+						hide: true
 					});
 
 					return colDefs;
