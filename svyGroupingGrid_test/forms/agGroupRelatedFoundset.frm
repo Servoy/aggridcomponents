@@ -95,7 +95,7 @@ headerStyleClass:"red",
 headerTitle:"Order ID",
 styleClass:"img-link",
 svyUUID:"A2054FB0-C0A8-4636-A820-C92BB8DEA18F",
-valuelist:"D44E3153-4580-49C3-A696-E50944572D4E"
+valuelist:"D4D05441-BE77-41F6-BAD7-B5C22792AED0"
 },
 {
 dataprovider:"productid",

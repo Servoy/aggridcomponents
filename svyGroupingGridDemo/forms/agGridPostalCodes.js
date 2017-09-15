@@ -65,8 +65,10 @@ function onSearch(event) {
 function search() {
 	var fs = foundset.duplicateFoundSet();
 	if (fs.find()) {
-		fs.city = searchText;
-		fs.search()
+		fs.city = '#%' + searchText +'%';
+		fs.newRecord()
+		fs.address = '#%' + searchText +'%';
+		fs.search();
 		foundset.loadRecords(fs);
 	}
 }

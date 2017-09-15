@@ -1,5 +1,5 @@
-angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable', ['$log', '$q', '$foundsetTypeConstants', '$filter',
-	function($log, $q, $foundsetTypeConstants, $filter) {
+angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable', ['$sabloConstants', '$log', '$q', '$foundsetTypeConstants', '$filter',
+	function($sabloConstants, $log, $q, $foundsetTypeConstants, $filter) {
 		return {
 			restrict: 'E',
 			scope: {
@@ -160,20 +160,38 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						var startIndex = foundset.foundset.viewPort.startIndex;
 						var endIndex = startIndex + foundset.foundset.viewPort.size;
 						if (cacheBlock.startRow < startIndex) {
-							$log.error((cacheBlock.pageStatus === "loading" ? "...Loading " : "" ) + "Block " + cacheBlock.startRow + ' - ' + cacheBlock.endRow + ' is < then cached foundset ' + startIndex + ' - ' + endIndex);
+							$log.error( (cacheBlock.pageStatus === "loading" ? "...Loading " : "") + "Block " + cacheBlock.startRow + ' - ' + cacheBlock.endRow + ' is < then cached foundset ' + startIndex + ' - ' + endIndex);
 						}
 						if (cacheBlock.startRow > endIndex) {
-							$log.error((cacheBlock.pageStatus === "loading" ? "...Loading " : "" ) + "Block " + cacheBlock.startRow + ' - ' + cacheBlock.endRow + ' is > then cached foundset ' + startIndex + ' - ' + endIndex);
+							$log.error( (cacheBlock.pageStatus === "loading" ? "...Loading " : "") + "Block " + cacheBlock.startRow + ' - ' + cacheBlock.endRow + ' is > then cached foundset ' + startIndex + ' - ' + endIndex);
 						}
 						if (cacheBlock.endRow < startIndex) {
-							$log.error((cacheBlock.pageStatus === "loading" ? "...Loading " : "" ) + "Block " + cacheBlock.startRow + ' - ' + cacheBlock.endRow + ' is < then cached foundset ' + startIndex + ' - ' + endIndex);
+							$log.error( (cacheBlock.pageStatus === "loading" ? "...Loading " : "") + "Block " + cacheBlock.startRow + ' - ' + cacheBlock.endRow + ' is < then cached foundset ' + startIndex + ' - ' + endIndex);
 						}
 						if (cacheBlock.endRow > endIndex) {
-							$log.error((cacheBlock.pageStatus === "loading" ? "...Loading " : "" ) + "Block " + cacheBlock.startRow + ' - ' + cacheBlock.endRow + ' is > then cached foundset ' + startIndex + ' - ' + endIndex);
+							$log.error( (cacheBlock.pageStatus === "loading" ? "...Loading " : "") + "Block " + cacheBlock.startRow + ' - ' + cacheBlock.endRow + ' is > then cached foundset ' + startIndex + ' - ' + endIndex);
 						}
 					}
 
 				}
+
+				/** Listen for changes */
+				Object.defineProperty($scope.model, $sabloConstants.modelChangeNotifier, {
+						configurable: true,
+						value: function(property, value) {
+							switch (property) {
+							case "responsiveHeight":
+								setHeight();
+								break;
+							}
+						}
+					});
+
+				// data can already be here, if so call the modelChange function so that it is initialized correctly.
+				//				var modelChangFunction = $scope.model[$sabloConstants.modelChangeNotifier];
+				//				for (var key in $scope.model) {
+				//					modelChangFunction(key,$scope.model[key]);
+				//				}
 
 				$scope.reload = function(count) { }
 				var CHUNK_SIZE = 50;
@@ -219,6 +237,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				// the group manager
 				var groupManager = new GroupManager();
 
+				var gridDiv = $element.find('.ag-table')[0];
 				var columnDefs = getColumnDefs();
 				var sortModelDefault = getSortModel();
 				var rowGroupColsDefault = getDefaultRowGroupCols();
@@ -246,7 +265,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					// rowGroupColumnDef: columnDefs,
 					// groupColumnDef : columnDefs,
 					// enableSorting: false,
-					suppressMovableColumns: true, 		// TODO persist column order changes
+					suppressMovableColumns: true, // TODO persist column order changes
 					enableServerSideSorting: $scope.model.enableSort,
 					enableColResize: $scope.model.enableColumnResize,
 					suppressAutoSize: true,
@@ -318,15 +337,31 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				if ($scope.model.iconSortDescending) icons.sortDescending = getIconElement($scope.model.iconSortDescending);
 				if ($scope.model.iconSortUnSort) icons.sortUnSort = getIconElement($scope.model.iconSortUnSort);
 
-				console.log(icons)
-
 				gridOptions.icons = icons;
 
-				//https://www.screencast.com/t/JdS6Yz00i
+				// set a fixed height if is in designer
+				if (isResponsive()) {
+					gridDiv.style.height = $scope.model.responsiveHeight + 'px';
+				}
 
-				// init the grid
-				var gridDiv = $element.find('.ag-table')[0];
-				new agGrid.Grid(gridDiv, gridOptions);
+				// init the grid. If is in designer render a mocked grid
+				if ($scope.svyServoyapi.isInDesigner()) {
+
+					var designGridOptions = {
+						rowModelType: 'inMemory',
+						columnDefs: columnDefs,
+						rowHeight: $scope.model.rowHeight,
+						domLayout: "autoHeight"
+
+					};
+
+					// init the grid
+					new agGrid.Grid(gridDiv, designGridOptions);
+					return;
+				} else {
+					// init the grid
+					new agGrid.Grid(gridDiv, gridOptions);
+				}
 				// FIXME set columns to fit when table resizes
 				//				gridOptions.api.sizeColumnsToFit();
 
@@ -769,7 +804,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 							delete expandedState.columns[field][key];
 						}
 					}
-					
+
 					// TODO expose model property to control perfomance
 					if (isExpanded === false && $scope.model.perfomanceClearCacheStateOnCollapse === true) {
 						// TODO remove the foundset
@@ -919,7 +954,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						// groupManager (UUID)
 						// group, in the foundsetHashmap and in the state ?
 						var foundsetRefManager = getFoundsetManagerByFoundsetUUID(foundsetUUID);
-						
+
 						if (sortString === "") {
 							// TODO restore a default sort order when sort is removed
 							$log.error(" Use the default foundset sort.. which is ? ");
@@ -967,21 +1002,21 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						if (!isTableGrouped()) test_validateCache();
 
 						// load record if endRow is not in viewPort
-						var startIndex = foundsetManager.foundset.viewPort.startIndex;		// start index of view port (0-based)
-						var viewPortSize = foundsetManager.foundset.viewPort.size;			// viewport size
-						var endIndex = startIndex + viewPortSize;							// end index of the view port (0-based)
+						var startIndex = foundsetManager.foundset.viewPort.startIndex; // start index of view port (0-based)
+						var viewPortSize = foundsetManager.foundset.viewPort.size; // viewport size
+						var endIndex = startIndex + viewPortSize; // end index of the view port (0-based)
 
 						// index in the cached viewPort (0-based);
 						var viewPortStartIndex = request.startRow - startIndex;
 						var viewPortEndIndex = request.endRow - startIndex;
 
-//						// check if the requested rows are already in viewport
-//						if (request.startRow >= startIndex && request.endRow <= endIndex) {
-//							
-//						} else {
-//							
-//						}
- 						
+						//						// check if the requested rows are already in viewport
+						//						if (request.startRow >= startIndex && request.endRow <= endIndex) {
+						//
+						//						} else {
+						//
+						//						}
+
 						if (request.startRow < startIndex || (request.endRow > endIndex && foundsetManager.getLastRowIndex() === -1)) {
 
 							var errorTimeout = setTimeout(function() {
@@ -989,8 +1024,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 								}, 10000); // TODO set timeout
 							// it keeps loading always the same data. Why ?
 							// Calculate the size
-							
-							
+
 							var requestViewPortStartIndex;
 							// keep the previous chunk in cache
 							if (request.startRow >= CHUNK_SIZE && request.endRow >= endIndex) {
@@ -998,10 +1032,10 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 							} else {
 								requestViewPortStartIndex = request.startRow;
 							}
-							
+
 							var requestViewPortEndIndex = request.endRow - requestViewPortStartIndex;
 							var size = request.endRow - request.startRow;
-							
+
 							console.log('Load async ' + requestViewPortStartIndex + ' - ' + requestViewPortEndIndex + ' with size ' + size);
 							var promise = foundsetManager.loadExtraRecordsAsync(requestViewPortStartIndex, size, false);
 							promise.then(function() {
@@ -1013,15 +1047,15 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 								// get the index of the last row
 								var lastRowIndex = foundsetManager.getLastRowIndex();
-								
+
 								// update viewPortStatIndex
 								viewPortStartIndex = request.startRow - foundsetManager.foundset.viewPort.startIndex;
 								viewPortEndIndex = request.endRow - foundsetManager.foundset.viewPort.startIndex;
-								
-//								viewPortStartIndex = requestViewPortStartIndex - foundsetManager.foundset.viewPort.startIndex;
-//								viewPortEndIndex = requestViewPortEndIndex - foundsetManager.foundset.viewPort.startIndex;
-								
-								console.log('Get View Port ' + viewPortStartIndex + ' - ' + viewPortEndIndex + ' on ' + foundsetManager.foundset.viewPort.startIndex +' with size ' + foundsetManager.foundset.viewPort.size);
+
+								//								viewPortStartIndex = requestViewPortStartIndex - foundsetManager.foundset.viewPort.startIndex;
+								//								viewPortEndIndex = requestViewPortEndIndex - foundsetManager.foundset.viewPort.startIndex;
+
+								console.log('Get View Port ' + viewPortStartIndex + ' - ' + viewPortEndIndex + ' on ' + foundsetManager.foundset.viewPort.startIndex + ' with size ' + foundsetManager.foundset.viewPort.size);
 
 								result = foundsetManager.getViewPortData(viewPortStartIndex, viewPortEndIndex);
 								callback(result, lastRowIndex);
@@ -1245,7 +1279,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 					var loadExtraRecordsAsync = function(startIndex, size, dontNotifyYet) {
 						// TODO use loadRecordsAsync to keep cache small
-						size = size * CACHED_CHUNK_BLOCKS;
+						size = (size * CACHED_CHUNK_BLOCKS) + size;
 						if (thisInstance.hasMoreRecordsToLoad() === false) {
 							size = this.foundset.serverSize - startIndex;
 						}
@@ -1274,7 +1308,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					}
 
 					var getSortColumns = function() {
-						return thisInstance.foundset.sortColumns;
+						return thisInstance.foundset ? thisInstance.foundset.sortColumns : null;
 					}
 
 					var sort = function(sortString) {
@@ -1975,47 +2009,11 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				/*************************************************************************************
 				 *************************************************************************************
 				 *
-				 * Global Methods
+				 * Global Table Methods
 				 *
 				 *************************************************************************************
 				 *************************************************************************************/
 
-				/**
-				 * @private
-				 * Check if objects are deep equal
-				 * */
-				function areObjectEqual(o1, o2) {
-					if (o1 instanceof Array) {
-						if (o1.lenght != o2.length) {
-							return false;
-						} else {
-							for (var i = 0; i < o1.length; i++) {
-								areObjectEqual(o1, o2);
-							}
-						}
-
-					} else if (o1 instanceof String) {
-						return o1 === o2;
-					} else if (o1 instanceof Number) {
-						return o1 === o2;
-					} else if (o1 instanceof Date) {
-						return o1 === o2;
-					} else if (o1 instanceof Boolean) {
-						return o1 === o2;
-					} else if (o1 instanceof Function) {
-						$log.warn('skip function debug');
-					} else if (o1 === null) {
-						return o2 === null;
-					} else if (o1 === undefined) {
-						return o2 === undefined;
-					} else {
-						for (var prop in o1) {
-							if (o1[prop] !== o2[prop]) {
-								return false;
-							}
-						}
-					}
-				}
 
 				//				/** Listener of a group foundset
 				//				 *  TODO remove changeListener when removing a foundset
@@ -2314,7 +2312,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					var colDefs = [];
 					var colDef = { };
 					var column;
-					for (var i = 0; i < $scope.model.columns.length; i++) {
+					for (var i = 0; $scope.model.columns && i < $scope.model.columns.length; i++) {
 						column = $scope.model.columns[i];
 
 						var field = getColumnID(column, i);
@@ -2557,13 +2555,75 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						sortColumns: sortColumns
 					};
 				}
+				
+				/***********************************************************************************************************************************
+				 ***********************************************************************************************************************************
+				 * 
+				 * Generic methods
+				 * 
+				 ************************************************************************************************************************************
+				 ***********************************************************************************************************************************/
+				
+				$scope.showEditorHint = function() {
+					return (!$scope.model.columns || $scope.model.columns.length == 0) && $scope.svyServoyapi.isInDesigner();
+				}
+				
+				function isResponsive() {
+					var parent = $element.parent();
+					console.log(!parent.hasClass('svy-wrapper'));
+					return !parent.hasClass('svy-wrapper');
+				}
+				
+				function setHeight() {
+					if (isResponsive()) {
+						gridDiv.style.height = $scope.model.responsiveHeight + 'px';
+					}
+				}		
+				
+				
+				/**
+				 * @private
+				 * Check if objects are deep equal
+				 * */
+				function areObjectEqual(o1, o2) {
+					if (o1 instanceof Array) {
+						if (o1.lenght != o2.length) {
+							return false;
+						} else {
+							for (var i = 0; i < o1.length; i++) {
+								areObjectEqual(o1, o2);
+							}
+						}
+
+					} else if (o1 instanceof String) {
+						return o1 === o2;
+					} else if (o1 instanceof Number) {
+						return o1 === o2;
+					} else if (o1 instanceof Date) {
+						return o1 === o2;
+					} else if (o1 instanceof Boolean) {
+						return o1 === o2;
+					} else if (o1 instanceof Function) {
+						$log.warn('skip function debug');
+					} else if (o1 === null) {
+						return o2 === null;
+					} else if (o1 === undefined) {
+						return o2 === undefined;
+					} else {
+						for (var prop in o1) {
+							if (o1[prop] !== o2[prop]) {
+								return false;
+							}
+						}
+					}
+				}				
 
 				/**
 				 * Create a JSEvent
 				 *
 				 * @return {JSEvent}
 				 * */
-				createJSEvent = function() {
+				function createJSEvent() {
 					var element = $element;
 					var offset = element.offset();
 					var x = offset.left;
@@ -2587,6 +2647,10 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						// TODO remove change listener from each hashedFoundset
 						$log.warn('TODO remove change listener from each hashedFoundset')
 						// Restore change listener from each hashedFoundset when showing again
+
+						// remove model change notifier
+						destroyListenerUnreg();
+						delete $scope.model[$sabloConstants.modelChangeNotifier];
 
 					});
 
@@ -2742,7 +2806,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				 groupItem[field] = Math.random(); // just make up a number
 				 break;
 				 default:
-				 console.warn('unrecognised aggregation function: ' + valueCol.aggFunc);
+				 $log.warn('unrecognised aggregation function: ' + valueCol.aggFunc);
 				 break;
 				 }
 
