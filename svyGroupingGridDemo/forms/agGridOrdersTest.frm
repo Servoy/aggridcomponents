@@ -305,6 +305,7 @@ svyUUID:"FA128D6C-9E9A-4CCF-9662-5830FB5000B1"
 {
 dataprovider:"orders_to_customers.contactname",
 headerTitle:"Customer Name",
+rowGroupIndex:2,
 svyUUID:"14AC82BE-E121-46C9-A29D-EBD13A1B753C"
 },
 {
