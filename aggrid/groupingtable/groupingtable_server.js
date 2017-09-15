@@ -6,18 +6,17 @@
  *
  * */
 $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets, sort) {
-	// root is the parent
-	console.log('START SERVER SIDE ------------------------------------------ ');
-	console.log(groupColumns);
-	console.log(groupKeys);
+//	console.log('START SERVER SIDE ------------------------------------------ ');
 
+	
+	// root is the parent
 	var parentFoundset = $scope.model.myFoundset.foundset;
 
 	// I need the full column/key mapping
 	/** @type {QBSelect} */
 	var query = parentFoundset.getQuery();
 
-	console.log(query);
+//	console.log(query);
 
 	var groupColumn;
 	var groupDataprovider;
@@ -27,7 +26,7 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 
 		// retrieve the grouping column
 		groupDataprovider = $scope.model.columns[groupColumnIndex].dataprovider;
-		console.log('group on ' + groupDataprovider);
+//		console.log('group on ' + groupDataprovider);
 
 		if (isRelatedDataprovider(groupDataprovider)) {
 			// should search for all the relations (can be multiple level)
@@ -43,7 +42,7 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 				var relationName = relationNames[j];
 				// use unique name for multiple level relations
 				var relationPath = relationNames.slice(0, j + 1).join("____");
-				console.log(relationPath)
+//				console.log(relationPath)
 				// check if already has a relation
 				var existingJoin = getJoin(join, relationPath);
 				if (existingJoin) {
@@ -79,31 +78,32 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 			query.result.add(pkColumns[i].min);
 		}
 		if (pkColumns.length > 1) {
-			console.warn('The component does not support multiple primary keys');
-
-			if (pkColumns.length === 2) {
-
-				//				 WHERE order_details.productid = (\
-				//							select order_details2.productid \
-				//							 from order_details order_details2 \
-				//							 left outer join products order_details_to_products2 on order_details2.productid=order_details_to_products2.productid \
-				//							 left outer join categories products_to_categories2 on order_details_to_products2.categoryid=products_to_categories2.categoryid \
-				//							 where products_to_categories2.categoryname = products_to_categories.categoryname and order_details2.orderid = order_details.orderid limit 1\
-				//					 )\
-
-			}
+//			if (pkColumns.length === 2) {
+			//
+//							//				 WHERE order_details.productid = (\
+//							//							select order_details2.productid \
+//							//							 from order_details order_details2 \
+//							//							 left outer join products order_details_to_products2 on order_details2.productid=order_details_to_products2.productid \
+//							//							 left outer join categories products_to_categories2 on order_details_to_products2.categoryid=products_to_categories2.categoryid \
+//							//							 where products_to_categories2.categoryname = products_to_categories.categoryname and order_details2.orderid = order_details.orderid limit 1\
+//							//					 )\
+			//
+//						}
+			
+			console.error("Grouping is not supported on foundset having multiple primary keys. The component's foundset must have one single primary key");
+			throw "Grouping is not supported on foundset having multiple primary keys. The component's foundset must have one single primary key";
 		}
 
 		query.groupBy.add(groupColumn);
 		query.sort.clear();
-		console.log(sort)
+//		console.log(sort)
 		if (sort === 'desc') {
 			query.sort.add(groupColumn.desc);
 		} else {
 			query.sort.add(groupColumn.asc);
 		}
 
-		console.log('Run Query ' + query);
+//		console.log('Run Query ' + query);
 
 	} else { // is not a new group, will be a leaf !
 
@@ -115,7 +115,7 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 	var childFoundset = parentFoundset.duplicateFoundSet();
 	childFoundset.loadRecords(query);
 
-	console.log('Matching records ' + childFoundset.getSize());
+//	console.log('Matching records ' + childFoundset.getSize());
 
 	// push dataproviders to the clientside foundset
 	var dps = { };
@@ -143,7 +143,7 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 		foundsetUUID: childFoundset
 	}); // send it to client as a foundset property with a UUID
 
-	console.log('END SERVER SIDE QUERY ' + $scope.model.hashedFoundsets[$scope.model.hashedFoundsets.length - 1]);
+//	console.log('END SERVER SIDE QUERY ' + $scope.model.hashedFoundsets[$scope.model.hashedFoundsets.length - 1]);
 
 	return childFoundset; // return the UUID that points to this foundset (return type will make it UUID)
 };

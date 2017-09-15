@@ -340,10 +340,8 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				gridOptions.icons = icons;
 
 				// set a fixed height if is in designer
-				if (isResponsive()) {
-					gridDiv.style.height = $scope.model.responsiveHeight + 'px';
-				}
-
+				setHeight();
+				
 				// init the grid. If is in designer render a mocked grid
 				if ($scope.svyServoyapi.isInDesigner()) {
 
@@ -351,8 +349,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						rowModelType: 'inMemory',
 						columnDefs: columnDefs,
 						rowHeight: $scope.model.rowHeight,
-						domLayout: "autoHeight"
-
+						rowData: []
 					};
 
 					// init the grid
@@ -930,14 +927,10 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					// Sort on the foundset Group
 					if (sortRootGroup) { // no sort need to be applied
 						// Should change the foundset with a different sort order
-						groupManager.createOrReplaceFoundsetRef(rowGroupCols, groupKeys, sortModel[0].sort).then(getFoundsetRefSuccess).catch(function(e) {
-							$log.error(e);
-						});
+						groupManager.createOrReplaceFoundsetRef(rowGroupCols, groupKeys, sortModel[0].sort).then(getFoundsetRefSuccess).catch(getFoundsetRefError);
 					} else {
 						// get the foundset reference
-						groupManager.getFoundsetRef(rowGroupCols, groupKeys).then(getFoundsetRefSuccess).catch(function(e) {
-							$log.error(e);
-						});
+						groupManager.getFoundsetRef(rowGroupCols, groupKeys).then(getFoundsetRefSuccess).catch(getFoundsetRefError);
 					}
 
 					/**
@@ -1060,13 +1053,18 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 								result = foundsetManager.getViewPortData(viewPortStartIndex, viewPortEndIndex);
 								callback(result, lastRowIndex);
 
-							}).catch(function(e) {
-								$log.error(e);
-								callback([], -1);
-							});
+							}).catch(getFoundsetRefError);
 						} else {
 							callback(foundsetManager.getViewPortData(viewPortStartIndex, viewPortEndIndex), foundsetManager.getLastRowIndex());
 						}
+					}
+					
+					
+					function getFoundsetRefError(e) {
+						$log.error(e);
+						// remove all groups reset all group columns to null if error happened
+						// callback([], -1);
+						gridOptions.columnApi.setRowGroupColumns([]);
 					}
 
 					return;
@@ -1084,7 +1082,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 				};
 
-				function init() {
+				function initRootFoundset() {
 
 					foundset = new FoundSetManager($scope.model.myFoundset, 'root', true);
 
@@ -1111,7 +1109,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 						$log.error('myFoundset root changed');
 
-						init();
+						initRootFoundset();
 
 						// TODO ASK R&D should i remove and add the previous listener ?
 						$scope.model.myFoundset.removeChangeListener(changeListener);
@@ -1823,7 +1821,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						}
 
 						function promiseError(e) {
-							$log.error(e);
+							// propagate the error
 							resultPromise.reject(e);
 						}
 
@@ -1857,20 +1855,16 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						childFoundsetPromise.then(function(childFoundsetUUID) {
 								$log.debug(childFoundsetUUID);
 								if (!childFoundsetUUID) {
-									$log.error("why i don't have a childFoundset ?")
+									$log.error("why i don't have a childFoundset ?");
+									resultDeferred.reject("can't retrieve the child foundset");
 								}
 
 								// FIXME add listener somewhere else
 								//childFoundset.addChangeListener(childChangeListener);
-
-								//resultDeferred.resolve({ foundsetRef: childFoundset, foundsetUUID: childFoundsetUUID });
 								resultDeferred.resolve(childFoundsetUUID);
-								// TODO get data
-								//mergeData('', childFoundset);
 							}, function(e) {
-								$log.error(e);
+								// propagate the error
 								resultDeferred.reject(e);
-								// some error happened
 							});
 
 						return resultDeferred.promise;
@@ -2076,7 +2070,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 							});
 							promise.catch(function(e) {
 								$log.error(e);
-								init();
+								initRootFoundset();
 							});
 						} else {
 							refreshDatasource();
