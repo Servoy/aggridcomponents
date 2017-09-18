@@ -148,6 +148,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				}
 
 				$scope.printCache = function() {
+					console.log($scope.model.hashedFoundsets);
 					console.log(foundset.foundset.viewPort);
 					console.log(gridOptions.api.getCacheBlockState());
 				}
@@ -341,7 +342,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 				// set a fixed height if is in designer
 				setHeight();
-				
+
 				// init the grid. If is in designer render a mocked grid
 				if ($scope.svyServoyapi.isInDesigner()) {
 
@@ -698,15 +699,16 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 							// if the column has been removed or order of columns has been changed
 							if (i >= event.columns.length || state.grouped.columns[i] != event.columns[i].colId) {
 
-								if (i === 0) {
+							//	if (i === 0) {
 									// FIXME does it breaks it, why does it happen ? concurrency issue ?
 									//	groupManager.clearAll();
 									// FIXME this is a workadound, i don't why does it fail when i change a root level (same issue of sort and expand/collapse)
-									groupManager.removeFoundsetRefAtLevel(1);
-								} else {
+							//		groupManager.clearAll();
+							//	} else {
 									// Clear Column X and all it's child
-									groupManager.removeFoundsetRefAtLevel(i);
-								}
+									// NOTE: level are at deep 2 (1 column + 1 key)
+									groupManager.removeFoundsetRefAtLevel(i*2);
+							//	}
 								break;
 							}
 						}
@@ -1058,8 +1060,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 							callback(foundsetManager.getViewPortData(viewPortStartIndex, viewPortEndIndex), foundsetManager.getLastRowIndex());
 						}
 					}
-					
-					
+
 					function getFoundsetRefError(e) {
 						$log.error(e);
 						// remove all groups reset all group columns to null if error happened
@@ -1198,7 +1199,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 							});
 						}
 						$log.debug('Next line is the result data to be loaded in table')
-						console.log(result);
+//						console.log(result);
 						return result;
 					}
 
@@ -1385,6 +1386,87 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					this.sort = sort;
 
 				}
+				
+				
+				/**
+				 * @constructor 
+				 * 
+				 * @public
+				 * @param {String} id
+				 *  */
+				function GroupNode(id) {
+					this.id = id;
+					this.nodes = new Object();
+					this.foundsetUUID = undefined;
+
+					var thisInstance = this;
+
+					/**
+					 * @public
+					 * @param {Function} callback execute function for each subnode. Arguments GroupNode
+					 *  */
+					this.forEach = function(callback) {
+						for (var key in this.nodes) {
+//							application.output(this.nodes[key].foundsetUUID);
+							callback.call(this, this.nodes[key]);
+						}
+					}
+
+					/**
+					 * @public
+					 * @return {Boolean} returns true if the callback ever returns true
+					 * @param {Function} callback execute function for each subnode until returns true. Arguments GroupNode
+					 *  */
+					this.forEachUntilSuccess = function(callback) {
+						for (var key in this.nodes) {
+//							application.output(this.nodes[key].foundsetUUID);
+							if (callback.call(this, this.nodes[key]) === true) {
+								return true;
+							}
+						}
+						// return true only if there are no subnodes ?
+						return false;
+					}
+
+					/**
+					 * @public
+					 * @return {Boolean} returns true if the callback ever returns true
+					 *  */
+					this.hasNodes = function() {
+						for (var key in this.nodes) {
+							return true;
+						}
+						return false;
+					}
+
+					/**
+					 * @public
+					 * @remove the node
+					 * */
+					this.destroy = function() {
+
+						console.log('--Destroy ' + this.foundsetUUID  + ' - id : ' + this.id);
+						// destroy all it's sub nodes
+						this.removeAllSubNodes();
+
+						// do nothing if the foundset doesn't exist
+						if (this.foundsetUUID && this.foundsetUUID !== 'root') {
+							// TODO should this method access the foundsetManager ? is not a good encapsulation
+							//		if (this.onDestroy) {
+							//			this.onDestroy.call(this, [this.id, this.foundsetUUID]);
+							//		}
+							var foundsetManager = getFoundsetManagerByFoundsetUUID(this.foundsetUUID);
+							foundsetManager.destroy();
+						}
+					}
+					
+					this.removeAllSubNodes = function() {
+						this.forEach(function (subNode) {
+							subNode.destroy();
+						});
+						this.nodes = [];
+					}
+				}
 
 				// TODO to be completed, use the GroupHashCache to persist foundset UUID for rowGroupCols/groupKeys combinations
 				/**
@@ -1401,8 +1483,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				 * */
 				function GroupHashCache() {
 
-					// private properties
-					var hashTree = new Object(); // the foundsetRef mapping
+					var rootGroupNode = new GroupNode('root');
 
 					// methods
 					this.getCachedFoundset;
@@ -1412,33 +1493,14 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					this.removeCachedFoundsetAtLevel;
 					this.removeChildFoundsets;
 
+					// TODO rename in foundsetUUID
 					this.getCachedFoundset = function(rowGroupCols, groupKeys) {
-
-						var tree = hashTree;
-						var node = getTreeNode(tree, rowGroupCols, groupKeys);
+						var node = getTreeNode(rootGroupNode, rowGroupCols, groupKeys);
 						return node ? node.foundsetUUID : null;
-
-						//						for (var colIdx = 0; colIdx < rowGroupCols.length; colIdx++) {
-						//							var columnId = rowGroupCols[colIdx].field;
-						//							if (colIdx === groupKeys.length -2 ) {	// last node is not a leaf
-						//								parentTree = parentTree[columnId];
-						//							} else {	//
-						//								if (parentTree[columnId]) {
-						//									parentTree = parentTree[columnId].nodes;
-						//								} else {
-						//									return null;
-						//								}
-						//							}
-						//						}
-						//
-						//						if (parentTree) {
-						//							return parentTree.foundsetUUID;
-						//						}
-						//
 					}
 
 					this.setCachedFoundset = function(rowGroupCols, groupKeys, foundsetUUID) {
-						var tree = getTreeNode(hashTree, rowGroupCols, groupKeys, true);
+						var tree = getTreeNode(rootGroupNode, rowGroupCols, groupKeys, true);
 						tree.foundsetUUID = foundsetUUID;
 					}
 
@@ -1446,120 +1508,154 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					 * @param {String} foundsetUUID
 					 * Remove the node */
 					this.removeCachedFoundset = function(foundsetUUID) {
-						return removeFoundset(hashTree, foundsetUUID);
+						return removeFoundset(rootGroupNode, foundsetUUID);
 					}
 
 					/**
 					 * @param {Number} level
 					 * Remove the node */
 					this.removeCachedFoundsetAtLevel = function(level) {
-						return removeFoundset(hashTree, null, level);
+						return removeFoundsetAtLevel(rootGroupNode, level);
 					}
 
-					/** Remove all it's child node */
+					/**
+					 * @param {String} foundsetUUID
+					 * @param {String} [field]
+					 * @param {String} [value]
+					 * Remove all it's child node */
 					this.removeChildFoundset = function(foundsetUUID, field, value) {
-						return removeChildFoundsets(hashTree, foundsetUUID, field, value);
+						return removeChildFoundsets(rootGroupNode, foundsetUUID, field, value);
 					}
 
 					this.clearAll = function() {
-						for (var nodeKey in hashTree) {
-							var node = hashTree[nodeKey];
+
+						rootGroupNode.forEach(function(node) {
 							if (node.foundsetUUID) {
-								removeFoundset(hashTree, node.foundsetUUID);
+								removeFoundset(rootGroupNode, node.foundsetUUID);
 							} else {
 								// TODO is it this possible
 								$log.error('There is a root node without a foundset UUID, it should not happen');
 							}
-						}
+
+						});
 						if ($scope.model.hashedFoundsets.length > 0) {
 							$log.error("Clear All was not successful, please debug");
 						}
 					}
 
-					function removeFoundset(tree, foundsetUUID, level) {
+					/**
+					 * @param {GroupNode} tree
+					 * @param {String} foundsetUUID
+					 * @return Boolean
+					 *  */
+					function removeFoundset(tree, foundsetUUID) {
 						if (!tree) {
 							return true;
-						}
-
-						if (!foundsetUUID && level === undefined) {
-							return true;
-						}
-
-						for (var nodeKey in tree) {
-							var subNodeKey
-							var node = tree[nodeKey];
-
-							// remove the foundset and all it's child nodes if foundsetUUID or level === 0
-							if ( (foundsetUUID && node.foundsetUUID === foundsetUUID) || (level === 0)) {
-								// TODO should delete all subnodes
-
-								if (node.nodes) {
-									for (subNodeKey in node.nodes) {
-										removeFoundset(node.nodes, node.nodes[subNodeKey].foundsetUUID);
-									}
-								}
-								// TODO should this method access the foundsetManager ? is not a good encapsulation
-								var foundsetManager = getFoundsetManagerByFoundsetUUID(node.foundsetUUID);
-								foundsetManager.destroy();
-								delete tree[nodeKey];
-								return true;
-							} else if (node.nodes) {
-								for (subNodeKey in node.nodes) {
-									// if level, remove one item to level ( 0 is root )
-									if (removeFoundset(node.nodes, foundsetUUID, level ? level - 1 : undefined)) {
-										return true;
-									}
-								}
-							}
-						}
-						return false;
-					}
-
-					function removeChildFoundsets(tree, foundsetUUID, field, value) {
-						if (!tree) {
-							return false;
 						}
 
 						if (!foundsetUUID) {
+							return true;
+						}
+						
+						// remove the node
+						var parentNode = getParentGroupNode(tree, foundsetUUID);
+						var node = getGroupNodeByFoundsetUUID(parentNode, foundsetUUID);
+						if (parentNode && node) {
+							node.destroy();
+							// TODO should be moved inside the destroy method ?, each time should ask for each parent
+							delete parentNode.nodes[node.id];
+							return true;
+						} else {
 							return false;
 						}
+					}
+					
+					/**
+					 * @param {GroupNode} tree
+					 * @param {Number} level
+					 * @return {Boolean}
+					 *  */
+					function removeFoundsetAtLevel(tree, level) {
+						if (!tree) {
+							return true;
+						}
 
-						for (var nodeKey in tree) {
-							var subNodeKey
-							var node = tree[nodeKey];
-							if (node.foundsetUUID === foundsetUUID) {
-								// delete all subnodes
-								var success = true;
-								if (node.nodes) {
-									for (subNodeKey in node.nodes) {
-										var childFoundsetUUID = node.nodes[subNodeKey].foundsetUUID;
+						if (isNaN(level) || level === null) {
+							return true;
+						}
+						
+						var success = true;
+
+						tree.forEach(function(node) {
+							
+							// remove the foundset and all it's child nodes if foundsetUUID or level === 0
+							if (level === 0) {
+								var id = node.id;
+								node.destroy();
+								delete tree.nodes[id];
+								return true;
+							} else {
+								success = node.forEach(function(subNode) {
+									return removeFoundsetAtLevel(node, level - 1)
+								}) && success;
+								return success;
+							}
+						});
+						return success;
+					}
+
+					/**
+					 * @param {GroupNode} tree
+					 * @param {String} foundsetUUID
+					 * @param {String} [field]
+					 * @param {String} [value]
+					 *  */
+					function removeChildFoundsets(tree, foundsetUUID, field, value) {
+
+						if (foundsetUUID) {
+							// remove all child nodes
+							var node = getGroupNodeByFoundsetUUID(tree, foundsetUUID);
+							if (node) {
+								node.removeAllSubNodes();
+								return true;
+							} else {
+								return false;
+							}
+						} else {
+							
+							// TODO Refactor this part of code
+							var success = true;
+							tree.forEach(function(node) {
+								if (node.foundsetUUID === foundsetUUID) {
+									// delete all subnodes
+									success = true;
+									node.forEach(function(subNode) {
+										var childFoundsetUUID = subNode.foundsetUUID;
 										var foundsetRef = getFoundsetManagerByFoundsetUUID(childFoundsetUUID);
 										// FIXME this solution is horrible, can break if rows.length === 0 or...
 										// A better solution is to retrieve the proper childFoundsetUUID by rowGroupCols/groupKeys
 										if (foundsetRef && ( (field === null || field === undefined) || (field !== null && field !== undefined && foundsetRef.foundset.viewPort.rows[0] && foundsetRef.foundset.viewPort.rows[0][field] == value))) {
-											success = (removeFoundset(node.nodes, childFoundsetUUID) && success);
+											success = (removeFoundset(node, childFoundsetUUID) && success);
 										} else {
 											$log.debug('ignore the child foundset');
 										}
-									}
+									});
+								} else if (node.hasNodes()) { // search in subnodes
+									success = success && node.forEachUntilSuccess(function(subNode) {
+										return removeChildFoundsets(node, foundsetUUID)
+									});
 								}
-								return success;
-							} else if (node.nodes) { // search in subnodes
-								for (subNodeKey in node.nodes) {
-									if (removeChildFoundsets(node.nodes, foundsetUUID)) {
-										return true;
-									}
-								}
-							}
+							});
 						}
-						return false;
 					}
 
 					/**
-					 * @param {Object} tree
+					 * @param {GroupNode} tree
 					 * @param {Array} rowGroupCols
 					 * @param {Array} groupKeys
 					 * @param {Boolean} [create]
+					 *
+					 * @return {GroupNode}
 					 *
 					 * */
 					function getTreeNode(tree, rowGroupCols, groupKeys, create) {
@@ -1590,7 +1686,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						 *
 						 * */
 
-						if (!tree) {
+						if (!tree || !tree.nodes) {
 							return null;
 						}
 
@@ -1598,15 +1694,12 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						var columnId = rowGroupCols[0].field;
 
 						// the tree for the given column
-						var colTree = tree[columnId];
+						var colTree = tree.nodes[columnId];
 
 						// create the tree node if does not exist
 						if (!colTree && create) {
-							colTree = {
-								nodes: { },
-								foundsetUUID: null
-							};
-							tree[columnId] = colTree;
+							colTree = new GroupNode(columnId);
+							tree.nodes[columnId] = colTree;
 						} else if (!colTree) { // or return null
 							return null;
 						}
@@ -1623,10 +1716,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 								// create the key tree node if does not exist
 								if (!keyTree && create) {
-									keyTree = {
-										foundsetUUID: null,
-										nodes: new Object()
-									}
+									keyTree = new GroupNode(key);
 									colTree.nodes[key] = keyTree;
 								} else if (!keyTree) { // or return null
 									return null;
@@ -1653,10 +1743,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 								// create the key tree node if does not exist
 								if (!keyTree && create) {
-									keyTree = {
-										foundsetUUID: null,
-										nodes: new Object()
-									}
+									keyTree = new GroupNode(key);
 									colTree.nodes[key] = keyTree;
 								} else if (!keyTree) {
 									return null;
@@ -1672,7 +1759,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 							rowGroupCols = rowGroupCols.slice(1);
 							groupKeys = groupKeys.slice(1);
 
-							result = getTreeNode(subTree.nodes, rowGroupCols, groupKeys, create);
+							result = getTreeNode(subTree, rowGroupCols, groupKeys, create);
 
 						} else {
 							$log.warn("No group criteria, should not happen");
@@ -1680,6 +1767,153 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 						return result;
 					}
+
+					/**
+					 * @param {GroupNode} tree
+					 * @param {String} foundsetUUID
+					 * @return {GroupNode}
+					 *
+					 * */
+					function getGroupNodeByFoundsetUUID(tree, foundsetUUID) {
+						if (!tree) {
+							return null;
+						}
+
+						if (!foundsetUUID) {
+							return null;
+						}
+
+						var resultNode = null;
+						tree.forEachUntilSuccess(function(node) {
+							if (node.foundsetUUID === foundsetUUID) {
+								resultNode = node;
+								return true;
+							} else if (node.hasNodes()) { // search in subnodes
+								return node.forEachUntilSuccess(function(subNode) {
+									resultNode = getGroupNodeByFoundsetUUID(node, foundsetUUID);
+									if (resultNode) { // if has found the result
+										return true;
+									} else { // keep searching
+										return false;
+									}
+								});
+							} else { // didn't find the node in all it's childs
+								return false;
+							}
+						});
+						return resultNode;
+					}
+
+					/**
+					 * @param {GroupNode} tree
+					 * @param {String} foundsetUUID
+					 * @return {GroupNode}
+					 *
+					 * */
+					function getParentGroupNode(tree, foundsetUUID) {
+						if (!tree) {
+							return null;
+						}
+
+						if (!foundsetUUID) {
+							return null;
+						}
+
+						var parentNode = null;
+						tree.forEachUntilSuccess(function(node) {
+							// found in the child
+							if (parentNode) { // already found the tree
+								return true;
+							}
+							if (node.foundsetUUID === foundsetUUID) {
+								parentNode = tree;
+								return true;
+							} else if (node.hasNodes()) { // search in subnodes
+								node.forEachUntilSuccess(function(subNode) {
+									parentNode = getParentGroupNode(node, foundsetUUID);
+									if (parentNode) { // break the for each if has found the result
+										return true;
+									} else { // keep searching
+										return false;
+									}
+								});
+							} else if (parentNode) {
+								return true;
+							} else { // didn't find the node in all it's childs
+								return false;
+							}
+						});
+						return parentNode;
+					}
+
+					/**
+					 * @param {GroupNode} tree
+					 * @param {String} foundsetUUID
+					 * @return {Array<GroupNode>}
+					 *
+					 * @deprecated
+					 *
+					 * */
+					function getTreeNodePath(tree, foundsetUUID) {
+						if (!tree) {
+							return null;
+						}
+
+						if (!foundsetUUID) {
+							return null;
+						}
+
+						var path = [];
+
+						var resultNode = null;
+						tree.forEachUntilSuccess(function(node) {
+							if (node.foundsetUUID === foundsetUUID) {
+								path.push(node);
+								return true;
+							} else if (node.hasNodes()) { // search in subnodes
+								var isInSubNodes = node.forEachUntilSuccess(function(subNode) {
+									var subPath = getTreeNodePath(node, foundsetUUID);
+									if (resultNode) { // if has found the result
+										return true;
+									} else { // keep searching
+										return false;
+									}
+								});
+
+								if (isInSubNodes) {
+									path.concat(subPath);
+								}
+
+							} else { // didn't find the node in all it's childs
+								return false;
+							}
+						});
+
+						return path;
+					}
+
+					// enable testMethods
+					/**
+					 * @param {String} foundsetUUID
+					 * */
+					this.getGroupNodeByFoundsetUUID = function(foundsetUUID) {
+						return getGroupNodeByFoundsetUUID(rootGroupNode, foundsetUUID);
+					};
+
+					/**
+					 * @param {String} foundsetUUID
+					 * */
+					this.getParentGroupNode = function(foundsetUUID) {
+						return getParentGroupNode(rootGroupNode, foundsetUUID);
+					};
+
+					/**
+					 * @param {String} foundsetUUID
+					 * @deprecated
+					 * */
+					this.getTreeNodePath = function(foundsetUUID) {
+						return getTreeNodePath(rootGroupNode, foundsetUUID);
+					};
 
 				}
 
@@ -1748,6 +1982,10 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						// is a third level group CustomerID, ShipCity, ShipCountry
 
 						// recursevely load hashFoundset. this is done so the whole tree is generated without holes in the structure. Do i actually need to get a foundset for it ? Probably no, can i simulate it ?
+
+						var groupLevels = rowGroupCols.length;
+
+						// create groups starting from index 0
 						getRowColumnHashFoundset(0);
 
 						function getRowColumnHashFoundset(index) {
@@ -1758,8 +1996,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 							$log.debug(groupCols);
 							$log.debug(keys);
 
-							// get a foundset for each grouped level
-							// resolve promise when got to the last level
+							// get a foundset for each grouped level, resolve promise when got to the last level
 
 							// TODO loop over columns
 							var columnId = groupCols[groupCols.length - 1].field; //
@@ -1777,6 +2014,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 							} else { // need to get a new foundset reference
 								// create the subtree
+
 								// FIXME i will miss information about the root columns. I need an array of matching column, not an index. e.g. [ALFKI, Italy, Roma]
 
 								// get the index of each grouped column
@@ -1787,9 +2025,14 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 									groupColumnIndexes.push(columnIndex);
 								}
 
-								var promise = getHashFoundset(groupColumnIndexes, keys, sort);
-								promise.then(getHashFoundsetSuccess);
-								promise.catch(promiseError);
+//								if (index === groupLevels - 1) {	// if is the last level, ask for the foundset hash
+									var promise = getHashFoundset(groupColumnIndexes, keys, sort);
+									promise.then(getHashFoundsetSuccess);
+									promise.catch(promiseError);
+//								} else {	// set null inner foundset
+//									hashTree.setCachedFoundset(groupCols, keys, null);
+//									getRowColumnHashFoundset(index + 1);
+//								}
 							}
 
 							/** @return {Object} returns the foundsetRef object */
@@ -1945,6 +2188,8 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				 * @public
 				 *  */
 				function getFoundsetManagerByFoundsetUUID(foundsetHash) {
+					if (!foundsetHash)	return null;
+					
 					if (foundsetHash === 'root') return foundset;
 
 					if (state.foundsetManagers[foundsetHash]) {
@@ -2007,7 +2252,6 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				 *
 				 *************************************************************************************
 				 *************************************************************************************/
-
 
 				//				/** Listener of a group foundset
 				//				 *  TODO remove changeListener when removing a foundset
@@ -2549,32 +2793,31 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						sortColumns: sortColumns
 					};
 				}
-				
+
 				/***********************************************************************************************************************************
 				 ***********************************************************************************************************************************
-				 * 
+				 *
 				 * Generic methods
-				 * 
+				 *
 				 ************************************************************************************************************************************
 				 ***********************************************************************************************************************************/
-				
+
 				$scope.showEditorHint = function() {
 					return (!$scope.model.columns || $scope.model.columns.length == 0) && $scope.svyServoyapi.isInDesigner();
 				}
-				
+
 				function isResponsive() {
 					var parent = $element.parent();
 					console.log(!parent.hasClass('svy-wrapper'));
 					return !parent.hasClass('svy-wrapper');
 				}
-				
+
 				function setHeight() {
 					if (isResponsive()) {
 						gridDiv.style.height = $scope.model.responsiveHeight + 'px';
 					}
-				}		
-				
-				
+				}
+
 				/**
 				 * @private
 				 * Check if objects are deep equal
@@ -2610,7 +2853,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 							}
 						}
 					}
-				}				
+				}
 
 				/**
 				 * Create a JSEvent

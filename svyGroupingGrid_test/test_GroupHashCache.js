@@ -100,9 +100,13 @@
 							removeFoundset(node.nodes, node.nodes[subNodeKey].foundsetUUID);
 						}
 					}
+					
+					// do nothing if the foundset doesn't exist
+					if (node.foundsetUUID) {
 					// TODO should this method access the foundsetManager ? is not a good encapsulation
-					var foundsetManager = getFoundsetManagerByFoundsetUUID(node.foundsetUUID);
-					foundsetManager.destroy();
+						var foundsetManager = getFoundsetManagerByFoundsetUUID(node.foundsetUUID);
+						foundsetManager.destroy();
+					}
 					delete tree[nodeKey];
 					return true;
 				} else if (node.nodes) {
