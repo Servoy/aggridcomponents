@@ -14,6 +14,11 @@
 	font-style: inherit;
 }
 
+.ag-table .ag-body .ag-cell-value,
+.ag-table.ag-fresh .ag-body .ag-cell-value {
+	border: 0;
+}
+
 .ag-table,
 .ag-table.ag-fresh,
 .ag-table .ag-header,
