@@ -253,6 +253,7 @@ parameters:null\
 }",
 extendsID:"80C5E232-25D0-4169-A8E8-3DD8794FA17E",
 json:{
+anchors:15,
 columns:[
 {
 dataprovider:"orderid",

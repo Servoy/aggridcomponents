@@ -11,19 +11,19 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 			controller: function($scope, $element, $attrs) {
 
 				/*
-				 * TODO clear cached foundsets when unused (column order changed) -> write tests ?
+				 * DONE clear cached foundsets when unused (column order changed) -> write tests ?
 				 * TODO clear nodes when collapsed ? Make it a configuration
 				 * TODO Sort on Group by Default, by id doesn't make much sense, when grouping setTableSort to the group
 				 * TODO test create new records (new groups/ are taken into account ?)
 				 *
 				 * TODO BUGS
-				 * FIXME Sort on group criteria (sort is ascending, could not sort descending)
+				 * DONE Sort on group criteria (sort is ascending, could not sort descending)
 				 * Half Done onRecordSelection/onClick (R&D cannot retrieve record when grouped, parse it or what ?)
 				 * Broadcast
-				 * Valuelist (Let it do it to R&D)
+				 * DONE Valuelist (Let it do it to R&D)
 				 *
-				 * FIXME is retrieving 2 foundses when expanding a node, because each tree node is asking for childs
-				 * FIXME databroadcasting doesn't always work. The grid may cache record which are not in the foundset view, these record won't listen to databroacasting changes.
+				 * DONE is retrieving 2 foundses when expanding a node, because each tree node is asking for childs
+				 * DONE databroadcasting doesn't always work. The grid may cache record which are not in the foundset view, these record won't listen to databroacasting changes.
 				 * I should check which records are kept in memory and align the foundset to the same view (there is an enterprise API to see cached records)
 				 *
 				 * TODO Databroacast
