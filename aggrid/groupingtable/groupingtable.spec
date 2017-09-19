@@ -15,7 +15,7 @@
 		"rowStyleClassDataprovider": { "type": "dataprovider", "forFoundset": "myFoundset", "tags": {"scope": "design"}},
 		"styleClass": { "type": "styleclass" },
 			"enableColumnResize": { "type": "boolean", "default": true, "tags": {"scope": "design"}},
-			"enableSort": { "type": "boolean", "default": true, "tags": {"scope": "design"}},
+			"enableSorting": { "type": "boolean", "default": true, "tags": {"scope": "design"}},
 			"groupUseEntireRow" : {"type": "boolean", "default" : true, "tags" : {"scope": "design"}},
         	"iconGroupExpanded": { "type": "styleclass", "default" : "glyphicon glyphicon-minus ag-icon", "tags": {"scope": "design"}},
 			"iconGroupContracted": { "type": "styleclass", "default" : "glyphicon glyphicon-plus ag-icon", "tags": {"scope": "design"}},

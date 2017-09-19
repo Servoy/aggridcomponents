@@ -272,7 +272,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					// enableSorting: false,
 					suppressMovableColumns: true, // TODO persist column order changes
 					enableServerSideSorting: config.enableSorting,
-					enableColResize: config.enableColResize,
+					enableColResize: config.enableColumnResize,
 					suppressAutoSize: true,
 					autoSizePadding: 25,
 					suppressFieldDotNotation: true,
@@ -289,6 +289,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					suppressClickEdit: false,
 					enableGroupEdit: false,
 					groupUseEntireRow: config.groupUseEntireRow,
+					groupMultiAutoColumn : true,
 					suppressAggFuncInHeader: true, // TODO support aggregations
 
 					//					toolPanelSuppressRowGroups: false,
