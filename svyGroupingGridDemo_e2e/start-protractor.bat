@@ -1,1 +1,1 @@
-node_modules\.bin\protractor config.servoy.com
+node_modules\.bin\protractor config.servoy.js

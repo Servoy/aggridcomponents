@@ -5,8 +5,7 @@
 	"icon" :"aggrid/groupingtable/ag-grouping.svg",
 	"definition": "aggrid/groupingtable/groupingtable.js",
 	"serverscript": "aggrid/groupingtable/groupingtable_server.js",
-	"libraries": [
-		],
+	"libraries": [{ "name": "groupingtable.css", "version": "1.0", "url": "aggrid/groupingtable/groupingtable.css", "mimetype": "text/css" }],
 	"model":
 	{
 		"myFoundset": {"type": "foundset", "default" : {"foundsetSelector":""}, "pushToServer" : "reject" ,"dynamicDataproviders": true, "initialPreferredViewPortSize": 50, "sendSelectionViewportInitially": true },
@@ -14,14 +13,15 @@
 		"responsiveHeight": { "type": "int", "default": 300 },
 		"rowHeight" : 	{"type" : "int", "default": 25, "tags": {"scope": "design"}},
 		"rowStyleClassDataprovider": { "type": "dataprovider", "forFoundset": "myFoundset", "tags": {"scope": "design"}},
-		"enableColumnResize": { "type": "boolean", "default": true, "tags": {"scope": "design"}},
-		"enableSort": { "type": "boolean", "default": true, "tags": {"scope": "design"}},
 		"styleClass": { "type": "styleclass" },
-		"iconGroupExpanded": { "type": "styleclass", "default" : "glyphicon glyphicon-minus ag-icon", "tags": {"scope": "design"}},
-		"iconGroupContracted": { "type": "styleclass", "default" : "glyphicon glyphicon-plus ag-icon", "tags": {"scope": "design"}},
-		"iconSortAscending": { "type": "styleclass", "tags": {"scope": "design"}},
-		"iconSortDescending": { "type": "styleclass", "tags": {"scope": "design"}},		
-		"iconSortUnSort": { "type": "styleclass", "tags": {"scope": "design"}},
+			"enableColumnResize": { "type": "boolean", "default": true, "tags": {"scope": "design"}},
+			"enableSort": { "type": "boolean", "default": true, "tags": {"scope": "design"}},
+			"groupUseEntireRow" : {"type": "boolean", "default" : true, "tags" : {"scope": "design"}},
+        	"iconGroupExpanded": { "type": "styleclass", "default" : "glyphicon glyphicon-minus ag-icon", "tags": {"scope": "design"}},
+			"iconGroupContracted": { "type": "styleclass", "default" : "glyphicon glyphicon-plus ag-icon", "tags": {"scope": "design"}},
+			"iconSortAscending": { "type": "styleclass", "tags": {"scope": "design"}},
+			"iconSortDescending": { "type": "styleclass", "tags": {"scope": "design"}},		
+			"iconSortUnSort": { "type": "styleclass", "tags": {"scope": "design"}},
 		"tooltipTextRefreshData" : { "type": "tagstring", "default" : "Refresh for latest data !" },
 		"visible": "visible",
 		"hashedFoundsets": { "type": "hashedFoundset[]", "default": [], "tags": {"scope": "private"}, "pushToServer": "shallow"},
@@ -137,6 +137,18 @@
             "foundset": "foundset",
             "foundsetUUID": "foundsetRef",
             "uuid" : "string"
-        }  
+        },
+        "gridConfig" : {
+        	"enableSorting" : {"type": "boolean", "default" : true, "tags" : {"scope": "design"}},
+        	"enableColResize" : {"type": "boolean", "default" : true, "tags" : {"scope": "design"}},
+        	"groupUseEntireRow" : {"type": "boolean", "default" : true, "tags" : {"scope": "design"}}
+        },
+        "iconConfig" : {
+        	"iconGroupExpanded": { "type": "styleclass", "default" : "glyphicon glyphicon-minus ag-icon", "tags": {"scope": "design"}},
+			"iconGroupContracted": { "type": "styleclass", "default" : "glyphicon glyphicon-plus ag-icon", "tags": {"scope": "design"}},
+			"iconSortAscending": { "type": "styleclass", "tags": {"scope": "design"}},
+			"iconSortDescending": { "type": "styleclass", "tags": {"scope": "design"}},		
+			"iconSortUnSort": { "type": "styleclass", "tags": {"scope": "design"}}
+        }
 	}
 }

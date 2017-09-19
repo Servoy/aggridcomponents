@@ -245,6 +245,10 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 				$log.debug(columnDefs);
 				$log.debug(sortModelDefault);
+				
+				var config = $scope.model;
+				console.log(config)
+				
 				var gridOptions = {
 
 					debug: false,
@@ -267,8 +271,8 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					// groupColumnDef : columnDefs,
 					// enableSorting: false,
 					suppressMovableColumns: true, // TODO persist column order changes
-					enableServerSideSorting: $scope.model.enableSort,
-					enableColResize: $scope.model.enableColumnResize,
+					enableServerSideSorting: config.enableSorting,
+					enableColResize: config.enableColResize,
 					suppressAutoSize: true,
 					autoSizePadding: 25,
 					suppressFieldDotNotation: true,
@@ -284,7 +288,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					singleClickEdit: true,
 					suppressClickEdit: false,
 					enableGroupEdit: false,
-					groupUseEntireRow: false,
+					groupUseEntireRow: config.groupUseEntireRow,
 					suppressAggFuncInHeader: true, // TODO support aggregations
 
 					//					toolPanelSuppressRowGroups: false,
@@ -306,7 +310,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 					rowBuffer: 0,
 					// restrict to 2 server side calls concurrently
-					maxConcurrentDatasourceRequests: 1,
+					maxConcurrentDatasourceRequests: 3,
 					cacheBlockSize: CHUNK_SIZE,
 					paginationInitialRowCount: CHUNK_SIZE, // TODO should be the foundset default (also for grouping ?)
 					maxBlocksInCache: CACHED_CHUNK_BLOCKS,
@@ -332,11 +336,14 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 				// https://www.ag-grid.com/javascript-grid-icons/#gsc.tab=0
 				var icons = new Object();
-				if ($scope.model.iconGroupExpanded) icons.groupExpanded = getIconElement($scope.model.iconGroupExpanded);
-				if ($scope.model.iconGroupContracted) icons.groupContracted = getIconElement($scope.model.iconGroupContracted);
-				if ($scope.model.iconSortAscending) icons.sortAscending = getIconElement($scope.model.iconSortAscending);
-				if ($scope.model.iconSortDescending) icons.sortDescending = getIconElement($scope.model.iconSortDescending);
-				if ($scope.model.iconSortUnSort) icons.sortUnSort = getIconElement($scope.model.iconSortUnSort);
+				
+				// set the icons
+				var iconConfig = $scope.model;
+				if (iconConfig.iconGroupExpanded) icons.groupExpanded = getIconElement(iconConfig.iconGroupExpanded);
+				if (iconConfig.iconGroupContracted) icons.groupContracted = getIconElement(iconConfig.iconGroupContracted);
+				if (iconConfig.iconSortAscending) icons.sortAscending = getIconElement(iconConfig.iconSortAscending);
+				if (iconConfig.iconSortDescending) icons.sortDescending = getIconElement(iconConfig.iconSortDescending);
+				if (iconConfig.iconSortUnSort) icons.sortUnSort = getIconElement(iconConfig.iconSortUnSort);
 
 				gridOptions.icons = icons;
 
@@ -386,7 +393,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				gridOptions.api.addEventListener('columnRowGroupChanged', onColumnRowGroupChanged);
 
 				// listen to group collapsed
-				gridOptions.api.addEventListener('rowGroupOpened', onRowGroupOpened);
+//				gridOptions.api.addEventListener('rowGroupOpened', onRowGroupOpened);
 
 				// TODO rowStyleClassDataprovider
 				if ($scope.model.rowStyleClassDataprovider) {
@@ -782,6 +789,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 				/**
 				 * Grid Event
+				 * @deprecated
 				 * @private
 				 * */
 				function onRowGroupOpened(event) {
@@ -898,14 +906,19 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				 * */
 				FoundsetServer.prototype.getData = function(request, callback) {
 
+					console.log(request);
+					
 					$log.debug(request);
 
 					// the row group cols, ie the cols that the user has dragged into the 'group by' zone, eg 'Country' and 'Customerid'
-					var rowGroupCols = request.rowGroupCols;
+					var rowGroupCols = request.rowGroupCols
 					// the keys we are looking at. will be empty if looking at top level (either no groups, or looking at top level groups). eg ['United States','2002']
 					var groupKeys = request.groupKeys;
 					// if going aggregation, contains the value columns, eg ['gold','silver','bronze']
 					var valueCols = request.valueCols;
+					
+					// rowGroupCols cannot be 2 level deeper than groupKeys
+					// rowGroupCols = rowGroupCols.slice(0, groupKeys.length + 1);
 
 					var filterModel = request.filterModel;
 					var sortModel = request.sortModel;
