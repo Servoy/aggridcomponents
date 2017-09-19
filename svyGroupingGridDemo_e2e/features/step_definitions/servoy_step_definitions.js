@@ -207,6 +207,74 @@ defineSupportCode(({ Given, Then, When, Before, After }) => {
 	});
 	//END SERVOY TABLE COMPONENT
 
+	//SERVOY AGENDA COMPONENT
+	When('servoy agenda component with name {elementName} I want to see my appointments on {day} {month} {year}', { timeout: 60 * 1000 }, function (elementName, day, month, year, callback) {
+		clickElement(element(by.xpath("//div[@data-svy-name='" + elementName + "']/div/div[8]"))).then(function () {
+			clickElement(element(by.xpath("//div[@data-svy-name='" + elementName + "']/div/div[11]"))).then(function () {
+				return navigateCalendar(elementName, month, year);
+			}).then(function (done) {
+				if (done) {
+					wrapUp(callback, "calendarEvent");
+				}
+			});
+		});
+	});
+
+	function navigateCalendar(elementName, month, year) {
+		var monthTo = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"].indexOf(month.toLowerCase()) + 1;
+		var yearFrom = new Date().getFullYear();
+		var monthFrom = new Date().getMonth() + 1;
+		var monthsDifference;
+		var yearTo = year;
+		if (yearTo == yearFrom) { //same year
+			if (monthTo < monthFrom) { //past month
+				for (x = 0; x < monthFrom - monthTo; x++) {
+					clickElement(element(by.xpath("//div[@data-svy-name='" + elementName + "']/div/div[10]")));
+				}
+			} else { //future month
+				for (x = 0; x < monthTo - monthFrom; x++) {
+					clickElement(element(by.xpath("//div[@data-svy-name='" + elementName + "']/div/div[14]")));
+				}
+			}
+		} else if (yearTo < yearFrom) { //past year
+			//first calculate if it's more than 12 clicks to get to the date
+			//go to the correct year
+			for (var x = 0; x < yearFrom - yearTo; x++) {
+				clickElement(element(by.xpath("//div[@data-svy-name='" + elementName + "']/div/div[7]")));
+			}
+			//go to the correct month
+			if (monthTo < monthFrom) {
+				// monthsDifference += monthFrom - monthTo;
+				for (var x = 0; x < monthFrom - monthTo; x++) {
+					clickElement(element(by.xpath("//div[@data-svy-name='" + elementName + "']/div/div[10]")));
+				}
+			} else {
+				for (var x = 0; x < monthTo - monthFrom; x++) {
+					clickElement(element(by.xpath("//div[@data-svy-name='" + elementName + "']/div/div[14]")));
+				}
+			}
+		} else { //future year
+			//go to the correct year
+			for (var x = 0; x < yearTo - yearFrom; x++) {
+				clickElement(element(by.xpath("//div[@data-svy-name='" + elementName + "']/div/div[12]")));
+			}
+			//go to the correct month
+			if (monthTo < monthFrom) {
+				for (var x = 0; x < monthFrom - monthTo; x++) {
+					clickElement(element(by.xpath("//div[@data-svy-name='" + elementName + "']/div/div[10]")));
+				}
+			} else {
+				for (var x = 0; x < monthTo - monthFrom % 12; x++) {
+					clickElement(element(by.xpath("//div[@data-svy-name='" + elementName + "']/div/div[14]")));
+				}
+			}
+		}
+		return browser.controlFlow().execute(function () {
+			return true;
+		});
+	}
+	//END SERVOY AGENDA COMPONENT
+
 	//SERVOY COMBOBOX
 	When('servoy combobox component with name {elementName} is clicked', { timeout: 60 * 1000 }, function (elementName, callback) {
 		clickElement(element(by.xpath("//data-servoydefault-combobox[@data-svy-name='" + elementName + "']"))).then(function () {
@@ -566,7 +634,7 @@ function findRecord(elementName, recordText, rowOption, level, callback) {
 
 function scrollToElement(elementName, recordText, rowOption, level, callback) {
 	element.all(by.xpath("//data-aggrid-groupingtable[@data-svy-name='" + elementName + "']")).each(function (childElement) {
-		var elem = childElement.all(by.css(".ag-cell-no-focus.ag-cell.ag-group-cell.ag-cell-not-inline-editing.ag-cell-value.ag-table-cell")).last();
+		var elem = childElement.all(by.xpath("//div[@role='row']")).last();
 		browser.executeScript("arguments[0].scrollIntoView(true);", elem.getWebElement()).then(function () {
 			findRecord(elementName, recordText, rowOption, level, callback);
 		});

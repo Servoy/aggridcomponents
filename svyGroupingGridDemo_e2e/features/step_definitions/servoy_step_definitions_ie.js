@@ -511,7 +511,7 @@ function findRecord(elementName, recordText, rowOption, level, callback) {
 
 function scrollToElement(elementName, recordText, rowOption, level, callback) {
 	element.all(by.xpath("//data-aggrid-groupingtable[@data-svy-name='" + elementName + "']")).each(function (childElement) {
-		var elem = childElement.all(by.css(".ag-cell-no-focus.ag-cell.ag-group-cell.ag-cell-not-inline-editing.ag-cell-value.ag-table-cell")).last();
+		var elem = childElement.all(by.xpath("//div[@role='row']")).last();
 		browser.executeScript("arguments[0].scrollIntoView(true);", elem.getWebElement()).then(function () {
 			findRecord(elementName, recordText, rowOption, level, callback);
 		});
