@@ -2391,7 +2391,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						}
 						var node = selectedNodes[0];
 						if (node) {
-							// node.setSelected(false);
+							 node.setSelected(false);
 						}
 					}
 
