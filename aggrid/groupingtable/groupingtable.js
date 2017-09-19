@@ -393,6 +393,11 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					gridOptions.getRowClass = getRowClass;
 				}
 
+				/**
+				 * Grid Event
+				 * @private
+				 *
+				 * */
 				function onSelectionChanged(event) {
 
 					// Don't trigger foundset selection if table is grouping
@@ -698,17 +703,17 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						for (i = 0; state.grouped.columns && i < state.grouped.columns.length; i++) {
 							// if the column has been removed or order of columns has been changed
 							if (i >= event.columns.length || state.grouped.columns[i] != event.columns[i].colId) {
-
-							//	if (i === 0) {
-									// FIXME does it breaks it, why does it happen ? concurrency issue ?
-									//	groupManager.clearAll();
-									// FIXME this is a workadound, i don't why does it fail when i change a root level (same issue of sort and expand/collapse)
-							//		groupManager.clearAll();
-							//	} else {
-									// Clear Column X and all it's child
-									// NOTE: level are at deep 2 (1 column + 1 key)
-									groupManager.removeFoundsetRefAtLevel(i*2);
-							//	}
+								//	if (i === 0) {
+								// FIXME does it breaks it, why does it happen ? concurrency issue ?
+								//	groupManager.clearAll();
+								// FIXME this is a workadound, i don't why does it fail when i change a root level (same issue of sort and expand/collapse)
+								//		groupManager.clearAll();
+								//	} else {
+								// Clear Column X and all it's child
+								// NOTE: level are at deep 2 (1 column + 1 key)
+								var level = Math.max(0, (i * 2) - 1);
+								groupManager.removeFoundsetRefAtLevel(level);
+								//	}
 								break;
 							}
 						}
@@ -776,6 +781,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				}
 
 				/**
+				 * Grid Event
 				 * @private
 				 * */
 				function onRowGroupOpened(event) {
@@ -806,12 +812,12 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 					// TODO expose model property to control perfomance
 					if (isExpanded === false && $scope.model.perfomanceClearCacheStateOnCollapse === true) {
-						// TODO remove the foundset
+						// FIXME remove foundset based on values
 						groupManager.removeChildFoundsetRef(column.data._svyFoundsetUUID, column.field, column.data[field]);
 					}
 					// TODO remove logs
-					console.log($scope.model.hashedFoundsets);
-					console.log(state.foundsetManagers);
+//					console.log($scope.model.hashedFoundsets);
+//					console.log(state.foundsetManagers);
 
 					//var foundsetManager = getFoundsetManagerByFoundsetUUID(column.data._svyFoundsetUUID);
 					//foundsetManager.destroy();
@@ -1199,7 +1205,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 							});
 						}
 						$log.debug('Next line is the result data to be loaded in table')
-//						console.log(result);
+						//						console.log(result);
 						return result;
 					}
 
@@ -1386,11 +1392,10 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					this.sort = sort;
 
 				}
-				
-				
+
 				/**
-				 * @constructor 
-				 * 
+				 * @constructor
+				 *
 				 * @public
 				 * @param {String} id
 				 *  */
@@ -1407,7 +1412,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					 *  */
 					this.forEach = function(callback) {
 						for (var key in this.nodes) {
-//							application.output(this.nodes[key].foundsetUUID);
+							//							application.output(this.nodes[key].foundsetUUID);
 							callback.call(this, this.nodes[key]);
 						}
 					}
@@ -1419,7 +1424,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					 *  */
 					this.forEachUntilSuccess = function(callback) {
 						for (var key in this.nodes) {
-//							application.output(this.nodes[key].foundsetUUID);
+							//							application.output(this.nodes[key].foundsetUUID);
 							if (callback.call(this, this.nodes[key]) === true) {
 								return true;
 							}
@@ -1445,7 +1450,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					 * */
 					this.destroy = function() {
 
-						console.log('--Destroy ' + this.foundsetUUID  + ' - id : ' + this.id);
+						console.log('--Destroy ' + this.foundsetUUID + ' - id : ' + this.id);
 						// destroy all it's sub nodes
 						this.removeAllSubNodes();
 
@@ -1459,9 +1464,9 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 							foundsetManager.destroy();
 						}
 					}
-					
+
 					this.removeAllSubNodes = function() {
-						this.forEach(function (subNode) {
+						this.forEach(function(subNode) {
 							subNode.destroy();
 						});
 						this.nodes = [];
@@ -1556,7 +1561,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						if (!foundsetUUID) {
 							return true;
 						}
-						
+
 						// remove the node
 						var parentNode = getParentGroupNode(tree, foundsetUUID);
 						var node = getGroupNodeByFoundsetUUID(parentNode, foundsetUUID);
@@ -1569,7 +1574,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 							return false;
 						}
 					}
-					
+
 					/**
 					 * @param {GroupNode} tree
 					 * @param {Number} level
@@ -1583,11 +1588,11 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						if (isNaN(level) || level === null) {
 							return true;
 						}
-						
+
 						var success = true;
 
 						tree.forEach(function(node) {
-							
+
 							// remove the foundset and all it's child nodes if foundsetUUID or level === 0
 							if (level === 0) {
 								var id = node.id;
@@ -1622,7 +1627,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 								return false;
 							}
 						} else {
-							
+
 							// TODO Refactor this part of code
 							var success = true;
 							tree.forEach(function(node) {
@@ -2025,14 +2030,14 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 									groupColumnIndexes.push(columnIndex);
 								}
 
-//								if (index === groupLevels - 1) {	// if is the last level, ask for the foundset hash
+								if (index === groupLevels - 1) { // if is the last level, ask for the foundset hash
 									var promise = getHashFoundset(groupColumnIndexes, keys, sort);
 									promise.then(getHashFoundsetSuccess);
 									promise.catch(promiseError);
-//								} else {	// set null inner foundset
-//									hashTree.setCachedFoundset(groupCols, keys, null);
-//									getRowColumnHashFoundset(index + 1);
-//								}
+								} else { // set null inner foundset
+									hashTree.setCachedFoundset(groupCols, keys, null);
+									getRowColumnHashFoundset(index + 1);
+								}
 							}
 
 							/** @return {Object} returns the foundsetRef object */
@@ -2188,8 +2193,8 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				 * @public
 				 *  */
 				function getFoundsetManagerByFoundsetUUID(foundsetHash) {
-					if (!foundsetHash)	return null;
-					
+					if (!foundsetHash) return null;
+
 					if (foundsetHash === 'root') return foundset;
 
 					if (state.foundsetManagers[foundsetHash]) {
