@@ -1624,50 +1624,46 @@ function test_removeCachedFoundsetAtLevel() {
 
 	cache = getTestGroupHashCache();
 	
-	jsunit.assertTrue(cache.removeCachedFoundsetAtLevel(4)); // remove id
+	cache.removeCachedFoundsetAtLevel(2); // remove id
 	jsunit.assertNull(cache.getCachedFoundset(rowGroupColsDefault, ['TOMPS','Amsterdam','Netherlands'])); // remove id
 	jsunit.assertNull(cache.getCachedFoundset(rowGroupColsDefault, ['TOMPS','Amsterdam','Benelux'])); // remove id
-	jsunit.assertNotNull(cache.getCachedFoundset(rowGroupColsDefault, ['TOMPS','Amsterdam'])); // remove id
-	jsunit.assertNotNull(cache.getCachedFoundset(rowGroupColsDefault.slice(0,2), ['TOMPS','Amsterdam'])); // remove id
-	jsunit.assertEquals('customerid-TOMPS-shipcity', cache.getCachedFoundset(rowGroupColsDefault.slice(0,2), ['TOMPS'])); // remove id
-	jsunit.assertEquals('customerid-TOMPS-shipcity-Athens', cache.getCachedFoundset(rowGroupColsDefault.slice(0,2), ['TOMPS', 'Athens'])); // remove id
+	jsunit.assertNull(cache.getCachedFoundset(rowGroupColsDefault, ['TOMPS','Amsterdam'])); // remove id
+	jsunit.assertNull(cache.getCachedFoundset(rowGroupColsDefault.slice(0,2), ['TOMPS','Amsterdam'])); // remove id
+	jsunit.assertNull(cache.getCachedFoundset(rowGroupColsDefault.slice(0,2), ['TOMPS'])); // remove id
+	jsunit.assertNull(cache.getCachedFoundset(rowGroupColsDefault.slice(0,2), ['TOMPS', 'Athens'])); // remove id
+	jsunit.assertNull(cache.getCachedFoundset(rowGroupColsDefault.slice(0,2), ['ALFKI'])); // remove id
+	jsunit.assertNull(cache.getCachedFoundset(rowGroupColsDefault.slice(0,2), ['ANTON'])); // remove id
+	jsunit.assertNull(cache.getCachedFoundset(rowGroupColsDefault.slice(0,2), ['TOMPS'])); // remove id
+	jsunit.assertNotNull(cache.getCachedFoundset(rowGroupColsDefault.slice(0,1), ['ALFKI'])); // remove id
+	jsunit.assertNotNull(cache.getCachedFoundset(rowGroupColsDefault.slice(0,1), ['ANTON'])); // remove id
+	jsunit.assertNotNull(cache.getCachedFoundset(rowGroupColsDefault.slice(0,1), ['TOMPS'])); // remove id
+	jsunit.assertNotNull(cache.getCachedFoundset(rowGroupColsDefault.slice(0,1), [])); // remove id
+	
 	
 	cache = getTestGroupHashCache();
 	
-	jsunit.assertTrue(cache.removeCachedFoundsetAtLevel(5)); // remove id
-	jsunit.assertEquals('customerid-ANTON-shipcity-Athens-shipcountry-Greece', cache.getCachedFoundset(rowGroupColsDefault, ['ANTON', 'Athens', 'Greece'])); // remove id
-	jsunit.assertEquals('customerid-ANTON-shipcity-Athens-shipcountry-Hellas', cache.getCachedFoundset(rowGroupColsDefault, ['ANTON', 'Athens', 'Hellas'])); // remove id
-	jsunit.assertEquals('customerid-ANTON-shipcity-Athens-shipcountry', cache.getCachedFoundset(rowGroupColsDefault, ['ANTON', 'Athens'])); // remove id
-	jsunit.assertEquals('customerid-ANTON-shipcity-Athens', cache.getCachedFoundset(rowGroupColsDefault.slice(0,2), ['ANTON', 'Athens'])); // remove id
-
-	var rowGroupCols = [{
-			aggFunc: undefined,
-			displayName: "customerid",
-			field: "customerid",
-			id: "customerid"
-		}, {
-			aggFunc: undefined,
-			displayName: "shipcity",
-			field: "customerid-shipcity",
-			id: "customerid-shipcity"
-		}, {
-			aggFunc: undefined,
-			displayName: "shipcountry",
-			field: "customerid-shipcity-shipcountry",
-			id: "customerid-shipcity-shipcountry"
-		}];
-
-	var cache = getTestGroupHashCache();
-
-	return;
-
-	//cache.removeCachedFoundsetAtLevel(1);
-
-	jsunit.assertNull(cache.getCachedFoundset(rowGroupCols, []));
-	jsunit.assertNull(cache.getCachedFoundset(rowGroupCols, ['ALFKI']));
-	jsunit.assertNotNull(cache.getCachedFoundset([rowGroupCols][0], []));
-	jsunit.assertNull(cache.getCachedFoundset([rowGroupCols[0]], ['ALFKI']));
-	jsunit.assertNotNull(cache.getCachedFoundset(rowGroupCols, []));
+	cache.removeCachedFoundsetAtLevel(1); // remove id
+	jsunit.assertNull(cache.getCachedFoundset(rowGroupColsDefault, ['TOMPS','Amsterdam','Netherlands'])); // remove id
+	jsunit.assertNull(cache.getCachedFoundset(rowGroupColsDefault, ['TOMPS','Amsterdam','Benelux'])); // remove id
+	jsunit.assertNull(cache.getCachedFoundset(rowGroupColsDefault, ['TOMPS','Amsterdam'])); // remove id
+	jsunit.assertNull(cache.getCachedFoundset(rowGroupColsDefault.slice(0,2), ['TOMPS','Amsterdam'])); // remove id
+	jsunit.assertNull(cache.getCachedFoundset(rowGroupColsDefault.slice(0,2), ['TOMPS'])); // remove id
+	jsunit.assertNull(cache.getCachedFoundset(rowGroupColsDefault.slice(0,2), ['TOMPS', 'Athens'])); // remove id
+	jsunit.assertNull(cache.getCachedFoundset(rowGroupColsDefault.slice(0,2), ['TOMPS'])); // remove id
+	jsunit.assertNull(cache.getCachedFoundset(rowGroupColsDefault.slice(0,1), ['ALFKI'])); // remove id
+	jsunit.assertNull(cache.getCachedFoundset(rowGroupColsDefault.slice(0,1), ['ANTON'])); // remove id
+	jsunit.assertNull(cache.getCachedFoundset(rowGroupColsDefault.slice(0,1), ['TOMPS'])); // remove id
+	jsunit.assertNotNull(cache.getCachedFoundset(rowGroupColsDefault.slice(0,1), [])); // remove id
+	
+	cache = getTestGroupHashCache();
+	
+	cache.removeCachedFoundsetAtLevel(0); // remove id
+	jsunit.assertNull(cache.getCachedFoundset(rowGroupColsDefault, ['TOMPS','Amsterdam','Netherlands'])); // remove id
+	jsunit.assertNull(cache.getCachedFoundset(rowGroupColsDefault, ['TOMPS','Amsterdam','Benelux'])); // remove id
+	jsunit.assertNull(cache.getCachedFoundset(rowGroupColsDefault, ['TOMPS','Amsterdam'])); // remove id
+	jsunit.assertNull(cache.getCachedFoundset(rowGroupColsDefault.slice(0,2), ['TOMPS','Amsterdam'])); // remove id
+	jsunit.assertNull(cache.getCachedFoundset(rowGroupColsDefault.slice(0,2), ['TOMPS'])); // remove id
+	jsunit.assertNull(cache.getCachedFoundset(rowGroupColsDefault.slice(0,1), [])); // remove id
 
 }
 

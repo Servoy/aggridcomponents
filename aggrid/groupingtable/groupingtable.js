@@ -2826,9 +2826,9 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				}
 
 				function isResponsive() {
-					var parent = $element.parent();
-					console.log(!parent.hasClass('svy-wrapper'));
-					return !parent.hasClass('svy-wrapper');
+					// var parent = $element.parent();
+					// !parent.hasClass('svy-wrapper');
+					return !$scope.$parent.absoluteLayout; 
 				}
 
 				function setHeight() {
