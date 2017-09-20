@@ -207,6 +207,23 @@ defineSupportCode(({ Given, Then, When, Before, After }) => {
 	});
 	//END SERVOY TABLE COMPONENT
 
+	//SERVOY EXTRA TABLE COMPONENT
+	When('servoy extra table component with name {elementName} I scroll to the record with {string} as text', { timeout: 60 * 1000 }, function (elementName, recordText, callback) {
+		findRecordTableExtraComponent(elementName, recordText, callback);
+	});
+
+	When('servoy extra table component with name {elementName} I want to measure the time it takes to render the cell with text {string}', { timeout: 60 * 1000 }, function (elementName, recordText, callback) {
+		var elem = element.all(by.xpath("//*[@data-svy-name='" + elementName + "']"));
+		browser.wait(EC.presenceOf(elem).call(), 30000, 'Element not visible').then(function(){
+			var elemCell = elem.all(by.xpath("//div[text()='"+ recordText +"']"))
+			browser.wait(EC.presenceOf(elemCell).call(), 30000, 'Element not visible').then(function(){
+				wrapUp(callback, "render extra table");
+			});
+		});
+	});
+
+	//END SERVOY EXTRA TABLE COMPONENT
+
 	//SERVOY AGENDA COMPONENT
 	When('servoy agenda component with name {elementName} I want to see my appointments on {day} {month} {year}', { timeout: 60 * 1000 }, function (elementName, day, month, year, callback) {
 		clickElement(element(by.xpath("//div[@data-svy-name='" + elementName + "']/div/div[8]"))).then(function () {
@@ -307,6 +324,10 @@ defineSupportCode(({ Given, Then, When, Before, After }) => {
 	//END SERVOY BUTTON
 
 	//SERVOY AGGRID COMPONENT
+	When('servoy data-aggrid-groupingtable component with name {elementName} I scroll to the record with {string} as text', { timeout: 60 * 1000 }, function (elementName, recordText, callback) {
+		findRecordAgTableComponent(elementName, recordText, callback);
+	});
+
 	When('servoy data-aggrid-groupingtable component with name {elementName} I want to {rowOption} row level {int} with {rowText} as text', { timeout: timeoutAgAction }, function (elementName, rowOption, rowLevel, rowText, callback) {
 		findRecord(elementName, rowText, rowOption, rowLevel - 1, callback);
 	});
@@ -558,6 +579,7 @@ function createDirIfNotExists(dir) {
 	}
 }
 
+// AG GRID TABLE
 function calcRows(elementName, count, orderCount, callback) {
 	var grid = element.all(by.xpath("//data-aggrid-groupingtable[@data-svy-name='" + elementName + "']"));
 	grid.each(function (menuItems) {
@@ -634,13 +656,47 @@ function findRecord(elementName, recordText, rowOption, level, callback) {
 
 function scrollToElement(elementName, recordText, rowOption, level, callback) {
 	element.all(by.xpath("//data-aggrid-groupingtable[@data-svy-name='" + elementName + "']")).each(function (childElement) {
-		var elem = childElement.all(by.xpath("//div[@role='row']")).last();
+		var elem = childElement.all(by.css(".ag-row")).get(-3);
 		browser.executeScript("arguments[0].scrollIntoView(true);", elem.getWebElement()).then(function () {
 			findRecord(elementName, recordText, rowOption, level, callback);
 		});
 	});
 }
 
+function findRecordAgTableComponent(elementName, recordText, callback) {
+	var found = false;
+	element.all(by.xpath("//*[@data-svy-name='" + elementName + "']")).each(function (tableItems) {
+		tableItems.all(by.xpath("//div[text()='"+ recordText +"']")).each(function (tableRows) {
+			tableRows.getText().then(function (text) {
+				console.log('AG found ' + text);
+				if (text.indexOf(recordText) > -1) {
+					found = true;
+					// TODO click last td (to be found)
+					clickElement(element(by.cssContainingText("div", recordText))).then(function () {
+						console.log('clicked');
+						wrapUp(callback, "Scroll event");
+					});
+				}
+			});
+		});
+	}).then(function () {
+		if (!found) {
+			console.log('ag not found');
+			scrollToElementAgTableComponent(elementName, recordText, callback);
+		}
+	});
+}
+
+function scrollToElementAgTableComponent(elementName, recordText, callback) {
+	element.all(by.xpath("//*[@data-svy-name='" + elementName + "']")).each(function (childElement) {
+		var elem = childElement.all(by.css(".ag-row")).get(-3);
+		browser.executeScript("arguments[0].scrollIntoView(true);", elem.getWebElement()).then(function () {
+			findRecordAgTableComponent(elementName, recordText, callback);
+		});
+	});
+}
+
+// SERVOY TABLE
 function findRecordTableComponent(elementName, recordText, callback) {
 	var found = false;
 	element.all(by.xpath("//div[@data-svy-name='" + elementName + "']")).each(function (tableItems) {
@@ -666,6 +722,51 @@ function scrollToElementTableComponent(elementName, recordText, callback) {
 		var elem = childElement.all(by.xpath("//div[@class='ui-grid-row ng-scope']")).last();
 		browser.executeScript("arguments[0].scrollIntoView(true);", elem.getWebElement()).then(function () {
 			findRecordTableComponent(elementName, recordText, callback);
+		});
+	});
+}
+
+// SERVOY EXTRA TABLE
+function findRecordTableExtraComponent(elementName, recordText, callback) {
+	var found = false;
+	element.all(by.xpath("//*[@data-svy-name='" + elementName + "']")).each(function (tableItems) {
+		tableItems.all(by.xpath("//td/div[text()='"+ recordText +"']")).each(function (tableRows) {
+			tableRows.getText().then(function (text) {
+				console.log('found ' + text);
+				if (text.indexOf(recordText) > -1) {
+					found = true;
+					// TODO click last td (to be found)
+					clickElement(element(by.cssContainingText("div", recordText))).then(function () {
+						console.log('clicked');
+						wrapUp(callback, "Scroll event");
+					});
+				}
+			});
+		});
+
+		// tableItems.all(by.xpath("//td/div")).each(function (tableRows) {
+		// 	tableRows.getText().then(function (text) {
+		// 		if (text.indexOf(recordText) > -1) {
+		// 			found = true;
+		// 			clickElement(element(by.cssContainingText("div", recordText))).then(function () {
+		// 				wrapUp(callback, "Scroll event");
+		// 			});
+		// 		}
+		// 	});
+		// });
+	}).then(function () {
+		if (!found) {
+			console.log('not found');
+			scrollToElementTableExtraComponent(elementName, recordText, callback);
+		}
+	});
+}
+
+function scrollToElementTableExtraComponent(elementName, recordText, callback) {
+	element.all(by.xpath("//*[@data-svy-name='" + elementName + "']")).each(function (childElement) {
+		var elem = childElement.all(by.xpath("//tr")).last();
+		browser.executeScript("arguments[0].scrollIntoView(true);", elem.getWebElement()).then(function () {
+			findRecordTableExtraComponent(elementName, recordText, callback);
 		});
 	});
 }
