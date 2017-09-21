@@ -380,6 +380,16 @@ defineSupportCode(({ Given, Then, When, Before, After }) => {
 
 	//END FOUNDSET SAMPLE GALERY FUNCTIONS//
 	//CRYPTOGRAPHY SAMPLE GALERY FUNCTIONS//	
+	When('servoy default typeahead component with name {elementName} the text {text} is inserted', { timeout: 60 * 1000 }, function (elementName, text, callback) {
+		sendKeys(element(by.xpath("//input[@data-svy-name='" + elementName + "']")), text).then(function () {
+			wrapUp(callback, "Insert value event");
+		}).catch(function (error) {
+			console.log(error.message);
+			tierdown(true);
+		});
+	});
+
+
 	When('servoy combobox component with name {elementName} is clicked', { timeout: 60 * 1000 }, function (elementName, callback) {
 		browser.executeScript("arguments[0].click();", element(by.xpath("//data-servoydefault-combobox[@data-svy-name='" + elementName + "']/div/div/span")).getWebElement()).then(function(){
 			wrapUp(callback, "Click event");

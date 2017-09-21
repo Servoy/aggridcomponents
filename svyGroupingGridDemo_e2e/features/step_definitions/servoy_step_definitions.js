@@ -293,6 +293,15 @@ defineSupportCode(({ Given, Then, When, Before, After }) => {
 	//END SERVOY AGENDA COMPONENT
 
 	//SERVOY COMBOBOX
+	When('servoy default typeahead component with name {elementName} the text {text} is inserted', { timeout: 60 * 1000 }, function (elementName, text, callback) {
+		sendKeys(element(by.xpath("//input[@data-svy-name='" + elementName + "']")), text).then(function () {
+			wrapUp(callback, "Insert value event");
+		}).catch(function (error) {
+			console.log(error.message);
+			tierdown(true);
+		});
+	});
+
 	When('servoy combobox component with name {elementName} is clicked', { timeout: 60 * 1000 }, function (elementName, callback) {
 		clickElement(element(by.xpath("//data-servoydefault-combobox[@data-svy-name='" + elementName + "']"))).then(function () {
 			wrapUp(callback, "Click event");
