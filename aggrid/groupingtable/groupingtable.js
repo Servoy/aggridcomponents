@@ -148,6 +148,9 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				}
 
 				$scope.printCache = function() {
+//					
+//					gridOptions.api.setInfiniteRowCount(400)
+//					gridOptions.api.ensureIndexVisible(400);
 					console.log($scope.model.hashedFoundsets);
 					console.log(foundset.foundset.viewPort);
 					console.log(gridOptions.api.getCacheBlockState());
@@ -278,6 +281,10 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					suppressFieldDotNotation: true,
 
 					enableServerSideFilter: false, // TODO implement serverside filtering
+					animateRows: false,
+					suppressMovingInCss: true,
+					suppressColumnMoveAnimation: true,
+					suppressAnimationFrame: true,
 
 					rowSelection: 'single',
 					suppressRowClickSelection: rowGroupColsDefault.length === 0 ? false : true,
@@ -928,7 +935,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					var sortRootGroup = false;
 
 					// if clicking sort on the grouping column
-					if (rowGroupCols.length > 0 && sortModel[0] && sortModel[0].colId === "ag-Grid-AutoColumn") {
+					if (rowGroupCols.length > 0 && sortModel[0] && (sortModel[0].colId === "ag-Grid-AutoColumn" || sortModel[0].colId === rowGroupCols[0].field)) {
 						// replace colFd with the id of the grouped column
 						sortRootGroup = true;
 						sortModel = [{ colId: rowGroupCols[0].field, sort: sortModel[0].sort }];
