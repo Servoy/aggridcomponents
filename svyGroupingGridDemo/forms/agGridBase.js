@@ -40,6 +40,21 @@ function onShow(firstShow, event) {
 }
 
 /**
+ * Handle hide window.
+ *
+ * @param {JSEvent} event the event that triggered the action
+ *
+ * @return {Boolean}
+ *
+ * @protected
+ *
+ * @properties={typeid:24,uuid:"79D05AF4-B8D3-4726-B0D4-4FE35C80519A"}
+ */
+function onHide(event) {
+	return true;
+}
+
+/**
  * @param {Number|String} pk
  * @public
  * @properties={typeid:24,uuid:"4533255E-7FF7-4DB4-8E11-7A21356A6F52"}
@@ -132,8 +147,10 @@ function logMsg(msg, title) {
 function onCellClick(foundsetindex, columnindex, record, event) {
 	if (foundsetindex === -1) {
 //		scopes.svyDataUtils.selectRecordByPks(foundset, record.orderid);
-	} 
-	
+	} else {
+		foundsetIndex = foundsetIndex;
+	}
+
 	var msg = 'Click ' + foundsetindex + ' - ' + columnindex + ' - ' + (record ? record.orderid : ' undefined ') + ' - ' + event.getElementName();
 	logMsg(msg, 'Click');
 }

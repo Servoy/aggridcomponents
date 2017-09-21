@@ -1,9 +1,52 @@
 /**
+ * @protected 
  * @type {String}
  *
  * @properties={typeid:35,uuid:"E77DD074-56D6-445F-B3F1-E93E3345E0DD"}
  */
 var searchText = '';
+
+/**
+ * @protected 
+ * @param firstShow
+ * @param event
+ *
+ * @properties={typeid:24,uuid:"2D9E2CB1-9B3B-49C2-84BB-475A2A2B785A"}
+ */
+function onShow(firstShow,event) {
+	scopes.svyApplicationCore.addDataBroadcastListener(dataBroadcastEventListener, foundset.getDataSource());	
+	scopes.svyApplicationCore.addDataBroadcastListener(dataBroadcastEventListener, foundset.orders_to_customers.getDataSource());	
+	scopes.svyApplicationCore.addDataBroadcastListener(dataBroadcastEventListener, foundset.orders_to_employees.getDataSource());		
+	_super.onShow(firstShow,event);
+}
+
+/**
+ * @protected 
+ * @param event
+ *
+ * @properties={typeid:24,uuid:"6789DD6E-F4CB-4E78-95C3-806BE2E82E0B"}
+ */
+function onHide(event) {
+	_super.onHide(event);
+	scopes.svyApplicationCore.removeDataBroadcastListener(dataBroadcastEventListener, foundset.getDataSource());
+	scopes.svyApplicationCore.removeDataBroadcastListener(dataBroadcastEventListener, foundset.orders_to_customers.getDataSource());
+	scopes.svyApplicationCore.removeDataBroadcastListener(dataBroadcastEventListener, foundset.orders_to_employees.getDataSource());
+}
+
+/**
+ * @param {String} dataSource
+ * @param {Number} action
+ * @param {JSDataSet} pks
+ * @param {Boolean} cached
+ * @protected 
+ *
+ * @properties={typeid:24,uuid:"C6BF543F-A681-48F7-85AE-74DF48060C03"}
+ */
+function dataBroadcastEventListener(dataSource, action, pks, cached) {
+	application.output('event listener ' + dataSource); 
+	elements.groupingtable_1.notifyDataChange();
+}
+
 
 /**
  * Perform the element default action.
@@ -81,6 +124,41 @@ function search() {
 function onCellRightClick(foundsetindex,columnindex,record,event) {
 	_super.onCellRightClick(foundsetindex,columnindex,record,event);
 	if (foundsetindex == -1) {
-		scopes.svyDataUtils.selectRecordByPks(foundset, record.orderid);
+		if(scopes.svyDataUtils.selectRecordByPks(foundset, record.orderid)) {
+			foundsetIndex = foundset.getSelectedIndex();
+		}
 	} 
+}
+
+/**
+ * Perform the element default action.
+ *
+ * @param {JSEvent} event the event that triggered the action
+ *
+ * @protected
+ *
+ * @properties={typeid:24,uuid:"E8F53DC5-C7AD-45BE-895C-36959E64E22D"}
+ */
+function onEditRecord(event) {
+	if (foundsetIndex && foundset.getRecord(foundsetIndex)) {
+		var record = foundset.getRecord(foundsetIndex);
+		var country = plugins.dialogs.showInputDialog("Country","Change country " + record.shipcountry + " for order " + record.orderid, "Bazar");
+		application.output(country);
+		record.shipcountry = country;
+	} else {
+		plugins.dialogs.showInfoDialog("Record not found","Could not find record at position " + foundsetIndex + ".\nPlease provide a valid index");
+	}
+}
+
+/**
+ * Perform the element default action.
+ *
+ * @param {JSEvent} event the event that triggered the action
+ *
+ * @protected
+ *
+ * @properties={typeid:24,uuid:"88EF93CA-B4CA-44E2-9D88-DF4830139325"}
+ */
+function onActionRefreshData(event) {
+	elements.groupingtable_1.refreshData();
 }

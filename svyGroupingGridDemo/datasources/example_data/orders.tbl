@@ -1,0 +1,6 @@
+dataSource:"db:/example_data/orders",
+onAfterDeleteMethodID:"106DBDF4-36CB-4141-B04F-579486C48C89",
+onAfterInsertMethodID:"9A1382E8-63D1-44C5-87C3-CA262F044AE6",
+onAfterUpdateMethodID:"6C0871FA-A83A-472F-B44D-FFFB3C23D3A1",
+typeid:39,
+uuid:"D913C012-F544-4562-A402-EF2DE5FE1D94"

@@ -22,7 +22,7 @@ uuid:"07147C20-C48A-4988-A741-FE7238054FFE"
 },
 {
 customProperties:"",
-location:"208,4",
+location:"210,4",
 onActionMethodID:"9840890B-5994-4876-81E9-F0547584FFA8",
 size:"40,32",
 styleClass:"btn-default",
@@ -101,7 +101,7 @@ parameters:null\
 }\
 }",
 extendsID:"5592C005-2509-4DE2-BBE5-0CD086CC72D2",
-location:"251,4",
+location:"255,4",
 onActionMethodID:"6BAF5523-DAD2-4CB0-ACEF-863ABF9DCFA5",
 size:"40,32",
 toolTipText:"Add Record",
@@ -110,7 +110,7 @@ uuid:"62F545F1-09A1-4890-8A01-80DC2DB0C5DB"
 },
 {
 extendsID:"AFF99201-92C4-4655-83F1-519F31C59C36",
-location:"380,4",
+location:"435,4",
 size:"40,32",
 typeid:7,
 uuid:"641F9C76-FB20-4FB0-A7A1-954BFAE84B2F"
@@ -184,6 +184,18 @@ typeid:7,
 uuid:"9CA14D18-4C78-47ED-AE9E-3FFDB83E80AD"
 },
 {
+customProperties:"",
+displaysTags:true,
+location:"300,4",
+onActionMethodID:"E8F53DC5-C7AD-45BE-895C-36959E64E22D",
+size:"40,32",
+styleClass:"btn-warning",
+text:"<span class=\"fa fa-pencil\"/>",
+toolTipText:"Add Record",
+typeid:7,
+uuid:"9F597154-3661-4C14-AF37-D4C104E1266C"
+},
+{
 dataProviderID:"foundsetIndex",
 location:"165,4",
 placeholderText:"Index",
@@ -215,7 +227,7 @@ parameters:null\
 }\
 }",
 extendsID:"7AA3A173-6CC4-469C-842C-C1D7099A6352",
-location:"294,4",
+location:"345,4",
 onActionMethodID:"71639D4A-AA54-4593-B608-6033DBD54A88",
 size:"40,32",
 toolTipText:"Delete record",
@@ -238,7 +250,7 @@ uuid:"B88D497E-EC4D-4012-A78E-CCE932EFC03F"
 },
 {
 extendsID:"03BB488F-BCAC-4581-A769-F1FADB2EEF17",
-location:"337,4",
+location:"390,4",
 size:"40,32",
 typeid:7,
 uuid:"B89489D2-9FEA-4059-9F8D-E29527E1EAB9"
@@ -252,6 +264,18 @@ size:"180,25",
 text:"Orderid",
 typeid:4,
 uuid:"BE4A4EAD-1285-44A3-9146-B41734ED1269"
+},
+{
+displaysTags:true,
+location:"480,4",
+name:"btnRefresh",
+onActionMethodID:"88EF93CA-B4CA-44E2-9D88-DF4830139325",
+size:"40,32",
+styleClass:"btn-default",
+text:"<span class=\"glyphicon glyphicon-refresh\"/>",
+toolTipText:"Toggle Autosave",
+typeid:7,
+uuid:"BF6D425E-BA7E-4F30-A920-463745B2B9FB"
 },
 {
 dataProviderID:"shippeddate",

@@ -41,6 +41,18 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				 * - DONE Trigger onRowColumnGroupChanged to persist cache
 				 *
 				 * */
+				
+				/* 
+				 * TODO optimization
+				 * 
+				 * Fetch Data
+				 * Fetch the next chunk of records to obtain a smoother scrolling experience
+				 * Allow paramtrization of chunk size (default 50, 25x50 row, fits 1000 px screen);
+				 * 
+				 * Data Broadcasting
+				 * Notify refresh data only when grouped columns are changing (needs to know exactly what has changed ot what, can it actually do that ?)
+				 * 
+				 * */
 
 				/*
 				 * Test Cases
@@ -63,7 +75,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				 * 1. Expand nodes, sort on a column, expand nodes again
 				 * 2. Sort on Group column (CRITIC/FAIL)
 				 *
-				 * Databroacast - No Groups
+				 * Databroadcast - No Groups
 				 * 1. Update a record value
 				 * 2. Navigate to record 51, and update a record with index < 50
 				 * 3. Delete a record
@@ -75,6 +87,11 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				 * 1. Create record on top and change selection
 				 * 	  Change selected record on grid
 				 *    Select new record on grid. Record dataproviders are reset to 0 !!
+				 *    
+				 * Databroadcast - Groups
+				 * Edit
+				 * 1. Edit record at position 10.000 to a value that is not in group.
+				 * 		The foundset may not receive any notificaiton because is not in group
 				 *
 				 *  */
 
@@ -135,6 +152,12 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 				$scope.purge = function(count) {
 					//console.log(gridOptions.api.getInfinitePageState())
+					
+					// an hard refresh is necessary to show the groups
+					if (isTableGrouped()) {
+						groupManager.removeFoundsetRefAtLevel(0);
+					}
+					
 					gridOptions.api.purgeEnterpriseCache();
 					$scope.dirtyCache = false;
 					$log.warn('purge cache');
@@ -228,6 +251,8 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					/** Stor the latest groupKeys*/
 					groupKeys: []
 				}
+				
+				$scope.isGroupView = false;
 
 				// TODO this is used as workaround because sort doesn't return a promise
 				var sortColumnsPromise;
@@ -678,7 +703,8 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 					// store in columns the change
 					if (!rowGroupCols || rowGroupCols.length === 0) {
-
+						$scope.isGroupView = false;
+						
 						// TODO clear group when changed
 						groupManager.clearAll();
 
@@ -691,6 +717,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						}
 
 					} else {
+						$scope.isGroupView = true;
 
 						var groupedFields = [];
 
@@ -951,6 +978,8 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						for (var i = 0; i < rowGroupCols.length; i++) {
 							state.grouped.columns.push(rowGroupCols[i].field);
 						}
+						// is in group view first time the form is shown ?
+						$scope.isGroupView = rowGroupCols.length > 0;
 					}
 
 					// Sort on the foundset Group
@@ -1142,7 +1171,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						// TODO ASK R&D should i remove and add the previous listener ?
 						$scope.model.myFoundset.removeChangeListener(changeListener);
 						$scope.model.myFoundset.addChangeListener(changeListener);
-
+						
 						//						var callback = function(data) {
 						//							foundsetServer.allData = data;
 						//							$scope.purge();
@@ -2896,6 +2925,34 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					event.initMouseEvent("click", false, true, window, 1, x, y, x, y, false, false, false, false, 0, null);
 					return event;
 				}
+				
+				/***********************************************************************************************************************************
+				 ***********************************************************************************************************************************
+				 *
+				 * API methods
+				 *
+				 ************************************************************************************************************************************
+				 ***********************************************************************************************************************************/
+				
+				/** 
+				 * Notify the component about a data change. Makes the component aware of a data change that requires a refresh data.
+				 * Call this method when you are aware of a relevant data change in the foundset which may affect data grouping (e.g. group node created or removed).
+				 * The component will alert the user of the data change and will suggest the user to perform a refresh.
+				 * 
+				 * @public 
+				 * */
+				$scope.api.notifyDataChange = function() {
+					$scope.dirtyCache = true;
+				}
+				
+				/** 
+				 * Force a full refresh of the data. Note that all groups will be collapsed when a refresh is perfomed.
+				 * 
+				 * @public 
+				 * */
+				$scope.api.refreshData = function() {
+					$scope.purge();
+				}
 
 				// FIXME how to force re-fit when table is shown for the first time
 
@@ -2905,6 +2962,8 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				var destroyListenerUnreg = $scope.$on('$destroy', function() { // unbind resize on destroy
 						$(window).off('resize', onWindowResize);
 
+						// clear all foundsets
+						groupManager.removeFoundsetRefAtLevel(0);
 						$scope.model.myFoundset.removeChangeListener(changeListener);
 
 						// TODO remove change listener from each hashedFoundset
