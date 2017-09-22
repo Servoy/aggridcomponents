@@ -144,9 +144,9 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					//					}
 				}
 
-				/** 
-				 * 
-				 * @private 
+				/**
+				 *
+				 * @private
 				 * */
 				$scope.printCache = function() {
 					console.log($scope.model.hashedFoundsets);
@@ -284,7 +284,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 					rowHeight: $scope.model.rowHeight,
 					// TODO enable it ?					rowClass: $scope.model.rowStyleClass,	// add the class to each row
-					
+
 					suppressMovableColumns: true, // TODO persist column order changes
 					enableServerSideSorting: config.enableSorting,
 					enableColResize: config.enableColumnResize,
@@ -352,11 +352,11 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					// TODO localeText: how to provide localeText to the grid ? can the grid be shipped with i18n ?
 
 				};
-				
+
 				// rowStyleClassDataprovider
 				if ($scope.model.rowStyleClassDataprovider) {
 					gridOptions.getRowClass = getRowClass;
-				}				
+				}
 
 				// https://www.ag-grid.com/javascript-grid-icons/#gsc.tab=0
 				var icons = new Object();
@@ -411,7 +411,6 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 				// listen to group collapsed
 				//				gridOptions.api.addEventListener('rowGroupOpened', onRowGroupOpened);
-
 
 				/**
 				 * Grid Event
@@ -1118,7 +1117,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						// TODO ASK R&D should i remove and add the previous listener ?
 						$scope.model.myFoundset.removeChangeListener(changeListener);
 						$scope.model.myFoundset.addChangeListener(changeListener);
-						
+
 					});
 
 				/**************************************************************************************************
@@ -1872,7 +1871,8 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 						return getTreeNodePath(rootGroupNode, foundsetUUID);
 					};
 
-				} //End constructor GroupHashCache 
+				}
+				//End constructor GroupHashCache
 
 				/**
 				 * @constructor
@@ -2547,22 +2547,36 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					return colDefs;
 				}
 
+				// FIXME styleClass Dataprovider on groups
+
 				function getRowClass(params) {
 
-					var index = foundset.foundset.viewPort.startIndex + params.node.rowIndex;
-					// TODO get proper foundset
-					var styleClassProvider = $scope.model.rowStyleClassDataprovider[index];
+					var styleClassProvider;
+					
+					// TODO can i get rowStyleClassDataprovider from grouped foundset ?
+					if (!isTableGrouped()) {
+						var index = params.node.rowIndex - foundset.foundset.viewPort.startIndex ;
+						// TODO get proper foundset
+						styleClassProvider = $scope.model.rowStyleClassDataprovider[index];
+					}
 					return styleClassProvider;
 				}
 
 				function getCellClass(params) {
 					var styleClassProvider;
+					
+					// TODO can i get styleClassDataprovider from grouped foundset ?
+					// var foundsetManager = getFoundsetManagerByFoundsetUUID(params.data._svyFoundsetUUID);
+					
 					// TODO get direct access to column is quicker than array scanning
 					var column = getColumn(params.colDef.field);
-					if (column) {
-						var index = foundset.foundset.viewPort.startIndex + params.rowIndex;
-						// TODO get proper foundset
-						styleClassProvider = column.styleClassDataprovider[index];
+					if (!isTableGrouped()) {
+						if (column) {
+
+							// TODO get value from the proper foundset
+							var index = params.rowIndex - foundset.foundset.viewPort.startIndex;
+							styleClassProvider = column.styleClassDataprovider[index];
+						}
 					}
 					return 'ag-table-cell ' + column.styleClass + ' ' + styleClassProvider;
 				}
@@ -2605,7 +2619,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				 * @param {String} field
 				 * @param {String|Number|Boolean} value
 				 * @param {Object} column
-				 * @deprecated 
+				 * @deprecated
 				 *
 				 * @return {String}
 				 * */

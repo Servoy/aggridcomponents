@@ -1,7 +1,7 @@
 /**
  * @type {String}
  *
- * @properties={typeid:35,uuid:"5A51D0FD-7513-4A83-AADC-F5AE104A2E08"}
+ * @properties={typeid:35,uuid:"C46F5822-2D98-480C-86D2-CC90ACE9B79D"}
  */
 var searchText = '';
 
@@ -12,7 +12,7 @@ var searchText = '';
  *
  * @protected
  *
- * @properties={typeid:24,uuid:"BF85DB97-F7AF-4918-8478-E906C990A390"}
+ * @properties={typeid:24,uuid:"8DE618F6-38BC-488F-AB59-17DB7319E50B"}
  */
 function onActionSort(event) {
 	foundset.sort('shipcity asc');
@@ -25,7 +25,7 @@ function onActionSort(event) {
  *
  * @protected
  *
- * @properties={typeid:24,uuid:"41F8B075-6513-44B6-A7F0-26AF2E9EC96A"}
+ * @properties={typeid:24,uuid:"28506B07-B79A-46FF-9ABF-ADA1CA0D86D0"}
  */
 function onNewRecord(event) {
 	
@@ -44,7 +44,7 @@ function onNewRecord(event) {
  * @param event
  * @protected 
  *
- * @properties={typeid:24,uuid:"86B380F0-4DE9-4FA3-8284-A09087A01170"}
+ * @properties={typeid:24,uuid:"819B3D89-894E-4626-BFBF-CB4580495B35"}
  */
 function onSearch(event) {
 	search();
@@ -55,7 +55,7 @@ function onSearch(event) {
  * @AllowToRunInFind
  * 
  *
- * @properties={typeid:24,uuid:"5A01C22C-4794-4706-94B2-DA7A351DBF9B"}
+ * @properties={typeid:24,uuid:"95596456-77BF-4890-8DED-C58889DEE999"}
  */
 function search() {
 	var fs = foundset.duplicateFoundSet();
@@ -76,7 +76,7 @@ function search() {
  * @override 
  *
  *
- * @properties={typeid:24,uuid:"1D41EDB1-85E9-4217-8626-60877BC1EDCC"}
+ * @properties={typeid:24,uuid:"8F9C1E04-94DF-4A81-A262-C21F11828426"}
  */
 function onCellRightClick(foundsetindex,columnindex,record,event) {
 	_super.onCellRightClick(foundsetindex,columnindex,record,event);
