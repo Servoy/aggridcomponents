@@ -8,7 +8,12 @@
 }
 
 */
+.ag-table-info {
+	position: absolute;
+	top: 15px;
+	right: 15px;
+}
 
-.ag-table-dirty-cache {
-	color: red;	
+.ag-table-info-notify {
+	color: #f0ad4e;	
 }

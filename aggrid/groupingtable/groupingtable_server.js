@@ -152,7 +152,7 @@ $scope.removeGroupedFoundsetUUID = function(parentFoundset) {
 	for (var i = 0; i < $scope.model.hashedFoundsets.length; i++) {
 		var hashedFoundset = $scope.model.hashedFoundsets[i];
 		if (hashedFoundset.foundsetUUID === parentFoundset) {
-			console.warn('found the parent foundset and removed ');
+//			console.log('found the parent foundset and removed ');
 			$scope.model.hashedFoundsets.splice(i, 1);
 			return true;
 		}
