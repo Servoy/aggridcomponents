@@ -26,7 +26,8 @@
 }
 
 /** style the droppable column label in the row group panel  */
-.ag-table .ag-column-drop-cell {
+.ag-table.ag-fresh .ag-column-drop-cell,
+.ag-table.ag-bootstrap .ag-column-drop-cell {
 	color: #333;
 	background: #ddd;
 	border: 1px solid #ccc;
@@ -50,8 +51,10 @@
 }
 
 /** style the droppable column label in the row group panel  */
-.ag-table .ag-column-drop-cell:focus,
-.ag-table .ag-column-drop-cell:active:focus {
+.ag-table.ag-fresh .ag-column-drop-cell:focus,
+.ag-table.ag-bootstrap .ag-column-drop-cell:active:focus,
+.ag-table.ag-fresh .ag-column-drop-cell:focus,
+.ag-table.ag-bootstrap .ag-column-drop-cell:active:focus {
     outline: thin dotted;
     outline: 5px auto -webkit-focus-ring-color;
     outline-offset: -2px;
@@ -59,18 +62,26 @@
 }
 
 /** style the droppable column label in the row group panel  */
-.ag-table .ag-column-drop-cell:hover
-.ag-table .ag-column-drop-cell:focus, 
-.ag-table .ag-column-drop-cell:active {
+.ag-table.ag-fresh .ag-column-drop-cell:hover
+.ag-table.ag-fresh .ag-column-drop-cell:focus, 
+.ag-table.ag-fresh .ag-column-drop-cell:active,
+.ag-table.ag-bootstrap .ag-column-drop-cell:hover
+.ag-table.ag-bootstrap .ag-column-drop-cell:focus, 
+.ag-table.ag-bootstrap .ag-column-drop-cell:active {
     color: #333;
     background-color: #e6e6e6;
     border-color: #adadad;
 }
 
 /** style the remove button in the droppable column label in the row group panel  */
-.ag-table .ag-column-drop-cell-button:hover {
+.ag-table.ag-fresh .ag-column-drop-cell-button:hover,
+.ag-table.ag-bootstrap .ag-column-drop-cell-button:hover {
 	border-color: transparent;
 	color: #777;
+}
+
+.ag-table.ag-bootstrap .ag-column-drop-cell-button {
+	border: 0;
 }
 
 .ag-table .ag-column-drop-horizontal {
