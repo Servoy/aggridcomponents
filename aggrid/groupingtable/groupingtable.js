@@ -1,4 +1,4 @@
-angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable', ['$sabloConstants', '$log', '$q', '$foundsetTypeConstants', '$filter',
+angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).directive('aggridGroupingtable', ['$sabloConstants', '$log', '$q', '$foundsetTypeConstants', '$filter',
 	function($sabloConstants, $log, $q, $foundsetTypeConstants, $filter) {
 		return {
 			restrict: 'E',
@@ -120,8 +120,12 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				 * */
 				var AgDataRequestType;
 
-				$scope.refresh = function(count) {
-					sizeColumnsToFit();
+				$scope.testScroll = function() {
+					scrollToLastRow();
+				}
+				function scrollToLastRow() {
+					var rows = document.querySelectorAll('.ag-row');
+					rows[rows.length - 3].scrollIntoView(true);
 				}
 
 				$scope.purge = function(count) {
@@ -293,7 +297,6 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					suppressFieldDotNotation: true,
 
 					enableServerSideFilter: false, // TODO implement serverside filtering
-					animateRows: false,
 					suppressMovingInCss: true,
 					suppressColumnMoveAnimation: true,
 					suppressAnimationFrame: true,
@@ -324,7 +327,7 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					// use the enterprise row model
 					// bring back data 50 rows at a time
 					// don't show the grouping in a panel at the top
-					animateRows: true,
+					animateRows: false,
 					enableCellExpressions: true,
 
 					rowBuffer: 0,
@@ -342,7 +345,6 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 							}, 150);
 					},
 					onGridSizeChanged: function() {
-						$log.debug("gridSizeChanged")
 						sizeColumnsToFit();
 					},
 					// TODO since i can't use getRowNode(id) in enterprise model, is pointeless to get id per node
@@ -352,6 +354,9 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 					// TODO localeText: how to provide localeText to the grid ? can the grid be shipped with i18n ?
 
 				};
+
+				// TODO check if test enabled
+				//gridOptions.ensureDomOrder = true;
 
 				// rowStyleClassDataprovider
 				if ($scope.model.rowStyleClassDataprovider) {
@@ -2552,10 +2557,10 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 				function getRowClass(params) {
 
 					var styleClassProvider;
-					
+
 					// TODO can i get rowStyleClassDataprovider from grouped foundset ?
 					if (!isTableGrouped()) {
-						var index = params.node.rowIndex - foundset.foundset.viewPort.startIndex ;
+						var index = params.node.rowIndex - foundset.foundset.viewPort.startIndex;
 						// TODO get proper foundset
 						styleClassProvider = $scope.model.rowStyleClassDataprovider[index];
 					}
@@ -2564,10 +2569,10 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 
 				function getCellClass(params) {
 					var styleClassProvider;
-					
+
 					// TODO can i get styleClassDataprovider from grouped foundset ?
 					// var foundsetManager = getFoundsetManagerByFoundsetUUID(params.data._svyFoundsetUUID);
-					
+
 					// TODO get direct access to column is quicker than array scanning
 					var column = getColumn(params.colDef.field);
 					if (!isTableGrouped()) {
@@ -3389,8 +3394,6 @@ angular.module('aggridGroupingtable', ['servoy']).directive('aggridGroupingtable
 			},
 			templateUrl: 'aggrid/groupingtable/groupingtable.html'
 		};
-	}]).run(function() {
-
-	agGrid.LicenseManager.setLicenseKey("Servoy_Servoy_7Devs_1OEM_22_August_2018__MTUzNDg5MjQwMDAwMA==bf70d060fe7e90b9550a7821a54f6fa8");
-
-});
+	}]).run(['$aggridenterpriselicensekey', function($aggridenterpriselicensekey) {
+	$aggridenterpriselicensekey.setLicenseKey();
+}]);

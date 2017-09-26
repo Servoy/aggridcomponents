@@ -320,10 +320,12 @@ rowHeight:28,
 size:{
 height:327,
 width:835
-}
+},
+styleClass:"ag-bootstrap"
 },
 location:"47,281",
 size:"835,327",
+styleClass:"ag-bootstrap",
 typeid:47,
 uuid:"DB1383A5-2090-44E5-B12E-AE93430824DA"
 },
@@ -349,7 +351,7 @@ uuid:"F40B4460-02A9-4A96-98C9-CC3E277D2002"
 {
 dataProviderID:"orderdate",
 displayType:5,
-format:"dd-MM-yyyy",
+format:"ddMMyyyy|mask",
 location:"700,59",
 size:"180,25",
 typeid:4,

@@ -1,13 +1,19 @@
 Manifest-Version: 1.0
-CSS-ClientLibs: aggrid/lib/styles/ag-grid.css/;name=ag-grid.css;versio
- n=1.0.0,aggrid/lib/styles/ag-grid-custom.css/;name=ag-grid-custom.css
+CSS-ClientLibs: aggrid/lib/styles/ag-grid.css/;name=ag-grid.css
+ ;version=1.0.0,aggrid/lib/styles/ag-theme-material.css/;name=ag-theme-material.css
+ ;version=1.0.0,aggrid/lib/styles/theme-blue.css/;name=ag-theme-blue.css
+ ;version=1.0.0,aggrid/lib/styles/theme-bootstrap.css/;name=ag-theme-bootstrap.css
+ ;version=1.0.0,aggrid/lib/styles/theme-dark.css/;name=ag-theme-dark.css
+ ;version=1.0.0,aggrid/lib/styles/theme-fresh.css/;name=ag-theme-fresh.css
+ ;version=1.0.0,aggrid/lib/styles/ag-grid-custom.css/;name=ag-grid-custom.css
  ;version=1.0.0
 Bundle-SymbolicName: aggrid
 Bundle-Version: 1.0.0
 Bundle-Name: Ag Grid
 Package-Type: Web-Component
-JS-ClientLibs: aggrid/lib/ag-grid-enterprise.js;name=ag-grid-enterpris
- e;version=13.0.2
+JS-ClientLibs: aggrid/lib/ag-grid-enterprise.min.noStyle.js;name=ag-grid-enterpris
+ e;version=13.2.0,aggrid/lib/ag-grid-enterprise-licensekey.js;name=ag-grid-enterpris
+ e-licensekey;version=13.2.0
 
 Name: groupingtable/groupingtable.spec
 Web-Component: True
