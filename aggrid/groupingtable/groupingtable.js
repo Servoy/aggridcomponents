@@ -682,7 +682,8 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 						$scope.isGroupView = false;
 
 						// TODO clear group when changed
-						groupManager.clearAll();
+						//groupManager.clearAll();
+						groupManager.removeFoundsetRefAtLevel(0);
 
 						// clear all columns
 						for (i = 0; i < $scope.model.columns.length; i++) {
@@ -1480,6 +1481,9 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 						return removeChildFoundsets(rootGroupNode, foundsetUUID, field, value);
 					}
 
+					/** @deprecated 
+					 * Use removeFoundsetRefAtLevel(0) instead
+					 *  */
 					this.clearAll = function() {
 
 						rootGroupNode.forEach(function(node) {
