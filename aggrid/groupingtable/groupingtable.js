@@ -120,14 +120,6 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 				 * */
 				var AgDataRequestType;
 
-				$scope.testScroll = function() {
-					scrollToLastRow();
-				}
-				function scrollToLastRow() {
-					var rows = document.querySelectorAll('.ag-row');
-					rows[rows.length - 3].scrollIntoView(true);
-				}
-
 				$scope.purge = function(count) {
 					//console.log(gridOptions.api.getInfinitePageState())
 
@@ -281,7 +273,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 						width: 0,
 						suppressFilter: true,
 						valueFormatter: displayValueFormatter,
-						menuTabs: ['generalMenuTab', 'columnsMenuTab'] // , 'filterMenuTab']
+						menuTabs: ['generalMenuTab'] //, 'columnsMenuTab'] // , 'filterMenuTab']
 					},
 					columnDefs: columnDefs,
 					getMainMenuItems: getMainMenuItems,
