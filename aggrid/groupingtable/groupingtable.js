@@ -196,6 +196,14 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 							case "responsiveHeight":
 								setHeight();
 								break;
+							case "visible":
+								// if the table was never visible
+								if (isRendered === false && value === true) {
+									// refresh the columnDefs since was null the first time
+									gridOptions.api.setColumnDefs(getColumnDefs());
+									isRendered = true;
+								}
+								break;
 							}
 						}
 					});
@@ -239,6 +247,9 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 				}
 
 				$scope.isGroupView = false;
+
+				// set to true when is rendered
+				var isRendered = undefined;
 
 				// TODO this is used as workaround because sort doesn't return a promise
 				var sortColumnsPromise;
@@ -387,6 +398,14 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 				} else {
 					// init the grid
 					new agGrid.Grid(gridDiv, gridOptions);
+
+					if ($scope.model.visible === false) {
+						// rerender next time model.visible will be true
+						isRendered = false;
+					} else {
+						isRendered = true;
+					}
+
 				}
 
 				// default selection
@@ -1481,7 +1500,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 						return removeChildFoundsets(rootGroupNode, foundsetUUID, field, value);
 					}
 
-					/** @deprecated 
+					/** @deprecated
 					 * Use removeFoundsetRefAtLevel(0) instead
 					 *  */
 					this.clearAll = function() {
@@ -2869,6 +2888,9 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 						// remove model change notifier
 						destroyListenerUnreg();
 						delete $scope.model[$sabloConstants.modelChangeNotifier];
+
+						// release grid resources
+						gridOptions.api.destroy();
 
 					});
 
