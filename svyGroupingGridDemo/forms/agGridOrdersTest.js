@@ -110,10 +110,29 @@ function search() {
 }
 
 /**
- * @param foundsetindex
- * @param columnindex
- * @param record
- * @param event
+ * @param {Number} foundsetindex
+ * @param {Number} [columnindex]
+ * @param {Object} [record]
+ * @param {JSEvent} [event]
+ *
+ * @properties={typeid:24,uuid:"F079E5FC-F6D4-454F-8055-BFBEEB1389B1"}
+ */
+function onCellClick(foundsetindex, columnindex, record, event) {
+	if (foundsetindex === -1) {
+		
+	} else {
+		foundsetIndex = foundsetIndex;
+	}
+
+	var msg = 'Click ' + foundsetindex + ' - ' + columnindex + ' - ' + (record ? record.orderid : ' undefined ') + ' - ' + event.getElementName();
+	logMsg(msg, 'Click');
+}
+
+/**
+ * @param {Number} foundsetindex
+ * @param {Number} [columnindex]
+ * @param {Object} [record]
+ * @param {JSEvent} [event]
  * 
  * @protected 
  * @override 

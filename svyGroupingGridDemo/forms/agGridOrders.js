@@ -69,10 +69,10 @@ function search() {
 
 
 /**
- * @param foundsetindex
- * @param columnindex
- * @param record
- * @param event
+ * @param {Number} foundsetindex
+ * @param {Number} [columnindex]
+ * @param {Object} [record]
+ * @param {JSEvent} [event]
  * 
  * @protected 
  * @override 
@@ -85,4 +85,26 @@ function onCellRightClick(foundsetindex,columnindex,record,event) {
 	if (foundsetindex == -1) {
 		scopes.svyDataUtils.selectRecordByPks(foundset, record.orderid);
 	} 
+}
+
+
+/**
+ * Called when the mouse is clicked on a row/cell (foundset and column indexes are given) 
+ *
+ * @param {Number} foundsetindex
+ * @param {Number} [columnindex]
+ * @param {Object} [record]
+ * @param {JSEvent} [event]
+ *
+ * @properties={typeid:24,uuid:"9F997B43-3BF2-4B23-B73C-5F91561D1234"}
+ */
+function onCellClick(foundsetindex, columnindex, record, event) {
+	if (foundsetindex === -1) {
+		
+	} else {
+		foundsetIndex = foundsetIndex;
+	}
+
+	var msg = 'Click ' + foundsetindex + ' - ' + columnindex + ' - ' + (record ? record.orderid : ' undefined ') + ' - ' + event.getElementName();
+	logMsg(msg, 'Click');
 }

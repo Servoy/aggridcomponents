@@ -468,7 +468,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 								// FIXME cannot resolve the record when grouped, how can i rebuild the record ?
 								// Can i pass in the array ok pks ? do i know the pks ?
 								// Can i get the hasmap of columns to get the proper dataProviderID name ?
-								$scope.handlers.onRecordSelected(foundsetIndex, record, createJSEvent());
+								$scope.handlers.onRecordSelected(foundsetIndex + 1, record, createJSEvent());
 							}
 						} else {
 							$log.warn('could not find record ' + row._svyRowId);
@@ -540,7 +540,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 						foundsetIndex = -1;
 						// TODO use serverside API getRecordIndex
 					} else {
-						foundsetIndex = params.node.rowIndex;
+						foundsetIndex = params.node.rowIndex + 1;
 					}
 					return foundsetIndex;
 				}

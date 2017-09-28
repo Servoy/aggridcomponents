@@ -131,13 +131,11 @@ function logMsg(msg, title) {
 }
 
 /**
- * Called when the mouse is clicked on a row/cell (foundset and column indexes are given) or.
- * when the ENTER key is used then only the selected foundset index is given
- * Use the record to exactly match where the user clicked on
+ * Called when the mouse is clicked on a row/cell (foundset and column indexes are given) 
  *
  * @param {Number} foundsetindex
  * @param {Number} [columnindex]
- * @param {JSRecord} [record]
+ * @param {Object} [record]
  * @param {JSEvent} [event]
  *
  * @protected
@@ -146,28 +144,13 @@ function logMsg(msg, title) {
  */
 function onCellClick(foundsetindex, columnindex, record, event) {
 	if (foundsetindex === -1) {
-//		scopes.svyDataUtils.selectRecordByPks(foundset, record.orderid);
+		
 	} else {
 		foundsetIndex = foundsetIndex;
 	}
 
-	var msg = 'Click ' + foundsetindex + ' - ' + columnindex + ' - ' + (record ? record.orderid : ' undefined ') + ' - ' + event.getElementName();
+	var msg = 'Click ' + foundsetindex + ' - ' + columnindex  + ' - ' + event.getElementName();
 	logMsg(msg, 'Click');
-}
-
-/**
- * @param {Number} foundsetindex
- * @param {Number} [columnindex]
- * @param {JSRecord} [record]
- * @param {JSEvent} [event]
- *
- * @protected
- *
- * @properties={typeid:24,uuid:"739FD949-4F58-4365-808C-B88D6C8CF5DD"}
- */
-function onCellDoubleClick(foundsetindex, columnindex, record, event) {
-	var msg = 'Double Click ' + foundsetindex + ' - ' + columnindex + ' - ' + (record ? record.orderid : ' undefined ') + ' - ' + event.getElementName();
-	logMsg(msg, 'Double Click');
 }
 
 /**
@@ -177,7 +160,7 @@ function onCellDoubleClick(foundsetindex, columnindex, record, event) {
  *
  * @param {Number} foundsetindex
  * @param {Number} [columnindex]
- * @param {JSRecord} [record]
+ * @param {Object} [record]
  * @param {JSEvent} [event]
  *
  * @protected
@@ -185,24 +168,8 @@ function onCellDoubleClick(foundsetindex, columnindex, record, event) {
  * @properties={typeid:24,uuid:"058BA194-943F-427D-8652-68DE3624888B"}
  */
 function onCellRightClick(foundsetindex, columnindex, record, event) {
-	var msg = 'Right Click ' + foundsetindex + ' - ' + columnindex + ' - ' + (record ? record.orderid : ' undefined ') + ' - ' + event.getElementName();
+	var msg = 'Right Click ' + foundsetindex + ' - ' + columnindex + ' - ' + event.getElementName();
 	logMsg(msg, 'Right Click');
-}
-
-/**
- * Called when a record is selected; to be used when the grid isn't bound to the form's foundset.
- *
- * @param {Number} index
- * @param {JSRecord} [record]
- * @param {JSEvent} [event]
- *
- * @protected
- *
- * @properties={typeid:24,uuid:"89348A3A-70DE-40D7-8274-F19C4C4BCEE4"}
- */
-function onRecordSelected(index, record, event) {
-	var msg = 'Select Record ' + index + ' - ' + (record ? record.orderid : ' undefined ') + ' - ' + event.getElementName();
-	logMsg(msg, 'Record Selected');
 }
 
 /**
@@ -214,7 +181,6 @@ function onRecordSelected(index, record, event) {
 function onNewRecord(event) {
 	var index = foundsetIndex ? foundsetIndex : null;
 	logMsg(foundset.newRecord(index), 'index');
-	// logMsg(foundset.newRecord(foundset.getSize(), true), 'index');
 }
 
 /**

@@ -30,7 +30,7 @@
 	},
 	"handlers" : {
 		"onCellClick": {
-			"description": "Called when the mouse is clicked on a row/cell (foundset and column indexes are given) or\nwhen the ENTER key is used then only the selected foundset index is given\nUse the record to exactly match where the user clicked on",
+			"description": "Called when the mouse is clicked on a row/cell (foundset and column indexes are given)\nthe foundsetindex is always -1 when there are grouped rows\nthe record is not an actual JSRecord but an object having the dataprovider values of the clicked record",
 			"parameters": [{
 				"name": "foundsetindex",
 				"type": "int"
@@ -49,7 +49,7 @@
 			}]
 		},
 		"onCellRightClick": {
-			"description": "Called when the right mouse button is clicked on a row/cell (foundset and column indexes are given) or\nwhen the ENTER key is used then only the selected foundset index is given\nUse the record to exactly match where the user clicked on",
+			"description": "Called when the right mouse button is clicked on a row/cell (foundset and column indexes are given)\nthe foundsetindex is always -1 when there are grouped rows\nthe record is not an actual JSRecord but an object having the dataprovider values of the clicked record",
 			"parameters": [{
 				"name": "foundsetindex",
 				"type": "int"
