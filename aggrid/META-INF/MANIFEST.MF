@@ -4,7 +4,7 @@ CSS-ClientLibs: https://cdn.rawgit.com/Servoy/aggridcomponents-license/master/di
  ;version=1.0.0
 Bundle-SymbolicName: aggrid
 Bundle-Version: 1.0.0
-Bundle-Name: Ag Grid
+Bundle-Name: Ag Grid Components
 Package-Type: Web-Component
 JS-ClientLibs: https://cdn.rawgit.com/Servoy/aggridcomponents-license/master/dist/ag-grid-enterprise.min.js;name=ag-grid-enterpris
  e;version=13.2.0,https://cdn.rawgit.com/Servoy/aggridcomponents-license/master/dist/ag-grid-enterprise-licensekey.js;name=ag-grid-enterpris
