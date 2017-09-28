@@ -38,7 +38,7 @@ uuid:"BCD16698-2D19-4061-84B9-38BFD0BC1E3A"
 location:"0,0",
 name:"tab_agGridOrders",
 printable:false,
-size:"640,481",
+size:"640,480",
 transparent:true,
 typeid:16,
 uuid:"8704C466-5276-40A2-BB48-8ABCB5B845F7"
