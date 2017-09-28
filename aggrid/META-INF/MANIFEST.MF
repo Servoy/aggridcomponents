@@ -1,11 +1,14 @@
 Manifest-Version: 1.0
+CSS-ClientLibs: https://cdn.rawgit.com/Servoy/aggridcomponents-license/master/dist/styles/ag-grid.min.css;name=ag-grid.css
+ ;version=1.0.0,aggrid/lib/styles/ag-grid-custom.css;name=ag-grid-custom.css
+ ;version=1.0.0
+Bundle-SymbolicName: aggrid
 Bundle-Version: 1.0.0
 Package-Type: Web-Component
-CSS-ClientLibs: aggrid/lib/styles/ag-grid.css/;name=ag-grid.css;version=1.0.0,aggrid/lib/styles/ag-grid-custom.css/;name=ag-grid-custom.css;version=1.0.0
-JS-ClientLibs: aggrid/lib/ag-grid-enterprise.js;name=ag-grid-enterprise;version=12.0.1
 Bundle-Name: Ag Grid
-Bundle-SymbolicName: aggrid
-
+JS-ClientLibs: https://cdn.rawgit.com/Servoy/aggridcomponents-license/master/dist/ag-grid-enterprise.min.js;name=ag-grid-enterpris
+ e;version=13.2.0,https://cdn.rawgit.com/Servoy/aggridcomponents-license/master/dist/ag-grid-enterprise-licensekey.js;name=ag-grid-enterpris
+ e-licensekey;version=13.2.0
 
 Name: groupingtable/groupingtable.spec
 Web-Component: True
