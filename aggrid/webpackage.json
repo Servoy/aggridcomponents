@@ -1,0 +1,10 @@
+{
+    "name":"aggrid",
+    "displayName":"Ag Grid Components",
+    "packageType": "Web-Component",
+    "icon": "https://raw.githubusercontent.com/Servoy/aggridcomponents/master/aggrid/aggrid.png",
+    "description": "This is the package contains a calendar component which display events on a full-sized calendar and supports drag & drop event. The component a 1-to-1 implementation of the fullcalendar J-Query plugin.",
+    "wikiUrl": "https://github.com/Servoy/aggridcomponents/wiki",
+    "sourceUrl" : "https://github.com/Servoy/aggridcomponents",
+    "releases" : [{"version":"1.0.0rc1","url":"https://github.com/Servoy/aggridcomponents/releases/download/v1.0.0rc1/aggrid.zip", "servoy-version":"8.2.1"}]
+}
