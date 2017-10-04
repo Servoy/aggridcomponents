@@ -54,6 +54,7 @@ function onDeleteRecord(event) {
  */
 function onSearch(event) {
 	search();
+	getTableCount();
 }
 
 /**
