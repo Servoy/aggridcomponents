@@ -8,7 +8,7 @@ The Ag Grid Components can be used on Servoy 8.2.1 or higher.
 
 # Getting started
 
-To add the Ag Grid Components package in your solution, open the Servoy Developer IDE and download the Servoy Extra Components from the Web Package Manager (the Web Package Manager is accessible from the context menu of the Web Components node of your solution).
+To add the Ag Grid Components package in your solution, open the Servoy Developer IDE and download the AG Grid Components from the Web Package Manager (the Web Package Manager is accessible from the context menu of the Web Components node of your solution).
 
 To use the latest source code clone the git repository and checkout the develop branch. Install the egit plugin for Eclipse to clone the repository and import the projects into the workspace.
 
