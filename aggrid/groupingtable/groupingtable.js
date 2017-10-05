@@ -292,6 +292,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 					rowHeight: $scope.model.rowHeight,
 					// TODO enable it ?					rowClass: $scope.model.rowStyleClass,	// add the class to each row
 
+					suppressContextMenu: false,
 					suppressMovableColumns: true, // TODO persist column order changes
 					enableServerSideSorting: config.enableSorting,
 					enableColResize: config.enableColumnResize,
@@ -349,7 +350,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 					},
 					onGridSizeChanged: function() {
 						sizeColumnsToFit();
-					},
+					}
 					// TODO since i can't use getRowNode(id) in enterprise model, is pointeless to get id per node
 					//					getRowNodeId: function(data) {
 					//						return data._svyRowId;
@@ -1906,6 +1907,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 					this.groupedValues = new Object();
 
 					// methods
+					this.getCachedFoundsetUUID;
 					this.getFoundsetRef;
 					this.updateFoundsetRefs;
 					this.removeFoundsetRef;
@@ -1920,6 +1922,19 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 					//						}
 					//
 					//					}
+
+					/**
+					 * Returns the foundset with the given grouping criteria is already exists in cache
+					 *
+					 * @param {Array} rowGroupCols
+					 * @param {Array} groupKeys
+					 * @param {String} [sort] desc or asc. Default asc
+					 *
+					 * @return {String} returns the UUID of the foundset if exists in cache
+					 * */
+					this.getCachedFoundsetUUID = function(rowGroupCols, groupKeys) {
+						return hashTree.getCachedFoundset(rowGroupCols, groupKeys);
+					}
 
 					/**
 					 * Returns the foundset with the given grouping criteria
@@ -2067,8 +2082,9 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 							idForFoundsets.push(getColumnID($scope.model.columns[i], i));
 						}
 
+						var hasRowStyleClassDataprovider = $scope.model.rowStyleClassDataprovider ? true : false;
 						childFoundsetPromise = $scope.svyServoyapi.callServerSideApi("getGroupedFoundsetUUID",
-							[groupColumns, groupKeys, idForFoundsets, sort]);
+							[groupColumns, groupKeys, idForFoundsets, sort, hasRowStyleClassDataprovider]);
 
 						childFoundsetPromise.then(function(childFoundsetUUID) {
 								$log.debug(childFoundsetUUID);
@@ -2571,13 +2587,54 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 
 				function getRowClass(params) {
 
+					var rowIndex = params.node.rowIndex;
 					var styleClassProvider;
 
 					// TODO can i get rowStyleClassDataprovider from grouped foundset ?
 					if (!isTableGrouped()) {
-						var index = params.node.rowIndex - foundset.foundset.viewPort.startIndex;
+						var index = rowIndex - foundset.foundset.viewPort.startIndex;
 						// TODO get proper foundset
 						styleClassProvider = $scope.model.rowStyleClassDataprovider[index];
+					} else if (params.node.group === false) {
+
+						var rowGroupCols = [];
+						var groupKeys = [];
+
+						var parentNode = params.node.parent;
+						var childRowIndex = rowIndex - Math.max(parentNode.rowIndex + 1, 0);
+						while (parentNode && parentNode.level >= 0 && parentNode.group === true) {
+
+							// check if all fields are fine
+							if (!parentNode.field && !parentNode.data) {
+								$log.warn("cannot resolve rowStyleClassDataprovider for row at rowIndex " + rowIndex);
+								// exit
+								return styleClassProvider;
+							}
+
+							// is reverse order
+							rowGroupCols.unshift({field: parentNode.field, id: parentNode.field});
+							groupKeys.unshift(parentNode.data[parentNode.field]);
+
+							// next node
+							parentNode = parentNode.parent;
+						}
+
+						// having groupKeys and rowGroupCols i can get the foundset.
+
+						var foundsetUUID = groupManager.getCachedFoundsetUUID(rowGroupCols, groupKeys)
+						// got the hash, problem is that is async.
+						var foundsetManager = getFoundsetManagerByFoundsetUUID(foundsetUUID);
+						if (foundsetManager && foundsetManager.foundset.viewPort.rows[0]['__rowStyleClassDataprovider']) {
+							var index = childRowIndex - foundsetManager.foundset.viewPort.startIndex;
+							if (index >= 0 && index < foundsetManager.foundset.viewPort.size) {
+								styleClassProvider = foundsetManager.foundset.viewPort.rows[index]['__rowStyleClassDataprovider'];
+							} else {
+								$log.warn('cannot render rowStyleClassDataprovider for row at index ' + index)
+								$log.warn(params.data);
+							}
+						} else {
+							$log.debug("Something went wrong for foundset hash " + foundsetUUID)
+						}
 					}
 					return styleClassProvider;
 				}
@@ -2596,6 +2653,17 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 							// TODO get value from the proper foundset
 							var index = params.rowIndex - foundset.foundset.viewPort.startIndex;
 							styleClassProvider = column.styleClassDataprovider[index];
+						}
+					} else {
+						var foundsetManager = getFoundsetManagerByFoundsetUUID(params.data._svyFoundsetUUID);
+						if (column) {
+							var index = foundsetManager.getRowIndex(params.data) - foundsetManager.foundset.viewPort.startIndex;
+							if (index >= 0) {
+								styleClassProvider = foundsetManager.foundset.viewPort.rows[index][column.dataprovider.idForFoundset + "_styleClassDataprovider"];
+							} else {
+								$log.warn('cannot render styleClassDataprovider for row at index ' + index)
+								$log.warn(params.data);
+							}
 						}
 					}
 					return 'ag-table-cell ' + column.styleClass + ' ' + styleClassProvider;

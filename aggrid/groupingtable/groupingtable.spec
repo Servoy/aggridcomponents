@@ -12,8 +12,8 @@
 		"columns": { "type": "column[]", "droppable" : true, "pushToServer": "shallow", "tags": {"scope": "design"}},
 		"responsiveHeight": { "type": "int", "default": 300 },
 		"rowHeight" : {"type" : "int", "default": 25, "tags": {"scope": "design"}},
-		"rowStyleClassDataprovider": { "type": "dataprovider", "forFoundset": "myFoundset", "tags": {"scope": "design"}},
-		"styleClass": { "type": "styleclass", "default" : "ag-fresh"},
+		"rowStyleClassDataprovider": { "type": "dataprovider", "forFoundset": "myFoundset" },
+		"styleClass": { "type": "styleclass", "default" : "ag-bootstrap"},
 			"enableColumnResize": { "type": "boolean", "default": true, "tags": {"scope": "design"}},
 			"enableSorting": { "type": "boolean", "default": true, "tags": {"scope": "design"}},
 			"groupUseEntireRow" : {"type": "boolean", "default" : true, "tags" : {"scope": "design"}},
@@ -92,6 +92,10 @@
                 }, {
                 	"name" : "sort",
                 	"type" : "string"
+                },{
+                	"name" : "hasRowStyleClassDataprovider",
+                	"type" : "boolean",
+                	"optional" : true
                 }
             ]
         },
