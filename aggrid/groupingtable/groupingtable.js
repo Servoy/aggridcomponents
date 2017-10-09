@@ -350,7 +350,9 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 					},
 					onGridSizeChanged: function() {
 						sizeColumnsToFit();
-					}
+					},
+					getContextMenuItems: getContextMenuItems
+					
 					// TODO since i can't use getRowNode(id) in enterprise model, is pointeless to get id per node
 					//					getRowNodeId: function(data) {
 					//						return data._svyRowId;
@@ -358,6 +360,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 					// TODO localeText: how to provide localeText to the grid ? can the grid be shipped with i18n ?
 
 				};
+				
 
 				// TODO check if test enabled
 				//gridOptions.ensureDomOrder = true;
@@ -680,6 +683,14 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 						});
 
 					}
+				}
+				
+				/**
+				 * Context menu callback
+				 *  */
+				function getContextMenuItems(params) {
+					// hide any context menu
+					return [];
 				}
 
 				/**
