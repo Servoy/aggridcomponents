@@ -306,6 +306,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 					suppressAnimationFrame: true,
 
 					rowSelection: 'single',
+					rowDeselection: false,
 					suppressRowClickSelection: rowGroupColsDefault.length === 0 ? false : true,
 					suppressCellSelection: true, // TODO implement focus lost/gained
 					enableRangeSelection: false,
@@ -479,7 +480,10 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 						}
 
 					} else {
+						// This is a workaround to prevent record deselection when the space key is pressed
 						// this state is possible when the selected record is not in the visible viewPort
+						$log.debug("table must always have a selected record");
+						selectedRowIndexesChanged();
 					}
 				}
 				/**
