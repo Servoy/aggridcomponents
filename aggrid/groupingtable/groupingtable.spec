@@ -144,7 +144,7 @@
 			"visible":  { "type": "boolean", "default": true, "tags" : {"scope": "design"} },
 			"width":  { "type": "int", "default": 0, "tags" : {"scope": "design"} },			
 			"enableRowGroup" : {"type": "boolean", "default" : true, "tags" : {"scope": "design"}},
-			"rowGroupIndex":  {"type": "int", "default": null, "tags" : {"scope": "design"}}
+			"rowGroupIndex":  {"type": "int", "default": -1, "tags" : {"scope": "design"}}
 		},
 		 "hashedFoundset" : {
             "foundset": "foundset",

@@ -724,7 +724,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 						for (i = 0; i < $scope.model.columns.length; i++) {
 							column = $scope.model.columns[i];
 							if (column.hasOwnProperty('rowGroupIndex')) {
-								column.rowGroupIndex = null;
+								column.rowGroupIndex = -1;
 							}
 						}
 
@@ -747,7 +747,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 							column = $scope.model.columns[i];
 							if (groupedFields.indexOf(getColumnID(column, i)) === -1) {
 								if (column.hasOwnProperty('rowGroupIndex')) {
-									column.rowGroupIndex = null;
+									column.rowGroupIndex = -1;
 								}
 							}
 
@@ -2564,7 +2564,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 						}
 
 						colDef.enableRowGroup = column.enableRowGroup;
-						if (column.rowGroupIndex || column.rowGroupIndex === 0) colDef.rowGroupIndex = column.rowGroupIndex;
+						if (column.rowGroupIndex >= 0) colDef.rowGroupIndex = column.rowGroupIndex;
 						if (column.width || column.width === 0) colDef.width = column.width;
 						// TODO add minWidth and maxWidth to column.spec
 						if (column.maxWidth) colDef.maxWidth = column.maxWidth;
