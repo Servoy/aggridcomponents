@@ -6,5 +6,6 @@
     "description": "Ag Grid Components component package of advanced table components. The only current component is the Grouping table, which provide built-in grouping functionalities for large amount of data.",
     "wikiUrl": "https://github.com/Servoy/aggridcomponents/wiki",
     "sourceUrl" : "https://github.com/Servoy/aggridcomponents",
-    "releases" : [{"version":"1.0.0rc1","url":"https://github.com/Servoy/aggridcomponents/releases/download/v1.0.0rc1/aggrid.zip", "servoy-version":"8.2.1"}]
+    "releases" : [{"version":"1.0.0rc1","url":"https://github.com/Servoy/aggridcomponents/releases/download/v1.0.0rc1/aggrid.zip", "servoy-version":"8.2.1"},
+   				  {"version":"1.0.0","url":"https://github.com/Servoy/aggridcomponents/releases/download/v1.0.0/aggrid.zip", "servoy-version":"8.2.1"}]
 }
