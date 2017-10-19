@@ -1,5 +1,5 @@
-angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).directive('aggridGroupingtable', ['$sabloConstants', '$log', '$q', '$foundsetTypeConstants', '$filter',
-	function($sabloConstants, $log, $q, $foundsetTypeConstants, $filter) {
+angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).directive('aggridGroupingtable', ['$sabloConstants', '$compile', '$log', '$q', '$foundsetTypeConstants', '$filter',
+	function($sabloConstants, $compile, $log, $q, $foundsetTypeConstants, $filter) {
 		return {
 			restrict: 'E',
 			scope: {
@@ -281,6 +281,8 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 					rowGroupPanelShow: 'onlyWhenGrouping', // TODO expose property
 
 					defaultColDef: {
+						editable: true,
+						cellEditor: TextCellEditor,
 						width: 0,
 						suppressFilter: true,
 						valueFormatter: displayValueFormatter,
@@ -311,10 +313,10 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 					suppressCellSelection: true, // TODO implement focus lost/gained
 					enableRangeSelection: false,
 
-					stopEditingWhenGridLosesFocus: true,
+					stopEditingWhenGridLosesFocus: false,
 					singleClickEdit: true,
 					suppressClickEdit: false,
-					enableGroupEdit: false,
+					enableGroupEdit: true,
 					groupUseEntireRow: config.groupUseEntireRow,
 					groupMultiAutoColumn: true,
 					suppressAggFuncInHeader: true, // TODO support aggregations
@@ -353,7 +355,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 						sizeColumnsToFit();
 					},
 					getContextMenuItems: getContextMenuItems
-					
+
 					// TODO since i can't use getRowNode(id) in enterprise model, is pointeless to get id per node
 					//					getRowNodeId: function(data) {
 					//						return data._svyRowId;
@@ -361,7 +363,6 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 					// TODO localeText: how to provide localeText to the grid ? can the grid be shipped with i18n ?
 
 				};
-				
 
 				// TODO check if test enabled
 				//gridOptions.ensureDomOrder = true;
@@ -688,7 +689,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 
 					}
 				}
-				
+
 				/**
 				 * Context menu callback
 				 *  */
@@ -900,6 +901,143 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 					}
 
 					return value;
+				}
+
+				// function to act as a class
+				function TextCellEditor() { }
+
+				// gets called once before the renderer is used
+				TextCellEditor.prototype.init = function(params) {
+
+					var column = getColumn(params.column.colId);
+					var rowIndex = params.rowIndex;
+					var foundsetIndex = rowIndex - foundset.foundset.viewPort.startIndex;
+
+					// merge row values into the model
+					// TODO get the element bound to the proper column. Is now hardcoded to a single element
+					var child = $scope.model.childElements[0];
+					
+					console.log(child)
+
+
+					// copy the properties into the child model from the foundset. default is the dataProviderID
+					for (var j = 0; j < child.foundsetConfig.recordBasedProperties.length; j++) {
+						var modelProperty = child.foundsetConfig.recordBasedProperties[j];
+						// child.model[modelProperty] = child.modelViewport[foundsetIndex][modelProperty];
+						child.model[modelProperty] = column.dataprovider[foundsetIndex];
+					}
+
+					$scope.cellScope = {
+						model: child.model,
+						cellHandlers: getCellHandlers(child, foundsetIndex),
+						api: child.api,
+						cellSvyServoyapi: getCellServoyApi(child, foundsetIndex),
+						componentDirectiveName: child.componentDirectiveName,
+						name: child.name
+					}
+
+					// create the cell
+					var cellEditor = document.createElement('div');
+					cellEditor.setAttribute("class", "svy-wrapper svy-celleditor");
+					cellEditor.setAttribute("svy-ag-celleditor", "cellScope");
+					
+					// stor the settings
+					this.eInput = cellEditor;
+					this.child = child;
+				};
+
+				TextCellEditor.prototype.isKeyPressedNavigation = function(event) {
+					return event.keyCode === 39 || event.keyCode === 37;
+				};
+
+				// gets called once when grid ready to insert the element
+				TextCellEditor.prototype.getGui = function() {
+					return this.eInput;
+				};
+
+				// focus and select can be done after the gui is attached
+				TextCellEditor.prototype.afterGuiAttached = function() {
+					$compile(this.eInput)($scope);
+
+					// TODO how can i do this after the element is compiled ?
+					var thisInstance = this;
+					setTimeout(function () {
+						if (thisInstance.child.api && thisInstance.child.api.requestFocus) {
+							thisInstance.child.api.requestFocus();
+						}
+					}, 250);
+				};
+
+				// returns the new value after editing
+				TextCellEditor.prototype.isCancelBeforeStart = function() {
+					return false;
+				};
+
+				// example - will reject the number if it contains the value 007
+				// - not very practical, but demonstrates the method.
+				TextCellEditor.prototype.isCancelAfterEnd = function() {
+					return false;
+				};
+
+				// returns the new value after editing
+				TextCellEditor.prototype.getValue = function() {
+					// TODO dataprovider is hardcoded, i need to figure out which is the dataprovider
+					return this.child.model.dataProviderID;
+				};
+
+				// any cleanup we need to be done here
+				TextCellEditor.prototype.destroy = function() {
+					// but this example is simple, no cleanup, we could  even leave this method out as it's optional
+					// TODO destroy the element and it's model ?
+				};
+
+				/**
+				 * Internal Only: get the ServoyApi for a childElement at foundset position index
+				 * @private
+				 *
+				 *  */
+				function getCellServoyApi(child, index) {
+					var rowId = foundset.foundset.viewPort.rows[index]._svyRowId
+
+					var cellServoyApi = {
+						formWillShow: $scope.svyServoyapi.formWillShow,
+						hideForm: $scope.svyServoyapi.hideForm,
+						getFormUrl: $scope.svyServoyapi.getFormUrl,
+						startEdit: function(property) {
+							return child.servoyApi.startEdit(property, rowId);
+						},
+						apply: function(property) {
+
+							// TODO can i change it in the foundset instead ??
+							child.servoyApi.apply(property, child.model, rowId);
+							// Do not apply the change since
+							// return true; //
+						},
+						callServerSideApi: $scope.svyServoyapi.callServerSideApi,
+						getFormComponentElements: $scope.svyServoyapi.getFormComponentElements,
+						isInDesigner: $scope.svyServoyapi.isInDesigner,
+						trustAsHtml: function() {
+							return $applicationService.trustAsHtml(child.model);
+						}
+					}
+					return cellServoyApi
+				}
+
+				function getCellHandlers(child, index) {
+					var rowId = foundset.foundset.viewPort.rows[index]._svyRowId;
+					var handlers = { }
+					for (var p in child.handlers) {
+						handlers[p] = linkHandlerToRowIdWrapper(child.handlers[p], rowId);
+					}
+
+					return handlers;
+				}
+
+				function linkHandlerToRowIdWrapper(handler, rowId) {
+					return function() {
+						var recordHandler = handler.selectRecordHandler(rowId);
+						return recordHandler.apply(recordHandler, arguments);
+					}
 				}
 
 				/**
@@ -2627,7 +2765,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 							}
 
 							// is reverse order
-							rowGroupCols.unshift({field: parentNode.field, id: parentNode.field});
+							rowGroupCols.unshift({ field: parentNode.field, id: parentNode.field });
 							groupKeys.unshift(parentNode.data[parentNode.field]);
 
 							// next node
@@ -3495,6 +3633,44 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 			},
 			templateUrl: 'aggrid/groupingtable/groupingtable.html'
 		};
+	}]).directive('svyAgCelleditor', ["$compile", function($compile) {
+		return {
+			scope: {
+				child: "=svyAgCelleditor"
+			},
+			restrict: 'A',
+			link: function($scope, $element, attrs, ctrl, transclude) {
+
+				function getTemplate() {
+					//el.model.dataProviderID = el.modelViewport[1].dataProviderID;
+					var el = $scope.child;
+
+					// TODO there is a bug in Servoy. Elements are not coming in with their own height;
+					//					var height = $element.height();
+					//					var width = $element.width();
+					//					if ($scope.child.model.size) {
+					//						$scope.child.model.size.width = width;
+					//						$scope.child.model.size.height = height;
+					//					} else {
+					//
+					//					}
+					//					var cellTemplate = '<div style="position:absolute; height:' + height + 'px; width:' + width + 'px;">\
+					
+					var componentDirectiveName = $scope.child.componentDirectiveName;
+					var name = $scope.child.name;
+					var cellTemplate = '<data-'+ componentDirectiveName +' svy-model="child.model" svy-handlers="child.cellHandlers" svy-api="child.api" svy-servoyApi="child.cellSvyServoyapi" name="'+ name +'" />';
+					// </div>'
+					//	+ 'svy-api="grid.appScope.cellApiWrapper(row, ' + idx +', rowRenderIndex, rowElementHelper)"'
+					//							+ 'svy-handlers="grid.appScope.cellHandlerWrapper(row, ' + idx + ')"'
+					//							+ 'svy-servoyApi="grid.appScope.cellServoyApiWrapper(row, ' + idx + ')"';
+					//						if (portal_svy_name) cellTemplate += " data-svy-name='" + portal_svy_name + "." + el.name + "'";
+					return cellTemplate
+				}
+
+				$element.html(getTemplate());
+				$compile($element.contents())($scope);
+			}
+		}
 	}]).run(['$aggridenterpriselicensekey', function($aggridenterpriselicensekey) {
 	$aggridenterpriselicensekey.setLicenseKey();
 }]);

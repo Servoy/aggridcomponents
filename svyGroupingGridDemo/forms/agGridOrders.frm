@@ -256,6 +256,22 @@ parameters:null\
 extendsID:"80C5E232-25D0-4169-A8E8-3DD8794FA17E",
 json:{
 anchors:15,
+childElements:[
+{
+definition:{
+dataProviderID:"shipcity"
+},
+svyUUID:"17DA6954-8F3B-4F93-B612-F6335B0B35BE",
+typeName:"bootstrapcomponents-textbox"
+},
+{
+definition:{
+
+},
+svyUUID:"EC85C8AA-D8E6-4CF1-ACAE-F2125353250D",
+typeName:"bootstrapcomponents-textbox"
+}
+],
 columns:[
 {
 dataprovider:"orderid",
@@ -305,6 +321,11 @@ headerTitle:"Zipcode",
 svyUUID:"00E30368-A604-4ECD-A254-83F2E302F766"
 }
 ],
+icons:{
+iconGroupContracted:"glyphicon glyphicon-list ag-icon",
+iconGroupExpanded:"glyphicon glyphicon-search ag-icon",
+svyUUID:"20F9F1DF-330D-4C89-A397-90FAABD43CE2"
+},
 location:{
 x:47,
 y:281
@@ -320,12 +341,10 @@ rowHeight:28,
 size:{
 height:327,
 width:835
-},
-styleClass:"ag-bootstrap"
+}
 },
 location:"47,281",
 size:"835,327",
-styleClass:"ag-bootstrap",
 typeid:47,
 uuid:"DB1383A5-2090-44E5-B12E-AE93430824DA"
 },
@@ -359,6 +378,6 @@ uuid:"F72DBE2A-944B-494A-AE26-BAADDD94576F"
 }
 ],
 name:"agGridOrders",
-size:"903,819",
+size:"930,632",
 typeid:3,
 uuid:"228ECEB5-8CB6-4D4C-B2A0-AB8DF8BFFA4A"

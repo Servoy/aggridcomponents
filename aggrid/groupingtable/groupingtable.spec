@@ -8,7 +8,7 @@
 	"libraries": [{ "name": "groupingtable.css", "version": "1.0", "url": "aggrid/groupingtable/groupingtable.css", "mimetype": "text/css" }],
 	"model":
 	{
-		"myFoundset": {"type": "foundset", "default" : {"foundsetSelector":""}, "pushToServer" : "reject" ,"dynamicDataproviders": true, "initialPreferredViewPortSize": 50, "sendSelectionViewportInitially": true },
+		"myFoundset": {"type": "foundset", "default" : {"foundsetSelector":""}, "pushToServer" : "allow" ,"dynamicDataproviders": true, "initialPreferredViewPortSize": 50, "sendSelectionViewportInitially": true },
 		"columns": { "type": "column[]", "droppable" : true, "pushToServer": "shallow", "tags": {"scope": "design"}},
 		"responsiveHeight": { "type": "int", "default": 300 },
 		"rowHeight" : {"type" : "int", "default": 25, "tags": {"scope": "design"}},
@@ -26,7 +26,9 @@
 		"tooltipTextRefreshData" : { "type": "tagstring", "default" : "Refresh for latest data !" },
 		"visible": "visible",
 		"hashedFoundsets": { "type": "hashedFoundset[]", "default": [], "tags": {"scope": "private"}, "pushToServer": "shallow"},
-		"hashedColumns": {"type" : "string[]", "default": [], "tags": {"scope": "private"}}
+		"hashedColumns": {"type" : "string[]", "default": [], "tags": {"scope": "private"}},
+		
+		"childElements" : { "type" : "component[]", "pushToServer": "allow", "elementConfig" : {"forFoundset": "myFoundset"}, "tags" : {"scope": "private"}}
 	},
 	"handlers" : {
 		"onCellClick": {
