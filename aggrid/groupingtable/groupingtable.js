@@ -246,6 +246,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 					groupKeys: []
 				}
 
+				// used in HTML template to toggle sync button
 				$scope.isGroupView = false;
 
 				// set to true when is rendered
@@ -812,7 +813,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 					var rowGroupCols = [];
 					for (var i = 0; $scope.model.columns && i < $scope.model.columns.length; i++) {
 						var column = $scope.model.columns[i];
-						if (column.rowGroupIndex !== null && !isNaN(column.rowGroupIndex)) {
+						if (column.rowGroupIndex !== null && !isNaN(column.rowGroupIndex) && column.rowGroupIndex > -1) {
 							/** @type {RowGroupColType} */
 							var rowGroupCol = new Object();
 							rowGroupCol.id = getColumnID(column, i);
