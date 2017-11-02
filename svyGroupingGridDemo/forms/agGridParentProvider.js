@@ -22,7 +22,7 @@ function getName() {
 * @properties={typeid:24,uuid:"09D2BD81-458B-459F-91FC-1FC82AC39CBD"}
 */
 function getDescription() {
-	return "Grouping Grid";
+	return "Table component with built-in grouping functionalities for large amount of data";
 }
 
 /**
@@ -33,4 +33,35 @@ function getDescription() {
 */
 function getIconStyleClass() {
 	return "fa fa-list-alt"
+}
+
+/**
+*
+* @return {String} Website URL
+*
+* @properties={typeid:24,uuid:"0F91935A-09DF-4659-A30C-2E1FB2F8EC90"}
+*/
+function getWebSiteURL() {
+	return 'https://github.com/Servoy/aggridcomponents';
+}
+
+/**
+*
+* @return {String} Additioanl info (wiki markdown supported)
+*
+* @properties={typeid:24,uuid:"2190BF69-7FFD-4EAC-A982-84CE61D99923"}
+*/
+function getMoreInfo() {
+	var url = 'https://raw.githubusercontent.com/Servoy/aggridcomponents/master/README.md';
+	return plugins.http.getPageData(url);
+}
+
+/**
+*
+* @return {String} Download URL
+*
+* @properties={typeid:24,uuid:"43ABB83D-0453-4E95-85B9-635E37E531AE"}
+*/
+function getDownloadURL() {
+	return 'https://github.com/Servoy/aggridcomponents/releases/download/v1.0.2/svyGroupingGridDemo.servoy';
 }

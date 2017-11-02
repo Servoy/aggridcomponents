@@ -22,7 +22,7 @@ function getName() {
 * @properties={typeid:24,uuid:"71BCC1C1-C1E7-4AEC-B0B4-7A84D05FF494"}
 */
 function getDescription() {
-	return "Netherland's postal codes";
+	return "Example of table with grouped data on Netherland's postal codes";
 }
 
 /**
@@ -40,4 +40,35 @@ function getIconStyleClass() {
  */
 function getParent() {
 	return forms.agGridParentProvider;
+}
+
+/**
+*
+* @return {String} Website URL
+*
+* @properties={typeid:24,uuid:"4A4DF41E-617B-4C6E-9C6F-FAD6A0244D3C"}
+*/
+function getWebSiteURL() {
+	return 'https://github.com/Servoy/aggridcomponents';
+}
+
+/**
+*
+* @return {String} Additioanl info (wiki markdown supported)
+*
+* @properties={typeid:24,uuid:"F1B24C07-5720-4AA8-A740-DDCF686F6D04"}
+*/
+function getMoreInfo() {
+	var url = 'https://raw.githubusercontent.com/Servoy/aggridcomponents/master/README.md';
+	return plugins.http.getPageData(url);
+}
+
+/**
+*
+* @return {String} Download URL
+*
+* @properties={typeid:24,uuid:"A959AD36-F0D2-4FAB-A150-4C9DB0CCF8EB"}
+*/
+function getDownloadURL() {
+	return 'https://github.com/Servoy/aggridcomponents/releases/download/v1.0.2/svyGroupingGridDemo.servoy';
 }
