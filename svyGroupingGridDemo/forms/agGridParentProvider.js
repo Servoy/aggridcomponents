@@ -1,4 +1,11 @@
 /**
+ * @properties={typeid:24,uuid:"0F272A61-54B8-41FB-BD51-0073EFFF77F1"}
+ */
+function getParent() {
+	return forms.gridSamples;
+}
+
+/**
  * @properties={typeid:24,uuid:"31110EE3-B2C5-4B01-B2E1-429D3CB062AB"}
  */
 function allowFormIncludedInMenu() {
