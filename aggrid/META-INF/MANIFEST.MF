@@ -13,3 +13,6 @@ JS-ClientLibs: https://cdn.rawgit.com/Servoy/aggridcomponents-license/master/dis
 Name: groupingtable/groupingtable.spec
 Web-Component: True
 
+Name: datasettable/datasettable.spec
+Web-Component: True
+
