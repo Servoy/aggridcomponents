@@ -17,7 +17,8 @@
 		"enableColumnResize": { "type": "boolean", "default": true, "tags": {"scope": "design"}},
 		"enableSorting": { "type": "boolean", "default": true, "tags": {"scope": "design"}},
 		"pivotMode": { "type": "boolean", "default": false, "tags": {"scope": "design"}},
-		"iconConfig": { "type": "iconConfig"}
+		"iconConfig": { "type": "iconConfig"},
+		"groupStyleClass" : {"type": "styleclass"}
 	},
 	"handlers" : {
 		"onCellClick": {
@@ -66,6 +67,8 @@
 	},
 	"types" : {
 		"column" : {
+			"headerGroup": {"type" : "tagstring", "tags" : {"scope": "design"}},
+			"headerGroupStyleClass" : {"type" : "styleclass"},
 			"headerTitle": {"type" : "tagstring", "tags" : {"scope": "design"}},
 			"headerStyleClass" : {"type" : "styleclass"},
 			"id": { "type": "string"},
@@ -77,7 +80,8 @@
 			"rowGroupIndex":  {"type": "int", "default": -1, "tags" : {"scope": "design"}},
 			"enablePivot":  {"type": "boolean", "default": false, "tags" : {"scope": "design"}},
 			"pivotIndex":  {"type": "int", "default": -1, "tags" : {"scope": "design"}},
-			"aggFunc": {"type": "string", "values" : ["sum", "min", "max", "count", "avg", "first", "last"], "default": ""}
+			"aggFunc": {"type": "string", "values" : ["sum", "min", "max", "count", "avg", "first", "last"], "default": ""},
+			"enableFilter": {"type": "boolean", "default" : false}
 
 		},
         "iconConfig" : {

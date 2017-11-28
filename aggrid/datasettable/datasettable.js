@@ -25,9 +25,9 @@ function($sabloConstants, $log, $q, $filter) {
 
                 defaultColDef: {
                     width: 0,
-                    suppressFilter: true,
+//                    suppressFilter: true,
 //                    valueFormatter: displayValueFormatter,
-                    menuTabs: ['generalMenuTab'] //, 'columnsMenuTab'] // , 'filterMenuTab']
+                    menuTabs: ['generalMenuTab', 'filterMenuTab']
                 },
                 columnDefs: columnDefs,
                 getMainMenuItems: getMainMenuItems,
@@ -76,7 +76,8 @@ function($sabloConstants, $log, $q, $filter) {
                 },
                 getContextMenuItems: getContextMenuItems,
                 enableSorting: config.enableSorting,
-                autoGroupColumnDef: { cellRendererParams : { suppressCount: true}}
+                autoGroupColumnDef: { cellRendererParams : { suppressCount: true}, headerName: ' ', cellClass: $scope.model.groupStyleClass},
+                enableFilter: true
                 
             };
 
@@ -127,6 +128,7 @@ function($sabloConstants, $log, $q, $filter) {
                 //create the column definitions from the specified columns in designer
                 var colDefs = [];
                 var colDef = { };
+                var colGroups = { };
                 var column;
                 for (var i = 0; $scope.model.columns && i < $scope.model.columns.length; i++) {
                     column = $scope.model.columns[i];
@@ -163,7 +165,33 @@ function($sabloConstants, $log, $q, $filter) {
                         };
                     }
 
-                    colDefs.push(colDef);
+                    if(column.enableFilter) {
+                        colDef.filter = 'text';
+                    }
+                    else {
+                        colDef.suppressFilter = true;
+                    }
+
+                    if(column.headerGroup) {
+                        if(!colGroups[column.headerGroup]) {
+                            colGroups[column.headerGroup] = {}
+                            colGroups[column.headerGroup]['headerClass'] = column.headerGroupStyleClass;
+                            colGroups[column.headerGroup]['children'] = [];
+
+                        }
+                        colGroups[column.headerGroup]['children'].push(colDef);
+                    }
+                    else {
+                        colDefs.push(colDef);
+                    }
+                }
+
+                for(var groupName in colGroups) {
+                    var group = {};
+                    group.headerName = groupName;
+                    group.headerClass = colGroups[groupName]['headerClass']; 
+                    group.children = colGroups[groupName]['children'];
+                    colDefs.push(group);
                 }
 
                 return colDefs;
@@ -200,7 +228,7 @@ function($sabloConstants, $log, $q, $filter) {
                 //					contractAll: Contract all groups. Only shown if grouping by at least one column.
                 //					toolPanel: Show the tool panel.
                 var menuItems = [];
-                var items = ['rowGroup', 'rowUnGroup'];
+                var items = ['rowGroup', 'rowUnGroup', 'toolPanel'];
                 params.defaultItems.forEach(function(item) {
                     if (items.indexOf(item) > -1) {
                         menuItems.push(item);
