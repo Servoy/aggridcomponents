@@ -75,10 +75,18 @@ function($sabloConstants, $log, $q, $filter) {
                     sizeColumnsToFit();
                 },
                 getContextMenuItems: getContextMenuItems,
-                enableSorting: config.enableSorting
+                enableSorting: config.enableSorting,
+                autoGroupColumnDef: { cellRendererParams : { suppressCount: true}}
                 
             };
-            
+
+            if($scope.model.styleClassFunc) {
+                var styleClassFunc = eval($scope.model.styleClassFunc);
+                gridOptions.getRowClass = function(params) {
+                    return styleClassFunc(params.rowIndex, params.data, params.event);
+                };
+            }
+
             // set the icons
             var iconConfig = $scope.model.iconConfig;
             if(iconConfig) {
@@ -148,6 +156,13 @@ function($sabloConstants, $log, $q, $filter) {
                     if (column.minWidth || column.minWidth === 0) colDef.minWidth = column.minWidth;
                     if (column.visible === false) colDef.hide = true;
 
+                    if(column.styleClassFunc) {
+                        var styleClassFunc = eval(column.styleClassFunc);
+                        colDef.cellClass = function(params) {
+                            return styleClassFunc(params.rowIndex, params.data, params.colDef.field, params.value, params.event);
+                        };
+                    }
+
                     colDefs.push(colDef);
                 }
 
@@ -211,10 +226,8 @@ function($sabloConstants, $log, $q, $filter) {
             });
 
             function onCellClicked(params) {
-                $log.debug(params);
-                if ($scope.handlers.onCellClick) {
-                    var columnIndex = 0; // get column index
-                    $scope.handlers.onCellClick(params.rowIndex, columnIndex, params.value, params.event);
+                if ($scope.handlers.onCellClick && params.data && params.colDef.field) {
+                    $scope.handlers.onCellClick(params.data, params.colDef.field, params.value, params.event);
                 }
             }
 
@@ -245,6 +258,11 @@ function($sabloConstants, $log, $q, $filter) {
 
             $scope.api.removeColumn = function(id) {
                 
+            }
+
+            $scope.api.setColumnVisible = function(id, visible) {
+                gridOptions.columnApi.setColumnVisible(id, visible);
+                sizeColumnsToFit();
             }
 
         },

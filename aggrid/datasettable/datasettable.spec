@@ -12,6 +12,7 @@
 		"responsiveHeight": { "type": "int", "default": 300 },
 		"rowHeight" : {"type" : "int", "default": 25, "tags": {"scope": "design"}},
 		"styleClass": { "type": "styleclass", "default" : "ag-bootstrap"},
+		"styleClassFunc": { "type": "string"},
 		"visible": "visible",
 		"enableColumnResize": { "type": "boolean", "default": true, "tags": {"scope": "design"}},
 		"enableSorting": { "type": "boolean", "default": true, "tags": {"scope": "design"}},
@@ -22,15 +23,16 @@
 		"onCellClick": {
 			"description": "Called when the mouse is clicked on a row/cell",
 			"parameters": [{
-				"name": "rowIndex",
-				"type": "int"
+				"name": "rowData",
+				"type": "object"
 			}, {
-				"name": "columnIndex",
-				"type": "int"
-			}, {
-				"name": "value",
-				"type": "object",
+				"name": "columnId",
+				"type": "string",
 				"optional": true
+			}, {
+				"name": "cellData",
+				"type": "object",
+				"optional": true				
 			}, {
 				"name": "event",
 				"type": "JSEvent",
@@ -54,6 +56,12 @@
 			"parameters": [
 				{ "name": "id", "type": "string" }
 			]
+		},
+		"setColumnVisible" : {
+			"parameters": [
+				{ "name": "id", "type": "string" },
+				{ "name": "visible", "type": "boolean"}
+			]
 		}
 	},
 	"types" : {
@@ -62,6 +70,7 @@
 			"headerStyleClass" : {"type" : "styleclass"},
 			"id": { "type": "string"},
 			"styleClass" : {"type" : "styleclass"},
+			"styleClassFunc": {"type": "string"},
 			"visible":  { "type": "boolean", "default": true, "tags" : {"scope": "design"} },
 			"width":  { "type": "int", "default": 0, "tags" : {"scope": "design"} },			
 			"enableRowGroup" : {"type": "boolean", "default" : true, "tags" : {"scope": "design"}},
