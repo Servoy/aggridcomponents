@@ -81,10 +81,10 @@ function($sabloConstants, $log, $q, $filter) {
                 
             };
 
-            if($scope.model.styleClassFunc) {
-                var styleClassFunc = eval($scope.model.styleClassFunc);
+            if($scope.model.rowStyleClassFunc) {
+                var rowStyleClassFunc = eval($scope.model.rowStyleClassFunc);
                 gridOptions.getRowClass = function(params) {
-                    return styleClassFunc(params.rowIndex, params.data, params.event);
+                    return rowStyleClassFunc(params.rowIndex, params.data, params.event);
                 };
             }
 
@@ -158,12 +158,19 @@ function($sabloConstants, $log, $q, $filter) {
                     if (column.minWidth || column.minWidth === 0) colDef.minWidth = column.minWidth;
                     if (column.visible === false) colDef.hide = true;
 
-                    if(column.styleClassFunc) {
-                        var styleClassFunc = eval(column.styleClassFunc);
+                    if(column.cellStyleClassFunc) {
+                        var cellStyleClassFunc = eval(column.cellStyleClassFunc);
                         colDef.cellClass = function(params) {
-                            return styleClassFunc(params.rowIndex, params.data, params.colDef.field, params.value, params.event);
+                            return cellStyleClassFunc(params.rowIndex, params.data, params.colDef.field, params.value, params.event);
                         };
                     }
+
+                    if(column.cellRendererFunc) {
+                        var cellRendererFunc = eval(column.cellRendererFunc);
+                        colDef.cellRenderer = function(params) {
+                            return cellRendererFunc(params.rowIndex, params.data, params.colDef.field, params.value, params.event);
+                        };
+                    }                    
 
                     if(column.enableFilter) {
                         colDef.filter = 'text';
