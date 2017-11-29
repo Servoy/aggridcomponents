@@ -123,6 +123,16 @@ function($sabloConstants, $log, $q, $filter) {
             gridOptions.api.addEventListener('cellClicked', onCellClicked);
 
 
+            $scope.$watchCollection("model.columns", function(newValue, oldValue) {
+                if(gridOptions) {
+                    var columnDefs = getColumnDefs();
+                    gridOptions.api.setColumnDefs(columnDefs);
+                    sizeColumnsToFit();
+                }
+
+            });
+
+
             function getColumnDefs() {
                 
                 //create the column definitions from the specified columns in designer
@@ -287,18 +297,10 @@ function($sabloConstants, $log, $q, $filter) {
                 gridOptions.api.setRowData($scope.model.data);
             }
 
-            $scope.api.addColumn = function(index, column) {
-
-            }
-
-            $scope.api.removeColumn = function(id) {
-                
-            }
-
-            $scope.api.setColumnVisible = function(id, visible) {
-                gridOptions.columnApi.setColumnVisible(id, visible);
-                sizeColumnsToFit();
-            }
+            // $scope.api.setColumnVisible = function(id, visible) {
+            //     gridOptions.columnApi.setColumnVisible(id, visible);
+            //     sizeColumnsToFit();
+            // }
 
         },
         templateUrl: 'aggrid/groupingtable/groupingtable.html'

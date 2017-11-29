@@ -4,11 +4,12 @@
 	"version": 1,
 	"icon" :"aggrid/groupingtable/ag-dataset.svg",
 	"definition": "aggrid/datasettable/datasettable.js",
+	"serverscript": "aggrid/datasettable/datasettable_server.js",
 	"libraries": [{ "name": "datasettable.css", "version": "1.0", "url": "aggrid/datasettable/datasettable.css", "mimetype": "text/css" }],
 	"model":
 	{
 		"data": { "type": "object[]", "tags": {"scope" : "private"}},
-		"columns": { "type": "column[]", "droppable" : true, "tags": {"scope": "design"}},
+		"columns": { "type": "column[]", "droppable" : true, "tags": {"scope": "design"}, "pushToServer": "shallow"},
 		"responsiveHeight": { "type": "int", "default": 300 },
 		"rowHeight" : {"type" : "int", "default": 25, "tags": {"scope": "design"}},
 		"rowStyleClassFunc": { "type": "string"},
@@ -47,38 +48,42 @@
 				{ "name": "dataset", "type": {"type": "dataset", "includeColumnNames": "true" } }
 			]
 		},
-		"addColumn" : {
+		"newColumn" : {
 			"parameters": [
-				{ "name": "index", "type": "int" },
-				{ "name": "column", "type": "column"}
-			]
+				{ "name": "id", "type" : "string"},
+				{ "name": "index", "type": "int" }
+			],
+			"returns" : "column",
 		},
-		"removeColumn" : {
+		"deleteColumn" : {
 			"parameters": [
 				{ "name": "id", "type": "string" }
 			]
 		},
-		"setColumnVisible" : {
+		"getColumn" : {
 			"parameters": [
-				{ "name": "id", "type": "string" },
-				{ "name": "visible", "type": "boolean"}
-			]
+				{ "name": "id", "type": "string" }
+			],
+			"returns" : "column"
+		},
+		"getAllColumns" : {
+			"returns" : "column[]"
 		}
 	},
 	"types" : {
 		"column" : {
-			"headerGroup": {"type" : "tagstring", "tags" : {"scope": "design"}},
+			"headerGroup": {"type" : "tagstring"},
 			"headerGroupStyleClass" : {"type" : "styleclass"},
-			"headerTitle": {"type" : "tagstring", "tags" : {"scope": "design"}},
+			"headerTitle": {"type" : "tagstring"},
 			"headerStyleClass" : {"type" : "styleclass"},
 			"id": { "type": "string"},
 			"styleClass" : {"type" : "styleclass"},
-			"visible":  { "type": "boolean", "default": true, "tags" : {"scope": "design"} },
-			"width":  { "type": "int", "default": 0, "tags" : {"scope": "design"} },			
-			"enableRowGroup" : {"type": "boolean", "default" : true, "tags" : {"scope": "design"}},
-			"rowGroupIndex":  {"type": "int", "default": -1, "tags" : {"scope": "design"}},
-			"enablePivot":  {"type": "boolean", "default": false, "tags" : {"scope": "design"}},
-			"pivotIndex":  {"type": "int", "default": -1, "tags" : {"scope": "design"}},
+			"visible":  { "type": "boolean", "default": true},
+			"width":  { "type": "int", "default": 0 },			
+			"enableRowGroup" : {"type": "boolean", "default" : true},
+			"rowGroupIndex":  {"type": "int", "default": -1},
+			"enablePivot":  {"type": "boolean", "default": false},
+			"pivotIndex":  {"type": "int", "default": -1},
 			"aggFunc": {"type": "string", "values" : ["sum", "min", "max", "count", "avg", "first", "last"], "default": ""},
 			"enableFilter": {"type": "boolean", "default" : false},
 			"cellStyleClassFunc": {"type": "string"},
