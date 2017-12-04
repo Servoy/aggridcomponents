@@ -8,7 +8,7 @@
 	"libraries": [{ "name": "datasettable.css", "version": "1.0", "url": "aggrid/datasettable/datasettable.css", "mimetype": "text/css" }],
 	"model":
 	{
-		"data": { "type": "object[]", "tags": {"scope" : "private"}},
+		"data": { "type": "object[]", "tags": {"scope" : "private"}, "pushToServer": "shallow"},
 		"columns": { "type": "column[]", "droppable" : true, "tags": {"scope": "design"}, "pushToServer": "shallow"},
 		"responsiveHeight": { "type": "int", "default": 300 },
 		"rowHeight" : {"type" : "int", "default": 25, "tags": {"scope": "design"}},
@@ -62,7 +62,8 @@
 		},
 		"getColumn" : {
 			"parameters": [
-				{ "name": "id", "type": "string" }
+				{ "name": "id", "type": "string" },
+				{ "name": "forChange", "type": "boolean", "optional": true}
 			],
 			"returns" : "column"
 		},

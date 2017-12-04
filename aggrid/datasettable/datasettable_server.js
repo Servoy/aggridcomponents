@@ -28,11 +28,17 @@ $scope.api.getAllColumns = function() {
     return $scope.model.columns;
 }
 
-$scope.api.getColumn = function(id) {
+$scope.api.getColumn = function(id, forChange) {
     if($scope.model.columns) {
         for(var i = 0; i < $scope.model.columns.length; i++) {
             if(id == $scope.model.columns[i]["id"]) {
-                return $scope.model.columns[i];
+                var column = $scope.model.columns[i];
+                if(forChange) {
+                    // force structure change so it will be sent to the client
+                    $scope.model.columns.splice(i, 1);
+                    $scope.model.columns.splice(i, 0, column);
+                }
+                return column;                 
             }
         }
     }
