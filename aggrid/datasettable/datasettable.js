@@ -121,15 +121,16 @@ function($sabloConstants, $log, $q, $filter) {
             }
 
             gridOptions.api.addEventListener('cellClicked', onCellClicked);
+            gridOptions.api.addEventListener('displayedColumnsChanged', function() {
+                sizeColumnsToFit();
+            });
 
 
             $scope.$watchCollection("model.columns", function(newValue, oldValue) {
                 if(gridOptions) {
                     var columnDefs = getColumnDefs();
                     gridOptions.api.setColumnDefs(columnDefs);
-                    sizeColumnsToFit();
                 }
-
             });
 
 
