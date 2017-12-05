@@ -176,17 +176,11 @@ function($sabloConstants, $log, $q, $filter) {
                     if (column.visible === false) colDef.hide = true;
 
                     if(column.cellStyleClassFunc) {
-                        var cellStyleClassFunc = eval(column.cellStyleClassFunc);
-                        colDef.cellClass = function(params) {
-                            return cellStyleClassFunc(params.rowIndex, params.data, params.colDef.field, params.value, params.event);
-                        };
+                        colDef.cellClass = createColumnCallbackFunctionFromString(column.cellStyleClassFunc);
                     }
 
                     if(column.cellRendererFunc) {
-                        var cellRendererFunc = eval(column.cellRendererFunc);
-                        colDef.cellRenderer = function(params) {
-                            return cellRendererFunc(params.rowIndex, params.data, params.colDef.field, params.value, params.event);
-                        };
+                        colDef.cellRenderer = createColumnCallbackFunctionFromString(column.cellRendererFunc);
                     }                    
 
                     if(column.enableFilter) {
@@ -281,6 +275,13 @@ function($sabloConstants, $log, $q, $filter) {
             function getContextMenuItems(params) {
                 // hide any context menu
                 return [];
+            }
+
+            function createColumnCallbackFunctionFromString(functionAsString) {
+                var f = eval(functionAsString);
+                return function(params) {
+                    return f(params.rowIndex, params.data, params.colDef.field, params.value, params.event);
+                };                
             }
 
             Object.defineProperty($scope.model, $sabloConstants.modelChangeNotifier, {
