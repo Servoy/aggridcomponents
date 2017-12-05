@@ -133,6 +133,12 @@ function($sabloConstants, $log, $q, $filter) {
                 }
             });
 
+            $scope.$watchCollection("model.data", function(newValue, oldValue) {
+                if(gridOptions) {
+                    gridOptions.api.setRowData($scope.model.data);
+                }
+            });
+
 
             function getColumnDefs() {
                 
@@ -215,6 +221,23 @@ function($sabloConstants, $log, $q, $filter) {
                 return colDefs;
             }
 
+            function getRowData() {
+                if($scope.model.data) {
+                    var data = [$scope.model.data.length]
+                    for(var i = 1; i < $scope.model.data.length; i++) {
+                        var rowData = {};
+                        for(var j = 0; j < $scope.model.data[i].length; j++) {
+                            rowData[$scope.model.data[0][j]] = $scope.model.data[i][j];
+                        }
+                        data.push(rowData);
+                    }
+                    return data;
+                }
+                else {
+                    return [];
+                }                
+            }
+
             function isResponsive() {
                 return !$scope.$parent.absoluteLayout;
             }
@@ -280,29 +303,6 @@ function($sabloConstants, $log, $q, $filter) {
             $scope.showEditorHint = function() {
                 return (!$scope.model.columns || $scope.model.columns.length == 0) && $scope.svyServoyapi.isInDesigner();
             }
-
-            /**
-             *      API functions
-             */
-
-            $scope.api.renderData = function(dataset) {
-                var data = [];
-                for(var i = 1; i < dataset.length; i++) {
-                    var rowData = {};
-                    for(var j = 0; j < dataset[i].length; j++) {
-                        rowData[dataset[0][j]] = dataset[i][j];
-                    }
-                    data.push(rowData);
-                }
-                $scope.model.data = data;
-                gridOptions.api.setRowData($scope.model.data);
-            }
-
-            // $scope.api.setColumnVisible = function(id, visible) {
-            //     gridOptions.columnApi.setColumnVisible(id, visible);
-            //     sizeColumnsToFit();
-            // }
-
         },
         templateUrl: 'aggrid/groupingtable/groupingtable.html'
     };

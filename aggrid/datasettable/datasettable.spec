@@ -8,8 +8,8 @@
 	"libraries": [{ "name": "datasettable.css", "version": "1.0", "url": "aggrid/datasettable/datasettable.css", "mimetype": "text/css" }],
 	"model":
 	{
-		"data": { "type": "object[]", "tags": {"scope" : "private"}, "pushToServer": "shallow"},
-		"columns": { "type": "column[]", "droppable" : true, "tags": {"scope": "design"}, "pushToServer": "shallow"},
+		"data": { "type": "object[]", "tags": {"scope" : "private"}},
+		"columns": { "type": "column[]", "droppable" : true, "tags": {"scope": "design"}},
 		"responsiveHeight": { "type": "int", "default": 300 },
 		"rowHeight" : {"type" : "int", "default": 25, "tags": {"scope": "design"}},
 		"rowStyleClassFunc": { "type": "string"},
@@ -45,7 +45,7 @@
 	"api" : {
 		"renderData": {
 			"parameters": [
-				{ "name": "dataset", "type": {"type": "dataset", "includeColumnNames": "true" } }
+				{ "name": "dataset", "type": {"type": "dataset"} }
 			]
 		},
 		"newColumn" : {
@@ -53,7 +53,7 @@
 				{ "name": "id", "type" : "string"},
 				{ "name": "index", "type": "int" }
 			],
-			"returns" : "column",
+			"returns" : "column"
 		},
 		"deleteColumn" : {
 			"parameters": [

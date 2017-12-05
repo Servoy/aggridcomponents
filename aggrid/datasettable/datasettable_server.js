@@ -44,3 +44,17 @@ $scope.api.getColumn = function(id, forChange) {
     }
     return null;
 }
+
+$scope.api.renderData = function(dataset) {
+    $scope.model.data = []
+    var rowsCount = dataset.getMaxRowIndex();
+
+    for(var i = 1; i <= rowsCount; i++) {
+        var row = dataset.getRowAsArray(i);
+        var rowData = {};
+        for(var j = 0; j < row.length; j++) {
+            rowData[dataset.getColumnName(j + 1)] = row[j];
+        }
+        $scope.model.data.push(rowData);
+    }     
+}
