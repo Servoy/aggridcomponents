@@ -76,7 +76,7 @@ function($sabloConstants, $log, $q, $filter) {
                 },
                 getContextMenuItems: getContextMenuItems,
                 enableSorting: config.enableSorting,
-                autoGroupColumnDef: { cellRendererParams : { suppressCount: true}, headerName: ' ', cellClass: $scope.model.groupStyleClass},
+                autoGroupColumnDef: { cellRendererParams : { suppressCount: false}, headerName: ' ', cellClass: $scope.model.groupStyleClass},
                 enableFilter: true
                 
             };
