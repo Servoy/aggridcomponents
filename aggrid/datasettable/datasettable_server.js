@@ -19,7 +19,7 @@ $scope.api.newColumn = function(id, index) {
     	return $scope.model.columns[index];
     } else {
     	$scope.model.columns.push(newColumn);
-    	return column;
+    	return $scope.model.columns[$scope.model.columns.length - 1];
     }
 }
 
