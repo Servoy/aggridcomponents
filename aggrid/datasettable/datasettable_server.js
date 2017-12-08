@@ -1,3 +1,8 @@
+/** 
+ * @param {String} id
+ * @param {Number} [index] 0-based index
+ * 
+ * */
 $scope.api.newColumn = function(id, index) {
     if(!$scope.model.columns) {
         $scope.model.columns = [];
@@ -9,8 +14,13 @@ $scope.api.newColumn = function(id, index) {
     newColumn["visible"] = true;
     newColumn["width"] = 0;
 
-    $scope.model.columns.splice(index, 0, newColumn);
-    return $scope.model.columns[index];
+    if (index >= 0) {
+    	$scope.model.columns.splice(index, 0, newColumn);
+    	return $scope.model.columns[index];
+    } else {
+    	$scope.model.columns.push(newColumn);
+    	return column;
+    }
 }
 
 $scope.api.deleteColumn = function(id) {

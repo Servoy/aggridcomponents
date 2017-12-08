@@ -51,7 +51,7 @@
 		"newColumn" : {
 			"parameters": [
 				{ "name": "id", "type" : "string"},
-				{ "name": "index", "type": "int" }
+				{ "name": "index", "type": "int", "optional": true }
 			],
 			"returns" : "column"
 		},
