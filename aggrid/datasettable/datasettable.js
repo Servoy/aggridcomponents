@@ -21,7 +21,7 @@ function($sabloConstants, $log, $q, $filter) {
                 debug: false,
                 rowModelType: 'inMemory',
                 rowData: $scope.model.data,
-                rowGroupPanelShow: 'onlyWhenGrouping', // TODO expose property
+                rowGroupPanelShow: 'always', // TODO expose property
 
                 defaultColDef: {
                     width: 0,
@@ -36,7 +36,7 @@ function($sabloConstants, $log, $q, $filter) {
                 // TODO enable it ?					rowClass: $scope.model.rowStyleClass,	// add the class to each row
 
                 suppressContextMenu: false,
-                suppressMovableColumns: true, // TODO persist column order changes
+                suppressMovableColumns: false, // TODO persist column order changes
                 enableColResize: config.enableColumnResize,
                 suppressAutoSize: true,
                 autoSizePadding: 25,
