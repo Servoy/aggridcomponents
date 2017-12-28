@@ -125,7 +125,8 @@
 			"iconSortAscending": { "type": "styleclass", "tags": {"scope": "design"}},
 			"iconSortDescending": { "type": "styleclass", "tags": {"scope": "design"}},		
 			"iconSortUnSort": { "type": "styleclass", "tags": {"scope": "design"}},
-			"iconRefreshData": { "type": "styleclass", "default" : "glyphicon glyphicon-refresh", "tags": {"scope": "design"}}
+			"iconRefreshData": { "type": "styleclass", "default" : "glyphicon glyphicon-refresh", "tags": {"scope": "design"}},
+			"iconRowGroupPanel": { "type": "styleclass", "tags": {"scope": "design"}}
         }
 	}
 }

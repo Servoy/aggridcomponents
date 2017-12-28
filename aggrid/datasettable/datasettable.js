@@ -109,6 +109,7 @@ function($sabloConstants, $log, $q, $filter) {
                 if (iconConfig.iconSortAscending) icons.sortAscending = getIconElement(iconConfig.iconSortAscending);
                 if (iconConfig.iconSortDescending) icons.sortDescending = getIconElement(iconConfig.iconSortDescending);
                 if (iconConfig.iconSortUnSort) icons.sortUnSort = getIconElement(iconConfig.iconSortUnSort);
+                if (iconConfig.iconRowGroupPanel) icons.rowGroupPanel = getIconElement(iconConfig.iconRowGroupPanel);
                 gridOptions.icons = icons
             }
 
