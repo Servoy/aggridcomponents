@@ -72,6 +72,16 @@
 		},
 		"getAllColumns" : {
 			"returns" : "column[]"
+		},
+		"exportData" : {
+			"parameters": [
+				{ "name": "fileName", "type": "string", "optional": true, "default": "export.xlsx" },
+				{ "name": "skipHeader", "type": "boolean", "optional": true, "default": false },
+				{ "name": "columnGroups", "type": "boolean", "optional": true, "default": true },
+				{ "name": "skipFooters", "type": "boolean", "optional": true, "default": false },
+				{ "name": "skipGroups", "type": "boolean", "optional": true, "default": false },
+				{ "name": "asCSV", "type": "boolean", "optional": true, "default": false }				
+			]
 		}
 	},
 	"types" : {

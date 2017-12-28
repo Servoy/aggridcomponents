@@ -309,8 +309,24 @@ function($sabloConstants, $log, $q, $filter) {
             $scope.showEditorHint = function() {
                 return (!$scope.model.columns || $scope.model.columns.length == 0) && $scope.svyServoyapi.isInDesigner();
             }
+
+            $scope.api.exportData = function(fileName, skipHeader, columnGroups, skipFooters, skipGroups, asCSV) {
+                var params = {
+                    fileName: fileName,
+                    skipHeader: skipHeader,
+                    columnGroups: columnGroups,
+                    skipFooters: skipFooters,
+                    skipGroups: skipGroups
+                };
+                if(asCSV) {
+                    gridOptions.api.exportDataAsCsv(params);
+                }
+                else {
+                    gridOptions.api.exportDataAsExcel(params);
+                }
+            }
         },
-        templateUrl: 'aggrid/groupingtable/groupingtable.html'
+        templateUrl: 'aggrid/datasettable/datasettable.html'
     };
 }]).run(['$aggridenterpriselicensekey', function($aggridenterpriselicensekey) {
 $aggridenterpriselicensekey.setLicenseKey();
