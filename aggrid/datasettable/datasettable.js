@@ -82,8 +82,15 @@ function($sabloConstants, $log, $q, $filter) {
                     headerName: ' ',
                     cellClass: $scope.model.groupStyleClass
                 },
-                enableFilter: true
-                
+                enableFilter: true,
+                onColumnEverythingChanged: storeColumnsState,
+                onColumnVisible: storeColumnsState,
+                onColumnPinned: storeColumnsState,
+                onColumnResized: storeColumnsState,
+                onColumnRowGroupChanged: storeColumnsState,
+                onColumnValueChanged: storeColumnsState,
+                onColumnMoved: storeColumnsState,
+                onColumnGroupOpened: storeColumnsState
             };
 
             if($scope.model.rowStyleClassFunc) {
@@ -135,6 +142,7 @@ function($sabloConstants, $log, $q, $filter) {
                 if(gridOptions) {
                     var columnDefs = getColumnDefs();
                     gridOptions.api.setColumnDefs(columnDefs);
+                    restoreColumnsState();
                 }
             });
 
@@ -306,6 +314,28 @@ function($sabloConstants, $log, $q, $filter) {
                 }
             }
 
+            function storeColumnsState() {
+                var columnState = {
+                    columnState: gridOptions.columnApi.getColumnState(),
+                    columnGroupState: gridOptions.columnApi.getColumnGroupState(),
+                    isToolPanelShowing: gridOptions.api.isToolPanelShowing()
+                }
+                $scope.model.columnState = JSON.stringify(columnState);
+                $scope.svyServoyapi.apply('columnState');
+                if ($scope.handlers.onColumnStateChanged) {
+                    $scope.handlers.onColumnStateChanged($scope.model.columnState);
+                }
+            }
+
+            function restoreColumnsState() {
+                if($scope.model.columnState) {
+                    var columnState = JSON.parse($scope.model.columnState);
+                    gridOptions.columnApi.setColumnState(columnState.columnState);
+                    gridOptions.columnApi.setColumnGroupState(columnState.columnGroupState);
+                    gridOptions.api.showToolPanel(columnState.isToolPanelShowing);
+                }
+            }
+
             $scope.showEditorHint = function() {
                 return (!$scope.model.columns || $scope.model.columns.length == 0) && $scope.svyServoyapi.isInDesigner();
             }
@@ -323,6 +353,16 @@ function($sabloConstants, $log, $q, $filter) {
                 }
                 else {
                     gridOptions.api.exportDataAsExcel(params);
+                }
+            }
+
+            $scope.api.restoreColumnState = function(columnState) {
+                if(columnState) {
+                    $scope.model.columnState = columnState;
+                    restoreColumnsState();
+                }
+                else {
+                    gridOptions.columnApi.resetColumnState();
                 }
             }
         },

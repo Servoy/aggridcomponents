@@ -13,6 +13,7 @@
 	{
 		"data": { "type": "object[]", "tags": {"scope" : "private"}},
 		"columns": { "type": "column[]", "droppable" : true, "tags": {"scope": "design"}},
+		"columnState": { "type": "string", "tags": {"scope" : "private"}, "pushToServer": "allow"},
 		"responsiveHeight": { "type": "int", "default": 300 },
 		"rowHeight" : {"type" : "int", "default": 25, "tags": {"scope": "design"}},
 		"rowStyleClassFunc": { "type": "string"},
@@ -43,6 +44,15 @@
 				"type": "JSEvent",
 				"optional": true
 			}]
+		},
+		"onColumnStateChanged": {
+			"description": "Called when the columns state is changed",
+			"parameters": [
+				{
+					"name": "columnState",
+					"type": "string"
+				}	
+			]
 		}
 	}, 
 	"api" : {
@@ -81,6 +91,11 @@
 				{ "name": "skipFooters", "type": "boolean", "optional": true, "default": false },
 				{ "name": "skipGroups", "type": "boolean", "optional": true, "default": false },
 				{ "name": "asCSV", "type": "boolean", "optional": true, "default": false }				
+			]
+		},
+		"restoreColumnState" : {
+			"parameters": [
+				{ "name": "columnState", "type": "string", "optional": true}
 			]
 		}
 	},
