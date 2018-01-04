@@ -85,12 +85,12 @@
 		},
 		"exportData" : {
 			"parameters": [
-				{ "name": "fileName", "type": "string", "optional": true, "default": "export.xlsx" },
-				{ "name": "skipHeader", "type": "boolean", "optional": true, "default": false },
-				{ "name": "columnGroups", "type": "boolean", "optional": true, "default": true },
-				{ "name": "skipFooters", "type": "boolean", "optional": true, "default": false },
-				{ "name": "skipGroups", "type": "boolean", "optional": true, "default": false },
-				{ "name": "asCSV", "type": "boolean", "optional": true, "default": false }				
+				{ "name": "fileName", "type": "string", "optional": true},
+				{ "name": "skipHeader", "type": "boolean", "optional": true},
+				{ "name": "columnGroups", "type": "boolean", "optional": true},
+				{ "name": "skipFooters", "type": "boolean", "optional": true},
+				{ "name": "skipGroups", "type": "boolean", "optional": true},
+				{ "name": "asCSV", "type": "boolean", "optional": true}				
 			]
 		},
 		"restoreColumnState" : {

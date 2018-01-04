@@ -344,6 +344,26 @@ function($sabloConstants, $log, $q, $filter) {
             }
 
             $scope.api.exportData = function(fileName, skipHeader, columnGroups, skipFooters, skipGroups, asCSV) {
+                // set defaults
+                if(fileName == undefined) {
+                    fileName = 'export.xlsx';
+                }
+                if(skipHeader == undefined) {
+                    skipHeader = false;
+                }
+                if(columnGroups == undefined) {
+                    columnGroups = true;
+                }
+                if(skipFooters == undefined) {
+                    skipFooters = false;
+                }
+                if(skipGroups == undefined) {
+                    skipGroups = false;
+                }
+                if(asCSV == undefined) {
+                    asCSV = false;
+                }
+
                 var params = {
                     fileName: fileName,
                     skipHeader: skipHeader,
