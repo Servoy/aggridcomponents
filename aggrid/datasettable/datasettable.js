@@ -1,5 +1,5 @@
-angular.module('aggridDatasettable', ['servoy', 'aggridenterpriselicensekey']).directive('aggridDatasettable', ['$sabloConstants', '$log', '$q', '$filter',
-function($sabloConstants, $log, $q, $filter) {
+angular.module('aggridDatasettable', ['servoy', 'aggridenterpriselicensekey']).directive('aggridDatasettable', ['$sabloConstants', '$log', '$q', '$filter', '$formatterUtils',
+function($sabloConstants, $log, $q, $filter, $formatterUtils) {
     return {
         restrict: 'E',
         scope: {
@@ -191,6 +191,10 @@ function($sabloConstants, $log, $q, $filter) {
                     if (column.minWidth || column.minWidth === 0) colDef.minWidth = column.minWidth;
                     if (column.visible === false) colDef.hide = true;
 
+                    if(column.format) {
+                        colDef.valueFormatter = createValueFormatter(column.format, column.formatType);
+                    }
+
                     if(column.cellStyleClassFunc) {
                         colDef.cellClass = createColumnCallbackFunctionFromString(column.cellStyleClassFunc);
                     }
@@ -298,6 +302,16 @@ function($sabloConstants, $log, $q, $filter) {
                 return function(params) {
                     return f(params.rowIndex, params.data, params.colDef.field, params.value, params.event);
                 };                
+            }
+
+            function createValueFormatter(format, formatType) {
+                return function(params) {
+                    if(params.value != undefined) {
+                        var v = $formatterUtils.format(params.value,format,formatType);
+                        return v;
+                    }
+                    return '';
+                }
             }
 
             Object.defineProperty($scope.model, $sabloConstants.modelChangeNotifier, {

@@ -116,8 +116,9 @@
 			"aggFunc": {"type": "string", "values" : ["sum", "min", "max", "count", "avg", "first", "last"], "default": ""},
 			"enableFilter": {"type": "boolean", "default" : false},
 			"cellStyleClassFunc": {"type": "string"},
-			"cellRendererFunc": {"type": "string"}
-
+			"cellRendererFunc": {"type": "string"},
+			"format": {"type": "string"},
+			"formatType": {"type": "string", "values": ["TEXT", "NUMBER", "DATETIME"], "default": "TEXT"}
 		},
         "iconConfig" : {
         	"iconGroupExpanded": { "type": "styleclass", "default" : "glyphicon glyphicon-minus ag-icon", "tags": {"scope": "design"}},
