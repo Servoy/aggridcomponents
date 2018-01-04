@@ -307,8 +307,14 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
             function createValueFormatter(format, formatType) {
                 return function(params) {
                     if(params.value != undefined) {
-                        var v = $formatterUtils.format(params.value,format,formatType);
-                        return v;
+                        if(formatType == 'TEXT') {
+                            if(format == '|U') {
+                                return params.value.toUpperCase();
+                            } else if(format == '|L') {
+                                return params.value.toLowerCase();
+                            }
+                        }
+                        return $formatterUtils.format(params.value,format,formatType);
                     }
                     return '';
                 }
