@@ -12,7 +12,7 @@
 	"model":
 	{
 		"data": { "type": "object[]", "tags": {"scope" : "private"}},
-		"columns": { "type": "column[]", "droppable" : true, "tags": {"scope": "design"}},
+		"columns": { "type": "column[]", "droppable" : true, "tags": {}},
 		"columnState": { "type": "string", "tags": {"scope" : "private"}, "pushToServer": "allow"},
 		"responsiveHeight": { "type": "int", "default": 300 },
 		"rowHeight" : {"type" : "int", "default": 25, "tags": {"scope": "design"}},
