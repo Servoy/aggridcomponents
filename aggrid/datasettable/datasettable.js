@@ -112,6 +112,12 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
                 if (iconConfig.iconSortDescending) icons.sortDescending = getIconElement(iconConfig.iconSortDescending);
                 if (iconConfig.iconSortUnSort) icons.sortUnSort = getIconElement(iconConfig.iconSortUnSort);
                 if (iconConfig.iconRowGroupPanel) icons.rowGroupPanel = getIconElement(iconConfig.iconRowGroupPanel);
+                
+                // TODO expose property
+                icons.rowGroupPanel = " "
+                icons.pivotPanel = " "
+                icons.valuePanel = " "
+                
                 gridOptions.icons = icons
             }
 
