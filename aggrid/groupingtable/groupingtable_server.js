@@ -6,7 +6,7 @@
  *
  * */
 $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets, sort, hasRowStyleClassDataprovider) {
-	//	console.log('START SERVER SIDE ------------------------------------------ ');
+	log('START SERVER SIDE ------------------------------------------ ', LOG_LEVEL.WARN);
 
 	// root is the parent
 	var parentFoundset = $scope.model.myFoundset.foundset;
@@ -20,11 +20,20 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 	var groupColumn;
 	var groupDataprovider;
 
+	// TODO it cannot be empty !?!
+	if (!groupColumns) groupColumns = [];
+	if (!groupKeys) groupKeys = [];
+	if (!idForFoundsets) {
+		console.error("There are no idForFoundset to map to")
+	}
+
+	log("There are '" + groupColumns.length + "' groupColumns", LOG_LEVEL.WARN);
 	for (var i = 0; i < groupColumns.length; i++) {
 		var groupColumnIndex = groupColumns[i];
 
 		// retrieve the grouping column
 		groupDataprovider = $scope.model.columns[groupColumnIndex].dataprovider;
+		log("Group on groupDataprovider " + groupDataprovider + " at index " + groupColumnIndex, LOG_LEVEL.WARN);
 		//		console.log('group on ' + groupDataprovider);
 
 		if (isRelatedDataprovider(groupDataprovider)) {
@@ -33,12 +42,14 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 			var relationNames = getDataProviderRelations(groupDataprovider);
 			var columnName = getDataProviderColumn(groupDataprovider);
 
-			// console.log('is a join on ' + columnName);
+			log('The groupDataprovider is a join on ' + columnName, LOG_LEVEL.WARN);
 
 			var join = query;
 
 			for (var j = 0; j < relationNames.length; j++) {
 				var relationName = relationNames[j];
+				log('Adding a join on relationName ' + relationName, LOG_LEVEL.WARN);
+
 				// use unique name for multiple level relations
 				var relationPath = relationNames.slice(0, j + 1).join("____");
 				//				console.log(relationPath)
@@ -59,6 +70,7 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 		// where clause on the group column
 		if (i < groupKeys.length) {
 			var groupKey = groupKeys[i];
+			log('The node is a sub-group of groupKey ' + groupKey, LOG_LEVEL.WARN);
 			query.where.add(groupColumn.eq(groupKey));
 		}
 
@@ -72,9 +84,11 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 		var pkColumns = query.result.getColumns();
 		query.result.clear();
 
-		// Group pks handle pks
-		for (var i = 0; i < pkColumns.length; i++) {
-			query.result.add(pkColumns[i].min);
+		log("There are " + pkColumns.length + " pks", LOG_LEVEL.WARN);
+		
+		if (pkColumns < 1) {
+			console.error("No primary key has been found for the given foundset. The component's foundset must have one single primary key to enable grouping");
+			throw "No primary key has been found for the given foundset. The component's foundset must have one single primary key to enable grouping";
 		}
 		if (pkColumns.length > 1) {
 			//			if (pkColumns.length === 2) {
@@ -89,9 +103,15 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 			//
 			//						}
 
-			console.error("Grouping is not supported on foundset having multiple primary keys. The component's foundset must have one single primary key");
-			throw "Grouping is not supported on foundset having multiple primary keys. The component's foundset must have one single primary key";
+			console.error("Grouping is not supported on foundset having multiple primary keys. The component's foundset must have one single primary key to enable grouping");
+			throw "Grouping is not supported on foundset having multiple primary keys. The component's foundset must have one single primary key to enable grouping";
 		}
+		
+		// Group pks handle pks
+		for (var pkIndex = 0; pkIndex < pkColumns.length; pkIndex++) {
+			query.result.add(pkColumns[pkIndex].min);
+		}
+
 
 		query.groupBy.add(groupColumn);
 		query.sort.clear();
@@ -119,8 +139,9 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 	// push dataproviders to the clientside foundset
 	var dps = { };
 	// FIXME this creates an issue
+	log("There are " + $scope.model.columns.length + " columns and " + idForFoundsets.length + " idForFoundsets", LOG_LEVEL.WARN);
 	for (var idx = 0; idx < $scope.model.columns.length; idx++) {
-		var column = $scope.model.columns[idx]
+		var column = $scope.model.columns[idx];
 		// the dataprovider name e.g. orderid
 		var dpId = column.dataprovider;
 		// the idForFoundset(exists only client-side, therefore i need to retrieve it from the client)
@@ -139,9 +160,9 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 		if (hasRowStyleClassDataprovider === true) {
 			dps["__rowStyleClassDataprovider"] = $scope.model.rowStyleClassDataprovider;
 		}
-//		if ($scope.model.rowStyleClassDataprovider) {
-//			dps["__rowStyleClassDataprovider"] = $scope.model.rowStyleClassDataprovider;
-//		}
+		//		if ($scope.model.rowStyleClassDataprovider) {
+		//			dps["__rowStyleClassDataprovider"] = $scope.model.rowStyleClassDataprovider;
+		//		}
 	} catch (e) {
 		console.warn(e);
 	}
@@ -158,7 +179,8 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 		foundsetUUID: childFoundset
 	}); // send it to client as a foundset property with a UUID
 
-	//	console.log('END SERVER SIDE QUERY ' + $scope.model.hashedFoundsets[$scope.model.hashedFoundsets.length - 1]);
+	log('Group foundset retrieved' + $scope.model.hashedFoundsets[$scope.model.hashedFoundsets.length - 1], LOG_LEVEL.WARN);
+	log('END SERVER SIDE QUERY --------------------------------------', LOG_LEVEL.WARN);
 
 	return childFoundset; // return the UUID that points to this foundset (return type will make it UUID)
 };
@@ -296,4 +318,38 @@ function generateUUID() {
 		return (new Date().getTime() * Math.random()).toString(16).slice(-4).toUpperCase();
 	}
 	return chr4() + chr4() + '-' + chr4() + '-' + chr4() + '-' + chr4() + '-' + chr4() + chr4() + chr4();
+}
+
+var LOG_LEVEL = {
+	DEBUG: "debug",
+	WARN: "warn",
+	ERROR: "error"
+}
+
+/** 
+ * @private 
+ * @param {String} msg
+ * @param {type} name
+ * */
+function log(msg, level) {
+	
+	// TODO change it to ERROR
+	var logLevel = LOG_LEVEL.DEBUG;
+
+	switch (level) {
+	case LOG_LEVEL.ERROR:
+		console.error(msg);
+		break;
+	case LOG_LEVEL.WARN:
+		if (logLevel == LOG_LEVEL.WARN || logLevel == LOG_LEVEL.DEBUG) {
+			console.error(msg);
+		}
+		break;
+	case LOG_LEVEL.DEBUG:
+	default:
+		if (logLevel == LOG_LEVEL.DEBUG) {
+			console.log(msg);
+		}
+		break;
+	}
 }
