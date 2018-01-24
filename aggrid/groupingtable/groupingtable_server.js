@@ -334,7 +334,7 @@ var LOG_LEVEL = {
 function log(msg, level) {
 	
 	// TODO change it to ERROR
-	var logLevel = LOG_LEVEL.DEBUG;
+	var logLevel = LOG_LEVEL.ERROR;
 
 	switch (level) {
 	case LOG_LEVEL.ERROR:
@@ -342,7 +342,7 @@ function log(msg, level) {
 		break;
 	case LOG_LEVEL.WARN:
 		if (logLevel == LOG_LEVEL.WARN || logLevel == LOG_LEVEL.DEBUG) {
-			console.error(msg);
+			console.warn(msg);
 		}
 		break;
 	case LOG_LEVEL.DEBUG:
