@@ -68,3 +68,11 @@ $scope.api.renderData = function(dataset) {
         $scope.model.data.push(rowData);
     }     
 }
+
+$scope.api.appendLazyRequestData = function(dataset, lastRow) {
+    $scope.model.lastRow = null;
+    $scope.api.renderData(dataset);
+    if(lastRow) {
+        $scope.model.lastRow = lastRow;
+    }
+}

@@ -23,7 +23,9 @@
 		"enableSorting": { "type": "boolean", "default": true, "tags": {"scope": "design"}},
 		"pivotMode": { "type": "boolean", "default": false, "tags": {"scope": "design"}},
 		"iconConfig": { "type": "iconConfig"},
-		"groupStyleClass" : {"type": "styleclass"}
+		"groupStyleClass" : {"type": "styleclass"},
+		"useLazyLoading": { "type": "boolean", "default": false, "tags": {"scope": "design"}},
+		"lastRow": { "type": "long", "tags": {"scope" : "private"}}
 	},
 	"handlers" : {
 		"onCellClick": {
@@ -53,7 +55,48 @@
 					"type": "string"
 				}	
 			]
-		}
+		},
+		"onLazyLoadingGetRows": {
+			"description": "Called when lazy loading is used, and new rows are requested to display",
+			"parameters": [
+				{
+					"name": "startRow",
+					"type": "long"
+				},
+				{
+					"name": "endRow",
+					"type": "long"
+				},				
+				{
+					"name": "rowGroupCols",
+					"type": "columnVO[]"
+				},
+				{
+					"name": "valueCols",
+					"type": "columnVO[]"
+				},
+				{
+					"name": "pivotCols",
+					"type": "columnVO[]"
+				},
+				{
+					"name": "pivotMode",
+					"type": "boolean"
+				},
+				{
+					"name": "groupKeys",
+					"type": "string[]"
+				},
+				{
+					"name": "filterModel",
+					"type": "object"
+				},
+				{
+					"name": "sortModel",
+					"type": "object"
+				}
+			]
+		}		
 	}, 
 	"api" : {
 		"renderData": {
@@ -97,6 +140,12 @@
 			"parameters": [
 				{ "name": "columnState", "type": "string", "optional": true}
 			]
+		},
+		"appendLazyRequestData": {
+			"parameters": [
+				{ "name": "dataset", "type": {"type": "dataset"} },
+				{ "name": "lastRow", "type": {"type": "long"}, "optional": true }
+			]
 		}
 	},
 	"types" : {
@@ -128,6 +177,12 @@
 			"iconSortUnSort": { "type": "styleclass", "tags": {"scope": "design"}},
 			"iconRefreshData": { "type": "styleclass", "default" : "glyphicon glyphicon-refresh", "tags": {"scope": "design"}},
 			"iconRowGroupPanel": { "type": "styleclass", "tags": {"scope": "design"}}
-        }
+        },
+		"columnVO": {
+			"id": {"type": "string"},
+			"displayName": {"type": "string"},
+			"field": {"type": "string"},
+			"aggFunc": {"type": "string"}
+		}
 	}
 }

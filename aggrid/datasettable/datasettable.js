@@ -19,8 +19,6 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
             var gridOptions = {
                 
                 debug: false,
-                rowModelType: 'inMemory',
-                rowData: $scope.model.data,
                 rowGroupPanelShow: 'always', // TODO expose property
 
                 defaultColDef: {
@@ -95,6 +93,14 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
                 onColumnGroupOpened: storeColumnsState
             };
 
+            if($scope.model.useLazyLoading) {
+                gridOptions.rowModelType = 'enterprise';
+            }
+            else {
+                gridOptions.rowModelType = 'inMemory';
+                gridOptions.rowData = $scope.model.data;
+            }
+
             if($scope.model.rowStyleClassFunc) {
                 var rowStyleClassFunc = eval($scope.model.rowStyleClassFunc);
                 gridOptions.getRowClass = function(params) {
@@ -147,6 +153,45 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
             });
 
 
+            if(!$scope.svyServoyapi.isInDesigner() && $scope.model.useLazyLoading) {
+
+                function RemoteDatasource() {
+                }
+
+                RemoteDatasource.prototype.getRows = function(params) {
+                    $scope.model.data = [];
+                    $scope.model.lastRow = null;
+                    if($scope.handlers.onLazyLoadingGetRows) {
+                        var request = params.request;
+                        var getRowsPromise = $scope.handlers.onLazyLoadingGetRows(
+                            request.startRow,
+                            request.endRow,
+                            request.rowGroupCols,
+                            request.valueCols,
+                            request.pivotCols,
+                            request.pivotMode,
+                            request.groupKeys,
+                            request.filterModel,
+                            request.sortModel);
+                        getRowsPromise.then(function() {
+                            params.successCallback($scope.model.data, $scope.model.lastRow);
+                        });
+                    }
+                    else {
+                        params.successCallback($scope.model.data, $scope.model.lastRow);
+                    }
+                };
+
+                gridOptions.api.setEnterpriseDatasource(new RemoteDatasource());
+            }
+            else {
+                $scope.$watchCollection("model.data", function(newValue, oldValue) {
+                    if(gridOptions) {
+                        gridOptions.api.setRowData($scope.model.data);
+                    }
+                });
+            }
+
             $scope.$watchCollection("model.columns", function(newValue, oldValue) {
                 if(gridOptions) {
                     var columnDefs = getColumnDefs();
@@ -154,13 +199,6 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
                     restoreColumnsState();
                 }
             });
-
-            $scope.$watchCollection("model.data", function(newValue, oldValue) {
-                if(gridOptions) {
-                    gridOptions.api.setRowData($scope.model.data);
-                }
-            });
-
 
             function getColumnDefs() {
                 
@@ -239,23 +277,6 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
                 }
 
                 return colDefs;
-            }
-
-            function getRowData() {
-                if($scope.model.data) {
-                    var data = [$scope.model.data.length]
-                    for(var i = 1; i < $scope.model.data.length; i++) {
-                        var rowData = {};
-                        for(var j = 0; j < $scope.model.data[i].length; j++) {
-                            rowData[$scope.model.data[0][j]] = $scope.model.data[i][j];
-                        }
-                        data.push(rowData);
-                    }
-                    return data;
-                }
-                else {
-                    return [];
-                }                
             }
 
             function isResponsive() {
