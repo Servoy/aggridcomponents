@@ -69,10 +69,10 @@ $scope.api.renderData = function(dataset) {
     }     
 }
 
-$scope.api.appendLazyRequestData = function(dataset, lastRow) {
-    $scope.model.lastRow = null;
+$scope.api.appendLazyRequestData = function(dataset, lastRowIndex) {
+    $scope.model.lastRowIndex = null;
     $scope.api.renderData(dataset);
-    if(lastRow) {
-        $scope.model.lastRow = lastRow;
+    if(lastRowIndex) {
+        $scope.model.lastRowIndex = lastRowIndex;
     }
 }

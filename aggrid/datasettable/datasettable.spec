@@ -25,7 +25,7 @@
 		"iconConfig": { "type": "iconConfig"},
 		"groupStyleClass" : {"type": "styleclass"},
 		"useLazyLoading": { "type": "boolean", "default": false, "tags": {"scope": "design"}},
-		"lastRow": { "type": "long", "tags": {"scope" : "private"}}
+		"lastRowIndex": { "type": "long", "tags": {"scope" : "private"}}
 	},
 	"handlers" : {
 		"onCellClick": {
@@ -88,12 +88,12 @@
 					"type": "string[]"
 				},
 				{
-					"name": "filterModel",
-					"type": "object"
+					"name": "filterModels",
+					"type": "filterModelVO[]"
 				},
 				{
-					"name": "sortModel",
-					"type": "object"
+					"name": "sortModels",
+					"type": "sortModelVO[]"
 				}
 			]
 		}		
@@ -144,7 +144,7 @@
 		"appendLazyRequestData": {
 			"parameters": [
 				{ "name": "dataset", "type": {"type": "dataset"} },
-				{ "name": "lastRow", "type": {"type": "long"}, "optional": true }
+				{ "name": "lastRowIndex", "type": {"type": "long"}, "optional": true }
 			]
 		}
 	},
@@ -181,8 +181,16 @@
 		"columnVO": {
 			"id": {"type": "string"},
 			"displayName": {"type": "string"},
-			"field": {"type": "string"},
 			"aggFunc": {"type": "string"}
+		},
+		"sortModelVO": {
+			"colId": {"type": "string"},
+			"sort": {"type": "string"}
+		},
+		"filterModelVO": {
+			"id": {"type": "string"},
+			"operator": {"type": "string"},
+			"value": {"type": "string"}
 		}
 	}
 }

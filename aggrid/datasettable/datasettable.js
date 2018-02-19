@@ -160,9 +160,14 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
 
                 RemoteDatasource.prototype.getRows = function(params) {
                     $scope.model.data = [];
-                    $scope.model.lastRow = null;
+                    $scope.model.lastRowIndex = null;
                     if($scope.handlers.onLazyLoadingGetRows) {
                         var request = params.request;
+                        var filterModels = [];
+                        for(var id in request.filterModel) {
+                            filterModels.push({id: id, operator: request.filterModel[id].type, value: request.filterModel[id].filter })
+                        }
+
                         var getRowsPromise = $scope.handlers.onLazyLoadingGetRows(
                             request.startRow,
                             request.endRow,
@@ -171,14 +176,14 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
                             request.pivotCols,
                             request.pivotMode,
                             request.groupKeys,
-                            request.filterModel,
+                            filterModels,
                             request.sortModel);
                         getRowsPromise.then(function() {
-                            params.successCallback($scope.model.data, $scope.model.lastRow);
+                            params.successCallback($scope.model.data, $scope.model.lastRowIndex);
                         });
                     }
                     else {
-                        params.successCallback($scope.model.data, $scope.model.lastRow);
+                        params.successCallback($scope.model.data, $scope.model.lastRowIndex);
                     }
                 };
 
@@ -249,6 +254,7 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
 
                     if(column.enableFilter) {
                         colDef.filter = 'text';
+                        colDef.filterParams = {newRowsAction: 'keep'};
                     }
                     else {
                         colDef.suppressFilter = true;
