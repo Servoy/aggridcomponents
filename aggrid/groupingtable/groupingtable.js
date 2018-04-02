@@ -275,6 +275,8 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 				var config = $scope.model;
 				// console.log(config)
 
+				var vMenuTabs = ['generalMenuTab'] //, 'filterMenuTab'];
+				if(config.showColumnsMenuTab) vMenuTabs.push('columnsMenuTab');
 				var gridOptions = {
 
 					debug: false,
@@ -285,7 +287,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 						width: 0,
 						suppressFilter: true,
 						valueFormatter: displayValueFormatter,
-						menuTabs: ['generalMenuTab'] //, 'columnsMenuTab'] // , 'filterMenuTab']
+						menuTabs: vMenuTabs
 					},
 					columnDefs: columnDefs,
 					getMainMenuItems: getMainMenuItems,
@@ -351,6 +353,9 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 							}, 150);
 					},
 					onGridSizeChanged: function() {
+						sizeColumnsToFit();
+					},
+					onDisplayedColumnsChanged: function() {
 						sizeColumnsToFit();
 					},
 					getContextMenuItems: getContextMenuItems
@@ -2572,6 +2577,8 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 						if (column.minWidth || column.minWidth === 0) colDef.minWidth = column.minWidth;
 						if (column.visible === false) colDef.hide = true;
 						if (column.enableSort === false) colDef.suppressSorting = true;
+
+						colDef.lockVisible = true;
 
 						colDefs.push(colDef);
 					}

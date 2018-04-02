@@ -26,7 +26,8 @@
 		"tooltipTextRefreshData" : { "type": "tagstring", "default" : "Refresh for latest data !" },
 		"visible": "visible",
 		"hashedFoundsets": { "type": "hashedFoundset[]", "default": [], "tags": {"scope": "private"}, "pushToServer": "shallow"},
-		"hashedColumns": {"type" : "string[]", "default": [], "tags": {"scope": "private"}}
+		"hashedColumns": {"type" : "string[]", "default": [], "tags": {"scope": "private"}},
+		"showColumnsMenuTab": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}}
 	},
 	"handlers" : {
 		"onCellClick": {
