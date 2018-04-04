@@ -1452,7 +1452,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 								var header = $scope.model.columns[i];
 								var field = getColumnID(header, i);
 
-								var value = header.dataprovider[index];
+								var value = header.dataprovider ? header.dataprovider[index] : null;
 								r[field] = value;
 							}
 							return r;
