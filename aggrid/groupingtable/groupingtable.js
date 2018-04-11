@@ -1,5 +1,5 @@
-angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).directive('aggridGroupingtable', ['$sabloConstants', '$log', '$q', '$foundsetTypeConstants', '$filter',
-	function($sabloConstants, $log, $q, $foundsetTypeConstants, $filter) {
+angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).directive('aggridGroupingtable', ['$sabloApplication', '$sabloConstants', '$log', '$q', '$foundsetTypeConstants', '$filter',
+	function($sabloApplication, $sabloConstants, $log, $q, $foundsetTypeConstants, $filter) {
 		return {
 			restrict: 'E',
 			scope: {
@@ -315,7 +315,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 					enableRangeSelection: false,
 
 					stopEditingWhenGridLosesFocus: true,
-					singleClickEdit: true,
+					singleClickEdit: false,
 					suppressClickEdit: false,
 					enableGroupEdit: false,
 					groupUseEntireRow: config.groupUseEntireRow,
@@ -590,6 +590,15 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 					});
 					//}
 					return promiseResult.promise;
+				}
+
+				function updateFoundsetRecord(params) {
+
+					var row = params.data;
+					var foundsetManager = getFoundsetManagerByFoundsetUUID(row._svyFoundsetUUID);
+					if (!foundsetManager) foundsetManager = foundset;
+					var foundsetRef = foundsetManager.foundset;
+					foundsetRef.updateViewportRecord(row._svyRowId, params.column.colId, params.newValue, params.oldValue);
 				}
 
 				/**
@@ -923,6 +932,100 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 				function getIconElement(iconStyleClass) {
 					return '<i class="' + iconStyleClass + '"/>';
 				}
+
+				/**************************************************************************************************
+				 **************************************************************************************************
+				 *
+				 *  Cell editors
+				 *
+				 **************************************************************************************************
+				 **************************************************************************************************/
+
+				 function getDatePicker() {
+					// function to act as a class
+					function Datepicker() {}
+				
+					// gets called once before the renderer is used
+					Datepicker.prototype.init = function(params) {
+						// create the cell
+						this.eInput = document.createElement('input');
+						this.eInput.className = "ag-cell-edit-input";
+
+						var options = {
+							widgetParent: $(document.body),
+							useCurrent : false,
+							useStrict : true,
+							showClear : true,
+							ignoreReadonly : true,
+							showTodayButton: true,
+							calendarWeeks: true,
+							showClose: true,
+							icons: {
+								close: 'glyphicon glyphicon-ok'
+							}
+						};
+
+						var locale = $sabloApplication.getLocale();
+						if (locale.language) {
+							options.locale = locale.language;
+						}
+						$(this.eInput).datetimepicker(options);
+
+						var v;
+						var editFormat = 'MM/dd/yyyy hh:mm aa';
+						if(params.useFormatter) {
+							v = { colDef: params.column.colDef, data: {} };
+							v.data[params.column.colDef.field] = params.value;
+							v = params.useFormatter(v);
+							var field = params.column.colDef.field;
+							var column = getColumn(field);
+							if(column && column.format && column.format.edit) {
+								editFormat = column.format.edit;
+							}
+						}
+						else {
+							v = formatFilter(params.value, editFormat, 'DATETIME');
+						}
+
+						//var dateFormat = moment().toMomentFormatString(editFormat);
+						var theDateTimePicker = $(this.eInput).data('DateTimePicker');
+						//theDateTimePicker.format(dateFormat);
+						this.eInput.value = v;
+					};
+				
+					// gets called once when grid ready to insert the element
+					Datepicker.prototype.getGui = function() {
+						return this.eInput;
+					};
+				
+					// focus and select can be done after the gui is attached
+					Datepicker.prototype.afterGuiAttached = function() {
+						this.eInput.focus();
+						this.eInput.select();
+					};
+				
+					// returns the new value after editing
+					Datepicker.prototype.getValue = function() {
+						var theDateTimePicker = $(this.eInput).data('DateTimePicker');
+						return theDateTimePicker.date().toDate();
+					};
+				
+					// any cleanup we need to be done here
+					Datepicker.prototype.destroy = function() {
+						var theDateTimePicker = $(this.eInput).data('DateTimePicker');
+						if(theDateTimePicker) theDateTimePicker.destroy();
+					};
+				
+					// if true, then this editor will appear in a popup
+					Datepicker.prototype.isPopup = function() {
+						// and we could leave this method out also, false is the default
+						return false;
+					};
+				
+					return Datepicker;
+				}
+				
+
 
 				/**************************************************************************************************
 				 **************************************************************************************************
@@ -2577,6 +2680,23 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 						if (column.minWidth || column.minWidth === 0) colDef.minWidth = column.minWidth;
 						if (column.visible === false) colDef.hide = true;
 						if (column.enableSort === false) colDef.suppressSorting = true;
+
+						if (column.editType != 'NONE') {
+							colDef.editable = true;
+
+							if(column.editType == 'TEXTFIELD') {
+								colDef.cellEditor = 'text';
+							}
+							else if(column.editType == 'DATEPICKER') {
+								colDef.cellEditor = getDatePicker();
+							}
+							// colDef.cellEditorParams = {
+							//  	useFormatter: editValueFormatter
+							// }
+							colDef.onCellValueChanged = function(params) {
+								updateFoundsetRecord(params);
+							}
+						}
 
 						colDef.lockVisible = true;
 
