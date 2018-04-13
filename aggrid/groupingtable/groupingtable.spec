@@ -16,6 +16,7 @@
 	{
 		"myFoundset": {"type": "foundset", "default" : {"foundsetSelector":""}, "pushToServer" : "allow" ,"dynamicDataproviders": true, "initialPreferredViewPortSize": 50, "sendSelectionViewportInitially": true },
 		"columns": { "type": "column[]", "droppable" : true, "pushToServer": "shallow", "tags": {"scope": "design"}},
+		"columnState": { "type": "string", "tags": {"scope" : "private"}, "pushToServer": "allow"},
 		"responsiveHeight": { "type": "int", "default": 300 },
 		"rowHeight" : {"type" : "int", "default": 25, "tags": {"scope": "design"}},
 		"rowStyleClassDataprovider": { "type": "dataprovider", "forFoundset": "myFoundset" },
@@ -73,6 +74,15 @@
 				"type": "JSEvent",
 				"optional": true
 			}]
+		},
+		"onColumnStateChanged": {
+			"description": "Called when the columns state is changed",
+			"parameters": [
+				{
+					"name": "columnState",
+					"type": "string"
+				}	
+			]
 		}
 	}, 
 	"api" : {
@@ -81,7 +91,15 @@
         },
         "refreshData" : {
         	"parameters" : []
-        }
+        },
+		"getColumnState" : {
+			"returns": "string"
+		},
+		"restoreColumnState" : {
+			"parameters": [
+				{ "name": "columnState", "type": "string", "optional": true}
+			]
+		}
      },
 	"internalApi" : {
 		"getGroupedFoundsetUUID" : {
