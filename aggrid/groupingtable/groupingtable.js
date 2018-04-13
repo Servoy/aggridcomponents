@@ -358,8 +358,15 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 					onDisplayedColumnsChanged: function() {
 						sizeColumnsToFit();
 					},
+					onColumnEverythingChanged: storeColumnsState,
+					onColumnVisible: storeColumnsState,
+					onColumnPinned: storeColumnsState,
+					onColumnResized: storeColumnsState,
+					onColumnRowGroupChanged: storeColumnsState,
+					onColumnValueChanged: storeColumnsState,
+					onColumnMoved: storeColumnsState,
+					onColumnGroupOpened: storeColumnsState,
 					getContextMenuItems: getContextMenuItems
-					
 					// TODO since i can't use getRowNode(id) in enterprise model, is pointeless to get id per node
 					//					getRowNodeId: function(data) {
 					//						return data._svyRowId;
@@ -2854,6 +2861,77 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 					};
 				}
 
+				function storeColumnsState() {
+					var agColumnState = gridOptions.columnApi.getColumnState();
+					var svyColumnState = [];
+					for(var i = 0; i < agColumnState.length; i++) {
+						var columnStateItem = agColumnState[i];
+						for(var j = 0; j < $scope.model.columns.length; j++) {
+							var columnItem = $scope.model.columns[j];
+							if(columnItem.dataprovider.idForFoundset == columnStateItem.colId) {
+								columnStateItem.colId = '' + j;
+								break;
+							}
+						}
+						svyColumnState.push(columnStateItem);
+					} 
+
+					var rowGroupColumns = getRowGroupColumns();
+					var svyRowGroupColumnIds = [];
+					for(var i = 0; i < rowGroupColumns.length; i++) {
+						var rowGroupColumnItem = rowGroupColumns[i];
+						for(var j = 0; j < $scope.model.columns.length; j++) {
+							var columnItem = $scope.model.columns[j];
+							if(columnItem.dataprovider.idForFoundset == rowGroupColumnItem.colId) {
+								svyRowGroupColumnIds.push('' + j);
+								break;
+							}
+						}
+					}
+
+					var columnState = {
+						columnState: svyColumnState,
+						rowGroupColumnsState: svyRowGroupColumnIds
+					}
+					$scope.model.columnState = JSON.stringify(columnState);
+					$scope.svyServoyapi.apply('columnState');
+					if ($scope.handlers.onColumnStateChanged) {
+						$scope.handlers.onColumnStateChanged($scope.model.columnState);
+					}
+				}
+	
+				function restoreColumnsState() {
+					if($scope.model.columnState) {
+						var columnState = JSON.parse($scope.model.columnState);
+						var agColumnState = [];
+						for(var i = 0; i < columnState.columnState.length; i++) {
+							var svyColumnItem = columnState.columnState[i];
+							if(!isNaN(svyColumnItem.colId)) {
+								var idx = parseInt(svyColumnItem.colId);
+								if(idx < $scope.model.columns.length) {
+									svyColumnItem.colId = $scope.model.columns[idx].dataprovider.idForFoundset;
+								}
+							}
+							agColumnState.push(svyColumnItem);
+						}
+
+						gridOptions.columnApi.setColumnState(agColumnState);
+
+						var rowGroupColumnsIds = [];
+						for(var i = 0; i < columnState.rowGroupColumnsState.length; i++) {
+							var rowGroupColumnId = columnState.rowGroupColumnsState[i];
+							var idx = parseInt(rowGroupColumnId);
+							if(idx < $scope.model.columns.length) {
+								rowGroupColumnsIds.push($scope.model.columns[idx].dataprovider.idForFoundset)
+							}
+						}
+						if(rowGroupColumnsIds.length > 0) {
+							gridOptions.columnApi.setRowGroupColumns(rowGroupColumnsIds);
+						}
+					}
+				}
+
+
 				/***********************************************************************************************************************************
 				 ***********************************************************************************************************************************
 				 *
@@ -2963,6 +3041,21 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 				 * */
 				$scope.api.refreshData = function() {
 					$scope.purge();
+				}
+
+				$scope.api.restoreColumnState = function(columnState) {
+					if(columnState) {
+						$scope.model.columnState = columnState;
+						restoreColumnsState();
+					}
+					else {
+						gridOptions.columnApi.resetColumnState();
+					}
+				}
+
+				$scope.api.getColumnState = function() {
+					storeColumnsState();
+					return $scope.model.columnState;
 				}
 
 				// FIXME how to force re-fit when table is shown for the first time
