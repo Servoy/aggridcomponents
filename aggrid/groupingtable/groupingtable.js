@@ -252,9 +252,8 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 				// set to true when is rendered
 				var isRendered = undefined;
 
-				// TODO this is used as workaround because sort doesn't return a promise
-				var sortColumnsPromise;
-				var sortGroupColumnsPromise
+				// foundset sort promise
+				var sortPromise;
 
 				// formatFilter function
 				var formatFilter = $filter("formatFilter");
@@ -1034,27 +1033,17 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 						// if not sorting on a group column
 						if (rowGroupCols.length === groupKeys.length && sortString && sortString != foundsetRefManager.getSortColumns()) { // if is a group column and sort string is different
 							$log.debug('CHANGE SORT REQUEST');
-							var sortPromise = $q.defer();
-
-							// TODO remove sort icon
-							// FIXME this is a workaround for issue SVY-11456
-							if (foundsetRefManager.isRoot) {
-								sortColumnsPromise = sortPromise;
-							} else {
-								sortGroupColumnsPromise = sortPromise;
-							}
-
 							foundsetSortModel = getFoundsetSortModel(sortModel)
-
-							/** Change the foundset's sort column  */
-							foundsetRefManager.sort(foundsetSortModel.sortColumns);
-
-							sortPromise.promise.then(function() {
+							sortPromise = foundsetRefManager.sort(foundsetSortModel.sortColumns);
+							sortPromise.then(function() {
 								$log.error("sort column promise resolved");
-								sortPromise = null;
-								sortColumnsPromise = null;
-								sortGroupColumnsPromise = null;
 								getDataFromFoundset(foundsetRefManager);
+								// give time to the foundset change listener to know it was a client side requested sort
+								setTimeout(function() {
+									sortPromise = null;
+								}, 0);
+							}).catch(function(e) {
+								sortPromise = null
 							});
 
 						} else {
@@ -1345,11 +1334,6 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 
 							// sort changed
 							$log.debug("Change Group Sort Model " + newSort);
-
-							// FIXME this is a workaround for issue SVY-11456
-							if (sortGroupColumnsPromise) {
-								sortGroupColumnsPromise.resolve();
-							}
 							return;
 						}
 
@@ -2288,9 +2272,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 						// sort changed
 						$log.debug("Change Sort Model " + newSort);
 
-						// FIXME this is a workaround for issue SVY-11456
-						if (sortColumnsPromise) {
-							sortColumnsPromise.resolve(true);
+						if (sortPromise) {
 							$log.debug('sort has been requested clientside, no need to update the changeListener');
 							return;
 						}
