@@ -285,6 +285,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 					defaultColDef: {
 						width: 0,
 						suppressFilter: true,
+						valueGetter: displayValueGetter,
 						valueFormatter: displayValueFormatter,
 						menuTabs: vMenuTabs
 					},
@@ -890,6 +891,8 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 
 				}
 
+				var NULL_VALUE = new Object();
+
 				/**
 				 * Returns the formatted value
 				 * Compute value format and column valuelist
@@ -911,7 +914,25 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 						}
 					}
 
+					if (value == null && params.value == NULL_VALUE) {
+						value = '';
+					}
+
 					return value;
+				}
+
+				function displayValueGetter(params) {
+					var field = params.colDef.field;
+					if (!params.data) {
+						return undefined;
+					}
+					var value = params.data[field];
+
+					if (value == null) {
+						value = NULL_VALUE; // need to use an object for null, else grouping won't work in ag grid
+					}
+
+					return value;					
 				}
 
 				/**
@@ -968,6 +989,11 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 					var rowGroupCols = request.rowGroupCols
 					// the keys we are looking at. will be empty if looking at top level (either no groups, or looking at top level groups). eg ['United States','2002']
 					var groupKeys = request.groupKeys;
+					for (var i = 0; i < groupKeys.length; i++) {
+						if (groupKeys[i] == NULL_VALUE) {
+							groupKeys[i] = null;	// reset to real null, so we use the right value for grouping
+						}
+					}
 					// if going aggregation, contains the value columns, eg ['gold','silver','bronze']
 					var valueCols = request.valueCols;
 
