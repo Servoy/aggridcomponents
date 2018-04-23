@@ -916,6 +916,8 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 
 					if (value == null && params.value == NULL_VALUE) {
 						value = '';
+					} else if (value && value.contentType && value.contentType.indexOf('image/') == 0 && value.url) {
+						value = '<img class="ag-table-image-cell" src="' + value.url + '">';
 					}
 
 					return value;

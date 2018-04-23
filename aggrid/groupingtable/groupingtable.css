@@ -17,3 +17,10 @@
 .ag-table-info-notify {
 	color: #f0ad4e;	
 }
+
+.ag-table-image-cell {
+	margin-left: auto;
+    margin-right: auto;
+    display: block;
+    max-height: 100%;
+}
