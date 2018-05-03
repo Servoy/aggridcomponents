@@ -1015,16 +1015,77 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 						var theDateTimePicker = $(this.eInput).data('DateTimePicker');
 						if(theDateTimePicker) theDateTimePicker.destroy();
 					};
-				
-					// if true, then this editor will appear in a popup
-					Datepicker.prototype.isPopup = function() {
-						// and we could leave this method out also, false is the default
-						return false;
-					};
-				
+
 					return Datepicker;
 				}
 				
+
+				function getSelectEditor() {
+					function SelectEditor() {
+						this.eGui = document.createElement("div");
+						this.eGui.className = 'ag-cell-edit-input';
+						this.eGui.innerHTML = '<select class="ag-cell-edit-input"/>';
+						this.eSelect = this.eGui.querySelector('select');
+					}
+
+					SelectEditor.prototype.init = function(params) {
+						var col = getColumn(params.column.colDef.field);
+						if(col.valuelist) {
+							var row = params.node.data;
+							var foundsetManager = getFoundsetManagerByFoundsetUUID(row._svyFoundsetUUID);
+							if (!foundsetManager) foundsetManager = foundset;
+							var foundsetRef = foundsetManager.foundset;
+							var recRef = foundsetRef.getRecordRefByRowID(row._svyRowId);
+							var valuelistValuesPromise = col.valuelist.getValues(recRef);
+							var selectEl = this.eSelect;
+							valuelistValuesPromise.then(function(valuelistValues) {
+								valuelistValues.forEach(function (value) {
+									var option = document.createElement('option');
+									option.value = value.realValue;
+									option.text = value.displayValue;
+									if (params.value === value.displayValue) {
+										option.selected = true;
+									}
+									selectEl.appendChild(option);
+								});
+
+							});
+						}
+
+						this.keyListener = function (event) {
+							var isNavigationKey = event.keyCode === 38 || event.keyCode === 40;
+							if (isNavigationKey) {
+								event.stopPropagation();
+							}
+						};
+						this.eSelect.addEventListener('keydown', this.keyListener);
+
+						this.mouseListener = function (event) {
+							event.stopPropagation();
+						};
+						this.eSelect.addEventListener('mousedown', this.mouseListener);
+					}
+
+					// gets called once when grid ready to insert the element
+					SelectEditor.prototype.getGui = function() {
+						return this.eGui;
+					};
+
+					SelectEditor.prototype.afterGuiAttached = function () {
+						this.eSelect.focus();
+					};
+					
+					SelectEditor.prototype.getValue = function () {
+						return this.eSelect.value;
+					};
+
+					SelectEditor.prototype.destroy = function() {
+						this.eSelect.removeEventListener('keydown', this.keyListener);
+						this.eSelect.removeEventListener('mousedown', this.mouseListener);
+					};
+
+					return SelectEditor;
+				}
 
 
 				/**************************************************************************************************
@@ -2698,10 +2759,13 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 							colDef.editable = isColumnEditable;
 
 							if(column.editType == 'TEXTFIELD') {
-								colDef.cellEditor = 'text';
+								colDef.cellEditor = 'agTextCellEditor';
 							}
 							else if(column.editType == 'DATEPICKER') {
 								colDef.cellEditor = getDatePicker();
+							}
+							else if(column.editType == 'COMBOBOX') {
+								colDef.cellEditor = getSelectEditor();
 							}
 							// colDef.cellEditorParams = {
 							//  	useFormatter: editValueFormatter

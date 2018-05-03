@@ -153,7 +153,7 @@
 			"enableRowGroup" : {"type": "boolean", "default" : true, "tags" : {"scope": "design"}},
 			"enableSort" : {"type": "boolean", "default" : true, "tags" : {"scope": "design"}},
 			"rowGroupIndex":  {"type": "int", "default": -1, "tags" : {"scope": "design"}},
-			"editType": {"type": "string", "values": ["NONE", "TEXTFIELD", "DATEPICKER"], "default": "NONE"}
+			"editType": {"type": "string", "values": ["NONE", "TEXTFIELD", "DATEPICKER", "COMBOBOX"], "default": "NONE"}
 		},
 		 "hashedFoundset" : {
             "foundset": "foundset",
