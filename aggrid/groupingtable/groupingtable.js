@@ -1,5 +1,5 @@
-angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).directive('aggridGroupingtable', ['$sabloApplication', '$sabloConstants', '$log', '$q', '$foundsetTypeConstants', '$filter',
-	function($sabloApplication, $sabloConstants, $log, $q, $foundsetTypeConstants, $filter) {
+angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).directive('aggridGroupingtable', ['$sabloApplication', '$sabloConstants', '$log', '$q', '$foundsetTypeConstants', '$filter', '$compile',
+	function($sabloApplication, $sabloConstants, $log, $q, $foundsetTypeConstants, $filter, $compile) {
 		return {
 			restrict: 'E',
 			scope: {
@@ -1036,7 +1036,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 							if (!foundsetManager) foundsetManager = foundset;
 							var foundsetRef = foundsetManager.foundset;
 							var recRef = foundsetRef.getRecordRefByRowID(row._svyRowId);
-							var valuelistValuesPromise = col.valuelist.getValues(recRef);
+							var valuelistValuesPromise = col.valuelist.filterList("");
 							var selectEl = this.eSelect;
 							valuelistValuesPromise.then(function(valuelistValues) {
 								valuelistValues.forEach(function (value) {
@@ -1087,6 +1087,43 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 					return SelectEditor;
 				}
 
+				function getTypeaheadEditor() {
+					function TypeaheadEditor() {}
+
+					TypeaheadEditor.prototype.init = function(params) {
+						var columnIndex = getColumnIndex(params.column.colDef.field);
+						this.eInput = document.createElement('input');
+						this.eInput.setAttribute("uib-typeahead", "value.displayValue for value in model.columns[" + columnIndex + "].valuelist.filterList($viewValue)");
+						this.eInput.setAttribute("typeahead-wait-ms", "300");
+						this.eInput.setAttribute("typeahead-min-length", "0");
+						this.eInput.setAttribute("typeahead-append-to-body", "true");
+						this.eInput.setAttribute("ng-model", "typeaheadEditorValue");
+						this.initialValue = params.value;
+
+						$compile(this.eInput)($scope);
+						$scope.$digest();
+
+					}
+
+					TypeaheadEditor.prototype.getGui = function() {
+						return this.eInput;
+					};
+
+					TypeaheadEditor.prototype.afterGuiAttached = function() {
+						this.eInput.value = this.initialValue;
+						this.eInput.focus();
+					};
+
+					TypeaheadEditor.prototype.getValue = function() {
+						return this.eInput.value;
+					};
+
+					TypeaheadEditor.prototype.isPopup = function() {
+						return true;
+					};
+
+					return TypeaheadEditor;
+				}
 
 				/**************************************************************************************************
 				 **************************************************************************************************
@@ -2766,6 +2803,9 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 							}
 							else if(column.editType == 'COMBOBOX') {
 								colDef.cellEditor = getSelectEditor();
+							}
+							else if(column.editType == 'TYPEAHEAD') {
+								colDef.cellEditor = getTypeaheadEditor();
 							}
 							// colDef.cellEditorParams = {
 							//  	useFormatter: editValueFormatter
