@@ -3301,7 +3301,6 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 				}
 
 				$scope.api.getColumnState = function() {
-					storeColumnsState();
 					return $scope.model.columnState;
 				}
 
