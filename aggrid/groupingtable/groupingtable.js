@@ -1043,7 +1043,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 									var option = document.createElement('option');
 									option.value = value.realValue;
 									option.text = value.displayValue;
-									if (params.value === value.displayValue) {
+									if (params.value != null && params.value.toString() === value.displayValue) {
 										option.selected = true;
 									}
 									selectEl.appendChild(option);
