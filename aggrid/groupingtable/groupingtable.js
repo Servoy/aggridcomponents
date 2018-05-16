@@ -1064,7 +1064,6 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 							foundsetSortModel = getFoundsetSortModel(sortModel)
 							sortPromise = foundsetRefManager.sort(foundsetSortModel.sortColumns);
 							sortPromise.then(function() {
-								$log.error("sort column promise resolved");
 								getDataFromFoundset(foundsetRefManager);
 								// give time to the foundset change listener to know it was a client side requested sort
 								setTimeout(function() {
@@ -1316,13 +1315,18 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 						state.waitfor.loadRecords = requestId;
 						// TODO can it handle multiple requests ?
 						var promise = this.foundset.loadRecordsAsync(startIndex, size);
+						//var promise = this.foundset.loadExtraRecordsAsync(size);
 						promise.finally(function(e) {
-							if (state.waitfor.loadRecords !== requestId) {
-								// FIXME if this happen reduce parallel async requests to 1
-								$log.error("Load record request id '" + state.waitfor.loadRecords + "' is different from the resolved promise '" + requestId + "'; this should not happen !!!");
-							}
-
-							state.waitfor.loadRecords = 0;
+							// foundset change listener that checks for 'state.waitfor.loadRecords' is executed later,
+							// as last step when the response is processed, so postpone clearing the flag
+							setTimeout(function() {
+								if (state.waitfor.loadRecords !== requestId) {
+									// FIXME if this happen reduce parallel async requests to 1
+									$log.error("Load record request id '" + state.waitfor.loadRecords + "' is different from the resolved promise '" + requestId + "'; this should not happen !!!");
+								}
+	
+								state.waitfor.loadRecords = 0;
+							}, 0);
 						});
 
 						return promise;
