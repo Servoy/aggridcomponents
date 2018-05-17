@@ -162,6 +162,7 @@
 			"valuelist": { "type": "valuelist", "for": "dataprovider"},
 			"visible":  { "type": "boolean", "default": true, "tags" : {"scope": "design"} },
 			"width":  { "type": "int", "default": 0, "tags" : {"scope": "design"} },			
+			"minWidth":  { "type": "int", "default": 0, "tags" : {"scope": "design"} },			
 			"enableRowGroup" : {"type": "boolean", "default" : true, "tags" : {"scope": "design"}},
 			"enableSort" : {"type": "boolean", "default" : true, "tags" : {"scope": "design"}},
 			"rowGroupIndex":  {"type": "int", "default": -1, "tags" : {"scope": "design"}}
