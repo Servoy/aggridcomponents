@@ -6,6 +6,13 @@
 var searchText;
 
 /**
+ * @type {Number}
+ *
+ * @properties={typeid:35,uuid:"9C0DA354-8E3C-4291-B5DB-6A31242AABE6",variableType:4}
+ */
+var alwaysPersistColumnState = 0;
+
+/**
  * Perform the element default action.
  *
  * @param {JSEvent} event the event that triggered the action
@@ -99,6 +106,12 @@ function onCellRightClick(foundsetindex,columnindex,record,event) {
  * @properties={typeid:24,uuid:"9F997B43-3BF2-4B23-B73C-5F91561D1234"}
  */
 function onCellClick(foundsetindex, columnindex, record, event) {
+	
+	var jsForm = solutionModel.getForm(controller.getName());
+	var agTable = jsForm.getWebComponent(elements.groupingtable_1.getName());
+	var columns = agTable.getJSONProperty("columns");
+	//var title = columns[columnindex].headerTitle;
+	//application.output(title);
 	if (foundsetindex === -1) {
 		
 	} else {
@@ -107,4 +120,68 @@ function onCellClick(foundsetindex, columnindex, record, event) {
 
 	var msg = 'Click ' + foundsetindex + ' - ' + columnindex + ' - ' + (record ? record.orderid : ' undefined ') + ' - ' + event.getElementName();
 	logMsg(msg, 'Click');
+}
+
+/**
+ * Called when the columns state is changed.
+ *
+ * @param {string} columnState
+ *
+ * @protected
+ *
+ * @properties={typeid:24,uuid:"1A19825F-6DEE-4D1C-BA82-0505DEE18655"}
+ */
+function onColumnStateChanged(columnState) {
+	application.output(columnState)
+	if (alwaysPersistColumnState) {
+		storeColumnState(columnState);
+	}
+}
+
+/**
+ * Perform the element default action.
+ *
+ * @param {JSEvent} event the event that triggered the action
+ *
+ * @protected
+ *
+ * @properties={typeid:24,uuid:"5E911BB9-B4FC-4979-99D2-72F9F6B10954"}
+ */
+function onActionStoreColumnState(event) {
+	var columnState = elements.groupingtable_1.getColumnState();
+	storeColumnState(columnState);
+}
+
+/**
+ * Perform the element default action.
+ *
+ * @param {JSEvent} event the event that triggered the action
+ *
+ * @protected
+ *
+ * @properties={typeid:24,uuid:"566369B6-9638-4D66-BE3B-913654899D1B"}
+ */
+function onActionRestoreColumnState(event) {
+	var state = getStoredColumnState();
+	if (state) {
+		elements.groupingtable_1.restoreColumnState(state);
+	}
+}
+
+/**
+ * @param {String} state
+ *
+ * @properties={typeid:24,uuid:"9AE214B2-22C1-412A-AB2D-C28FE457B397"}
+ */
+function storeColumnState(state) {
+	plugins.webstorageLocalstorage.setItem(controller.getName() + '-' + elements.groupingtable_1.getName() ,state);
+}
+
+/**
+ * @return {String}
+ *
+ * @properties={typeid:24,uuid:"12B506D0-4A24-4AA6-BFC1-DBD0DFFAF819"}
+ */
+function getStoredColumnState() {
+	return plugins.webstorageLocalstorage.getItem(controller.getName() + '-' + elements.groupingtable_1.getName());
 }
