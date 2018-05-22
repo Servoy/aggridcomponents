@@ -57,6 +57,25 @@
 				"optional": true
 			}]
 		},
+		"onCellDoubleClick": {
+			"description": "Called when the mouse is clicked on a row/cell (foundset and column indexes are given)\nthe foundsetindex is always -1 when there are grouped rows\nthe record is not an actual JSRecord but an object having the dataprovider values of the clicked record",
+			"parameters": [{
+				"name": "foundsetindex",
+				"type": "int"
+			}, {
+				"name": "columnindex",
+				"type": "int",
+				"optional": true
+			}, {
+				"name": "record",
+				"type": "object",
+				"optional": true
+			}, {
+				"name": "event",
+				"type": "JSEvent",
+				"optional": true
+			}]
+		},
 		"onCellRightClick": {
 			"description": "Called when the right mouse button is clicked on a row/cell (foundset and column indexes are given)\nthe foundsetindex is always -1 when there are grouped rows\nthe record is not an actual JSRecord but an object having the dataprovider values of the clicked record",
 			"parameters": [{
