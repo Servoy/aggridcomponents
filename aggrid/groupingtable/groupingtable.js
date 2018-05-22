@@ -1,5 +1,5 @@
-angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).directive('aggridGroupingtable', ['$sabloApplication', '$sabloConstants', '$log', '$q', '$foundsetTypeConstants', '$filter', '$compile',
-	function($sabloApplication, $sabloConstants, $log, $q, $foundsetTypeConstants, $filter, $compile) {
+angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).directive('aggridGroupingtable', ['$sabloApplication', '$sabloConstants', '$log', '$q', '$foundsetTypeConstants', '$filter', '$compile', '$formatterUtils',
+	function($sabloApplication, $sabloConstants, $log, $q, $foundsetTypeConstants, $filter, $compile, $formatterUtils) {
 		return {
 			restrict: 'E',
 			scope: {
@@ -919,7 +919,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 
 					if (column) {
 						if (column.format) {
-							value = formatFilter(value, column.format.display, column.format.type);
+							value = formatFilter(value, column.format.display, column.format.type, column.format);
 						}
 					}
 
@@ -970,7 +970,120 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 				 **************************************************************************************************
 				 **************************************************************************************************/
 
-				 function getDatePicker() {
+
+				function getTextEditor() {
+					// function to act as a class
+					function TextEditor() {}
+				
+					// gets called once before the renderer is used
+					TextEditor.prototype.init = function(params) {
+						// create the cell
+						this.editType = params.svyEditType;
+						this.eInput = document.createElement('input');
+						this.eInput.className = "ag-cell-edit-input";
+
+						if(this.editType == 'TYPEAHEAD') {
+							this.eInput.className = "ag-table-typeahed-editor-input";
+							var columnIndex = getColumnIndex(params.column.colDef.field);
+							this.eInput.setAttribute("uib-typeahead", "value.displayValue | formatFilter:model.columns[" + columnIndex + "].format.display:model.columns[" + columnIndex + "].format.type for value in model.columns[" + columnIndex + "].valuelist.filterList($viewValue)");
+							this.eInput.setAttribute("typeahead-wait-ms", "300");
+							this.eInput.setAttribute("typeahead-min-length", "0");
+							this.eInput.setAttribute("typeahead-append-to-body", "true");
+							this.eInput.setAttribute("ng-model", "typeaheadEditorValue");
+							//this.eInput.setAttribute("typeahead-on-select", "doSelect($item, $model, $label, $event)");
+
+							$compile(this.eInput)($scope);
+							$scope.$digest();
+						}
+
+						this.initialValue = params.value;
+						var v = this.initialValue;
+						var column = getColumn(params.column.colDef.field);
+						if(column && column.format) {
+							this.format = column.format;
+							if (this.format.maxLength) {
+								this.eInput.setAttribute('maxlength', this.format.maxLength);
+							}
+							if(this.format.edit) {
+								v = $formatterUtils.format(v, this.format.edit, this.format.type);
+							}
+
+							if (v && this.format.type == "TEXT") {
+								if (this.format.uppercase) v = v.toUpperCase();
+								else if (this.format.lowercase) v = v.toLowerCase();
+							}
+
+						}
+						this.initialDisplayValue = v;
+
+						this.keyDownListener = function (event) {
+							var isNavigationKey = event.keyCode === 37 || event.keyCode === 39;
+							if (isNavigationKey) {
+								event.stopPropagation();
+							}
+						};
+						this.eInput.addEventListener('keydown', this.keyDownListener);
+
+						var thisEditor = this;
+						this.keyPressListener = function (event) {
+							if($formatterUtils.testForNumbersOnly && thisEditor.format) {
+								return $formatterUtils.testForNumbersOnly(event, null, thisEditor.eInput, false, true, thisEditor.format);
+							}
+							else return true;
+						};
+						$(this.eInput).on('keypress', this.keyPressListener);
+					};
+				
+					// gets called once when grid ready to insert the element
+					TextEditor.prototype.getGui = function() {
+						return this.eInput;
+					};
+				
+					// focus and select can be done after the gui is attached
+					TextEditor.prototype.afterGuiAttached = function() {
+						this.eInput.value = this.initialDisplayValue;
+						this.eInput.focus();
+						if(this.editType == 'TEXTFIELD') {
+							this.eInput.select();
+						}
+						if(this.format && this.format.edit && this.format.isMask) {
+							var settings = {};
+							settings['placeholder'] = this.format.placeHolder ? this.format.placeHolder : " ";
+							if (this.format.allowedCharacters)
+								settings['allowedCharacters'] = this.format.allowedCharacters;
+	
+							$(this.eInput).mask(this.format.edit, settings);
+						}
+					};
+				
+					// returns the new value after editing
+					TextEditor.prototype.getValue = function() {
+						var v = this.eInput.value;
+						if(this.format) {
+							if(this.format.edit) {
+								v = $formatterUtils.unformat(v, this.format.edit, this.format.type, this.initialValue);
+							}
+							if (this.format.type == "TEXT" && (this.format.uppercase || this.format.lowercase)) {
+								if (this.format.uppercase) v = v.toUpperCase();
+								else if (this.format.lowercase) v = v.toLowerCase();
+							}
+						}
+						return v;
+					};
+
+					TextEditor.prototype.isPopup = function() {
+						return false; //this.editType == 'TYPEAHEAD';
+					};
+
+					TextEditor.prototype.destroy = function() {
+						this.eInput.removeEventListener('keydown', this.keyDownListener);
+						$(this.eInput).off('keypress', this.keyPressListener);
+					};
+
+					return TextEditor;
+				}
+
+				function getDatePicker() {
 					// function to act as a class
 					function Datepicker() {}
 				
@@ -1000,26 +1113,14 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 						}
 						$(this.eInput).datetimepicker(options);
 
-						var v;
 						var editFormat = 'MM/dd/yyyy hh:mm aa';
-						if(params.useFormatter) {
-							v = { colDef: params.column.colDef, data: {} };
-							v.data[params.column.colDef.field] = params.value;
-							v = params.useFormatter(v);
-							var field = params.column.colDef.field;
-							var column = getColumn(field);
-							if(column && column.format && column.format.edit) {
-								editFormat = column.format.edit;
-							}
+						var column = getColumn(params.column.colDef.field);
+						if(column && column.format && column.format.edit) {
+							editFormat = column.format.edit;
 						}
-						else {
-							v = formatFilter(params.value, editFormat, 'DATETIME');
-						}
-
-						//var dateFormat = moment().toMomentFormatString(editFormat);
 						var theDateTimePicker = $(this.eInput).data('DateTimePicker');
-						//theDateTimePicker.format(dateFormat);
-						this.eInput.value = v;
+						theDateTimePicker.format(moment().toMomentFormatString(editFormat));
+						this.eInput.value = formatFilter(params.value, editFormat, 'DATETIME');
 					};
 				
 					// gets called once when grid ready to insert the element
@@ -1114,44 +1215,6 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 					};
 
 					return SelectEditor;
-				}
-
-				function getTypeaheadEditor() {
-					function TypeaheadEditor() {}
-
-					TypeaheadEditor.prototype.init = function(params) {
-						var columnIndex = getColumnIndex(params.column.colDef.field);
-						this.eInput = document.createElement('input');
-						this.eInput.setAttribute("uib-typeahead", "value.displayValue for value in model.columns[" + columnIndex + "].valuelist.filterList($viewValue)");
-						this.eInput.setAttribute("typeahead-wait-ms", "300");
-						this.eInput.setAttribute("typeahead-min-length", "0");
-						this.eInput.setAttribute("typeahead-append-to-body", "true");
-						this.eInput.setAttribute("ng-model", "typeaheadEditorValue");
-						this.initialValue = params.value;
-
-						$compile(this.eInput)($scope);
-						$scope.$digest();
-
-					}
-
-					TypeaheadEditor.prototype.getGui = function() {
-						return this.eInput;
-					};
-
-					TypeaheadEditor.prototype.afterGuiAttached = function() {
-						this.eInput.value = this.initialValue;
-						this.eInput.focus();
-					};
-
-					TypeaheadEditor.prototype.getValue = function() {
-						return this.eInput.value;
-					};
-
-					TypeaheadEditor.prototype.isPopup = function() {
-						return true;
-					};
-
-					return TypeaheadEditor;
 				}
 
 				/**************************************************************************************************
@@ -2816,8 +2879,11 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 						if (column.editType != 'NONE') {
 							colDef.editable = isColumnEditable;
 
-							if(column.editType == 'TEXTFIELD') {
-								colDef.cellEditor = 'agTextCellEditor';
+							if(column.editType == 'TEXTFIELD' || column.editType == 'TYPEAHEAD') {
+								colDef.cellEditor = getTextEditor();
+								colDef.cellEditorParams = {
+							  		svyEditType: column.editType
+								}
 							}
 							else if(column.editType == 'DATEPICKER') {
 								colDef.cellEditor = getDatePicker();
@@ -2825,12 +2891,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 							else if(column.editType == 'COMBOBOX') {
 								colDef.cellEditor = getSelectEditor();
 							}
-							else if(column.editType == 'TYPEAHEAD') {
-								colDef.cellEditor = getTypeaheadEditor();
-							}
-							// colDef.cellEditorParams = {
-							//  	useFormatter: editValueFormatter
-							// }
+
 							colDef.onCellValueChanged = function(params) {
 								updateFoundsetRecord(params);
 							}
