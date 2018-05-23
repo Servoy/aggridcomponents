@@ -982,23 +982,42 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 						this.eInput = document.createElement('input');
 						this.eInput.className = "ag-cell-edit-input";
 
+						var column = getColumn(params.column.colDef.field);
 						if(this.editType == 'TYPEAHEAD') {
 							this.eInput.className = "ag-table-typeahed-editor-input";
+							if(params.column.actualWidth) {
+								this.eInput.style.width = params.column.actualWidth + 'px';
+							}
 							var columnIndex = getColumnIndex(params.column.colDef.field);
 							this.eInput.setAttribute("uib-typeahead", "value.displayValue | formatFilter:model.columns[" + columnIndex + "].format.display:model.columns[" + columnIndex + "].format.type for value in model.columns[" + columnIndex + "].valuelist.filterList($viewValue)");
 							this.eInput.setAttribute("typeahead-wait-ms", "300");
 							this.eInput.setAttribute("typeahead-min-length", "0");
 							this.eInput.setAttribute("typeahead-append-to-body", "true");
 							this.eInput.setAttribute("ng-model", "typeaheadEditorValue");
-							//this.eInput.setAttribute("typeahead-on-select", "doSelect($item, $model, $label, $event)");
 
 							$compile(this.eInput)($scope);
 							$scope.$digest();
+
+							if(column.valuelist) {
+								var valuelistValuesPromise = column.valuelist.filterList("");
+								var thisEditor = this;
+								valuelistValuesPromise.then(function(valuelistValues) {
+									thisEditor.valuelist = valuelistValues;
+									var hasRealValues = false;
+									for (var i = 0; i < thisEditor.valuelist.length; i++) {
+										var item = thisEditor.valuelist[i];
+										if (item.realValue != item.displayValue) {
+											hasRealValues = true;
+											break;
+										}
+									}
+									thisEditor.hasRealValues = hasRealValues;	
+								});
+							}
 						}
 
 						this.initialValue = params.value;
 						var v = this.initialValue;
-						var column = getColumn(params.column.colDef.field);
 						if(column && column.format) {
 							this.format = column.format;
 							if (this.format.maxLength) {
@@ -1068,11 +1087,46 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 								else if (this.format.lowercase) v = v.toLowerCase();
 							}
 						}
+
+						if (this.valuelist) {
+							var hasMatchingDisplayValue = false;
+							for (var i = 0; i < this.valuelist.length; i++) {
+								// compare trimmed values, typeahead will trim the selected value
+								if ($.trim(v) === $.trim(this.valuelist[i].displayValue)) {
+									hasMatchingDisplayValue = true;
+									v = this.valuelist[i].realValue;
+									break;
+								}
+							}
+							if (!hasMatchingDisplayValue)
+							{
+								if (this.hasRealValues) 
+								{
+									// if we still have old value do not set it to null or try to  get it from the list.
+									if (this.initialValue != null && this.initialValue !== v)
+									{
+										// so invalid thing is typed in the list and we are in real/display values, try to search the real value again to set the display value back.
+										for (var i = 0; i < this.valuelist.length; i++) {
+											// compare trimmed values, typeahead will trim the selected value
+											if ($.trim(this.initialValue) === $.trim(this.valuelist[i].displayValue)) {
+												v = this.valuelist[i].realValue;
+												break;
+											}
+										}
+									}	
+									// if the dataproviderid was null and we are in real|display then reset the value to ""
+									else if(this.initialValue == null) {
+										v = "";
+									}
+								}
+							}	
+						}
+
 						return v;
 					};
 
 					TextEditor.prototype.isPopup = function() {
-						return false; //this.editType == 'TYPEAHEAD';
+						return this.editType == 'TYPEAHEAD';
 					};
 
 					TextEditor.prototype.destroy = function() {
