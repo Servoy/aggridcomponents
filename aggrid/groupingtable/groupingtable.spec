@@ -174,6 +174,7 @@
 		"column" : {
 			"headerTitle": {"type" : "tagstring", "tags" : {"scope": "design"}},
 			"headerStyleClass" : {"type" : "styleclass"},
+			"headerTooltip" : {"type" : "tagstring", "tags" : {"scope": "design"}},
 			"dataprovider": { "type": "dataprovider", "forFoundset": "myFoundset", "resolveValuelist" : true },
 			"styleClass" : {"type" : "styleclass"},
 			"styleClassDataprovider": { "type": "dataprovider", "forFoundset": "myFoundset" },
