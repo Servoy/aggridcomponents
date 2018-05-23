@@ -2913,6 +2913,15 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 				 * @return {Array<Object>}
 				 *  */
 				function getColumnDefs() {
+					
+					//renderer for header tooltip
+					var headerRenderer = function(params) {
+						var tooltip = ''
+						if (params.colDef.header_tooltip.length > 0) {
+							tooltip = '<span class="ag-table-header-tooltip">' + params.colDef.header_tooltip + '</span>'
+						}
+						return tooltip + params.value;
+					};
 
 					//create the column definitions from the specified columns in designer
 					var colDefs = [];
@@ -2924,8 +2933,11 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 						var field = getColumnID(column, i);
 						//create a column definition based on the properties defined at design time
 						colDef = {
-							headerName: "" + (column["headerTitle"] ? column["headerTitle"] : "") + "",
-							field: field
+							headerName: "" + (column.headerTitle ? column.headerTitle : "") + "",
+							field: field,
+							header_tooltip: "" + (column.headerTooltip ? column.headerTooltip : "") + "",
+							headerCellRenderer: headerRenderer
+
 						};
 
 						// styleClass
