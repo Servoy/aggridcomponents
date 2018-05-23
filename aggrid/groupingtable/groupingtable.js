@@ -1113,7 +1113,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 						}
 						$(this.eInput).datetimepicker(options);
 
-						var editFormat = 'MM/dd/yyyy hh:mm aa';
+						var editFormat = 'MM/dd/yyyy hh:mm a';
 						var column = getColumn(params.column.colDef.field);
 						if(column && column.format && column.format.edit) {
 							editFormat = column.format.edit;
@@ -1137,7 +1137,8 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 					// returns the new value after editing
 					Datepicker.prototype.getValue = function() {
 						var theDateTimePicker = $(this.eInput).data('DateTimePicker');
-						return theDateTimePicker.date().toDate();
+						var selectedDate = theDateTimePicker.date();
+						return selectedDate ? selectedDate.toDate() : null;
 					};
 				
 					// any cleanup we need to be done here
