@@ -605,7 +605,11 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 					var foundsetManager = getFoundsetManagerByFoundsetUUID(row._svyFoundsetUUID);
 					if (!foundsetManager) foundsetManager = foundset;
 					var foundsetRef = foundsetManager.foundset;
-					foundsetRef.updateViewportRecord(row._svyRowId, params.column.colId, params.newValue, params.oldValue);
+					var newValue = params.newValue;
+					if(newValue && newValue.realValue != undefined) {
+						newValue = newValue.realValue;
+					}
+					foundsetRef.updateViewportRecord(row._svyRowId, params.column.colId, newValue, params.oldValue);
 				}
 
 				/**
@@ -927,6 +931,8 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 						value = '';
 					} else if (value && value.contentType && value.contentType.indexOf('image/') == 0 && value.url) {
 						value = '<img class="ag-table-image-cell" src="' + value.url + '">';
+					} else if (value && value.displayValue != undefined) {
+						value = value.displayValue;
 					}
 
 					return value;
@@ -1017,6 +1023,9 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 						}
 
 						this.initialValue = params.value;
+						if(this.initialValue && this.initialValue.displayValue != undefined) {
+							this.initialValue = this.initialValue.displayValue;
+						}
 						var v = this.initialValue;
 						if(column && column.format) {
 							this.format = column.format;
@@ -1077,24 +1086,25 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 				
 					// returns the new value after editing
 					TextEditor.prototype.getValue = function() {
-						var v = this.eInput.value;
+						var displayValue = this.eInput.value;
 						if(this.format) {
 							if(this.format.edit) {
-								v = $formatterUtils.unformat(v, this.format.edit, this.format.type, this.initialValue);
+								displayValue = $formatterUtils.unformat(displayValue, this.format.edit, this.format.type, this.initialValue);
 							}
 							if (this.format.type == "TEXT" && (this.format.uppercase || this.format.lowercase)) {
-								if (this.format.uppercase) v = v.toUpperCase();
-								else if (this.format.lowercase) v = v.toLowerCase();
+								if (this.format.uppercase) displayValue = displayValue.toUpperCase();
+								else if (this.format.lowercase) displayValue = displayValue.toLowerCase();
 							}
 						}
+						var realValue = displayValue;
 
 						if (this.valuelist) {
 							var hasMatchingDisplayValue = false;
 							for (var i = 0; i < this.valuelist.length; i++) {
 								// compare trimmed values, typeahead will trim the selected value
-								if ($.trim(v) === $.trim(this.valuelist[i].displayValue)) {
+								if ($.trim(displayValue) === $.trim(this.valuelist[i].displayValue)) {
 									hasMatchingDisplayValue = true;
-									v = this.valuelist[i].realValue;
+									realValue = this.valuelist[i].realValue;
 									break;
 								}
 							}
@@ -1103,26 +1113,26 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 								if (this.hasRealValues) 
 								{
 									// if we still have old value do not set it to null or try to  get it from the list.
-									if (this.initialValue != null && this.initialValue !== v)
+									if (this.initialValue != null && this.initialValue !== displayValue)
 									{
 										// so invalid thing is typed in the list and we are in real/display values, try to search the real value again to set the display value back.
 										for (var i = 0; i < this.valuelist.length; i++) {
 											// compare trimmed values, typeahead will trim the selected value
 											if ($.trim(this.initialValue) === $.trim(this.valuelist[i].displayValue)) {
-												v = this.valuelist[i].realValue;
+												realValue = this.valuelist[i].realValue;
 												break;
 											}
 										}
 									}	
 									// if the dataproviderid was null and we are in real|display then reset the value to ""
 									else if(this.initialValue == null) {
-										v = "";
+										displayValue = realValue = "";
 									}
 								}
 							}	
 						}
 
-						return v;
+						return {displayValue: displayValue, realValue: realValue};
 					};
 
 					TextEditor.prototype.isPopup = function() {
@@ -1223,12 +1233,16 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 							var recRef = foundsetRef.getRecordRefByRowID(row._svyRowId);
 							var valuelistValuesPromise = col.valuelist.filterList("");
 							var selectEl = this.eSelect;
+							var v = params.value;
+							if(v && v.displayValue != undefined) {
+								v = v.displayValue;
+							}
 							valuelistValuesPromise.then(function(valuelistValues) {
 								valuelistValues.forEach(function (value) {
 									var option = document.createElement('option');
 									option.value = value.realValue;
 									option.text = value.displayValue;
-									if (params.value != null && params.value.toString() === value.displayValue) {
+									if (v != null && v.toString() === value.displayValue) {
 										option.selected = true;
 									}
 									selectEl.appendChild(option);
@@ -1261,7 +1275,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 					};
 					
 					SelectEditor.prototype.getValue = function () {
-						return this.eSelect.value;
+						return {displayValue: this.eSelect.options[this.eSelect.selectedIndex ].text, realValue: this.eSelect.value};
 					};
 
 					SelectEditor.prototype.destroy = function() {
