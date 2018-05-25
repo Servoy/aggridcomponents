@@ -1,5 +1,5 @@
-angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).directive('aggridGroupingtable', ['$sabloConstants', '$log', '$q', '$foundsetTypeConstants', '$filter',
-	function($sabloConstants, $log, $q, $foundsetTypeConstants, $filter) {
+angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).directive('aggridGroupingtable', ['$sabloApplication', '$sabloConstants', '$log', '$q', '$foundsetTypeConstants', '$filter', '$compile', '$formatterUtils',
+	function($sabloApplication, $sabloConstants, $log, $q, $foundsetTypeConstants, $filter, $compile, $formatterUtils) {
 		return {
 			restrict: 'E',
 			scope: {
@@ -296,7 +296,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 					// TODO enable it ?					rowClass: $scope.model.rowStyleClass,	// add the class to each row
 
 					suppressContextMenu: false,
-					suppressMovableColumns: true, // TODO persist column order changes
+					suppressMovableColumns: !config.enableColumnMove,
 					enableServerSideSorting: config.enableSorting,
 					enableColResize: config.enableColumnResize,
 					suppressAutoSize: true,
@@ -315,7 +315,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 					enableRangeSelection: false,
 
 					stopEditingWhenGridLosesFocus: true,
-					singleClickEdit: true,
+					singleClickEdit: false,
 					suppressClickEdit: false,
 					enableGroupEdit: false,
 					groupUseEntireRow: config.groupUseEntireRow,
@@ -597,6 +597,19 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 					});
 					//}
 					return promiseResult.promise;
+				}
+
+				function updateFoundsetRecord(params) {
+
+					var row = params.data;
+					var foundsetManager = getFoundsetManagerByFoundsetUUID(row._svyFoundsetUUID);
+					if (!foundsetManager) foundsetManager = foundset;
+					var foundsetRef = foundsetManager.foundset;
+					var newValue = params.newValue;
+					if(newValue && newValue.realValue != undefined) {
+						newValue = newValue.realValue;
+					}
+					foundsetRef.updateViewportRecord(row._svyRowId, params.column.colId, newValue, params.oldValue);
 				}
 
 				/**
@@ -910,7 +923,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 
 					if (column) {
 						if (column.format) {
-							value = formatFilter(value, column.format.display, column.format.type);
+							value = formatFilter(value, column.format.display, column.format.type, column.format);
 						}
 					}
 
@@ -918,6 +931,8 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 						value = '';
 					} else if (value && value.contentType && value.contentType.indexOf('image/') == 0 && value.url) {
 						value = '<img class="ag-table-image-cell" src="' + value.url + '">';
+					} else if (value && value.displayValue != undefined) {
+						value = value.displayValue;
 					}
 
 					return value;
@@ -951,6 +966,324 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 				 *  */
 				function getIconElement(iconStyleClass) {
 					return '<i class="' + iconStyleClass + '"/>';
+				}
+
+				/**************************************************************************************************
+				 **************************************************************************************************
+				 *
+				 *  Cell editors
+				 *
+				 **************************************************************************************************
+				 **************************************************************************************************/
+
+
+				function getTextEditor() {
+					// function to act as a class
+					function TextEditor() {}
+				
+					// gets called once before the renderer is used
+					TextEditor.prototype.init = function(params) {
+						// create the cell
+						this.editType = params.svyEditType;
+						this.eInput = document.createElement('input');
+						this.eInput.className = "ag-cell-edit-input";
+
+						var column = getColumn(params.column.colDef.field);
+						if(this.editType == 'TYPEAHEAD') {
+							this.eInput.className = "ag-table-typeahed-editor-input";
+							if(params.column.actualWidth) {
+								this.eInput.style.width = params.column.actualWidth + 'px';
+							}
+							var columnIndex = getColumnIndex(params.column.colDef.field);
+							this.eInput.setAttribute("uib-typeahead", "value.displayValue | formatFilter:model.columns[" + columnIndex + "].format.display:model.columns[" + columnIndex + "].format.type for value in model.columns[" + columnIndex + "].valuelist.filterList($viewValue)");
+							this.eInput.setAttribute("typeahead-wait-ms", "300");
+							this.eInput.setAttribute("typeahead-min-length", "0");
+							this.eInput.setAttribute("typeahead-append-to-body", "true");
+							this.eInput.setAttribute("ng-model", "typeaheadEditorValue");
+
+							$compile(this.eInput)($scope);
+							$scope.$digest();
+
+							if(column.valuelist) {
+								var valuelistValuesPromise = column.valuelist.filterList("");
+								var thisEditor = this;
+								valuelistValuesPromise.then(function(valuelistValues) {
+									thisEditor.valuelist = valuelistValues;
+									var hasRealValues = false;
+									for (var i = 0; i < thisEditor.valuelist.length; i++) {
+										var item = thisEditor.valuelist[i];
+										if (item.realValue != item.displayValue) {
+											hasRealValues = true;
+											break;
+										}
+									}
+									thisEditor.hasRealValues = hasRealValues;	
+								});
+							}
+						}
+
+						this.initialValue = params.value;
+						if(this.initialValue && this.initialValue.displayValue != undefined) {
+							this.initialValue = this.initialValue.displayValue;
+						}
+						var v = this.initialValue;
+						if(column && column.format) {
+							this.format = column.format;
+							if (this.format.maxLength) {
+								this.eInput.setAttribute('maxlength', this.format.maxLength);
+							}
+							if(this.format.edit) {
+								v = $formatterUtils.format(v, this.format.edit, this.format.type);
+							}
+
+							if (v && this.format.type == "TEXT") {
+								if (this.format.uppercase) v = v.toUpperCase();
+								else if (this.format.lowercase) v = v.toLowerCase();
+							}
+
+						}
+						this.initialDisplayValue = v;
+
+						this.keyDownListener = function (event) {
+							var isNavigationKey = event.keyCode === 37 || event.keyCode === 39;
+							if (isNavigationKey) {
+								event.stopPropagation();
+							}
+						};
+						this.eInput.addEventListener('keydown', this.keyDownListener);
+
+						var thisEditor = this;
+						this.keyPressListener = function (event) {
+							if($formatterUtils.testForNumbersOnly && thisEditor.format) {
+								return $formatterUtils.testForNumbersOnly(event, null, thisEditor.eInput, false, true, thisEditor.format);
+							}
+							else return true;
+						};
+						$(this.eInput).on('keypress', this.keyPressListener);
+					};
+				
+					// gets called once when grid ready to insert the element
+					TextEditor.prototype.getGui = function() {
+						return this.eInput;
+					};
+				
+					// focus and select can be done after the gui is attached
+					TextEditor.prototype.afterGuiAttached = function() {
+						this.eInput.value = this.initialDisplayValue;
+						this.eInput.focus();
+						if(this.editType == 'TEXTFIELD') {
+							this.eInput.select();
+						}
+						if(this.format && this.format.edit && this.format.isMask) {
+							var settings = {};
+							settings['placeholder'] = this.format.placeHolder ? this.format.placeHolder : " ";
+							if (this.format.allowedCharacters)
+								settings['allowedCharacters'] = this.format.allowedCharacters;
+	
+							$(this.eInput).mask(this.format.edit, settings);
+						}
+					};
+				
+					// returns the new value after editing
+					TextEditor.prototype.getValue = function() {
+						var displayValue = this.eInput.value;
+						if(this.format) {
+							if(this.format.edit) {
+								displayValue = $formatterUtils.unformat(displayValue, this.format.edit, this.format.type, this.initialValue);
+							}
+							if (this.format.type == "TEXT" && (this.format.uppercase || this.format.lowercase)) {
+								if (this.format.uppercase) displayValue = displayValue.toUpperCase();
+								else if (this.format.lowercase) displayValue = displayValue.toLowerCase();
+							}
+						}
+						var realValue = displayValue;
+
+						if (this.valuelist) {
+							var hasMatchingDisplayValue = false;
+							for (var i = 0; i < this.valuelist.length; i++) {
+								// compare trimmed values, typeahead will trim the selected value
+								if ($.trim(displayValue) === $.trim(this.valuelist[i].displayValue)) {
+									hasMatchingDisplayValue = true;
+									realValue = this.valuelist[i].realValue;
+									break;
+								}
+							}
+							if (!hasMatchingDisplayValue)
+							{
+								if (this.hasRealValues) 
+								{
+									// if we still have old value do not set it to null or try to  get it from the list.
+									if (this.initialValue != null && this.initialValue !== displayValue)
+									{
+										// so invalid thing is typed in the list and we are in real/display values, try to search the real value again to set the display value back.
+										for (var i = 0; i < this.valuelist.length; i++) {
+											// compare trimmed values, typeahead will trim the selected value
+											if ($.trim(this.initialValue) === $.trim(this.valuelist[i].displayValue)) {
+												realValue = this.valuelist[i].realValue;
+												break;
+											}
+										}
+									}	
+									// if the dataproviderid was null and we are in real|display then reset the value to ""
+									else if(this.initialValue == null) {
+										displayValue = realValue = "";
+									}
+								}
+							}	
+						}
+
+						return {displayValue: displayValue, realValue: realValue};
+					};
+
+					TextEditor.prototype.isPopup = function() {
+						return this.editType == 'TYPEAHEAD';
+					};
+
+					TextEditor.prototype.destroy = function() {
+						this.eInput.removeEventListener('keydown', this.keyDownListener);
+						$(this.eInput).off('keypress', this.keyPressListener);
+					};
+
+					return TextEditor;
+				}
+
+				function getDatePicker() {
+					// function to act as a class
+					function Datepicker() {}
+				
+					// gets called once before the renderer is used
+					Datepicker.prototype.init = function(params) {
+						// create the cell
+						this.eInput = document.createElement('input');
+						this.eInput.className = "ag-cell-edit-input";
+
+						var options = {
+							widgetParent: $(document.body),
+							useCurrent : false,
+							useStrict : true,
+							showClear : true,
+							ignoreReadonly : true,
+							showTodayButton: true,
+							calendarWeeks: true,
+							showClose: true,
+							icons: {
+								close: 'glyphicon glyphicon-ok'
+							}
+						};
+
+						var locale = $sabloApplication.getLocale();
+						if (locale.language) {
+							options.locale = locale.language;
+						}
+						$(this.eInput).datetimepicker(options);
+
+						var editFormat = 'MM/dd/yyyy hh:mm a';
+						var column = getColumn(params.column.colDef.field);
+						if(column && column.format && column.format.edit) {
+							editFormat = column.format.edit;
+						}
+						var theDateTimePicker = $(this.eInput).data('DateTimePicker');
+						theDateTimePicker.format(moment().toMomentFormatString(editFormat));
+						this.eInput.value = formatFilter(params.value, editFormat, 'DATETIME');
+					};
+				
+					// gets called once when grid ready to insert the element
+					Datepicker.prototype.getGui = function() {
+						return this.eInput;
+					};
+				
+					// focus and select can be done after the gui is attached
+					Datepicker.prototype.afterGuiAttached = function() {
+						this.eInput.focus();
+						this.eInput.select();
+					};
+				
+					// returns the new value after editing
+					Datepicker.prototype.getValue = function() {
+						var theDateTimePicker = $(this.eInput).data('DateTimePicker');
+						var selectedDate = theDateTimePicker.date();
+						return selectedDate ? selectedDate.toDate() : null;
+					};
+				
+					// any cleanup we need to be done here
+					Datepicker.prototype.destroy = function() {
+						var theDateTimePicker = $(this.eInput).data('DateTimePicker');
+						if(theDateTimePicker) theDateTimePicker.destroy();
+					};
+
+					return Datepicker;
+				}
+				
+
+				function getSelectEditor() {
+					function SelectEditor() {
+						this.eGui = document.createElement("div");
+						this.eGui.className = 'ag-cell-edit-input';
+						this.eGui.innerHTML = '<select class="ag-cell-edit-input"/>';
+						this.eSelect = this.eGui.querySelector('select');
+					}
+
+					SelectEditor.prototype.init = function(params) {
+						var col = getColumn(params.column.colDef.field);
+						if(col.valuelist) {
+							var row = params.node.data;
+							var foundsetManager = getFoundsetManagerByFoundsetUUID(row._svyFoundsetUUID);
+							if (!foundsetManager) foundsetManager = foundset;
+							var foundsetRef = foundsetManager.foundset;
+							var recRef = foundsetRef.getRecordRefByRowID(row._svyRowId);
+							var valuelistValuesPromise = col.valuelist.filterList("");
+							var selectEl = this.eSelect;
+							var v = params.value;
+							if(v && v.displayValue != undefined) {
+								v = v.displayValue;
+							}
+							valuelistValuesPromise.then(function(valuelistValues) {
+								valuelistValues.forEach(function (value) {
+									var option = document.createElement('option');
+									option.value = value.realValue;
+									option.text = value.displayValue;
+									if (v != null && v.toString() === value.displayValue) {
+										option.selected = true;
+									}
+									selectEl.appendChild(option);
+								});
+
+							});
+						}
+
+						this.keyListener = function (event) {
+							var isNavigationKey = event.keyCode === 38 || event.keyCode === 40;
+							if (isNavigationKey) {
+								event.stopPropagation();
+							}
+						};
+						this.eSelect.addEventListener('keydown', this.keyListener);
+
+						this.mouseListener = function (event) {
+							event.stopPropagation();
+						};
+						this.eSelect.addEventListener('mousedown', this.mouseListener);
+					}
+
+					// gets called once when grid ready to insert the element
+					SelectEditor.prototype.getGui = function() {
+						return this.eGui;
+					};
+
+					SelectEditor.prototype.afterGuiAttached = function () {
+						this.eSelect.focus();
+					};
+					
+					SelectEditor.prototype.getValue = function () {
+						return {displayValue: this.eSelect.options[this.eSelect.selectedIndex ].text, realValue: this.eSelect.value};
+					};
+
+					SelectEditor.prototype.destroy = function() {
+						this.eSelect.removeEventListener('keydown', this.keyListener);
+						this.eSelect.removeEventListener('mousedown', this.mouseListener);
+					};
+
+					return SelectEditor;
 				}
 
 				/**************************************************************************************************
@@ -2563,6 +2896,19 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 				}
 
 				/**
+				 * Callback used by ag-grid colDef.editable
+				 */
+				function isColumnEditable(args) {
+					var rowGroupCols = getRowGroupColumns();
+					for(var i = 0; i < rowGroupCols.length; i++) {
+						if(args.colDef.field == rowGroupCols[i].colDef.field) {
+							return false;	// don't allow editing columns used for grouping
+						}
+					}
+					return true;
+				}
+
+				/**
 				 * @public
 				 * @return {Array<Object>}
 				 *  */
@@ -2610,6 +2956,27 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 						if (column.minWidth || column.minWidth === 0) colDef.minWidth = column.minWidth;
 						if (column.visible === false) colDef.hide = true;
 						if (column.enableSort === false) colDef.suppressSorting = true;
+
+						if (column.editType != 'NONE') {
+							colDef.editable = isColumnEditable;
+
+							if(column.editType == 'TEXTFIELD' || column.editType == 'TYPEAHEAD') {
+								colDef.cellEditor = getTextEditor();
+								colDef.cellEditorParams = {
+							  		svyEditType: column.editType
+								}
+							}
+							else if(column.editType == 'DATEPICKER') {
+								colDef.cellEditor = getDatePicker();
+							}
+							else if(column.editType == 'COMBOBOX') {
+								colDef.cellEditor = getSelectEditor();
+							}
+
+							colDef.onCellValueChanged = function(params) {
+								updateFoundsetRecord(params);
+							}
+						}
 
 						colDef.lockVisible = true;
 
@@ -2889,34 +3256,15 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 
 				function storeColumnsState() {
 					var agColumnState = gridOptions.columnApi.getColumnState();
-					var svyColumnState = [];
-					for(var i = 0; i < agColumnState.length; i++) {
-						var columnStateItem = agColumnState[i];
-						for(var j = 0; j < $scope.model.columns.length; j++) {
-							var columnItem = $scope.model.columns[j];
-							if(columnItem.dataprovider.idForFoundset == columnStateItem.colId) {
-								columnStateItem.colId = '' + j;
-								break;
-							}
-						}
-						svyColumnState.push(columnStateItem);
-					} 
 
 					var rowGroupColumns = getRowGroupColumns();
 					var svyRowGroupColumnIds = [];
 					for(var i = 0; i < rowGroupColumns.length; i++) {
-						var rowGroupColumnItem = rowGroupColumns[i];
-						for(var j = 0; j < $scope.model.columns.length; j++) {
-							var columnItem = $scope.model.columns[j];
-							if(columnItem.dataprovider.idForFoundset == rowGroupColumnItem.colId) {
-								svyRowGroupColumnIds.push('' + j);
-								break;
-							}
-						}
+						svyRowGroupColumnIds.push(rowGroupColumns[i].colId);
 					}
 
 					var columnState = {
-						columnState: svyColumnState,
+						columnState: agColumnState,
 						rowGroupColumnsState: svyRowGroupColumnIds
 					}
 					$scope.model.columnState = JSON.stringify(columnState);
@@ -2929,30 +3277,37 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 				function restoreColumnsState() {
 					if($scope.model.columnState) {
 						var columnState = JSON.parse($scope.model.columnState);
-						var agColumnState = [];
+
+						// if columns were added/removed, skip the restore
+						var savedColumns = [];
 						for(var i = 0; i < columnState.columnState.length; i++) {
-							var svyColumnItem = columnState.columnState[i];
-							if(!isNaN(svyColumnItem.colId)) {
-								var idx = parseInt(svyColumnItem.colId);
-								if(idx < $scope.model.columns.length) {
-									svyColumnItem.colId = $scope.model.columns[idx].dataprovider.idForFoundset;
+							if(columnState.columnState[i].colId.indexOf('_') == 0) {
+								continue; // if special column, that starts with '_'
+							}
+							savedColumns.push(columnState.columnState[i].colId);
+						}
+						if(savedColumns.length != $scope.model.columns.length) {
+							return;
+						}
+
+						for(var i = 0; i < savedColumns.length; i++) {
+							var columnExist = false;
+							for(var j = 0; j < $scope.model.columns.length; j++) {
+								if($scope.model.columns[j].dataprovider &&
+									savedColumns[i] == $scope.model.columns[j].dataprovider.idForFoundset) {
+									columnExist = true;
+									break;
 								}
 							}
-							agColumnState.push(svyColumnItem);
-						}
-
-						gridOptions.columnApi.setColumnState(agColumnState);
-
-						var rowGroupColumnsIds = [];
-						for(var i = 0; i < columnState.rowGroupColumnsState.length; i++) {
-							var rowGroupColumnId = columnState.rowGroupColumnsState[i];
-							var idx = parseInt(rowGroupColumnId);
-							if(idx < $scope.model.columns.length) {
-								rowGroupColumnsIds.push($scope.model.columns[idx].dataprovider.idForFoundset)
+							if(!columnExist) {
+								return
 							}
 						}
-						if(rowGroupColumnsIds.length > 0) {
-							gridOptions.columnApi.setRowGroupColumns(rowGroupColumnsIds);
+
+						gridOptions.columnApi.setColumnState(columnState.columnState);
+
+						if(columnState.rowGroupColumnsState.length > 0) {
+							gridOptions.columnApi.setRowGroupColumns(columnState.rowGroupColumnsState);
 						}
 					}
 				}

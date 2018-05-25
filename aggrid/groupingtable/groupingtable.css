@@ -54,3 +54,7 @@
 .ag-header-cell-label:hover .ag-table-header-tooltip {
 	visibility: visible;
 }
+
+.ag-popup-editor {
+	z-index: 1;
+}

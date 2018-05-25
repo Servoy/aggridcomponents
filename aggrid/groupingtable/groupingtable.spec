@@ -5,10 +5,16 @@
 	"icon" :"aggrid/groupingtable/ag-grouping.svg",
 	"definition": "aggrid/groupingtable/groupingtable.js",
 	"serverscript": "aggrid/groupingtable/groupingtable_server.js",
-	"libraries": [{ "name": "groupingtable.css", "version": "1.0", "url": "aggrid/groupingtable/groupingtable.css", "mimetype": "text/css" }],
+	"libraries": [
+		{ "name": "groupingtable.css", "version": "1.0", "url": "aggrid/groupingtable/groupingtable.css", "mimetype": "text/css" },
+		{ "name":"moment", "version":"2.11.1", "url": "aggrid/groupingtable/lib/bootstrap-datetimepicker/js/moment-with-locales.min.js", "mimetype":"text/javascript" },
+		{ "name":"moment-jdateformatparser", "version":"0.1.1", "url":"aggrid/groupingtable/lib/bootstrap-datetimepicker/js/moment-jdateformatparser.js", "mimetype":"text/javascript" },
+		{ "name":"bootstrap-datetimepicker", "version":"4.7.14", "url":"aggrid/groupingtable/lib/bootstrap-datetimepicker/js/bootstrap-datetimepicker.js", "mimetype":"text/javascript" },
+		{ "name":"bootstrap-datetimepicker", "version":"4.7.14", "url":"aggrid/groupingtable/lib/bootstrap-datetimepicker/css/bootstrap-datetimepicker.css", "mimetype":"text/css" }
+	],
 	"model":
 	{
-		"myFoundset": {"type": "foundset", "default" : {"foundsetSelector":""}, "pushToServer" : "reject" ,"dynamicDataproviders": true, "initialPreferredViewPortSize": 50, "sendSelectionViewportInitially": true },
+		"myFoundset": {"type": "foundset", "default" : {"foundsetSelector":""}, "pushToServer" : "allow" ,"dynamicDataproviders": true, "initialPreferredViewPortSize": 50, "sendSelectionViewportInitially": true },
 		"columns": { "type": "column[]", "droppable" : true, "pushToServer": "shallow", "tags": {"scope": "design"}},
 		"columnState": { "type": "string", "tags": {"scope" : "private"}, "pushToServer": "allow"},
 		"responsiveHeight": { "type": "int", "default": 300 },
@@ -16,6 +22,7 @@
 		"rowStyleClassDataprovider": { "type": "dataprovider", "forFoundset": "myFoundset" },
 		"styleClass": { "type": "styleclass", "default" : "ag-bootstrap"},
 			"enableColumnResize": { "type": "boolean", "default": true, "tags": {"scope": "design"}},
+			"enableColumnMove": { "type": "boolean", "default": true, "tags": {"scope": "design"}},
 			"enableSorting": { "type": "boolean", "default": true, "tags": {"scope": "design"}},
 			"groupUseEntireRow" : {"type": "boolean", "default" : true, "tags" : {"scope": "design"}},
         	"iconGroupExpanded": { "type": "styleclass", "default" : "glyphicon glyphicon-minus ag-icon", "tags": {"scope": "design"}},
@@ -185,7 +192,8 @@
 			"minWidth":  { "type": "int", "default": 0, "tags" : {"scope": "design"} },			
 			"enableRowGroup" : {"type": "boolean", "default" : true, "tags" : {"scope": "design"}},
 			"enableSort" : {"type": "boolean", "default" : true, "tags" : {"scope": "design"}},
-			"rowGroupIndex":  {"type": "int", "default": -1, "tags" : {"scope": "design"}}
+			"rowGroupIndex":  {"type": "int", "default": -1, "tags" : {"scope": "design"}},
+			"editType": {"type": "string", "values": ["NONE", "TEXTFIELD", "DATEPICKER", "COMBOBOX", "TYPEAHEAD"], "default": "NONE"}
 		},
 		 "hashedFoundset" : {
             "foundset": "foundset",
