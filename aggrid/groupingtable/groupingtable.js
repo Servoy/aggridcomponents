@@ -296,7 +296,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 					// TODO enable it ?					rowClass: $scope.model.rowStyleClass,	// add the class to each row
 
 					suppressContextMenu: false,
-					suppressMovableColumns: true, // TODO persist column order changes
+					suppressMovableColumns: !config.enableColumnMove,
 					enableServerSideSorting: config.enableSorting,
 					enableColResize: config.enableColumnResize,
 					suppressAutoSize: true,
@@ -3244,34 +3244,15 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 
 				function storeColumnsState() {
 					var agColumnState = gridOptions.columnApi.getColumnState();
-					var svyColumnState = [];
-					for(var i = 0; i < agColumnState.length; i++) {
-						var columnStateItem = agColumnState[i];
-						for(var j = 0; j < $scope.model.columns.length; j++) {
-							var columnItem = $scope.model.columns[j];
-							if(columnItem.dataprovider.idForFoundset == columnStateItem.colId) {
-								columnStateItem.colId = '' + j;
-								break;
-							}
-						}
-						svyColumnState.push(columnStateItem);
-					} 
 
 					var rowGroupColumns = getRowGroupColumns();
 					var svyRowGroupColumnIds = [];
 					for(var i = 0; i < rowGroupColumns.length; i++) {
-						var rowGroupColumnItem = rowGroupColumns[i];
-						for(var j = 0; j < $scope.model.columns.length; j++) {
-							var columnItem = $scope.model.columns[j];
-							if(columnItem.dataprovider.idForFoundset == rowGroupColumnItem.colId) {
-								svyRowGroupColumnIds.push('' + j);
-								break;
-							}
-						}
+						svyRowGroupColumnIds.push(rowGroupColumns[i].colId);
 					}
 
 					var columnState = {
-						columnState: svyColumnState,
+						columnState: agColumnState,
 						rowGroupColumnsState: svyRowGroupColumnIds
 					}
 					$scope.model.columnState = JSON.stringify(columnState);
@@ -3284,30 +3265,37 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 				function restoreColumnsState() {
 					if($scope.model.columnState) {
 						var columnState = JSON.parse($scope.model.columnState);
-						var agColumnState = [];
+
+						// if columns were added/removed, skip the restore
+						var savedColumns = [];
 						for(var i = 0; i < columnState.columnState.length; i++) {
-							var svyColumnItem = columnState.columnState[i];
-							if(!isNaN(svyColumnItem.colId)) {
-								var idx = parseInt(svyColumnItem.colId);
-								if(idx < $scope.model.columns.length) {
-									svyColumnItem.colId = $scope.model.columns[idx].dataprovider.idForFoundset;
+							if(columnState.columnState[i].colId.indexOf('_') == 0) {
+								continue; // if special column, that starts with '_'
+							}
+							savedColumns.push(columnState.columnState[i].colId);
+						}
+						if(savedColumns.length != $scope.model.columns.length) {
+							return;
+						}
+
+						for(var i = 0; i < savedColumns.length; i++) {
+							var columnExist = false;
+							for(var j = 0; j < $scope.model.columns.length; j++) {
+								if($scope.model.columns[j].dataprovider &&
+									savedColumns[i] == $scope.model.columns[j].dataprovider.idForFoundset) {
+									columnExist = true;
+									break;
 								}
 							}
-							agColumnState.push(svyColumnItem);
-						}
-
-						gridOptions.columnApi.setColumnState(agColumnState);
-
-						var rowGroupColumnsIds = [];
-						for(var i = 0; i < columnState.rowGroupColumnsState.length; i++) {
-							var rowGroupColumnId = columnState.rowGroupColumnsState[i];
-							var idx = parseInt(rowGroupColumnId);
-							if(idx < $scope.model.columns.length) {
-								rowGroupColumnsIds.push($scope.model.columns[idx].dataprovider.idForFoundset)
+							if(!columnExist) {
+								return
 							}
 						}
-						if(rowGroupColumnsIds.length > 0) {
-							gridOptions.columnApi.setRowGroupColumns(rowGroupColumnsIds);
+
+						gridOptions.columnApi.setColumnState(columnState.columnState);
+
+						if(columnState.rowGroupColumnsState.length > 0) {
+							gridOptions.columnApi.setRowGroupColumns(columnState.rowGroupColumnsState);
 						}
 					}
 				}

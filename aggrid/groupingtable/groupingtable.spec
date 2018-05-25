@@ -22,6 +22,7 @@
 		"rowStyleClassDataprovider": { "type": "dataprovider", "forFoundset": "myFoundset" },
 		"styleClass": { "type": "styleclass", "default" : "ag-bootstrap"},
 			"enableColumnResize": { "type": "boolean", "default": true, "tags": {"scope": "design"}},
+			"enableColumnMove": { "type": "boolean", "default": true, "tags": {"scope": "design"}},
 			"enableSorting": { "type": "boolean", "default": true, "tags": {"scope": "design"}},
 			"groupUseEntireRow" : {"type": "boolean", "default" : true, "tags" : {"scope": "design"}},
         	"iconGroupExpanded": { "type": "styleclass", "default" : "glyphicon glyphicon-minus ag-icon", "tags": {"scope": "design"}},
