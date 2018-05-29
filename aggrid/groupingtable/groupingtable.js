@@ -937,19 +937,19 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 
 					return value;
 				}
-
+				
 				function displayValueGetter(params) {
 					var field = params.colDef.field;
-					if (!params.data) {
-						return undefined;
-					}
-					var value = params.data[field];
+					if (field && params.data) {
+						var value = params.data[field];
 
-					if (value == null) {
-						value = NULL_VALUE; // need to use an object for null, else grouping won't work in ag grid
+						if (value == null) {
+							value = NULL_VALUE; // need to use an object for null, else grouping won't work in ag grid
+						}
+						return value;
 					}
 
-					return value;					
+					return undefined;				
 				}
 
 				/**
@@ -1275,7 +1275,9 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 					};
 					
 					SelectEditor.prototype.getValue = function () {
-						return {displayValue: this.eSelect.options[this.eSelect.selectedIndex ].text, realValue: this.eSelect.value};
+						var displayValue = this.eSelect.options[this.eSelect.selectedIndex ].text;
+						var realValue = this.eSelect.value;
+						return displayValue != realValue ? {displayValue: displayValue, realValue: realValue} : realValue;
 					};
 
 					SelectEditor.prototype.destroy = function() {
