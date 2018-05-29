@@ -431,6 +431,10 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
                     gridOptions.api.exportDataAsExcel(params);
                 }
             }
+            
+			$scope.api.getColumnState = function() {
+				return $scope.model.columnState;
+			}
 
             $scope.api.restoreColumnState = function(columnState) {
                 if(columnState) {

@@ -136,6 +136,9 @@
 				{ "name": "asCSV", "type": "boolean", "optional": true}				
 			]
 		},
+		"getColumnState" : {
+			"returns": "string"
+		},
 		"restoreColumnState" : {
 			"parameters": [
 				{ "name": "columnState", "type": "string", "optional": true}
