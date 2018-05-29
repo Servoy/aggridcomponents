@@ -2979,7 +2979,6 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 						}
 
 						colDef.lockVisible = true;
-
 						colDefs.push(colDef);
 					}
 

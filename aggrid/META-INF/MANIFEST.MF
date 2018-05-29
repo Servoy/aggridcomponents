@@ -9,3 +9,6 @@ JS-ClientLibs: aggrid/lib/ag-grid-enterprise.js;name=ag-grid-enterprise;version=
 Name: groupingtable/groupingtable.spec
 Web-Component: True
 
+Name: datasettable/datasettable.spec
+Web-Component: True
+
