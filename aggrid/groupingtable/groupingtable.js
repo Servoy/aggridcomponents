@@ -919,20 +919,19 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 						return undefined;
 					}
 					var value = params.data[field];
+					if (value && value.displayValue != undefined) {
+						value = value.displayValue;
+					}
 					var column = getColumn(field);
 
-					if (column) {
-						if (column.format) {
-							value = formatFilter(value, column.format.display, column.format.type, column.format);
-						}
+					if (column && column.format) {
+						value = formatFilter(value, column.format.display, column.format.type, column.format);
 					}
 
 					if (value == null && params.value == NULL_VALUE) {
 						value = '';
 					} else if (value && value.contentType && value.contentType.indexOf('image/') == 0 && value.url) {
 						value = '<img class="ag-table-image-cell" src="' + value.url + '">';
-					} else if (value && value.displayValue != undefined) {
-						value = value.displayValue;
 					}
 
 					return value;
@@ -1087,6 +1086,16 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 					// returns the new value after editing
 					TextEditor.prototype.getValue = function() {
 						var displayValue = this.eInput.value;
+						if(this.editType == 'TYPEAHEAD') {
+							var ariaId = $(this.eInput).attr('aria-owns');
+							var activeItem = $('#' + ariaId).find("li.active");
+							if(activeItem.length) {
+								var activeAnchor = activeItem.find('a');
+								if(activeAnchor.is(":hover")) {
+									displayValue = activeAnchor.text();
+								}
+							}
+						}
 						if(this.format) {
 							if(this.format.edit) {
 								displayValue = $formatterUtils.unformat(displayValue, this.format.edit, this.format.type, this.initialValue);
@@ -1135,13 +1144,13 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 						return {displayValue: displayValue, realValue: realValue};
 					};
 
-					TextEditor.prototype.isPopup = function() {
-						return this.editType == 'TYPEAHEAD';
-					};
-
 					TextEditor.prototype.destroy = function() {
 						this.eInput.removeEventListener('keydown', this.keyDownListener);
 						$(this.eInput).off('keypress', this.keyPressListener);
+						if(this.editType == 'TYPEAHEAD') {
+							var ariaId = $(this.eInput).attr('aria-owns');
+							$('#' + ariaId).remove();
+						}
 					};
 
 					return TextEditor;
