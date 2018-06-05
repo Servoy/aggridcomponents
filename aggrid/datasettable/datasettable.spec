@@ -25,7 +25,10 @@
 		"iconConfig": { "type": "iconConfig"},
 		"groupStyleClass" : {"type": "styleclass"},
 		"useLazyLoading": { "type": "boolean", "default": false, "tags": {"scope": "design"}},
-		"lastRowIndex": { "type": "long", "tags": {"scope" : "private"}}
+		"lastRowIndex": { "type": "long", "tags": {"scope" : "private"}},
+		
+		"headerHeight" : {"type" : "int", "default": 33, "tags": {"scope": "design"}}
+		
 	},
 	"handlers" : {
 		"onCellClick": {

@@ -33,7 +33,7 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
                 rowHeight: $scope.model.rowHeight,
                 // TODO enable it ?					rowClass: $scope.model.rowStyleClass,	// add the class to each row
 
-                headerHeight: 33, // TODO expose property
+                headerHeight: $scope.model.headerHeight, // exposed property
 				
                 suppressContextMenu: false,
                 suppressMovableColumns: false, // TODO persist column order changes
