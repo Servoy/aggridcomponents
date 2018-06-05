@@ -8,7 +8,8 @@
 .ag-table .ag-menu {
 	font-size: 14px;
 	font-weight: normal;
-	font-family: inherit;
+    font-family: inherit;
+    z-index: 1;
 }
 
 .ag-table .ag-group-cell {
