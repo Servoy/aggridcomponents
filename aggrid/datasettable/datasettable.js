@@ -83,14 +83,17 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
                     cellClass: $scope.model.groupStyleClass
                 },
                 enableFilter: true,
-                onColumnEverythingChanged: storeColumnsState,
-                onColumnVisible: storeColumnsState,
+                onColumnEverythingChanged: storeColumnsState,	// do we need that ?, when is it actually triggered ?
+				onDisplayedColumnsChanged: storeColumnsState,
+                onSortChanged: storeColumnsState,
+//                onFilterChanged: storeColumnsState,			 disable filter sets for now
+//                onColumnVisible: storeColumnsState,			 covered by onDisplayedColumnsChanged
                 onColumnPinned: storeColumnsState,
-                onColumnResized: storeColumnsState,
-                onColumnRowGroupChanged: storeColumnsState,
-                onColumnValueChanged: storeColumnsState,
-                onColumnMoved: storeColumnsState,
-                onColumnGroupOpened: storeColumnsState
+                onColumnResized: storeColumnsState				// NOT covered by onDisplayedColumnsChanged
+//                onColumnRowGroupChanged: storeColumnsState,	 covered by onDisplayedColumnsChanged
+//                onColumnValueChanged: storeColumnsState,
+//                onColumnMoved: storeColumnsState,              covered by onDisplayedColumnsChanged
+//                onColumnGroupOpened: storeColumnsState		 i don't think we need that, it doesn't include the open group in column state
             };
 
             if($scope.model.useLazyLoading) {
@@ -365,7 +368,7 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
             });
 
             function onCellClicked(params) {
-                if ($scope.handlers.onCellClick && params.data && params.colDef.field) {
+            	  if ($scope.handlers.onCellClick && params.data && params.colDef.field) {
                     $scope.handlers.onCellClick(params.data, params.colDef.field, params.value, params.event);
                 }
             }
@@ -374,7 +377,9 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
                 var columnState = {
                     columnState: gridOptions.columnApi.getColumnState(),
                     columnGroupState: gridOptions.columnApi.getColumnGroupState(),
-                    isToolPanelShowing: gridOptions.api.isToolPanelShowing()
+                    isToolPanelShowing: gridOptions.api.isToolPanelShowing(),
+					// filterState: gridOptions.api.getFilterModel(), TODO persist column states
+					sortingState: gridOptions.api.getSortModel()
                 }
                 $scope.model.columnState = JSON.stringify(columnState);
                 $scope.svyServoyapi.apply('columnState');
@@ -389,6 +394,8 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
                     gridOptions.columnApi.setColumnState(columnState.columnState);
                     gridOptions.columnApi.setColumnGroupState(columnState.columnGroupState);
                     gridOptions.api.showToolPanel(columnState.isToolPanelShowing);
+                    gridOptions.api.setFilterModel(columnState.filterState);
+                    gridOptions.api.setSortModel(columnState.sortingState);
                 }
             }
 
@@ -431,10 +438,6 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
                     gridOptions.api.exportDataAsExcel(params);
                 }
             }
-            
-			$scope.api.getColumnState = function() {
-				return $scope.model.columnState;
-			}
 
             $scope.api.restoreColumnState = function(columnState) {
                 if(columnState) {

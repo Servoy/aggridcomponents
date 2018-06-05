@@ -99,7 +99,7 @@
 					"type": "sortModelVO[]"
 				}
 			]
-		}		
+		}	
 	}, 
 	"api" : {
 		"renderData": {

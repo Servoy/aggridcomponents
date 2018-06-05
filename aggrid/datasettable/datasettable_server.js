@@ -34,6 +34,10 @@ $scope.api.deleteColumn = function(id) {
     }
 }
 
+$scope.api.getColumnState = function() {
+	return $scope.model.columnState;
+}
+
 $scope.api.getAllColumns = function() {
     return $scope.model.columns;
 }
