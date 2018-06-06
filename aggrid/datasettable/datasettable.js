@@ -25,7 +25,9 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
                     width: 0,
 //                    suppressFilter: true,
 //                    valueFormatter: displayValueFormatter,
-                    menuTabs: ['generalMenuTab', 'filterMenuTab']
+                    menuTabs: ['generalMenuTab', 'filterMenuTab'],
+			        headerCheckboxSelection: $scope.model.multiSelect === true ? isFirstColumn : false,
+			        checkboxSelection: $scope.model.multiSelect === true ? isFirstColumn : false
                 },
                 columnDefs: columnDefs,
                 getMainMenuItems: getMainMenuItems,
@@ -46,7 +48,7 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
                 suppressColumnMoveAnimation: true,
                 suppressAnimationFrame: true,
 
-                rowSelection: 'single',
+                rowSelection: $scope.model.multiSelect === true ? 'multiple' : 'single',
                 rowDeselection: false,
 //                suppressRowClickSelection: rowGroupColsDefault.length === 0 ? false : true,
                 suppressCellSelection: true, // TODO implement focus lost/gained
@@ -153,6 +155,9 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
                 new agGrid.Grid(gridDiv, gridOptions);
             }
 
+			// register listener for selection changed
+			gridOptions.api.addEventListener('rowSelected', onRowSelected);
+			gridOptions.api.addEventListener('selectionChanged', onSelectionChanged);
             gridOptions.api.addEventListener('cellClicked', onCellClicked);
             gridOptions.api.addEventListener('displayedColumnsChanged', function() {
                 sizeColumnsToFit();
@@ -210,6 +215,7 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
                     restoreColumnsState();
                 }
             });
+            
 
             function getColumnDefs() {
                 
@@ -294,6 +300,13 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
             function isResponsive() {
                 return !$scope.$parent.absoluteLayout;
             }
+            
+            function isFirstColumn(params) {
+                var displayedColumns = params.columnApi.getAllDisplayedColumns();
+                var thisIsFirstColumn = displayedColumns[0] === params.column;
+                return thisIsFirstColumn;
+            }
+
 
             function setHeight() {
                 if (isResponsive()) {
@@ -369,12 +382,58 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
                     }
                 }
             });
+            
+				/**
+				 * Grid Event
+				 * @private
+				 *
+				 * */
+				function onRowSelected(event) {
+					var node = event.node;
+					
+					if ($scope.handlers.onRowSelected && node && node.data) {
+						var selectIndex = node.rowIndex + 1;
+						$scope.handlers.onRowSelected(node.data, selectIndex, node.selected, createJSEvent());
+					}
+				}
+
+            
+        	/**
+			 * Grid Event
+			 * @private
+			 *
+			 * */
+			function onSelectionChanged(event) {
+				// TODO i don't think i need that
+				return;
+				// FIXME this works only if node is available on the root foundset
+				// TODO what to do if the record is selected from a child foundset ?
+				var selectedNodes = gridOptions.api.getSelectedNodes();
+				
+				console.log(selectedNodes);
+			}
 
             function onCellClicked(params) {
             	  if ($scope.handlers.onCellClick && params.data && params.colDef.field) {
                     $scope.handlers.onCellClick(params.data, params.colDef.field, params.value, params.event);
                 }
             }
+            
+			/**
+			 * Create a JSEvent
+			 *
+			 * @return {JSEvent}
+			 * */
+			function createJSEvent() {
+				var element = $element;
+				var offset = element.offset();
+				var x = offset.left;
+				var y = offset.top;
+
+				var event = document.createEvent("MouseEvents");
+				event.initMouseEvent("click", false, true, window, 1, x, y, x, y, false, false, false, false, 0, null);
+				return event;
+			}
 
             function storeColumnsState() {
                 var columnState = {
@@ -454,6 +513,16 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
                 else {
                     gridOptions.columnApi.resetColumnState();
                 }
+            }
+            
+            $scope.api.getSelectedRows = function() {
+				var selectedNodes = gridOptions.api.getSelectedNodes();
+				// TODO return the selected Nodes as JSON;
+				var result = [];
+				for (var i = 0; i < selectedNodes.length; i++) {
+					result.push({rowIndex:  selectedNodes[i].rowIndex, rowData: selectedNodes[i].data})
+				}
+				return result;
             }
         },
         templateUrl: 'aggrid/datasettable/datasettable.html'

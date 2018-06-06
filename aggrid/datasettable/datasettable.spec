@@ -27,10 +27,28 @@
 		"useLazyLoading": { "type": "boolean", "default": false, "tags": {"scope": "design"}},
 		"lastRowIndex": { "type": "long", "tags": {"scope" : "private"}},
 		
+		"multiSelect": { "type": "boolean", "default": false, "tags": {"scope": "design"}},
 		"headerHeight" : {"type" : "int", "default": 33, "tags": {"scope": "design"}}
 		
 	},
 	"handlers" : {
+		"onRowSelected": {
+			"description": "Called when the mouse is clicked on a row/cell",
+			"parameters": [{
+				"name": "rowData",
+				"type": "object"
+			}, {
+				"name": "rowIndex",
+				"type": "int"
+			}, {
+				"name": "selected",
+				"type": "boolean"
+			}, {
+				"name": "event",
+				"type": "JSEvent",
+				"optional": true
+			}]
+		},
 		"onCellClick": {
 			"description": "Called when the mouse is clicked on a row/cell",
 			"parameters": [{
@@ -142,6 +160,9 @@
 		"getColumnState" : {
 			"returns": "string"
 		},
+		"getSelectedRows" : {
+			"returns": "rowInfo[]"
+		},
 		"restoreColumnState" : {
 			"parameters": [
 				{ "name": "columnState", "type": "string", "optional": true}
@@ -197,6 +218,10 @@
 			"id": {"type": "string"},
 			"operator": {"type": "string"},
 			"value": {"type": "string"}
+		},
+		"rowInfo": {
+			"rowData" : "object",
+			"rowIndex" : "int"
 		}
 	}
 }
