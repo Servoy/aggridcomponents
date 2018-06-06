@@ -26,7 +26,7 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
 //                    suppressFilter: true,
 //                    valueFormatter: displayValueFormatter,
                     menuTabs: ['generalMenuTab', 'filterMenuTab'],
-			        headerCheckboxSelection: $scope.model.multiSelect === true ? isFirstColumn : false,
+			        headerCheckboxSelection: false, //$scope.model.multiSelect === true ? isFirstColumn : false,	// FIXME triggers a long loop of onRowSelection event when a new selection is made.
 			        checkboxSelection: $scope.model.multiSelect === true ? isFirstColumn : false
                 },
                 columnDefs: columnDefs,
