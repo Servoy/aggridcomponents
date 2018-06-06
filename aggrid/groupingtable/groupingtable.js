@@ -357,15 +357,19 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 					},
 					onDisplayedColumnsChanged: function() {
 						sizeColumnsToFit();
+						storeColumnsState();
 					},
-					onColumnEverythingChanged: storeColumnsState,
-					onColumnVisible: storeColumnsState,
-					onColumnPinned: storeColumnsState,
-					onColumnResized: storeColumnsState,
-					onColumnRowGroupChanged: storeColumnsState,
-					onColumnValueChanged: storeColumnsState,
-					onColumnMoved: storeColumnsState,
-					onColumnGroupOpened: storeColumnsState,
+	                onColumnEverythingChanged: storeColumnsState,	// do we need that ?, when is it actually triggered ?
+//	                onSortChanged: storeColumnsState,			 // TODO shall we store the sortState ?
+//	                onFilterChanged: storeColumnsState,			 // TODO enable this once filters are enabled
+//	                onColumnVisible: storeColumnsState,			 covered by onDisplayedColumnsChanged
+//	                onColumnPinned: storeColumnsState,			 covered by onDisplayedColumnsChanged
+	                onColumnResized: storeColumnsState,				// NOT covered by onDisplayedColumnsChanged
+//	                onColumnRowGroupChanged: storeColumnsState,	 covered by onDisplayedColumnsChanged
+//	                onColumnValueChanged: storeColumnsState,
+//	                onColumnMoved: storeColumnsState,              covered by onDisplayedColumnsChanged
+//	                onColumnGroupOpened: storeColumnsState		 i don't think we need that, it doesn't include the open group in column state
+					
 					getContextMenuItems: getContextMenuItems
 					// TODO since i can't use getRowNode(id) in enterprise model, is pointeless to get id per node
 					//					getRowNodeId: function(data) {
@@ -3273,15 +3277,21 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 						svyRowGroupColumnIds.push(rowGroupColumns[i].colId);
 					}
 
+					// TODO add filterState once filter is enabled
+					// TODO do we need to add sortingState ?
 					var columnState = {
 						columnState: agColumnState,
 						rowGroupColumnsState: svyRowGroupColumnIds
 					}
-					$scope.model.columnState = JSON.stringify(columnState);
-					$scope.svyServoyapi.apply('columnState');
-					if ($scope.handlers.onColumnStateChanged) {
-						$scope.handlers.onColumnStateChanged($scope.model.columnState);
-					}
+	                var newColumnState = JSON.stringify(columnState);
+	                
+	                if (newColumnState !== $scope.model.columnState) {
+						$scope.model.columnState = newColumnState;
+						$scope.svyServoyapi.apply('columnState');
+						if ($scope.handlers.onColumnStateChanged) {
+							$scope.handlers.onColumnStateChanged($scope.model.columnState);
+						}
+	                }
 				}
 	
 				function restoreColumnsState() {
@@ -3314,6 +3324,8 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 							}
 						}
 
+						// TODO add filterState once filter is enabled
+						// TODO do we need to restore sortingState ?
 						gridOptions.columnApi.setColumnState(columnState.columnState);
 
 						if(columnState.rowGroupColumnsState.length > 0) {
