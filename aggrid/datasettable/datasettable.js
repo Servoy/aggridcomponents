@@ -71,9 +71,6 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
                         sizeColumnsToFit();
                     }, 150);
                 },
-                onGridSizeChanged: function() {
-                    sizeColumnsToFit();
-                },
                 getContextMenuItems: getContextMenuItems,
                 enableSorting: config.enableSorting,
                 autoGroupColumnDef: {
@@ -83,12 +80,18 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
                     cellClass: $scope.model.groupStyleClass
                 },
                 enableFilter: true,
+				onGridSizeChanged: function() {
+					sizeColumnsToFit();
+				},
+				onDisplayedColumnsChanged: function() {
+					sizeColumnsToFit();
+					storeColumnsState();
+				},
                 onColumnEverythingChanged: storeColumnsState,	// do we need that ?, when is it actually triggered ?
-				onDisplayedColumnsChanged: storeColumnsState,
                 onSortChanged: storeColumnsState,
 //                onFilterChanged: storeColumnsState,			 disable filter sets for now
 //                onColumnVisible: storeColumnsState,			 covered by onDisplayedColumnsChanged
-                onColumnPinned: storeColumnsState,
+//                onColumnPinned: storeColumnsState,			 covered by onDisplayedColumnsChanged
                 onColumnResized: storeColumnsState				// NOT covered by onDisplayedColumnsChanged
 //                onColumnRowGroupChanged: storeColumnsState,	 covered by onDisplayedColumnsChanged
 //                onColumnValueChanged: storeColumnsState,
@@ -319,7 +322,7 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
                 //					contractAll: Contract all groups. Only shown if grouping by at least one column.
                 //					toolPanel: Show the tool panel.
                 var menuItems = [];
-                var items = ['rowGroup', 'rowUnGroup', 'toolPanel'];
+                var items = ['rowGroup', 'rowUnGroup', 'toolPanel']; // TODO enable here the menu options
                 params.defaultItems.forEach(function(item) {
                     if (items.indexOf(item) > -1) {
                         menuItems.push(item);
@@ -376,15 +379,19 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
             function storeColumnsState() {
                 var columnState = {
                     columnState: gridOptions.columnApi.getColumnState(),
-                    columnGroupState: gridOptions.columnApi.getColumnGroupState(),
+                    rowGroupColumnsState: gridOptions.columnApi.getColumnGroupState(),
                     isToolPanelShowing: gridOptions.api.isToolPanelShowing(),
 					// filterState: gridOptions.api.getFilterModel(), TODO persist column states
 					sortingState: gridOptions.api.getSortModel()
                 }
-                $scope.model.columnState = JSON.stringify(columnState);
-                $scope.svyServoyapi.apply('columnState');
-                if ($scope.handlers.onColumnStateChanged) {
-                    $scope.handlers.onColumnStateChanged($scope.model.columnState);
+                var newColumnState = JSON.stringify(columnState);
+                
+                if (newColumnState !== $scope.model.columnState) {
+	                $scope.model.columnState = newColumnState;
+	                $scope.svyServoyapi.apply('columnState');
+	                if ($scope.handlers.onColumnStateChanged) {
+	                    $scope.handlers.onColumnStateChanged($scope.model.columnState);
+	                }
                 }
             }
 
@@ -392,7 +399,7 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
                 if($scope.model.columnState) {
                     var columnState = JSON.parse($scope.model.columnState);
                     gridOptions.columnApi.setColumnState(columnState.columnState);
-                    gridOptions.columnApi.setColumnGroupState(columnState.columnGroupState);
+                    gridOptions.columnApi.setColumnGroupState(columnState.rowGroupColumnsState);
                     gridOptions.api.showToolPanel(columnState.isToolPanelShowing);
                     gridOptions.api.setFilterModel(columnState.filterState);
                     gridOptions.api.setSortModel(columnState.sortingState);
