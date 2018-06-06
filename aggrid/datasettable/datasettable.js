@@ -120,17 +120,19 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
             var iconConfig = $scope.model.iconConfig;
             if(iconConfig) {
                 var icons = new Object();
-                if (iconConfig.iconGroupExpanded) icons.groupExpanded = getIconElement(iconConfig.iconGroupExpanded);
-                if (iconConfig.iconGroupContracted) icons.groupContracted = getIconElement(iconConfig.iconGroupContracted);
-                if (iconConfig.iconSortAscending) icons.sortAscending = getIconElement(iconConfig.iconSortAscending);
-                if (iconConfig.iconSortDescending) icons.sortDescending = getIconElement(iconConfig.iconSortDescending);
-                if (iconConfig.iconSortUnSort) icons.sortUnSort = getIconElement(iconConfig.iconSortUnSort);
-                if (iconConfig.iconRowGroupPanel) icons.rowGroupPanel = getIconElement(iconConfig.iconRowGroupPanel);
+                
+                for (var iconName in iconConfig) {
+                	if (iconName == "iconRefreshData") continue;
+                	
+                	var aggridIcon = iconName.slice(4);
+                	aggridIcon = aggridIcon[0].toLowerCase() + aggridIcon.slice(1);
+                	icons[aggridIcon] = getIconElement(iconConfig[iconName]);
+                }
                 
                 // TODO expose property
-                icons.rowGroupPanel = " "
-                icons.pivotPanel = " "
-                icons.valuePanel = " "
+//                icons.rowGroupPanel = " "
+//                icons.pivotPanel = " "
+//                icons.valuePanel = " "
                 
                 gridOptions.icons = icons
             }
