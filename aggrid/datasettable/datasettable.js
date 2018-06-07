@@ -240,6 +240,7 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
                     colDef.cellClass = 'ag-table-cell ' + column.styleClass;
 
 
+                    // column grouping & pivoting
                     colDef.enableRowGroup = column.enableRowGroup;
                     if (column.rowGroupIndex >= 0) colDef.rowGroupIndex = column.rowGroupIndex;
 
@@ -247,14 +248,26 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
                     if (column.pivotIndex >= 0) colDef.pivotIndex = column.pivotIndex;
 
                     if(column.aggFunc) colDef.aggFunc = column.aggFunc;
+                    
+                    // tool panel
+                    if (column.enableToolPanel === false) colDef.suppressToolPanel = !column.enableToolPanel;
 
+                    // column sizing
                     if (column.width || column.width === 0) colDef.width = column.width;
-                    // TODO add minWidth and maxWidth to column.spec
                     if (column.maxWidth) colDef.maxWidth = column.maxWidth;
                     if (column.minWidth || column.minWidth === 0) colDef.minWidth = column.minWidth;
-                    if (column.visible === false) colDef.hide = true;
 
-                    if(column.format) {
+                    // column resizing https://www.ag-grid.com/javascript-grid-resizing/
+        			if (column.enableResize === false) colDef.suppressResize = !column.enableResize;
+        			if (column.autoResize === false) colDef.suppressSizeToFit = !column.autoResize;
+                    
+        			// sorting
+        			if (column.enableSort === false) colDef.suppressSorting = !column.enableSort;
+        			
+        			// visibility
+                    if (column.visible === false) colDef.hide = true;
+                    
+                    if (column.format) {
                         colDef.valueFormatter = createValueFormatter(column.format, column.formatType);
                     }
 
