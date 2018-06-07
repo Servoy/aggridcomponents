@@ -539,7 +539,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 						//						}
 
 						var foundsetIndex = getFoundsetIndexFromEvent(params);
-						var columnIndex = getColumnIndex(params.colDef.field);
+						var columnIndex = getColumnIndex(params.column.colId);
 						var recordPromise = getFoundsetRecord(params);
 
 						recordPromise.then(function(record) {
@@ -613,7 +613,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 					if(newValue && newValue.realValue != undefined) {
 						newValue = newValue.realValue;
 					}
-					foundsetRef.updateViewportRecord(row._svyRowId, params.column.colId, newValue, params.oldValue);
+					foundsetRef.updateViewportRecord(row._svyRowId, params.colDef.field, newValue, params.oldValue);
 				}
 
 				/**
@@ -653,7 +653,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 						//						$scope.handlers.onCellDoubleClick(foundsetIndex, columnIndex, record, params.event);
 
 						var foundsetIndex = getFoundsetIndexFromEvent(params);
-						var columnIndex = getColumnIndex(params.colDef.field);
+						var columnIndex = getColumnIndex(params.column.colId);
 						var recordPromise = getFoundsetRecord(params);
 
 						recordPromise.then(function(record) {
@@ -703,7 +703,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 						//						$scope.handlers.onCellRightClick(foundsetIndex, columnIndex, record, params.event);
 
 						var foundsetIndex = getFoundsetIndexFromEvent(params);
-						var columnIndex = getColumnIndex(params.colDef.field);
+						var columnIndex = getColumnIndex(params.column.colId);
 						var recordPromise = getFoundsetRecord(params);
 
 						recordPromise.then(function(record) {
@@ -926,7 +926,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 					if (value && value.displayValue != undefined) {
 						value = value.displayValue;
 					}
-					var column = getColumn(field);
+					var column = getColumn(params.column.colId);
 
 					if (column && column.format) {
 						value = formatFilter(value, column.format.display, column.format.type, column.format);
@@ -991,13 +991,13 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 						this.eInput = document.createElement('input');
 						this.eInput.className = "ag-cell-edit-input";
 
-						var column = getColumn(params.column.colDef.field);
+						var column = getColumn(params.column.colId);
 						if(this.editType == 'TYPEAHEAD') {
 							this.eInput.className = "ag-table-typeahed-editor-input";
 							if(params.column.actualWidth) {
 								this.eInput.style.width = params.column.actualWidth + 'px';
 							}
-							var columnIndex = getColumnIndex(params.column.colDef.field);
+							var columnIndex = getColumnIndex(params.column.colId);
 							this.eInput.setAttribute("uib-typeahead", "value.displayValue | formatFilter:model.columns[" + columnIndex + "].format.display:model.columns[" + columnIndex + "].format.type for value in model.columns[" + columnIndex + "].valuelist.filterList($viewValue)");
 							this.eInput.setAttribute("typeahead-wait-ms", "300");
 							this.eInput.setAttribute("typeahead-min-length", "0");
@@ -1191,7 +1191,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 						$(this.eInput).datetimepicker(options);
 
 						var editFormat = 'MM/dd/yyyy hh:mm a';
-						var column = getColumn(params.column.colDef.field);
+						var column = getColumn(params.column.colId);
 						if(column && column.format && column.format.edit) {
 							editFormat = column.format.edit;
 						}
@@ -1237,7 +1237,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 					}
 
 					SelectEditor.prototype.init = function(params) {
-						var col = getColumn(params.column.colDef.field);
+						var col = getColumn(params.column.colId);
 						if(col.valuelist) {
 							var row = params.node.data;
 							var foundsetManager = getFoundsetManagerByFoundsetUUID(row._svyFoundsetUUID);
@@ -3190,16 +3190,28 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 				 * @return {Object}
 				 * */
 				function getColumn(field) {
+					var fieldToCompare = field;
+					var fieldIdx = 0;
+					if (field.indexOf('_') > 0) { // has index
+						var fieldParts = field.split('_');
+						if(!isNaN(fieldParts[1])) {
+							fieldToCompare = fieldParts[0];
+							fieldIdx = parseInt(fieldParts[1]);
+						}
+					}
 					if (state.columns[field]) { // check if is already cached
 						return state.columns[field];
 					} else {
 						var columns = $scope.model.columns;
 						for (var i = 0; i < columns.length; i++) {
 							var column = columns[i];
-							if (getColumnID(column, i) === field) {
-								// cache it in hashmap for quick retrieval
-								state.columns[field] = column;
-								return $scope.model.columns[i];
+							if (getColumnID(column, i) === fieldToCompare) {
+								if(fieldIdx < 1) {
+									// cache it in hashmap for quick retrieval
+									state.columns[field] = column;
+									return $scope.model.columns[i];
+								}
+								fieldIdx--;
 							}
 						}
 					}
@@ -3211,11 +3223,23 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 				 * @return {Number}
 				 * */
 				function getColumnIndex(field) {
+					var fieldToCompare = field;
+					var fieldIdx = 0;
+					if (field.indexOf('_') > 0) { // has index
+						var fieldParts = field.split('_');
+						if(!isNaN(fieldParts[1])) {
+							fieldToCompare = fieldParts[0];
+							fieldIdx = parseInt(fieldParts[1]);
+						}
+					}
 					var columns = $scope.model.columns;
 					for (var i = 0; i < columns.length; i++) {
 						var column = columns[i];
-						if (getColumnID(column, i) == field) {
-							return i;
+						if (getColumnID(column, i) == fieldToCompare) {
+							if(fieldIdx < 1) {
+								return i;
+							}
+							fieldIdx--;
 						}
 					}
 					return -1;
@@ -3312,11 +3336,23 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 
 						for(var i = 0; i < savedColumns.length; i++) {
 							var columnExist = false;
+							var fieldToCompare = savedColumns[i];
+							var fieldIdx = 0;
+							if (fieldToCompare.indexOf('_') > 0) { // has index
+								var fieldParts = fieldToCompare.split('_');
+								if(!isNaN(fieldParts[1])) {
+									fieldToCompare = fieldParts[0];
+									fieldIdx = parseInt(fieldParts[1]);
+								}
+							}
 							for(var j = 0; j < $scope.model.columns.length; j++) {
 								if($scope.model.columns[j].dataprovider &&
-									savedColumns[i] == $scope.model.columns[j].dataprovider.idForFoundset) {
-									columnExist = true;
-									break;
+									fieldToCompare == $scope.model.columns[j].dataprovider.idForFoundset) {
+										if(fieldIdx < 1) {
+											columnExist = true;
+											break;
+										}
+										fieldIdx--;
 								}
 							}
 							if(!columnExist) {
