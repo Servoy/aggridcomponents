@@ -407,9 +407,14 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
 					var node = event.node;
 					
 					if ($scope.handlers.onRowSelected && node && node.data) {
-						var selectIndex = node.rowIndex + 1;
-						$scope.handlers.onRowSelected(node.data, selectIndex, node.selected, createJSEvent());
+						// var selectIndex = node.rowIndex + 1; Selected index doesn't make sense for a dataset since the grid may change the dataset internally
+						$scope.handlers.onRowSelected(node.data, node.selected, createJSEvent());
 					}
+				}
+				
+				function getDatasetIndex(rowData) {
+					// TODO it make sense to return the rowData Index ?
+					// If is a dataset is enought the row Data
 				}
 
             
@@ -421,11 +426,6 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
 			function onSelectionChanged(event) {
 				// TODO i don't think i need that
 				return;
-				// FIXME this works only if node is available on the root foundset
-				// TODO what to do if the record is selected from a child foundset ?
-				var selectedNodes = gridOptions.api.getSelectedNodes();
-				
-				console.log(selectedNodes);
 			}
 
             function onCellClicked(params) {
@@ -535,7 +535,9 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
 				// TODO return the selected Nodes as JSON;
 				var result = [];
 				for (var i = 0; i < selectedNodes.length; i++) {
-					result.push({rowIndex:  selectedNodes[i].rowIndex, rowData: selectedNodes[i].data})
+					var selectedNode = selectedNodes[i].data;
+					result.push(selectedNode);
+					//result.push({rowIndex:  selectedNodes[i].rowIndex, rowData: selectedNodes[i].data})
 				}
 				return result;
             }

@@ -37,10 +37,7 @@
 			"parameters": [{
 				"name": "rowData",
 				"type": "object"
-			}, {
-				"name": "rowIndex",
-				"type": "int"
-			}, {
+			},{
 				"name": "selected",
 				"type": "boolean"
 			}, {
@@ -161,7 +158,7 @@
 			"returns": "string"
 		},
 		"getSelectedRows" : {
-			"returns": "rowInfo[]"
+			"returns": "object[]"
 		},
 		"restoreColumnState" : {
 			"parameters": [
