@@ -9,6 +9,17 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 				svyServoyapi: '='
 			},
 			controller: function($scope, $element, $attrs) {
+				
+				/* 
+				 * TODO Column properties not matching dataset component
+				 * 
+				 * "headerGroup": {"type" : "tagstring"},
+				 * "headerGroupStyleClass" : {"type" : "styleclass"},
+				 * "enableFilter": {"type": "boolean", "default" : false},
+				 * "cellStyleClassFunc": {"type": "string"},
+				 * "cellRendererFunc": {"type": "string"},
+				 * 
+				 * */
 
 				/*
 				 * TODO clear nodes when collapsed ? Make it a configuration
@@ -2963,13 +2974,24 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 							colDef.cellClass = 'ag-table-cell ' + column.styleClass;
 						}
 
+						// column grouping
 						colDef.enableRowGroup = column.enableRowGroup;
 						if (column.rowGroupIndex >= 0) colDef.rowGroupIndex = column.rowGroupIndex;
 						if (column.width || column.width === 0) colDef.width = column.width;
-						// TODO add minWidth and maxWidth to column.spec
+	        			
+	                    // tool panel
+	                    if (column.enableToolPanel === false) colDef.suppressToolPanel = !column.enableToolPanel;
+						
+						// column sizing
 						if (column.maxWidth) colDef.maxWidth = column.maxWidth;
 						if (column.minWidth || column.minWidth === 0) colDef.minWidth = column.minWidth;
 						if (column.visible === false) colDef.hide = true;
+						
+	                    // column resizing https://www.ag-grid.com/javascript-grid-resizing/
+	        			if (column.enableResize === false) colDef.suppressResize = !column.enableResize;
+	        			if (column.autoResize === false) colDef.suppressSizeToFit = !column.autoResize;
+						
+						// column sort
 						if (column.enableSort === false) colDef.suppressSorting = true;
 
 						if (column.editType != 'NONE') {
