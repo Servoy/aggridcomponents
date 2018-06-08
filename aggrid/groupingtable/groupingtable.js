@@ -3216,7 +3216,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 					var fieldIdx = 0;
 					if (field.indexOf('_') > 0) { // has index
 						var fieldParts = field.split('_');
-						if(!isNaN(fieldParts[1])) {
+						if('col' != fieldParts[0] && !isNaN(fieldParts[1])) {
 							fieldToCompare = fieldParts[0];
 							fieldIdx = parseInt(fieldParts[1]);
 						}
@@ -3249,7 +3249,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 					var fieldIdx = 0;
 					if (field.indexOf('_') > 0) { // has index
 						var fieldParts = field.split('_');
-						if(!isNaN(fieldParts[1])) {
+						if('col' != fieldParts[0] && !isNaN(fieldParts[1])) {
 							fieldToCompare = fieldParts[0];
 							fieldIdx = parseInt(fieldParts[1]);
 						}
