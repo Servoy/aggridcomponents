@@ -919,7 +919,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 
 				}
 
-				var NULL_VALUE = new Object();
+				var NULL_VALUE = {displayValue: '', realValue: null};
 
 				/**
 				 * Returns the formatted value
