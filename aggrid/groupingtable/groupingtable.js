@@ -627,6 +627,23 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 					foundsetRef.updateViewportRecord(row._svyRowId, params.colDef.field, newValue, params.oldValue);
 				}
 
+				function onColumnDataChange(params, newValueObj) {
+					if ($scope.handlers.onColumnDataChange) {
+						var oldValue = params.value;
+						if(oldValue && oldValue.realValue) oldValue = oldValue.realValue;
+						var newValue = newValueObj;
+						if(newValue && newValue.realValue) newValue = newValue.realValue;
+
+						return $scope.handlers.onColumnDataChange(
+							getFoundsetIndexFromEvent(params),
+							getColumnIndex(params.column.colId),
+							oldValue,
+							newValue
+						);
+					}
+					return false;
+				}
+
 				/**
 				 * On Double Click Event
 				 *
@@ -998,6 +1015,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 					// gets called once before the renderer is used
 					TextEditor.prototype.init = function(params) {
 						// create the cell
+						this.params = params;
 						this.editType = params.svyEditType;
 						this.eInput = document.createElement('input');
 						this.eInput.className = "ag-cell-edit-input";
@@ -1098,6 +1116,10 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 						}
 					};
 				
+					TextEditor.prototype.isCancelAfterEnd = function() {
+						return !onColumnDataChange(this.params, this.getValue());
+					}
+
 					// returns the new value after editing
 					TextEditor.prototype.getValue = function() {
 						var displayValue = this.eInput.value;
@@ -1178,6 +1200,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 					// gets called once before the renderer is used
 					Datepicker.prototype.init = function(params) {
 						// create the cell
+						this.params = params;
 						this.eInput = document.createElement('input');
 						this.eInput.className = "ag-cell-edit-input";
 
@@ -1222,6 +1245,10 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 						this.eInput.select();
 					};
 				
+					Datepicker.prototype.isCancelAfterEnd = function() {
+						return !onColumnDataChange(this.params, this.getValue());
+					}
+
 					// returns the new value after editing
 					Datepicker.prototype.getValue = function() {
 						var theDateTimePicker = $(this.eInput).data('DateTimePicker');
@@ -1248,6 +1275,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 					}
 
 					SelectEditor.prototype.init = function(params) {
+						this.params = params;
 						var col = getColumn(params.column.colId);
 						if(col.valuelist) {
 							var row = params.node.data;
@@ -1298,6 +1326,10 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 						this.eSelect.focus();
 					};
 					
+					SelectEditor.prototype.isCancelAfterEnd = function() {
+						return !onColumnDataChange(this.params, this.getValue());
+					}					
+
 					SelectEditor.prototype.getValue = function () {
 						var displayValue = this.eSelect.options[this.eSelect.selectedIndex ].text;
 						var realValue = this.eSelect.value;

@@ -103,6 +103,26 @@
 					"type": "string"
 				}	
 			]
+		},
+		"onColumnDataChange": {
+			"description": "Called when the columns data is changed",
+			"returns": "boolean",
+			"parameters": [{
+				"name": "foundsetindex",
+				"type": "int"
+			}, {
+				"name": "columnindex",
+				"type": "int",
+				"optional": true
+			}, {
+				"name": "oldvalue",
+				"type": "object",
+				"optional": true
+			}, {
+				"name": "newvalue",
+				"type": "object",
+				"optional": true
+			}]
 		}
 	}, 
 	"api" : {
