@@ -1400,10 +1400,11 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 					var sortRootGroup = false;
 
 					// if clicking sort on the grouping column
-					if (rowGroupCols.length > 0 && sortModel[0] && (sortModel[0].colId === "ag-Grid-AutoColumn" || sortModel[0].colId === rowGroupCols[0].field)) {
+					if (rowGroupCols.length > 0 && sortModel[0] &&
+						(sortModel[0].colId === ("ag-Grid-AutoColumn-" + rowGroupCols[0].id) || sortModel[0].colId === rowGroupCols[0].id)) {
 						// replace colFd with the id of the grouped column
 						sortRootGroup = true;
-						sortModel = [{ colId: rowGroupCols[0].field, sort: sortModel[0].sort }];
+						sortModel = [{ colId: rowGroupCols[0].id, sort: sortModel[0].sort }];
 					}
 					var foundsetSortModel = getFoundsetSortModel(sortModel);
 					var sortString = foundsetSortModel.sortString;
@@ -2998,6 +2999,10 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 
 						};
 
+						if(column.id) {
+							colDef.colId = column.id;
+						}
+
 						// styleClass
 						colDef.headerClass = 'ag-table-header ' + column.headerStyleClass;
 						if (column.styleClassDataprovider) {
@@ -3259,7 +3264,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 						var columns = $scope.model.columns;
 						for (var i = 0; i < columns.length; i++) {
 							var column = columns[i];
-							if (getColumnID(column, i) === fieldToCompare) {
+							if (column.id === fieldToCompare || getColumnID(column, i) === fieldToCompare) {
 								if(fieldIdx < 1) {
 									// cache it in hashmap for quick retrieval
 									state.columns[field] = column;
@@ -3289,7 +3294,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 					var columns = $scope.model.columns;
 					for (var i = 0; i < columns.length; i++) {
 						var column = columns[i];
-						if (getColumnID(column, i) == fieldToCompare) {
+						if (column.id === fieldToCompare || getColumnID(column, i) == fieldToCompare) {
 							if(fieldIdx < 1) {
 								return i;
 							}
@@ -3297,21 +3302,6 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 						}
 					}
 					return -1;
-				}
-
-				/**
-				 * Returns the column identifier
-				 * @return {String}
-				 *  */
-				function getColumnIDByIdForDataprovider(idForFoundset) {
-					var columns = $scope.model.columns;
-					for (var i = 0; i < columns.length; i++) {
-						var column = columns[i];
-						if (column.dataprovider && column.dataprovider.idForFoundset == idForFoundset) {
-							var columnDef = columnDefs[i];
-							return getColumnID(column, i);
-						}
-					}
 				}
 
 				/**

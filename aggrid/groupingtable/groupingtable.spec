@@ -217,7 +217,8 @@
 			"enableToolPanel" : {"type": "boolean", "default" : true, "tags" : {"scope": "design"}},
 			"autoResize" : {"type": "boolean", "default" : true, "tags" : {"scope": "design"}},
 			"rowGroupIndex":  {"type": "int", "default": -1, "tags" : {"scope": "design"}},
-			"editType": {"type": "string", "values": ["NONE", "TEXTFIELD", "DATEPICKER", "COMBOBOX", "TYPEAHEAD"], "default": "NONE"}
+			"editType": {"type": "string", "values": ["NONE", "TEXTFIELD", "DATEPICKER", "COMBOBOX", "TYPEAHEAD"], "default": "NONE"},
+			"id": {"type" : "string"}
 		},
 		 "hashedFoundset" : {
             "foundset": "foundset",
