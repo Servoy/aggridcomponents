@@ -2850,13 +2850,15 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 				 *  */
 				function updateRows(rowUpdates, oldStartIndex, oldSize) {
 
-					// Don't update automatically if the row are grouped
-					if (isTableGrouped()) {
+					var editCells = gridOptions.api.getEditingCells();
+
+					// Don't update automatically if the row are grouped or the table has an editor in use
+					if (isTableGrouped() || editCells.length) {
 						// register update
 						$scope.dirtyCache = true;
 						return;
 					}
-
+					
 					for (var i = 0; i < rowUpdates.length; i++) {
 						var rowUpdate = rowUpdates[i];
 						switch (rowUpdate.type) {
