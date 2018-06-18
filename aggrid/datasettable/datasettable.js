@@ -47,6 +47,16 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
                 suppressMovingInCss: true,
                 suppressColumnMoveAnimation: true,
                 suppressAnimationFrame: true,
+				
+				// TODO allow configuration
+                toolPanelSuppressRowGroups: false,
+                toolPanelSuppressValues: false,
+                toolPanelSuppressPivots: false,
+                toolPanelSuppressPivotMode: false,
+                toolPanelSuppressSideButtons: config.showToolPanelSideButtons === false ? true : false,
+                toolPanelSuppressColumnFilter: false,
+                toolPanelSuppressColumnSelectAll: false,
+                toolPanelSuppressColumnExpandAll: false,
 
                 rowSelection: $scope.model.multiSelect === true ? 'multiple' : 'single',
                 rowDeselection: false,

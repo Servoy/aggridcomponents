@@ -27,6 +27,8 @@
 		"useLazyLoading": { "type": "boolean", "default": false, "tags": {"scope": "design"}},
 		"lastRowIndex": { "type": "long", "tags": {"scope" : "private"}},
 		
+		"showToolPanelSideButtons": {"type": "boolean", "default" : true, "tags" : {"scope": "design"}},
+		
 		"multiSelect": { "type": "boolean", "default": false, "tags": {"scope": "design"}},
 		"headerHeight" : {"type" : "int", "default": 33, "tags": {"scope": "design"}}
 		
@@ -196,7 +198,7 @@
 			"autoResize" : {"type": "boolean", "default" : true},
 			"cellStyleClassFunc": {"type": "string"},
 			"cellRendererFunc": {"type": "string"},
-			"format": {"type": "string"},
+			"format": {"type": "tagstring"},
 			"formatType": {"type": "string", "values": ["TEXT", "NUMBER", "DATETIME"], "default": "TEXT"}
 		},
         "iconConfig" : {

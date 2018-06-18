@@ -35,7 +35,8 @@
 		"visible": "visible",
 		"hashedFoundsets": { "type": "hashedFoundset[]", "default": [], "tags": {"scope": "private"}, "pushToServer": "shallow"},
 		"hashedColumns": {"type" : "string[]", "default": [], "tags": {"scope": "private"}},
-		"showColumnsMenuTab": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}}
+		"showColumnsMenuTab": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},
+		"showToolPanelSideButtons": {"type": "boolean", "default" : true, "tags" : {"scope": "design"}}
 	},
 	"handlers" : {
 		"onCellClick": {

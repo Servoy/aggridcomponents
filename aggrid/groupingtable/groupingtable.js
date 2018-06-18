@@ -333,11 +333,18 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 					groupMultiAutoColumn: true,
 					suppressAggFuncInHeader: true, // TODO support aggregations
 
-					//					toolPanelSuppressRowGroups: false,
+					// TODO enable/disable aggregations
+					//	toolPanelSuppressRowGroups: false,
 					toolPanelSuppressValues: true,
 					toolPanelSuppressPivots: true,
 					toolPanelSuppressPivotMode: true,
 
+					// TODO enable/disable toolpanel options
+	                toolPanelSuppressSideButtons: config.showToolPanelSideButtons === false ? true : false,
+	                toolPanelSuppressColumnFilter: false,
+	                toolPanelSuppressColumnSelectAll: false,
+	                toolPanelSuppressColumnExpandAll: false,
+					
 					suppressColumnVirtualisation: false,
 					suppressScrollLag: false,
 					suppressScrollOnNewData: true,
