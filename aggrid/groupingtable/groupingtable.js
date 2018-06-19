@@ -388,13 +388,14 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 //	                onColumnMoved: storeColumnsState,              covered by onDisplayedColumnsChanged
 //	                onColumnGroupOpened: storeColumnsState		 i don't think we need that, it doesn't include the open group in column state
 					
-					getContextMenuItems: getContextMenuItems
+					getContextMenuItems: getContextMenuItems,
 					// TODO since i can't use getRowNode(id) in enterprise model, is pointeless to get id per node
 					//					getRowNodeId: function(data) {
 					//						return data._svyRowId;
 					//					}
 					// TODO localeText: how to provide localeText to the grid ? can the grid be shipped with i18n ?
 
+					navigateToNextCell: selectionChangeNavigation
 				};
 				
 
@@ -760,6 +761,42 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 				function getContextMenuItems(params) {
 					// hide any context menu
 					return [];
+				}
+
+				function selectionChangeNavigation(params) {
+					var previousCell = params.previousCellDef;
+					var suggestedNextCell = params.nextCellDef;
+				 
+					var KEY_UP = 38;
+					var KEY_DOWN = 40;
+					var KEY_LEFT = 37;
+					var KEY_RIGHT = 39;
+				 
+					switch (params.key) {
+						case KEY_DOWN:
+							previousCell = params.previousCellDef;
+							// set selected cell on current cell + 1
+							gridOptions.api.forEachNode( (node) => {
+								if (previousCell.rowIndex + 1 === node.rowIndex) {
+									node.setSelected(true);
+								}
+							});
+							return suggestedNextCell;
+						case KEY_UP:
+							previousCell = params.previousCellDef;
+							// set selected cell on current cell - 1
+							gridOptions.api.forEachNode( (node) => {
+								if (previousCell.rowIndex - 1 === node.rowIndex) {
+									node.setSelected(true);
+								}
+							});
+							return suggestedNextCell;
+						case KEY_LEFT:
+						case KEY_RIGHT:
+							return suggestedNextCell;
+						default:
+							throw "this will never happen, navigation is always on of the 4 keys above";
+					}					
 				}
 
 				/**
