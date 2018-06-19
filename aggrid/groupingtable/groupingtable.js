@@ -648,7 +648,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 							newValue
 						);
 					}
-					return false;
+					return true;
 				}
 
 				/**
