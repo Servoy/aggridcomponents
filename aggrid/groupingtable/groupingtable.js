@@ -1618,10 +1618,10 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 
 					});
 				
-				$scope.$watch("model.columns", function(newValue, oldValue) {
+				$scope.$watchCollection("model.columns", function(newValue, oldValue) {
 					$log.debug('columns changed');
 					gridOptions.api.setColumnDefs(getColumnDefs());
-				}, true);
+				});
 
 				/**************************************************************************************************
 				 **************************************************************************************************
