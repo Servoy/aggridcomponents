@@ -1580,6 +1580,11 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 						$scope.model.myFoundset.addChangeListener(changeListener);
 
 					});
+				
+				$scope.$watch("model.columns", function(newValue, oldValue) {
+					$log.debug('columns changed');
+					gridOptions.api.setColumnDefs(getColumnDefs());
+				}, true);
 
 				/**************************************************************************************************
 				 **************************************************************************************************

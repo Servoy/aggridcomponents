@@ -15,7 +15,7 @@
 	"model":
 	{
 		"myFoundset": {"type": "foundset", "default" : {"foundsetSelector":""}, "pushToServer" : "allow" ,"dynamicDataproviders": true, "initialPreferredViewPortSize": 50, "sendSelectionViewportInitially": true },
-		"columns": { "type": "column[]", "droppable" : true, "pushToServer": "shallow", "tags": {"scope": "design"}},
+		"columns": { "type": "column[]", "droppable" : true, "pushToServer": "shallow"},
 		"columnState": { "type": "string", "tags": {"scope" : "private"}, "pushToServer": "allow"},
 		"responsiveHeight": { "type": "int", "default": 300 },
 		"rowHeight" : {"type" : "int", "default": 25, "tags": {"scope": "design"}},
@@ -140,8 +140,39 @@
 			"parameters": [
 				{ "name": "columnState", "type": "string", "optional": true}
 			]
-		}
-     },
+		},
+		"getColumnsCount": {
+	        "returns": "int"
+	    },
+	    "getColumn": {
+		    "parameters": [{
+				"name": "index",
+				"type": "int"
+			}],
+	        "returns": "column"
+	    },
+	    "newColumn": {
+		    "parameters": [{
+		      	"name": "dataprovider",
+				"type": "string"
+		    	},{
+				"name": "index",
+				"type": "int",
+				"optional": true
+			}],
+	        "returns": "column"
+	    },
+	    "removeColumn": {
+		    "parameters": [{
+				"name": "index",
+				"type": "int"
+			}],
+	        "returns": "boolean"
+	    },
+	    "removeAllColumns": {
+	        "returns": "boolean"
+	    }
+    },
 	"internalApi" : {
 		"getGroupedFoundsetUUID" : {
             "returns" : "foundsetRef",
@@ -200,24 +231,24 @@
 	},
 	"types" : {
 		"column" : {
-			"headerTitle": {"type" : "tagstring", "tags" : {"scope": "design"}},
+			"headerTitle": {"type" : "tagstring"},
 			"headerStyleClass" : {"type" : "styleclass"},
-			"headerTooltip" : {"type" : "tagstring", "tags" : {"scope": "design"}},
-			"dataprovider": { "type": "dataprovider", "forFoundset": "myFoundset", "resolveValuelist" : true },
+			"headerTooltip" : {"type" : "tagstring"},
+			"dataprovider": { "type": "dataprovider", "forFoundset": "myFoundset", "resolveValuelist" : true},
 			"styleClass" : {"type" : "styleclass"},
-			"styleClassDataprovider": { "type": "dataprovider", "forFoundset": "myFoundset" },
-			"format" : {"type" : "format",  "for": ["valuelist", "dataprovider"], "tags" : {"scope": "design"}},
+			"styleClassDataprovider": { "type": "dataprovider", "forFoundset": "myFoundset"},
+			"format" : {"type" : "format",  "for": ["valuelist", "dataprovider"]},
 			"valuelist": { "type": "valuelist", "for": "dataprovider"},
-			"visible":  { "type": "boolean", "default": true, "tags" : {"scope": "design"} },
-			"width":  { "type": "int", "default": 0, "tags" : {"scope": "design"} },			
-			"minWidth":  { "type": "int", "tags" : {"scope": "design"} },
-			"maxWidth":  { "type": "int", "tags" : {"scope": "design"} },
-			"enableRowGroup" : {"type": "boolean", "default" : true, "tags" : {"scope": "design"}},
-			"enableSort" : {"type": "boolean", "default" : true, "tags" : {"scope": "design"}},			
-			"enableResize" : {"type": "boolean", "default" : true, "tags" : {"scope": "design"}},
-			"enableToolPanel" : {"type": "boolean", "default" : true, "tags" : {"scope": "design"}},
-			"autoResize" : {"type": "boolean", "default" : true, "tags" : {"scope": "design"}},
-			"rowGroupIndex":  {"type": "int", "default": -1, "tags" : {"scope": "design"}},
+			"visible":  { "type": "boolean", "default": true},
+			"width":  { "type": "int", "default": 0},			
+			"minWidth":  { "type": "int"},
+			"maxWidth":  { "type": "int"},
+			"enableRowGroup" : {"type": "boolean", "default" : true},
+			"enableSort" : {"type": "boolean", "default" : true},			
+			"enableResize" : {"type": "boolean", "default" : true},
+			"enableToolPanel" : {"type": "boolean", "default" : true},
+			"autoResize" : {"type": "boolean", "default" : true},
+			"rowGroupIndex":  {"type": "int", "default": -1},
 			"editType": {"type": "string", "values": ["NONE", "TEXTFIELD", "DATEPICKER", "COMBOBOX", "TYPEAHEAD"], "default": "NONE"},
 			"id": {"type" : "string"}
 		},
