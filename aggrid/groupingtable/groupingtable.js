@@ -1617,9 +1617,21 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 						$scope.model.myFoundset.addChangeListener(changeListener);
 
 					});
-				
+				var columnWatches = [];
 				$scope.$watchCollection("model.columns", function(newValue, oldValue) {
 					$log.debug('columns changed');
+					for(var i = 0; i < columnWatches.length; i++) {
+						columnWatches[i]();
+					}
+					columnWatches.length = 0;
+					for(var i = 0; i < $scope.model.columns.length; i++) {
+						var columnWatch = $scope.$watchCollection("model.columns[" + i + "]",
+							function(newValue, oldValue) {
+								$log.debug('column changed');
+								gridOptions.api.setColumnDefs(getColumnDefs());
+							});
+						columnWatches.push(columnWatch);
+					}
 					gridOptions.api.setColumnDefs(getColumnDefs());
 				});
 
