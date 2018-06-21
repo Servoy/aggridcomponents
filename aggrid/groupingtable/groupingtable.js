@@ -776,7 +776,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 						case KEY_DOWN:
 							previousCell = params.previousCellDef;
 							// set selected cell on current cell + 1
-							gridOptions.api.forEachNode( (node) => {
+							gridOptions.api.forEachNode( function(node) {
 								if (previousCell.rowIndex + 1 === node.rowIndex) {
 									node.setSelected(true);
 								}
@@ -785,7 +785,7 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 						case KEY_UP:
 							previousCell = params.previousCellDef;
 							// set selected cell on current cell - 1
-							gridOptions.api.forEachNode( (node) => {
+							gridOptions.api.forEachNode( function(node) {
 								if (previousCell.rowIndex - 1 === node.rowIndex) {
 									node.setSelected(true);
 								}
