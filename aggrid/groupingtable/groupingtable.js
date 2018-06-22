@@ -3214,9 +3214,8 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 							var index = params.rowIndex - foundset.foundset.viewPort.startIndex;
 							styleClassProvider = column.styleClassDataprovider[index];
 						}
-					} else {
-						var foundsetManager = getFoundsetManagerByFoundsetUUID(params.data._svyFoundsetUUID);
-						if (column) {
+					} else if (column && column.dataprovider) {
+							var foundsetManager = getFoundsetManagerByFoundsetUUID(params.data._svyFoundsetUUID);
 							var index = foundsetManager.getRowIndex(params.data) - foundsetManager.foundset.viewPort.startIndex;
 							if (index >= 0) {
 								styleClassProvider = foundsetManager.foundset.viewPort.rows[index][column.dataprovider.idForFoundset + "_styleClassDataprovider"];
@@ -3224,9 +3223,13 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 								$log.warn('cannot render styleClassDataprovider for row at index ' + index)
 								$log.warn(params.data);
 							}
-						}
 					}
-					return 'ag-table-cell ' + column.styleClass + ' ' + styleClassProvider;
+
+					var cellClass = 'ag-table-cell';
+					if(column.styleClass) cellClass += ' ' + column.styleClass;
+					if(styleClassProvider) cellClass += ' ' + styleClassProvider;
+
+					return cellClass;
 				}
 
 				/**
