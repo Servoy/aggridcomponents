@@ -132,3 +132,11 @@
 .ag-dark .ag-icon {
 	color: #333;
 }
+
+/* Group column drag img */
+.ag-column-drag {
+    padding-left: 8px;
+    padding-right: 8px;
+    background-image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMy41IDIuNXYxbTAgMnYxbTAgMnYxbTMtN3YxbTAgMnYxbTAgMnYxbTMtN3YxbTAgMnYxbTAgMnYxbTMtN3YxbTAgMnYxbTAgMnYxIiBzdHJva2U9IiM3RjhDOEQiIGZpbGw9Im5vbmUiIHN0cm9rZS1saW5lY2FwPSJzcXVhcmUiLz48L3N2Zz4=);
+    background-position-y: 2px !important;
+}
