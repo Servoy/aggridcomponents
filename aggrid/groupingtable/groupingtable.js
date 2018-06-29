@@ -1624,13 +1624,35 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 						columnWatches[i]();
 					}
 					columnWatches.length = 0;
+					var columnKeysToWatch = [
+						"headerTitle",
+						"headerStyleClass",
+						"headerTooltip",
+						"styleClass",
+						"styleClassDataprovider",
+						"format",
+						"visible",
+						"width",
+						"minWidth",
+						"maxWidth",
+						"enableRowGroup",
+						"enableSort",
+						"enableResize",
+						"enableToolPanel",
+						"autoResize",
+						"rowGroupIndex",
+						"editType",
+						"id"
+					];
 					for(var i = 0; i < $scope.model.columns.length; i++) {
-						var columnWatch = $scope.$watchCollection("model.columns[" + i + "]",
-							function(newValue, oldValue) {
-								$log.debug('column changed');
-								gridOptions.api.setColumnDefs(getColumnDefs());
-							});
-						columnWatches.push(columnWatch);
+						for( var j = 0; j < columnKeysToWatch.length; j++) {
+							var columnWatch = $scope.$watch("model.columns[" + i + "]['" + columnKeysToWatch[j] + "']",
+								function(newValue, oldValue) {
+									$log.debug('column property changed');
+									gridOptions.api.setColumnDefs(getColumnDefs());
+								});
+							columnWatches.push(columnWatch);
+						}
 					}
 					gridOptions.api.setColumnDefs(getColumnDefs());
 				});
