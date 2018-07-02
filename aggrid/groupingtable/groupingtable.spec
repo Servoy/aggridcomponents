@@ -238,7 +238,7 @@
 			"styleClass" : {"type" : "styleclass"},
 			"styleClassDataprovider": { "type": "dataprovider", "forFoundset": "myFoundset"},
 			"format" : {"type" : "format",  "for": ["valuelist", "dataprovider"]},
-			"valuelist": { "type": "valuelist", "for": "dataprovider"},
+			"valuelist": { "type": "valuelist", "for": "dataprovider", "forFoundset": "myFoundset" },
 			"visible":  { "type": "boolean", "default": true},
 			"width":  { "type": "int", "default": 0},			
 			"minWidth":  { "type": "int"},

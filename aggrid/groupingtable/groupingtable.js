@@ -1,5 +1,5 @@
-angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).directive('aggridGroupingtable', ['$sabloApplication', '$sabloConstants', '$log', '$q', '$foundsetTypeConstants', '$filter', '$compile', '$formatterUtils',
-	function($sabloApplication, $sabloConstants, $log, $q, $foundsetTypeConstants, $filter, $compile, $formatterUtils) {
+angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenterpriselicensekey']).directive('aggridGroupingtable', ['$sabloApplication', '$sabloConstants', '$log', '$q', '$foundsetTypeConstants', '$filter', '$compile', '$formatterUtils', '$sabloConverters',
+	function($sabloApplication, $sabloConstants, $log, $q, $foundsetTypeConstants, $filter, $compile, $formatterUtils, $sabloConverters) {
 		return {
 			restrict: 'E',
 			scope: {
@@ -9,7 +9,6 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 				svyServoyapi: '='
 			},
 			controller: function($scope, $element, $attrs) {
-				
 				/* 
 				 * TODO Column properties not matching dataset component
 				 * 
@@ -1051,6 +1050,34 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 				 **************************************************************************************************
 				 **************************************************************************************************/
 
+				function getValuelist(column, params, asCodeString) {
+					// if it's a foundset linked prop (starting with Servoy 8.3.2) or not (prior to 8.3.2)
+					if (column.valuelist && column.valuelist[$sabloConverters.INTERNAL_IMPL]
+							&& angular.isDefined(column.valuelist[$sabloConverters.INTERNAL_IMPL]["recordLinked"])) {
+						// _svyRowId: "5.10643;_0"
+						var rowId = params.node.data[$foundsetTypeConstants.ROW_ID_COL_KEY];
+						if (rowId.indexOf(";") >= 0) rowId = rowId.substring(0, rowId.indexOf(";") + 1);
+						
+						var idxInMainFoundsetViewport = -1;
+						var mainFoundsetRows = $scope.model.myFoundset.viewPort.rows;
+						for (var idx in mainFoundsetRows)
+							if (mainFoundsetRows[idx][$foundsetTypeConstants.ROW_ID_COL_KEY].indexOf(rowId) == 0) {
+								idxInMainFoundsetViewport = idx;
+								break;
+							}
+						
+						if (idxInMainFoundsetViewport >= 0 && idxInMainFoundsetViewport < column.valuelist.length) return asCodeString ? ".valuelist[" + idxInMainFoundsetViewport + "]" : column.valuelist[idxInMainFoundsetViewport];
+						else if (!column.valuelist[$sabloConverters.INTERNAL_IMPL]["recordLinked"] && column.valuelist.length > 0) return asCodeString ? ".valuelist[0]" : column.valuelist[0];
+						else {
+							// TODO this is strange - valuelists are for now only based on main "myfoundset" from .spec, so there is one VL entry for each
+							// record in that foundset's viewport; if this is called when a record from another foundset is clicked we might not be able
+							// to locate that record in main foundset; in order to support that, .spec needs to change as well
+							$log.error('Cannot find the valuelist entry for the row that was clicked.');
+							return asCodeString ? null : null;
+						}
+					}
+					else return asCodeString ? ".valuelist" : column.valuelist;
+				}
 
 				function getTextEditor() {
 					// function to act as a class
@@ -1071,7 +1098,9 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 								this.eInput.style.width = params.column.actualWidth + 'px';
 							}
 							var columnIndex = getColumnIndex(params.column.colId);
-							this.eInput.setAttribute("uib-typeahead", "value.displayValue | formatFilter:model.columns[" + columnIndex + "].format.display:model.columns[" + columnIndex + "].format.type for value in model.columns[" + columnIndex + "].valuelist.filterList($viewValue)");
+							
+							var getVLAsCode = getValuelist(column, params, true);
+							this.eInput.setAttribute("uib-typeahead", "value.displayValue | formatFilter:model.columns[" + columnIndex + "].format.display:model.columns[" + columnIndex + "].format.type for value in " + (getVLAsCode == null ? "null" : "model.columns[" + columnIndex + "]" + getVLAsCode + ".filterList($viewValue)"));
 							this.eInput.setAttribute("typeahead-wait-ms", "300");
 							this.eInput.setAttribute("typeahead-min-length", "0");
 							this.eInput.setAttribute("typeahead-append-to-body", "true");
@@ -1080,8 +1109,9 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 							$compile(this.eInput)($scope);
 							$scope.$digest();
 
-							if(column.valuelist) {
-								var valuelistValuesPromise = column.valuelist.filterList("");
+							var vl = getValuelist(column, params);
+							if (vl) {
+								var valuelistValuesPromise = vl.filterList("");
 								var thisEditor = this;
 								valuelistValuesPromise.then(function(valuelistValues) {
 									thisEditor.valuelist = valuelistValues;
@@ -1321,13 +1351,14 @@ angular.module('aggridGroupingtable', ['servoy', 'aggridenterpriselicensekey']).
 					SelectEditor.prototype.init = function(params) {
 						this.params = params;
 						var col = getColumn(params.column.colId);
-						if(col.valuelist) {
+						var vl = getValuelist(col, params);
+						if (vl) {
 							var row = params.node.data;
 							var foundsetManager = getFoundsetManagerByFoundsetUUID(row._svyFoundsetUUID);
 							if (!foundsetManager) foundsetManager = foundset;
 							var foundsetRef = foundsetManager.foundset;
 							var recRef = foundsetRef.getRecordRefByRowID(row._svyRowId);
-							var valuelistValuesPromise = col.valuelist.filterList("");
+							var valuelistValuesPromise = vl.filterList("");
 							var selectEl = this.eSelect;
 							var v = params.value;
 							if(v && v.displayValue != undefined) {
