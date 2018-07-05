@@ -26,11 +26,9 @@
 		"groupStyleClass" : {"type": "styleclass"},
 		"useLazyLoading": { "type": "boolean", "default": false, "tags": {"scope": "design"}},
 		"lastRowIndex": { "type": "long", "tags": {"scope" : "private"}},
-		
-		"showToolPanelSideButtons": {"type": "boolean", "default" : true, "tags" : {"scope": "design"}},
-		
 		"multiSelect": { "type": "boolean", "default": false, "tags": {"scope": "design"}},
-		"headerHeight" : {"type" : "int", "default": 33, "tags": {"scope": "design"}}
+		"headerHeight" : {"type" : "int", "default": 33, "tags": {"scope": "design"}},
+		"toolPanelConfig": { "type": "toolPanelConfig", "tags": { "scope": "design" } }
 		
 	},
 	"handlers" : {
@@ -263,6 +261,16 @@
 		"rowInfo": {
 			"rowData" : "object",
 			"rowIndex" : "int"
+		},
+		"toolPanelConfig" : {
+			"suppressRowGroups": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},
+			"suppressValues": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},
+			"suppressPivots": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},
+			"suppressPivotMode": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},
+			"suppressSideButtons": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},
+			"suppressColumnFilter": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},
+			"suppressColumnSelectAll": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},
+			"suppressColumnExpandAll": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}}
 		}
 	}
 }

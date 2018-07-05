@@ -332,17 +332,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 					groupMultiAutoColumn: true,
 					suppressAggFuncInHeader: true, // TODO support aggregations
 
-					// TODO enable/disable aggregations
-					//	toolPanelSuppressRowGroups: false,
+					toolPanelSuppressRowGroups: config.toolPanelConfig ? config.toolPanelConfig.suppressRowGroups : false,
 					toolPanelSuppressValues: true,
 					toolPanelSuppressPivots: true,
 					toolPanelSuppressPivotMode: true,
-
-					// TODO enable/disable toolpanel options
-	                toolPanelSuppressSideButtons: config.showToolPanelSideButtons === false ? true : false,
-	                toolPanelSuppressColumnFilter: false,
-	                toolPanelSuppressColumnSelectAll: false,
-	                toolPanelSuppressColumnExpandAll: false,
+	                toolPanelSuppressSideButtons: config.toolPanelConfig ? config.toolPanelConfig.suppressSideButtons : false,
+	                toolPanelSuppressColumnFilter: config.toolPanelConfig ? config.toolPanelConfig.suppressColumnFilter : false,
+	                toolPanelSuppressColumnSelectAll: config.toolPanelConfig ? config.toolPanelConfig.suppressColumnSelectAll : false,
+	                toolPanelSuppressColumnExpandAll: config.toolPanelConfig ? config.toolPanelConfig.suppressColumnExpandAll : false,
 					
 					suppressColumnVirtualisation: false,
 					suppressScrollLag: false,

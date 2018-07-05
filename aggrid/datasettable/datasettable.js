@@ -58,6 +58,15 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
                 toolPanelSuppressColumnSelectAll: false,
                 toolPanelSuppressColumnExpandAll: false,
 
+                toolPanelSuppressRowGroups: config.toolPanelConfig ? config.toolPanelConfig.suppressRowGroups : false,
+                toolPanelSuppressValues: config.toolPanelConfig ? config.toolPanelConfig.suppressValues : false,
+                toolPanelSuppressPivots: config.toolPanelConfig ? config.toolPanelConfig.suppressPivots : false,
+                toolPanelSuppressPivotMode: config.toolPanelConfig ? config.toolPanelConfig.suppressPivotMode : false,
+                toolPanelSuppressSideButtons: config.toolPanelConfig ? config.toolPanelConfig.suppressSideButtons : false,
+                toolPanelSuppressColumnFilter: config.toolPanelConfig ? config.toolPanelConfig.suppressColumnFilter : false,
+                toolPanelSuppressColumnSelectAll: config.toolPanelConfig ? config.toolPanelConfig.suppressColumnSelectAll : false,
+                toolPanelSuppressColumnExpandAll: config.toolPanelConfig ? config.toolPanelConfig.suppressColumnExpandAll : false,
+
                 rowSelection: $scope.model.multiSelect === true ? 'multiple' : 'single',
                 rowDeselection: false,
 //                suppressRowClickSelection: rowGroupColsDefault.length === 0 ? false : true,

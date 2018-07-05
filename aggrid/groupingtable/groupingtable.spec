@@ -36,7 +36,7 @@
 		"hashedFoundsets": { "type": "hashedFoundset[]", "default": [], "tags": {"scope": "private"}, "pushToServer": "shallow"},
 		"hashedColumns": {"type" : "string[]", "default": [], "tags": {"scope": "private"}},
 		"showColumnsMenuTab": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},
-		"showToolPanelSideButtons": {"type": "boolean", "default" : true, "tags" : {"scope": "design"}}
+		"toolPanelConfig": { "type": "toolPanelConfig", "tags": { "scope": "design" } }
 	},
 	"handlers" : {
 		"onCellClick": {
@@ -269,6 +269,13 @@
 			"iconSortDescending": { "type": "styleclass", "tags": {"scope": "design"}},		
 			"iconSortUnSort": { "type": "styleclass", "tags": {"scope": "design"}},
 			"iconRefreshData": { "type": "styleclass", "default" : "glyphicon glyphicon-refresh", "tags": {"scope": "design"}}
-        }
+        },
+		"toolPanelConfig" : {
+			"suppressRowGroups": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},
+			"suppressSideButtons": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},
+			"suppressColumnFilter": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},
+			"suppressColumnSelectAll": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},
+			"suppressColumnExpandAll": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}}
+		}
 	}
 }
