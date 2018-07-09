@@ -242,3 +242,22 @@ function updateUI() {
 		elements.btnAutosave.addStyleClass("btn-default");
 	}
 }
+
+/**
+ * Called when the mouse is clicked on a row/cell (foundset and column indexes are given).
+ * the foundsetindex is always -1 when there are grouped rows
+ * the record is not an actual JSRecord but an object having the dataprovider values of the clicked record
+ *
+ * @param {Number} foundsetindex
+ * @param {Number} [columnindex]
+ * @param {object} [record]
+ * @param {JSEvent} [event]
+ *
+ * @protected
+ *
+ * @properties={typeid:24,uuid:"AEB2C27E-F963-4544-A74C-D638B5B19164"}
+ */
+function onCellDoubleClick(foundsetindex, columnindex, record, event) {
+	var msg = 'Double Click ' + foundsetindex + ' - ' + columnindex + ' - ' + event.getElementName();
+	logMsg(msg, 'Double Click');
+}
