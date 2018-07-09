@@ -1002,8 +1002,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 
 					if (value == null && params.value == NULL_VALUE) {
 						value = '';
-					} else if (value && value.contentType && value.contentType.indexOf('image/') == 0 && value.url) {
-						value = '<img class="ag-table-image-cell" src="' + value.url + '">';
 					}
 
 					return value;
@@ -3095,6 +3093,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 						return tooltip + params.value;
 					};
 
+					var cellRenderer = function(params) {
+						var value = params.value;
+						if (value && value.contentType && value.contentType.indexOf('image/') == 0 && value.url) {
+							return '<img class="ag-table-image-cell" src="' + value.url + '">';
+						}
+						return document.createTextNode(params.valueFormatted);
+					}
+
 					//create the column definitions from the specified columns in designer
 					var colDefs = [];
 					var colDef = { };
@@ -3108,7 +3114,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 							headerName: "" + (column.headerTitle ? column.headerTitle : "") + "",
 							field: field,
 							header_tooltip: "" + (column.headerTooltip ? column.headerTooltip : "") + "",
-							headerCellRenderer: headerRenderer
+							headerCellRenderer: headerRenderer,
+							cellRenderer: cellRenderer
 
 						};
 
