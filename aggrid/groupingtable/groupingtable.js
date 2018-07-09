@@ -455,7 +455,25 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 				gridOptions.api.addEventListener('selectionChanged', onSelectionChanged);
 
 				// grid handlers
-				gridOptions.api.addEventListener('cellClicked', onCellClicked);
+				var clickTimer;
+				function cellClickHandler(params) {
+					if($scope.handlers.onCellDoubleClick) {
+						if(clickTimer) {
+							clearTimeout(clickTimer);
+							clickTimer = null;
+						}
+						else {
+							clickTimer = setTimeout(function() {
+								clickTimer = null;
+								onCellClicked(params);
+							}, 250);
+						}
+					}
+					else {
+						onCellClicked(params);
+					}
+				}
+				gridOptions.api.addEventListener('cellClicked', cellClickHandler);
 				gridOptions.api.addEventListener('cellDoubleClicked', onCellDoubleClicked);
 				gridOptions.api.addEventListener('cellContextMenu', onCellContextMenu);
 
