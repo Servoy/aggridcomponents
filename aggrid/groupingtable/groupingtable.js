@@ -1,5 +1,5 @@
-angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenterpriselicensekey']).directive('aggridGroupingtable', ['$sabloApplication', '$sabloConstants', '$log', '$q', '$foundsetTypeConstants', '$filter', '$compile', '$formatterUtils', '$sabloConverters',
-	function($sabloApplication, $sabloConstants, $log, $q, $foundsetTypeConstants, $filter, $compile, $formatterUtils, $sabloConverters) {
+angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenterpriselicensekey']).directive('aggridGroupingtable', ['$sabloApplication', '$sabloConstants', '$log', '$q', '$foundsetTypeConstants', '$filter', '$compile', '$formatterUtils', '$sabloConverters', '$injector',
+	function($sabloApplication, $sabloConstants, $log, $q, $foundsetTypeConstants, $filter, $compile, $formatterUtils, $sabloConverters, $injector) {
 		return {
 			restrict: 'E',
 			scope: {
@@ -281,8 +281,28 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 				$log.debug(columnDefs);
 				$log.debug(sortModelDefault);
 
+				// if aggrid service is present read its defaults
+				var toolPanelConfig = null;
+				var iconConfig = null;
+				if($injector.has('groupingtableDefaultConfig')) {
+					var groupingtableDefaultConfigService = $injector.get('groupingtableDefaultConfig');
+					var groupingtableDefaultConfig = groupingtableDefaultConfigService.getModel();
+					if(groupingtableDefaultConfig.toolPanelConfig) {
+						toolPanelConfig = groupingtableDefaultConfig.toolPanelConfig;
+					}
+					if(groupingtableDefaultConfig.iconConfig) {
+						iconConfig = groupingtableDefaultConfig.iconConfig;
+					}
+				}
+
 				var config = $scope.model;
 				// console.log(config)
+				if(config.toolPanelConfig) {
+					toolPanelConfig = config.toolPanelConfig;
+				}
+				if(config.iconConfig) {
+					iconConfig = config.iconConfig;
+				}
 
 				var vMenuTabs = ['generalMenuTab'] //, 'filterMenuTab'];
 				if(config.showColumnsMenuTab) vMenuTabs.push('columnsMenuTab');
@@ -332,14 +352,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 					groupMultiAutoColumn: true,
 					suppressAggFuncInHeader: true, // TODO support aggregations
 
-					toolPanelSuppressRowGroups: config.toolPanelConfig ? config.toolPanelConfig.suppressRowGroups : false,
+					toolPanelSuppressRowGroups: toolPanelConfig ? toolPanelConfig.suppressRowGroups : false,
 					toolPanelSuppressValues: true,
 					toolPanelSuppressPivots: true,
 					toolPanelSuppressPivotMode: true,
-	                toolPanelSuppressSideButtons: config.toolPanelConfig ? config.toolPanelConfig.suppressSideButtons : false,
-	                toolPanelSuppressColumnFilter: config.toolPanelConfig ? config.toolPanelConfig.suppressColumnFilter : false,
-	                toolPanelSuppressColumnSelectAll: config.toolPanelConfig ? config.toolPanelConfig.suppressColumnSelectAll : false,
-	                toolPanelSuppressColumnExpandAll: config.toolPanelConfig ? config.toolPanelConfig.suppressColumnExpandAll : false,
+	                toolPanelSuppressSideButtons: toolPanelConfig ? toolPanelConfig.suppressSideButtons : false,
+	                toolPanelSuppressColumnFilter: toolPanelConfig ? toolPanelConfig.suppressColumnFilter : false,
+	                toolPanelSuppressColumnSelectAll: toolPanelConfig ? toolPanelConfig.suppressColumnSelectAll : false,
+	                toolPanelSuppressColumnExpandAll: toolPanelConfig ? toolPanelConfig.suppressColumnExpandAll : false,
 					
 					suppressColumnVirtualisation: false,
 					suppressScrollLag: false,
@@ -407,7 +427,13 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 				var icons = new Object();
 
 				// set the icons
-				var iconConfig = $scope.model;
+				if(iconConfig == null) {
+					iconConfig = {
+						iconGroupExpanded: 'glyphicon glyphicon-minus ag-icon',
+						iconGroupContracted: 'glyphicon glyphicon-plus ag-icon',
+						iconRefreshData: 'glyphicon glyphicon-refresh'
+					};
+				}
 				if (iconConfig.iconGroupExpanded) icons.groupExpanded = getIconElement(iconConfig.iconGroupExpanded);
 				if (iconConfig.iconGroupContracted) icons.groupContracted = getIconElement(iconConfig.iconGroupContracted);
 				if (iconConfig.iconSortAscending) icons.sortAscending = getIconElement(iconConfig.iconSortAscending);

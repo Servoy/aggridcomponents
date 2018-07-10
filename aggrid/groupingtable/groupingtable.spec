@@ -25,18 +25,13 @@
 			"enableColumnMove": { "type": "boolean", "default": true, "tags": {"scope": "design"}},
 			"enableSorting": { "type": "boolean", "default": true, "tags": {"scope": "design"}},
 			"groupUseEntireRow" : {"type": "boolean", "default" : true, "tags" : {"scope": "design"}},
-        	"iconGroupExpanded": { "type": "styleclass", "default" : "glyphicon glyphicon-minus ag-icon", "tags": {"scope": "design"}},
-			"iconGroupContracted": { "type": "styleclass", "default" : "glyphicon glyphicon-plus ag-icon", "tags": {"scope": "design"}},
-			"iconSortAscending": { "type": "styleclass", "tags": {"scope": "design"}},
-			"iconSortDescending": { "type": "styleclass", "tags": {"scope": "design"}},		
-			"iconSortUnSort": { "type": "styleclass", "tags": {"scope": "design"}},
-			"iconRefreshData": { "type": "styleclass", "default" : "glyphicon glyphicon-refresh", "tags": {"scope": "design"}},
 		"tooltipTextRefreshData" : { "type": "tagstring", "default" : "Refresh for latest data !" },
 		"visible": "visible",
 		"hashedFoundsets": { "type": "hashedFoundset[]", "default": [], "tags": {"scope": "private"}, "pushToServer": "shallow"},
 		"hashedColumns": {"type" : "string[]", "default": [], "tags": {"scope": "private"}},
 		"showColumnsMenuTab": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},
-		"toolPanelConfig": { "type": "toolPanelConfig", "tags": { "scope": "design" } }
+		"toolPanelConfig": { "type": "toolPanelConfig", "tags": { "scope": "design" } },
+		"iconConfig": { "type": "iconConfig", "tags": { "scope": "design" } }
 	},
 	"handlers" : {
 		"onCellClick": {
