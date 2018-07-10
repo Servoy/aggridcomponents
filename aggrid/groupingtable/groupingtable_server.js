@@ -109,7 +109,7 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 		
 		// Group pks handle pks
 		for (var pkIndex = 0; pkIndex < pkColumns.length; pkIndex++) {
-			query.result.add(pkColumns[pkIndex].min);
+			query.result.add(pkColumns[pkIndex].cast(QUERY_COLUMN_TYPES.TYPE_TEXT).min);
 		}
 
 
