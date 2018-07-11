@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 CSS-ClientLibs: aggrid/lib/styles/ag-grid-custom.css;name=ag-grid-custom.css;version=1.0.0
 Bundle-SymbolicName: aggrid
 Bundle-Version: 2.0.0 RC1
-Bundle-Name: Servoy NG-Grid
+Bundle-Name: Servoy NG-Grids
 Package-Type: Web-Component
 JS-ClientLibs: aggrid/lib/ag-grid-enterprise.js;name=ag-grid-enterprise;version=17.1.1,https://cdn.rawgit.com/Servoy/aggridcomponents-license/master/dist/ag-grid-enterprise-licensekey.js;name=ag-grid-enterprise-licensekey;version=17.1.1
 
