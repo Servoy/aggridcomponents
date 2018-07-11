@@ -178,7 +178,7 @@
 			"headerGroupStyleClass" : {"type" : "styleclass"},
 			"headerTitle": {"type" : "tagstring"},
 			"headerStyleClass" : {"type" : "styleclass"},
-			"id": { "type": "string"},
+			"dataprovider": { "type": "string"},
 			"styleClass" : {"type" : "styleclass"},
 			"visible":  { "type": "boolean", "default": true},
 			"width":  { "type": "int", "default": 0 },
@@ -197,7 +197,8 @@
 			"cellStyleClassFunc": {"type": "string"},
 			"cellRendererFunc": {"type": "string"},
 			"format": {"type": "tagstring"},
-			"formatType": {"type": "string", "values": ["TEXT", "NUMBER", "DATETIME"], "default": "TEXT"}
+			"formatType": {"type": "string", "values": ["TEXT", "NUMBER", "DATETIME"], "default": "TEXT"},
+			"id": { "type": "string"},
 		},
         "iconConfig" : {
 			"iconMenu": { "type": "styleclass", "tags": {"scope": "design"}},

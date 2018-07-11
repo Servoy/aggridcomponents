@@ -251,8 +251,13 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
                     //create a column definition based on the properties defined at design time
                     colDef = {
                         headerName: "" + (column["headerTitle"] ? column["headerTitle"] : "") + "",
-                        field: column["id"]
+                        field: column["dataprovider"]
                     };
+
+                    // set id if defined
+                    if(column.id) {
+                        colDef.colId = column.id;
+                    }
 
                     // styleClass
                     colDef.headerClass = 'ag-table-header ' + column.headerStyleClass;
@@ -386,7 +391,7 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
             function createColumnCallbackFunctionFromString(functionAsString) {
                 var f = eval(functionAsString);
                 return function(params) {
-                    return f(params.rowIndex, params.data, params.colDef.field, params.value, params.event);
+                    return f(params.rowIndex, params.data, params.colDef.colId != undefined ? params.colDef.colId : params.colDef.field, params.value, params.event);
                 };                
             }
 
@@ -449,7 +454,7 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
 
             function onCellClicked(params) {
             	  if ($scope.handlers.onCellClick && params.data && params.colDef.field) {
-                    $scope.handlers.onCellClick(params.data, params.colDef.field, params.value, params.event);
+                    $scope.handlers.onCellClick(params.data, params.colDef.colId != undefined ? params.colDef.colId : params.colDef.field, params.value, params.event);
                 }
             }
             
