@@ -1,5 +1,5 @@
-angular.module('aggridDatasettable', ['servoy', 'aggridenterpriselicensekey']).directive('aggridDatasettable', ['$sabloConstants', '$log', '$q', '$filter', '$formatterUtils',
-function($sabloConstants, $log, $q, $filter, $formatterUtils) {
+angular.module('aggridDatasettable', ['servoy', 'aggridenterpriselicensekey']).directive('aggridDatasettable', ['$sabloConstants', '$log', '$q', '$filter', '$formatterUtils', '$injector', '$services',
+function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $services) {
     return {
         restrict: 'E',
         scope: {
@@ -13,7 +13,27 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
             var gridDiv = $element.find('.ag-table')[0];
             var columnDefs = getColumnDefs();
 
+            // if aggrid service is present read its defaults
+            var toolPanelConfig = null;
+            var iconConfig = null;
+            if($injector.has('datasettableDefaultConfig')) {
+                var datasettableDefaultConfig = $services.getServiceScope('datasettableDefaultConfig').model;
+                if(datasettableDefaultConfig.toolPanelConfig) {
+                    toolPanelConfig = datasettableDefaultConfig.toolPanelConfig;
+                }
+                if(datasettableDefaultConfig.iconConfig) {
+                    iconConfig = datasettableDefaultConfig.iconConfig;
+                }
+            }
+
             var config = $scope.model;
+
+            if(config.toolPanelConfig) {
+                toolPanelConfig = config.toolPanelConfig;
+            }
+            if(config.iconConfig) {
+                iconConfig = config.iconConfig;
+            }
 
             // AG grid definition
             var gridOptions = {
@@ -48,24 +68,14 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
                 suppressColumnMoveAnimation: true,
                 suppressAnimationFrame: true,
 				
-				// TODO allow configuration
-                toolPanelSuppressRowGroups: false,
-                toolPanelSuppressValues: false,
-                toolPanelSuppressPivots: false,
-                toolPanelSuppressPivotMode: false,
-                toolPanelSuppressSideButtons: config.showToolPanelSideButtons === false ? true : false,
-                toolPanelSuppressColumnFilter: false,
-                toolPanelSuppressColumnSelectAll: false,
-                toolPanelSuppressColumnExpandAll: false,
-
-                toolPanelSuppressRowGroups: config.toolPanelConfig ? config.toolPanelConfig.suppressRowGroups : false,
-                toolPanelSuppressValues: config.toolPanelConfig ? config.toolPanelConfig.suppressValues : false,
-                toolPanelSuppressPivots: config.toolPanelConfig ? config.toolPanelConfig.suppressPivots : false,
-                toolPanelSuppressPivotMode: config.toolPanelConfig ? config.toolPanelConfig.suppressPivotMode : false,
-                toolPanelSuppressSideButtons: config.toolPanelConfig ? config.toolPanelConfig.suppressSideButtons : false,
-                toolPanelSuppressColumnFilter: config.toolPanelConfig ? config.toolPanelConfig.suppressColumnFilter : false,
-                toolPanelSuppressColumnSelectAll: config.toolPanelConfig ? config.toolPanelConfig.suppressColumnSelectAll : false,
-                toolPanelSuppressColumnExpandAll: config.toolPanelConfig ? config.toolPanelConfig.suppressColumnExpandAll : false,
+                toolPanelSuppressRowGroups: toolPanelConfig ? toolPanelConfig.suppressRowGroups : false,
+                toolPanelSuppressValues: toolPanelConfig ? toolPanelConfig.suppressValues : false,
+                toolPanelSuppressPivots: toolPanelConfig ? toolPanelConfig.suppressPivots : false,
+                toolPanelSuppressPivotMode: toolPanelConfig ? toolPanelConfig.suppressPivotMode : false,
+                toolPanelSuppressSideButtons: toolPanelConfig ? toolPanelConfig.suppressSideButtons : false,
+                toolPanelSuppressColumnFilter: toolPanelConfig ? toolPanelConfig.suppressColumnFilter : false,
+                toolPanelSuppressColumnSelectAll: toolPanelConfig ? toolPanelConfig.suppressColumnSelectAll : false,
+                toolPanelSuppressColumnExpandAll: toolPanelConfig ? toolPanelConfig.suppressColumnExpandAll : false,
 
                 rowSelection: $scope.model.multiSelect === true ? 'multiple' : 'single',
                 rowDeselection: false,
@@ -136,7 +146,6 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
             }
 
             // set the icons
-            var iconConfig = $scope.model.iconConfig;
             if(iconConfig) {
                 var icons = new Object();
                 
