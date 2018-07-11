@@ -1,5 +1,5 @@
-angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenterpriselicensekey']).directive('aggridGroupingtable', ['$sabloApplication', '$sabloConstants', '$log', '$q', '$foundsetTypeConstants', '$filter', '$compile', '$formatterUtils', '$sabloConverters', '$injector',
-	function($sabloApplication, $sabloConstants, $log, $q, $foundsetTypeConstants, $filter, $compile, $formatterUtils, $sabloConverters, $injector) {
+angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenterpriselicensekey']).directive('aggridGroupingtable', ['$sabloApplication', '$sabloConstants', '$log', '$q', '$foundsetTypeConstants', '$filter', '$compile', '$formatterUtils', '$sabloConverters', '$injector', '$services',
+	function($sabloApplication, $sabloConstants, $log, $q, $foundsetTypeConstants, $filter, $compile, $formatterUtils, $sabloConverters, $injector, $services) {
 		return {
 			restrict: 'E',
 			scope: {
@@ -285,8 +285,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 				var toolPanelConfig = null;
 				var iconConfig = null;
 				if($injector.has('groupingtableDefaultConfig')) {
-					var groupingtableDefaultConfigService = $injector.get('groupingtableDefaultConfig');
-					var groupingtableDefaultConfig = groupingtableDefaultConfigService.getModel();
+					var groupingtableDefaultConfig = $services.getServiceScope('groupingtableDefaultConfig').model;
 					if(groupingtableDefaultConfig.toolPanelConfig) {
 						toolPanelConfig = groupingtableDefaultConfig.toolPanelConfig;
 					}
