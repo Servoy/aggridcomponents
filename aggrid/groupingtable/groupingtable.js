@@ -3541,6 +3541,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 							savedColumns.push(columnState.columnState[i].colId);
 						}
 						if(savedColumns.length != $scope.model.columns.length) {
+							$log.error('Cannot restore columns state, different number of columns in saved state and component');
 							return;
 						}
 
@@ -3566,6 +3567,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 								}
 							}
 							if(!columnExist) {
+								$log.error('Cannot restore columns state, cant find column from state in component columns');
 								return
 							}
 						}
@@ -3692,6 +3694,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 					$scope.purge();
 				}
 
+				/**
+				 * Restore columns state to a previously save one, using getColumnState.
+				 * If no argument is used, it restores the columns to designe time state.
+				 * If the columns from columnState does not match with the columns of the component,
+				 * no restore will be done.
+				 * 
+				 * @param {String} columnState
+				 */
 				$scope.api.restoreColumnState = function(columnState) {
 					if(columnState) {
 						$scope.model.columnState = columnState;
@@ -3702,6 +3712,12 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 					}
 				}
 
+				/**
+				 * Returns the current state of the columns (width, position, grouping state) as a json string
+				 * that can be used to restore to this state using restoreColumnState
+				 * 
+				 * @return {String}
+				 */
 				$scope.api.getColumnState = function() {
 					return $scope.model.columnState;
 				}

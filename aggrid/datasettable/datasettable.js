@@ -517,6 +517,16 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                 return (!$scope.model.columns || $scope.model.columns.length == 0) && $scope.svyServoyapi.isInDesigner();
             }
 
+            /**
+             * Export data to excel format (xlsx)
+             * 
+             * @param {String} fileName 
+             * @param {Boolean} skipHeader 
+             * @param {Boolean} columnGroups 
+             * @param {Boolean} skipFooters 
+             * @param {Boolean} skipGroups 
+             * @param {Boolean} asCSV 
+             */
             $scope.api.exportData = function(fileName, skipHeader, columnGroups, skipFooters, skipGroups, asCSV) {
                 // set defaults
                 if(fileName == undefined) {
@@ -553,6 +563,12 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                 }
             }
 
+            /**
+             * Restore columns state to a previously save one, using getColumnState.
+             * If no argument is used, it restores the columns to designe time state.
+             * 
+             * @param {String} columnState
+             */            
             $scope.api.restoreColumnState = function(columnState) {
                 if(columnState) {
                     $scope.model.columnState = columnState;
@@ -563,6 +579,11 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                 }
             }
             
+            /**
+             * Gets selected rows data
+             * 
+             * @return {Array<String>}
+             */
             $scope.api.getSelectedRows = function() {
 				var selectedNodes = gridOptions.api.getSelectedNodes();
 				// TODO return the selected Nodes as JSON;

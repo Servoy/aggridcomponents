@@ -1,8 +1,11 @@
 /** 
+ * Adds new column at specified index. Index is 0 based.
+ * 
  * @param {String} id
  * @param {Number} [index] 0-based index
+ * @return {column}
  * 
- * */
+ */
 $scope.api.newColumn = function(id, index) {
     if(!$scope.model.columns) {
         $scope.model.columns = [];
@@ -23,6 +26,11 @@ $scope.api.newColumn = function(id, index) {
     }
 }
 
+/**
+ * Removes column with id
+ * 
+ * @param {String} id 
+ */
 $scope.api.deleteColumn = function(id) {
     if($scope.model.columns) {
         for(var i = 0; i < $scope.model.columns.length; i++) {
@@ -34,14 +42,33 @@ $scope.api.deleteColumn = function(id) {
     }
 }
 
+/**
+ * Returns the current state of the columns (width, position, grouping state) as a json string
+ * that can be used to restore to this state using restoreColumnState
+ * 
+ * @return {String}
+ */
 $scope.api.getColumnState = function() {
 	return $scope.model.columnState;
 }
 
+/**
+ * Returns all the columns
+ * 
+ * @return {Array<column>}
+ */
 $scope.api.getAllColumns = function() {
     return $scope.model.columns;
 }
 
+/**
+ * Gets the column with id. If changes will be made on
+ * the returned column, it should be called with forChange set to true
+ * 
+ * @param {String} id 
+ * @param {Boolean} forChange 
+ * @return {column}
+ */
 $scope.api.getColumn = function(id, forChange) {
     if($scope.model.columns) {
         for(var i = 0; i < $scope.model.columns.length; i++) {
@@ -59,6 +86,13 @@ $scope.api.getColumn = function(id, forChange) {
     return null;
 }
 
+/**
+ * Fills the table with data from a dataset.
+ * The column name from the dataset is used to match on the
+ * component column id
+ * 
+ * @param {JSDataSet} dataset 
+ */
 $scope.api.renderData = function(dataset) {
     $scope.model.data = []
     var rowsCount = dataset.getMaxRowIndex();
@@ -73,6 +107,17 @@ $scope.api.renderData = function(dataset) {
     }     
 }
 
+/**
+ * When useLazyLoading is set, this method is used to append the new rows
+ * to the table from inside the onLazyLoadingGetRows callback.
+ * The new rows are passed using a dataset, lastRowIndex specify the index
+ * of the last row on the server, if not set, the lazy loading will behave 
+ * like an infinite scroll, and onLazyLoadingGetRows called until lastRowIndex
+ * will be set
+ * 
+ * @param {JSDataSet} dataset
+ * @param {Number} lastRowIndex 
+ */
 $scope.api.appendLazyRequestData = function(dataset, lastRowIndex) {
     $scope.model.lastRowIndex = null;
     $scope.api.renderData(dataset);
