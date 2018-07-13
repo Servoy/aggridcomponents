@@ -198,7 +198,7 @@
 			"cellRendererFunc": {"type": "string"},
 			"format": {"type": "tagstring"},
 			"formatType": {"type": "string", "values": ["TEXT", "NUMBER", "DATETIME"], "default": "TEXT"},
-			"id": { "type": "string"},
+			"id": { "type": "string"}
 		},
         "iconConfig" : {
 			"iconMenu": { "type": "styleclass", "tags": {"scope": "design"}},
