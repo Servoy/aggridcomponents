@@ -1,5 +1,5 @@
-angular.module('aggridDatasettable', ['servoy', 'aggridenterpriselicensekey']).directive('aggridDatasettable', ['$sabloConstants', '$log', '$q', '$filter', '$formatterUtils',
-function($sabloConstants, $log, $q, $filter, $formatterUtils) {
+angular.module('aggridDatasettable', ['servoy', 'aggridenterpriselicensekey']).directive('aggridDatasettable', ['$sabloConstants', '$log', '$q', '$filter', '$formatterUtils', '$injector', '$services',
+function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $services) {
     return {
         restrict: 'E',
         scope: {
@@ -13,7 +13,27 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
             var gridDiv = $element.find('.ag-table')[0];
             var columnDefs = getColumnDefs();
 
+            // if aggrid service is present read its defaults
+            var toolPanelConfig = null;
+            var iconConfig = null;
+            if($injector.has('datasettableDefaultConfig')) {
+                var datasettableDefaultConfig = $services.getServiceScope('datasettableDefaultConfig').model;
+                if(datasettableDefaultConfig.toolPanelConfig) {
+                    toolPanelConfig = datasettableDefaultConfig.toolPanelConfig;
+                }
+                if(datasettableDefaultConfig.iconConfig) {
+                    iconConfig = datasettableDefaultConfig.iconConfig;
+                }
+            }
+
             var config = $scope.model;
+
+            if(config.toolPanelConfig) {
+                toolPanelConfig = config.toolPanelConfig;
+            }
+            if(config.iconConfig) {
+                iconConfig = config.iconConfig;
+            }
 
             // AG grid definition
             var gridOptions = {
@@ -48,24 +68,14 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
                 suppressColumnMoveAnimation: true,
                 suppressAnimationFrame: true,
 				
-				// TODO allow configuration
-                toolPanelSuppressRowGroups: false,
-                toolPanelSuppressValues: false,
-                toolPanelSuppressPivots: false,
-                toolPanelSuppressPivotMode: false,
-                toolPanelSuppressSideButtons: config.showToolPanelSideButtons === false ? true : false,
-                toolPanelSuppressColumnFilter: false,
-                toolPanelSuppressColumnSelectAll: false,
-                toolPanelSuppressColumnExpandAll: false,
-
-                toolPanelSuppressRowGroups: config.toolPanelConfig ? config.toolPanelConfig.suppressRowGroups : false,
-                toolPanelSuppressValues: config.toolPanelConfig ? config.toolPanelConfig.suppressValues : false,
-                toolPanelSuppressPivots: config.toolPanelConfig ? config.toolPanelConfig.suppressPivots : false,
-                toolPanelSuppressPivotMode: config.toolPanelConfig ? config.toolPanelConfig.suppressPivotMode : false,
-                toolPanelSuppressSideButtons: config.toolPanelConfig ? config.toolPanelConfig.suppressSideButtons : false,
-                toolPanelSuppressColumnFilter: config.toolPanelConfig ? config.toolPanelConfig.suppressColumnFilter : false,
-                toolPanelSuppressColumnSelectAll: config.toolPanelConfig ? config.toolPanelConfig.suppressColumnSelectAll : false,
-                toolPanelSuppressColumnExpandAll: config.toolPanelConfig ? config.toolPanelConfig.suppressColumnExpandAll : false,
+                toolPanelSuppressRowGroups: toolPanelConfig ? toolPanelConfig.suppressRowGroups : false,
+                toolPanelSuppressValues: toolPanelConfig ? toolPanelConfig.suppressValues : false,
+                toolPanelSuppressPivots: toolPanelConfig ? toolPanelConfig.suppressPivots : false,
+                toolPanelSuppressPivotMode: toolPanelConfig ? toolPanelConfig.suppressPivotMode : false,
+                toolPanelSuppressSideButtons: toolPanelConfig ? toolPanelConfig.suppressSideButtons : false,
+                toolPanelSuppressColumnFilter: toolPanelConfig ? toolPanelConfig.suppressColumnFilter : false,
+                toolPanelSuppressColumnSelectAll: toolPanelConfig ? toolPanelConfig.suppressColumnSelectAll : false,
+                toolPanelSuppressColumnExpandAll: toolPanelConfig ? toolPanelConfig.suppressColumnExpandAll : false,
 
                 rowSelection: $scope.model.multiSelect === true ? 'multiple' : 'single',
                 rowDeselection: false,
@@ -136,7 +146,6 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
             }
 
             // set the icons
-            var iconConfig = $scope.model.iconConfig;
             if(iconConfig) {
                 var icons = new Object();
                 
@@ -251,8 +260,13 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
                     //create a column definition based on the properties defined at design time
                     colDef = {
                         headerName: "" + (column["headerTitle"] ? column["headerTitle"] : "") + "",
-                        field: column["id"]
+                        field: column["dataprovider"]
                     };
+
+                    // set id if defined
+                    if(column.id) {
+                        colDef.colId = column.id;
+                    }
 
                     // styleClass
                     colDef.headerClass = 'ag-table-header ' + column.headerStyleClass;
@@ -386,7 +400,7 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
             function createColumnCallbackFunctionFromString(functionAsString) {
                 var f = eval(functionAsString);
                 return function(params) {
-                    return f(params.rowIndex, params.data, params.colDef.field, params.value, params.event);
+                    return f(params.rowIndex, params.data, params.colDef.colId != undefined ? params.colDef.colId : params.colDef.field, params.value, params.event);
                 };                
             }
 
@@ -449,7 +463,7 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
 
             function onCellClicked(params) {
             	  if ($scope.handlers.onCellClick && params.data && params.colDef.field) {
-                    $scope.handlers.onCellClick(params.data, params.colDef.field, params.value, params.event);
+                    $scope.handlers.onCellClick(params.data, params.colDef.colId != undefined ? params.colDef.colId : params.colDef.field, params.value, params.event);
                 }
             }
             
@@ -503,6 +517,16 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
                 return (!$scope.model.columns || $scope.model.columns.length == 0) && $scope.svyServoyapi.isInDesigner();
             }
 
+            /**
+             * Export data to excel format (xlsx)
+             * 
+             * @param {String} fileName 
+             * @param {Boolean} skipHeader 
+             * @param {Boolean} columnGroups 
+             * @param {Boolean} skipFooters 
+             * @param {Boolean} skipGroups 
+             * @param {Boolean} asCSV 
+             */
             $scope.api.exportData = function(fileName, skipHeader, columnGroups, skipFooters, skipGroups, asCSV) {
                 // set defaults
                 if(fileName == undefined) {
@@ -539,6 +563,12 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
                 }
             }
 
+            /**
+             * Restore columns state to a previously save one, using getColumnState.
+             * If no argument is used, it restores the columns to designe time state.
+             * 
+             * @param {String} columnState
+             */            
             $scope.api.restoreColumnState = function(columnState) {
                 if(columnState) {
                     $scope.model.columnState = columnState;
@@ -549,6 +579,11 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils) {
                 }
             }
             
+            /**
+             * Gets selected rows data
+             * 
+             * @return {Array<String>}
+             */
             $scope.api.getSelectedRows = function() {
 				var selectedNodes = gridOptions.api.getSelectedNodes();
 				// TODO return the selected Nodes as JSON;
