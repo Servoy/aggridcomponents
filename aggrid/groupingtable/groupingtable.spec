@@ -258,11 +258,49 @@
         	"groupUseEntireRow" : {"type": "boolean", "default" : true, "tags" : {"scope": "design"}}
         },
         "iconConfig" : {
-        	"iconGroupExpanded": { "type": "styleclass", "default" : "glyphicon glyphicon-minus ag-icon", "tags": {"scope": "design"}},
-			"iconGroupContracted": { "type": "styleclass", "default" : "glyphicon glyphicon-plus ag-icon", "tags": {"scope": "design"}},
+			"iconMenu": { "type": "styleclass", "tags": {"scope": "design"}},
+			"iconFilter": { "type": "styleclass", "tags": {"scope": "design"}},
+			"iconColumns": { "type": "styleclass", "tags": {"scope": "design"}},
 			"iconSortAscending": { "type": "styleclass", "tags": {"scope": "design"}},
-			"iconSortDescending": { "type": "styleclass", "tags": {"scope": "design"}},		
+			"iconSortDescending": { "type": "styleclass", "tags": {"scope": "design"}},
 			"iconSortUnSort": { "type": "styleclass", "tags": {"scope": "design"}},
+			
+			"iconGroupExpanded": { "type": "styleclass", "default" : "glyphicon glyphicon-minus ag-icon", "tags": {"scope": "design"}},
+			"iconGroupContracted": { "type": "styleclass", "default" : "glyphicon glyphicon-plus ag-icon", "tags": {"scope": "design"}},
+			"iconColumnGroupOpened": { "type": "styleclass", "tags": {"scope": "design"}},
+			"iconColumnGroupClosed": { "type": "styleclass", "tags": {"scope": "design"}},
+			"iconColumnSelectOpen": { "type": "styleclass", "tags": {"scope": "design"}},
+			"iconColumnSelectClosed": { "type": "styleclass", "tags": {"scope": "design"}},
+			
+			"iconCheckboxChecked": { "type": "styleclass", "tags": {"scope": "design"}},
+			"iconCheckboxUnchecked": { "type": "styleclass", "tags": {"scope": "design"}},
+			"iconCheckboxIndeterminate": { "type": "styleclass", "tags": {"scope": "design"}},
+			"iconCheckboxCheckedReadOnly": { "type": "styleclass", "tags": {"scope": "design"}},
+			"iconCheckboxUncheckedReadOnly": { "type": "styleclass", "tags": {"scope": "design"}},
+			"iconCheckboxIndeterminateReadOnly": { "type": "styleclass", "tags": {"scope": "design"}},
+			
+			"iconColumnMovePin": { "type": "styleclass", "tags": {"scope": "design"}},
+			"iconColumnMoveAdd": { "type": "styleclass", "tags": {"scope": "design"}},
+			"iconColumnMoveHide": { "type": "styleclass", "tags": {"scope": "design"}},
+			"iconColumnMoveMove": { "type": "styleclass", "tags": {"scope": "design"}},
+			"iconColumnMoveLeft": { "type": "styleclass", "tags": {"scope": "design"}},
+			"iconColumnMoveRight": { "type": "styleclass", "tags": {"scope": "design"}},
+			"iconColumnMoveGroup": { "type": "styleclass", "tags": {"scope": "design"}},
+			"iconColumnMoveValue": { "type": "styleclass", "tags": {"scope": "design"}},
+			"iconColumnMovePivot": { "type": "styleclass", "tags": {"scope": "design"}},
+			"iconDropNotAllowed": { "type": "styleclass", "tags": {"scope": "design"}},
+			
+			"iconMenuPin": { "type": "styleclass", "tags": {"scope": "design"}},
+			"iconMenuValue": { "type": "styleclass", "tags": {"scope": "design"}},
+			"iconMenuAddRowGroup": { "type": "styleclass", "tags": {"scope": "design"}},
+			"iconMenuRemoveRowGroup": { "type": "styleclass", "tags": {"scope": "design"}},
+			"iconClipboardCopy": { "type": "styleclass", "tags": {"scope": "design"}},
+			"iconClipboardPaste": { "type": "styleclass", "tags": {"scope": "design"}},
+			
+			"iconRowGroupPanel": { "type": "styleclass", "tags": {"scope": "design"}},
+			"iconPivotPanel": { "type": "styleclass", "tags": {"scope": "design"}},
+			"iconValuePanel": { "type": "styleclass", "tags": {"scope": "design"}},
+			
 			"iconRefreshData": { "type": "styleclass", "default" : "glyphicon glyphicon-refresh", "tags": {"scope": "design"}}
         },
 		"toolPanelConfig" : {

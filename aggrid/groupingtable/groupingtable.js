@@ -426,21 +426,29 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 				var icons = new Object();
 
 				// set the icons
-				if(iconConfig == null) {
+				if (iconConfig == null) {
+					// set the default icons
 					iconConfig = {
 						iconGroupExpanded: 'glyphicon glyphicon-minus ag-icon',
 						iconGroupContracted: 'glyphicon glyphicon-plus ag-icon',
 						iconRefreshData: 'glyphicon glyphicon-refresh'
 					};
 				}
-				if (iconConfig.iconGroupExpanded) icons.groupExpanded = getIconElement(iconConfig.iconGroupExpanded);
-				if (iconConfig.iconGroupContracted) icons.groupContracted = getIconElement(iconConfig.iconGroupContracted);
-				if (iconConfig.iconSortAscending) icons.sortAscending = getIconElement(iconConfig.iconSortAscending);
-				if (iconConfig.iconSortDescending) icons.sortDescending = getIconElement(iconConfig.iconSortDescending);
-				if (iconConfig.iconSortUnSort) icons.sortUnSort = getIconElement(iconConfig.iconSortUnSort);
 
-				gridOptions.icons = icons;
-
+				// set all custom icons
+	            if (iconConfig) {
+	                var icons = new Object();
+	                
+	                for (var iconName in iconConfig) {
+	                	if (iconName == "iconRefreshData") continue;
+	                	
+	                	var aggridIcon = iconName.slice(4);
+	                	aggridIcon = aggridIcon[0].toLowerCase() + aggridIcon.slice(1);
+	                	icons[aggridIcon] = getIconElement(iconConfig[iconName]);
+	                }
+	                gridOptions.icons = icons
+	            }
+				
 				// set a fixed height if is in designer
 				setHeight();
 
