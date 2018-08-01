@@ -31,7 +31,8 @@
 		"hashedColumns": {"type" : "string[]", "default": [], "tags": {"scope": "private"}},
 		"showColumnsMenuTab": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},
 		"toolPanelConfig": { "type": "toolPanelConfig", "tags": { "scope": "design" } },
-		"iconConfig": { "type": "iconConfig", "tags": { "scope": "design" } }
+		"iconConfig": { "type": "iconConfig", "tags": { "scope": "design" } },
+		"gridOptions": {"type": "map"}
 	},
 	"handlers" : {
 		"onCellClick": {
