@@ -504,6 +504,7 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
 
             function restoreColumnsState() {
                 if($scope.model.columnState) {
+                    // TODO: add checks if restore can't be done, and return false
                     var columnState = JSON.parse($scope.model.columnState);
                     gridOptions.columnApi.setColumnState(columnState.columnState);
                     gridOptions.columnApi.setColumnGroupState(columnState.rowGroupColumnsState);
@@ -511,6 +512,7 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                     gridOptions.api.setFilterModel(columnState.filterState);
                     gridOptions.api.setSortModel(columnState.sortingState);
                 }
+                return true;
             }
 
             $scope.showEditorHint = function() {
@@ -572,10 +574,11 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
             $scope.api.restoreColumnState = function(columnState) {
                 if(columnState) {
                     $scope.model.columnState = columnState;
-                    restoreColumnsState();
+                    return restoreColumnsState();
                 }
                 else {
                     gridOptions.columnApi.resetColumnState();
+                    return true;
                 }
             }
             

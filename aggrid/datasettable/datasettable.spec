@@ -163,7 +163,8 @@
 		"restoreColumnState" : {
 			"parameters": [
 				{ "name": "columnState", "type": "string", "optional": true}
-			]
+			],
+			"returns": "boolean"
 		},
 		"appendLazyRequestData": {
 			"parameters": [

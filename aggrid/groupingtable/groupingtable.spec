@@ -135,7 +135,8 @@
 		"restoreColumnState" : {
 			"parameters": [
 				{ "name": "columnState", "type": "string", "optional": true}
-			]
+			],
+			"returns": "boolean"
 		},
 		"getColumnsCount": {
 	        "returns": "int"

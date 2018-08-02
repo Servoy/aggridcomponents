@@ -3567,7 +3567,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 						}
 						if(savedColumns.length != $scope.model.columns.length) {
 							$log.error('Cannot restore columns state, different number of columns in saved state and component');
-							return;
+							return false;
 						}
 
 						for(var i = 0; i < savedColumns.length; i++) {
@@ -3593,7 +3593,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 							}
 							if(!columnExist) {
 								$log.error('Cannot restore columns state, cant find column from state in component columns');
-								return
+								return false;
 							}
 						}
 
@@ -3604,6 +3604,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 						if(columnState.rowGroupColumnsState.length > 0) {
 							gridOptions.columnApi.setRowGroupColumns(columnState.rowGroupColumnsState);
 						}
+
+						return true;
 					}
 				}
 
@@ -3730,10 +3732,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 				$scope.api.restoreColumnState = function(columnState) {
 					if(columnState) {
 						$scope.model.columnState = columnState;
-						restoreColumnsState();
+						return restoreColumnsState();
 					}
 					else {
 						gridOptions.columnApi.resetColumnState();
+						return true;
 					}
 				}
 
