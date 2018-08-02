@@ -3241,7 +3241,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 							}
 						}
 
-						colDef.lockVisible = true;
 						colDefs.push(colDef);
 					}
 
