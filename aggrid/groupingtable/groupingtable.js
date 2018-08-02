@@ -3428,7 +3428,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 				 * */
 				function getColumnID(column, idx) {
 					if (column.dataprovider) {
-						return column.dataprovider.idForFoundset;
+						return column.dataprovider.idForFoundset + ':' + idx;
 					} else {
 						return "col_" + idx;
 					}
