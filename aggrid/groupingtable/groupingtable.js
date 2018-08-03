@@ -456,16 +456,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 				if ($scope.model.gridOptions) {
 					for (var property in $scope.model.gridOptions) {
 						if ($scope.model.gridOptions.hasOwnProperty(property)) {
-							var v = $scope.model.gridOptions[property];
-							if(v.length > 1 && v[0] == "'" && v[v.length - 1] == "'") {
-								// it is a string
-								v = v.substring(1, v.length - 1);
-							}
-							else {
-								// it is a number
-								v = Number(v);
-							}
-							gridOptions[property] = v;
+							gridOptions[property] = $scope.model.gridOptions[property];
 						}
 					}
 				}
