@@ -1715,8 +1715,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 						"headerStyleClass",
 						"headerTooltip",
 						"styleClass",
-						"styleClassDataprovider",
-						"format",
 						"visible",
 						"width",
 						"minWidth",
@@ -1734,13 +1732,17 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 						for( var j = 0; j < columnKeysToWatch.length; j++) {
 							var columnWatch = $scope.$watch("model.columns[" + i + "]['" + columnKeysToWatch[j] + "']",
 								function(newValue, oldValue) {
-									$log.debug('column property changed');
-									gridOptions.api.setColumnDefs(getColumnDefs());
+									if(newValue != oldValue) {
+										$log.debug('column property changed');
+										gridOptions.api.setColumnDefs(getColumnDefs());
+									}
 								});
 							columnWatches.push(columnWatch);
 						}
 					}
-					gridOptions.api.setColumnDefs(getColumnDefs());
+					if(newValue != oldValue) {
+						gridOptions.api.setColumnDefs(getColumnDefs());
+					}
 				});
 
 				/**************************************************************************************************
