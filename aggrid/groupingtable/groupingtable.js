@@ -1205,17 +1205,50 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 						}
 						this.initialDisplayValue = v;
 
+						var thisEditor = this;
 						this.keyDownListener = function (event) {
-							var isNavigationKey = event.keyCode === 37 || event.keyCode === 39;
-							if (isNavigationKey) {
+							var isNavigationLeftRightKey = event.keyCode === 37 || event.keyCode === 39;
+							var isNavigationUpDownEntertKey = event.keyCode === 38 || event.keyCode === 40 || event.keyCode === 13;
+
+							if (isNavigationLeftRightKey || isNavigationUpDownEntertKey) {
+
+								if(isNavigationUpDownEntertKey && (thisEditor.editType == 'TEXTFIELD')) {
+									var newRowIndex = -1;
+									if( event.keyCode == 38) { // UP
+										newRowIndex = thisEditor.params.rowIndex - 1;
+									}
+									else if (event.keyCode == 13 || event.keyCode == 40) { // ENTER/DOWN
+										newRowIndex = thisEditor.params.rowIndex + 1;
+										if( newRowIndex >= gridOptions.api.getModel().getRowCount()) {
+											newRowIndex = -1;
+										}
+									}
+									gridOptions.api.stopEditing();
+									if (newRowIndex > -1) {
+
+										gridOptions.api.forEachNode( function(node) {
+											if (node.rowIndex === newRowIndex) {
+												node.setSelected(true);
+											}
+										});
+
+										gridOptions.api.startEditingCell({
+											rowIndex: newRowIndex,
+											colKey: thisEditor.params.column.colId
+										});
+									}
+									event.preventDefault();
+								}
 								event.stopPropagation();
 							}
 						};
 						this.eInput.addEventListener('keydown', this.keyDownListener);
 
-						var thisEditor = this;
 						this.keyPressListener = function (event) {
-							if($formatterUtils.testForNumbersOnly && thisEditor.format) {
+							var isNavigationLeftRightKey = event.keyCode === 37 || event.keyCode === 39;
+							var isNavigationUpDownEntertKey = event.keyCode === 38 || event.keyCode === 40 || event.keyCode === 13;
+							
+							if(!(isNavigationLeftRightKey || isNavigationUpDownEntertKey) && $formatterUtils.testForNumbersOnly && thisEditor.format) {
 								return $formatterUtils.testForNumbersOnly(event, null, thisEditor.eInput, false, true, thisEditor.format);
 							}
 							else return true;
