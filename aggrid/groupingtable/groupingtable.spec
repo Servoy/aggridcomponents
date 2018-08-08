@@ -32,7 +32,8 @@
 		"showColumnsMenuTab": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},
 		"toolPanelConfig": { "type": "toolPanelConfig", "tags": { "scope": "design" } },
 		"iconConfig": { "type": "iconConfig", "tags": { "scope": "design" } },
-		"gridOptions": {"type": "map"}
+		"gridOptions": {"type": "map"},
+		"localeText": {"type": "map"}
 	},
 	"handlers" : {
 		"onCellClick": {

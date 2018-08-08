@@ -452,6 +452,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 				// set a fixed height if is in designer
 				setHeight();
 
+				// locale text
+				if ($scope.model.localeText) {
+					gridOptions['localeText'] = $scope.model.localeText; 
+				}
+
 				// fill raw grid options properties
 				if ($scope.model.gridOptions) {
 					for (var property in $scope.model.gridOptions) {

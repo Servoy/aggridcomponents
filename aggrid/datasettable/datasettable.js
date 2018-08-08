@@ -167,6 +167,20 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
 
             setHeight();
 
+            // locale text
+            if ($scope.model.localeText) {
+                gridOptions['localeText'] = $scope.model.localeText; 
+            }
+
+            // fill raw grid options properties
+            if ($scope.model.gridOptions) {
+                for (var property in $scope.model.gridOptions) {
+                    if ($scope.model.gridOptions.hasOwnProperty(property)) {
+                        gridOptions[property] = $scope.model.gridOptions[property];
+                    }
+                }
+            }
+
             // init the grid. If is in designer render a mocked grid
             if ($scope.svyServoyapi.isInDesigner()) {
                 
