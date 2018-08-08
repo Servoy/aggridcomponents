@@ -16,6 +16,8 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
             // if aggrid service is present read its defaults
             var toolPanelConfig = null;
             var iconConfig = null;
+            var userGridOptions = null;
+            var localeText = null;
             if($injector.has('datasettableDefaultConfig')) {
                 var datasettableDefaultConfig = $services.getServiceScope('datasettableDefaultConfig').model;
                 if(datasettableDefaultConfig.toolPanelConfig) {
@@ -23,6 +25,12 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                 }
                 if(datasettableDefaultConfig.iconConfig) {
                     iconConfig = datasettableDefaultConfig.iconConfig;
+                }
+                if(datasettableDefaultConfig.gridOptions) {
+                    userGridOptions = datasettableDefaultConfig.gridOptions;
+                }                
+                if(datasettableDefaultConfig.localeText) {
+                    localeText = datasettableDefaultConfig.localeText;
                 }
             }
 
@@ -33,6 +41,12 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
             }
             if(config.iconConfig) {
                 iconConfig = config.iconConfig;
+            }
+            if(config.gridOptions) {
+                userGridOptions = config.gridOptions; 
+            }
+            if(config.localeText) {
+                localeText = config.localeText;
             }
 
             // AG grid definition
@@ -168,15 +182,15 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
             setHeight();
 
             // locale text
-            if ($scope.model.localeText) {
-                gridOptions['localeText'] = $scope.model.localeText; 
+            if (localeText) {
+                gridOptions['localeText'] = localeText; 
             }
 
-            // fill raw grid options properties
-            if ($scope.model.gridOptions) {
-                for (var property in $scope.model.gridOptions) {
-                    if ($scope.model.gridOptions.hasOwnProperty(property)) {
-                        gridOptions[property] = $scope.model.gridOptions[property];
+            // fill user grid options properties
+            if (userGridOptions) {
+                for (var property in userGridOptions) {
+                    if (userGridOptions.hasOwnProperty(property)) {
+                        gridOptions[property] = userGridOptions[property];
                     }
                 }
             }
