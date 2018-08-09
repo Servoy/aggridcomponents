@@ -232,7 +232,7 @@
 			"headerTitle": {"type" : "tagstring"},
 			"headerStyleClass" : {"type" : "styleclass"},
 			"headerTooltip" : {"type" : "tagstring"},
-			"dataprovider": { "type": "dataprovider", "forFoundset": "myFoundset", "resolveValuelist" : true, "tags": {"scope": "design"}},
+			"dataprovider": { "type": "dataprovider", "forFoundset": "myFoundset", "resolveValuelist" : true},
 			"styleClass" : {"type" : "styleclass"},
 			"styleClassDataprovider": { "type": "dataprovider", "forFoundset": "myFoundset", "tags": {"scope": "design"}},
 			"format" : {"type" : "format",  "for": ["valuelist", "dataprovider"], "tags": {"scope": "design"}},
