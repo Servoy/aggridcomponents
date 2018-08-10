@@ -251,7 +251,8 @@
 			"autoResize" : {"type": "boolean", "default" : true},
 			"rowGroupIndex":  {"type": "int", "default": -1},
 			"editType": {"type": "string", "values": ["NONE", "TEXTFIELD", "DATEPICKER", "COMBOBOX", "TYPEAHEAD"], "default": "NONE"},
-			"id": {"type" : "string"}
+			"id": {"type" : "string"},
+			"columnDef": {"type" : "map"}
 		},
 		 "hashedFoundset" : {
             "foundset": "foundset",

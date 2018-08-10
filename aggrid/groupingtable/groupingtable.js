@@ -3249,6 +3249,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 							}
 						}
 
+						if(column.columnDef) {
+							for (var property in column.columnDef) {
+								if (column.columnDef.hasOwnProperty(property)) {
+									colDef[property] = column.columnDef[property];
+								}
+							}
+						}
+
 						colDefs.push(colDef);
 					}
 
