@@ -21,10 +21,10 @@
 		"rowHeight" : {"type" : "int", "default": 25, "tags": {"scope": "design"}},
 		"rowStyleClassDataprovider": { "type": "dataprovider", "forFoundset": "myFoundset" },
 		"styleClass": { "type": "styleclass", "default" : "ag-bootstrap"},
-			"enableColumnResize": { "type": "boolean", "default": true, "tags": {"scope": "design"}},
-			"enableColumnMove": { "type": "boolean", "default": true, "tags": {"scope": "design"}},
-			"enableSorting": { "type": "boolean", "default": true, "tags": {"scope": "design"}},
-			"groupUseEntireRow" : {"type": "boolean", "default" : true, "tags" : {"scope": "design"}},
+		"enableColumnResize": { "type": "boolean", "default": true, "tags": {"scope": "design"}},
+		"enableColumnMove": { "type": "boolean", "default": true, "tags": {"scope": "design"}},
+		"enableSorting": { "type": "boolean", "default": true, "tags": {"scope": "design"}},
+		"groupUseEntireRow" : {"type": "boolean", "default" : true, "tags" : {"scope": "design"}},
 		"tooltipTextRefreshData" : { "type": "tagstring", "default" : "Refresh for latest data !" },
 		"visible": "visible",
 		"hashedFoundsets": { "type": "hashedFoundset[]", "default": [], "tags": {"scope": "private"}, "pushToServer": "shallow"},
@@ -169,7 +169,10 @@
 	    },
 	    "removeAllColumns": {
 	        "returns": "boolean"
-	    }
+	    },
+		"getGroupedSelection": {
+			"returns": "record[]"
+		}
     },
 	"internalApi" : {
 		"getGroupedFoundsetUUID" : {

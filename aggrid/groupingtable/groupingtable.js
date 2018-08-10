@@ -351,7 +351,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 					suppressColumnMoveAnimation: true,
 					suppressAnimationFrame: true,
 
-					rowSelection: 'single',
+					rowSelection: $scope.model.myFoundset && ($scope.model.myFoundset.multiSelect === true) ? 'multiple' : 'single',
 					rowDeselection: false,
 					suppressRowClickSelection: rowGroupColsDefault.length === 0 ? false : true,
 					suppressCellSelection: true, // TODO implement focus lost/gained
@@ -550,52 +550,28 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 				 *
 				 * */
 				function onSelectionChanged(event) {
-
 					// Don't trigger foundset selection if table is grouping
 					if (isTableGrouped()) {
 						return;
 					}
 
-					// FIXME this works only if node is available on the root foundset
-					// TODO what to do if the record is selected from a child foundset ?
 					var selectedNodes = gridOptions.api.getSelectedNodes();
-					if (selectedNodes.length > 1) {
-						// TODO enable multi selection
-						$log.warn("Multiselection is not enabled yet")
-					}
-					var node = selectedNodes[0];
-					if (node) {
-						var row = node.data;
-						// search for id in foundset. It Fails because of cache issues
-						var foundsetIndex;
-						if (isTableGrouped()) {
-							// TODO search for grouped record in grouped foundset (may not work because of caching issues);
-							$log.warn('select grouped record not supported yet')
-						} else {
-							foundsetIndex = node.rowIndex;
-						}
-						var record;
-						if (foundsetIndex > -1) {
-							foundset.foundset.requestSelectionUpdate([foundsetIndex]);
-							record = foundset.foundset.viewPort.rows[foundsetIndex - foundset.foundset.viewPort.startIndex];
+					if (selectedNodes.length > 0) {
+						var foundsetIndexes = new Array();
 
-							// onRecordSelected handler
-							if ($scope.handlers.onRecordSelected) {
-								// FIXME cannot resolve the record when grouped, how can i rebuild the record ?
-								// Can i pass in the array ok pks ? do i know the pks ?
-								// Can i get the hasmap of columns to get the proper dataProviderID name ?
-								$scope.handlers.onRecordSelected(foundsetIndex + 1, record, createJSEvent());
-							}
-						} else {
-							$log.warn('could not find record ' + row._svyRowId);
+						for(var i = 0; i < selectedNodes.length; i++) {
+							var node = selectedNodes[i];
+							if(node) foundsetIndexes.push(node.rowIndex);				
+						}
+						if(foundsetIndexes.length > 0) {
+							foundset.foundset.requestSelectionUpdate(foundsetIndexes);
+							return;
 						}
 
-					} else {
-						// This is a workaround to prevent record deselection when the space key is pressed
-						// this state is possible when the selected record is not in the visible viewPort
-						$log.debug("table must always have a selected record");
-						selectedRowIndexesChanged();
 					}
+					$log.debug("table must always have a selected record");
+					selectedRowIndexesChanged();
+
 				}
 				/**
 				 * On ClickEvent
@@ -853,7 +829,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 							// set selected cell on current cell + 1
 							gridOptions.api.forEachNode( function(node) {
 								if (previousCell.rowIndex + 1 === node.rowIndex) {
-									node.setSelected(true);
+									node.setSelected(true, true);
 								}
 							});
 							return suggestedNextCell;
@@ -862,7 +838,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 							// set selected cell on current cell - 1
 							gridOptions.api.forEachNode( function(node) {
 								if (previousCell.rowIndex - 1 === node.rowIndex) {
-									node.setSelected(true);
+									node.setSelected(true, true);
 								}
 							});
 							return suggestedNextCell;
@@ -885,9 +861,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 					var i;
 					var column;
 					$log.debug(event);
-
-					// enable or disable the selection
-					enableRowSelection(!rowGroupCols || rowGroupCols.length === 0);
 
 					// store in columns the change
 					if (!rowGroupCols || rowGroupCols.length === 0) {
@@ -1247,7 +1220,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 
 										gridOptions.api.forEachNode( function(node) {
 											if (node.rowIndex === newRowIndex) {
-												node.setSelected(true);
+												node.setSelected(true, true);
 											}
 										});
 
@@ -2981,52 +2954,42 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 					// FIXME can't select the record when is not in viewPort. Need to synchornize with viewPort record selection
 					$log.debug(' - 2.1 Request selection changes');
 
+					// clear selection
+					var selectedNodes = gridOptions.api.getSelectedNodes();
+					for (var i = 0; i < selectedNodes.length; i++) {
+						selectedNodes[i].setSelected(false);
+					}
 					// Disable selection when table is grouped
 					if (isTableGrouped()) {
-						var selectedNodes = gridOptions.api.getSelectedNodes();
-						for (var i = 0; i < selectedNodes.length; i++) {
-							selectedNodes[i].setSelected(false);
-						}
 						return;
 					}
 
 					// CHANGE Seleciton
-					// TODO implement multiselect
 					if (!foundsetManager) {
 						foundsetManager = foundset;
 					}
 
-					var rowIndex = foundsetManager.foundset.selectedRowIndexes[0] - foundsetManager.foundset.viewPort.startIndex;
+					for(var i = 0; i < foundsetManager.foundset.selectedRowIndexes.length; i++) {
 
-					// find rowid
-					if (rowIndex > -1 && foundsetManager.foundset.viewPort.rows[rowIndex]) {
-						//rowIndex >= foundsetManager.foundset.viewPort.startIndex && rowIndex <= foundsetManager.foundset.viewPort.size + foundsetManager.foundset.viewPort.startIndex) {
-						if (!foundsetManager.foundset.viewPort.rows[rowIndex]) {
-							$log.error('how is possible there is no rowIndex ' + rowIndex + ' on viewPort size ' + foundsetManager.foundset.viewPort.rows.length);
-							// TODO deselect node
-							return;
-						}
+						var rowIndex = foundsetManager.foundset.selectedRowIndexes[i] - foundsetManager.foundset.viewPort.startIndex;
+						// find rowid
+						if (rowIndex > -1 && foundsetManager.foundset.viewPort.rows[rowIndex]) {
+							//rowIndex >= foundsetManager.foundset.viewPort.startIndex && rowIndex <= foundsetManager.foundset.viewPort.size + foundsetManager.foundset.viewPort.startIndex) {
+							if (!foundsetManager.foundset.viewPort.rows[rowIndex]) {
+								$log.error('how is possible there is no rowIndex ' + rowIndex + ' on viewPort size ' + foundsetManager.foundset.viewPort.rows.length);
+								// TODO deselect node
+								continue;
+							}
 
-						var rowId = foundsetManager.foundset.viewPort.rows[rowIndex]._svyRowId;
-						var node = getTableRow(rowId);
-						if (node) {
-							node.setSelected(true, true);
-						}
-					} else {
-						// TODO selected record is not in viewPort: how to render it ?
-						// deselect existing node
-						var selectedNodes = gridOptions.api.getSelectedNodes();
-						$log.debug(selectedNodes);
-						if (selectedNodes.length > 1) {
-							// TODO enable multi selection
-							$log.warn("Multiselection is not enabled yet")
-						}
-						var node = selectedNodes[0];
-						if (node) {
-							node.setSelected(false);
+							var rowId = foundsetManager.foundset.viewPort.rows[rowIndex]._svyRowId;
+							var node = getTableRow(rowId);
+							if (node) {
+								node.setSelected(true);
+							}
+						} else {
+							// TODO selected record is not in viewPort: how to render it ?
 						}
 					}
-
 				}
 
 				/**
@@ -3793,6 +3756,24 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 				 */
 				$scope.api.getColumnState = function() {
 					return $scope.model.columnState;
+				}
+
+				/**
+				 * Returns the selected rows when in grouping mode
+				 */
+				$scope.api.getGroupedSelection = function() {
+					var groupedSelection = null;
+					if(isTableGrouped()) {
+						groupedSelection = new Array();
+						var selectedNodes = gridOptions.api.getSelectedNodes();
+						for(var i = 0; i < selectedNodes.length; i++) {
+							var node = selectedNodes[i];
+							if(node) {
+								groupedSelection.push({ foundsetId: node.data._svyFoundsetUUID, _svyRowId: node.data._svyRowId });
+							}
+						}
+					}
+					return groupedSelection;
 				}
 
 				// FIXME how to force re-fit when table is shown for the first time
