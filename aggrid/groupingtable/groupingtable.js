@@ -564,7 +564,19 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 							if(node) foundsetIndexes.push(node.rowIndex);				
 						}
 						if(foundsetIndexes.length > 0) {
-							foundset.foundset.requestSelectionUpdate(foundsetIndexes);
+							foundset.foundset.requestSelectionUpdate(foundsetIndexes).then(
+								function(serverRows){
+									//success
+								},
+								function(serverRows){
+									//canceled 
+									if (typeof serverRows === 'string'){
+										return;
+									}
+									//reject
+									selectedRowIndexesChanged();
+								}
+							);
 							return;
 						}
 
@@ -3045,24 +3057,28 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 						return;
 					}
 					
+					var needPurge = false;
 					for (var i = 0; i < rowUpdates.length; i++) {
 						var rowUpdate = rowUpdates[i];
 						switch (rowUpdate.type) {
 						case $foundsetTypeConstants.ROWS_CHANGED:
-							//							for (var j = rowUpdate.startIndex; j <= rowUpdate.endIndex; j++) {
-							//								updateRow(j);
-							//							}
+							for (var j = rowUpdate.startIndex; j <= rowUpdate.endIndex; j++) {
+								updateRow(j);
+							}
 							break;
 						case $foundsetTypeConstants.ROWS_INSERTED:
-							break;
 						case $foundsetTypeConstants.ROWS_DELETED:
+							needPurge = true;
 							break;
 						default:
 							break;
 						}
 						// TODO can update single rows ?
 					}
-					$scope.purge();
+
+					if(needPurge) {
+						$scope.purge();
+					}
 				}
 
 				/**
@@ -3080,18 +3096,12 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 					}
 
 					if (row) {
-						var uiRow = getAgGridRow(row._svyRowId);
-
-						// update the row
-						if (uiRow) {
-							for (var prop in row) {
-								if (uiRow[prop] != row[prop]) {
-									uiRow[prop] = row[prop];
-								}
+						gridOptions.api.forEachNode( function(node) {
+							if(row._svyFoundsetUUID == node.data._svyFoundsetUUID && row._svyRowId == node.data._svyRowId) {
+								node.setData(row);
+								return;
 							}
-						} else {
-							$scope.gridOptions.data.push(row);
-						}
+						});
 					} else {
 						$log.warn("could not update row at index " + index);
 					}
