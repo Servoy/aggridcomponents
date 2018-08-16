@@ -695,7 +695,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 					if(newValue && newValue.realValue != undefined) {
 						newValue = newValue.realValue;
 					}
-					foundsetRef.updateViewportRecord(row._svyRowId, params.colDef.field, newValue, params.oldValue);
+					var col = getColumn(params.colDef.field);
+					if(col && col.dataprovider && col.dataprovider.idForFoundset) {
+						foundsetRef.updateViewportRecord(row._svyRowId, col.dataprovider.idForFoundset, newValue, params.oldValue);
+					}
 				}
 
 				function onColumnDataChange(params, newValueObj) {
