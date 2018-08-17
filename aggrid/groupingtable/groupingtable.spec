@@ -7,10 +7,10 @@
 	"serverscript": "aggrid/groupingtable/groupingtable_server.js",
 	"libraries": [
 		{ "name": "groupingtable.css", "version": "1.0", "url": "aggrid/groupingtable/groupingtable.css", "mimetype": "text/css" },
-		{ "name":"moment", "version":"2.11.1", "url": "aggrid/groupingtable/lib/bootstrap-datetimepicker/js/moment-with-locales.min.js", "mimetype":"text/javascript" },
+		{ "name":"moment", "version":"2.19.1", "url": "aggrid/groupingtable/lib/bootstrap-datetimepicker/js/moment-with-locales.min.js", "mimetype":"text/javascript" },
 		{ "name":"moment-jdateformatparser", "version":"0.1.1", "url":"aggrid/groupingtable/lib/bootstrap-datetimepicker/js/moment-jdateformatparser.js", "mimetype":"text/javascript" },
-		{ "name":"bootstrap-datetimepicker", "version":"4.7.14", "url":"aggrid/groupingtable/lib/bootstrap-datetimepicker/js/bootstrap-datetimepicker.js", "mimetype":"text/javascript" },
-		{ "name":"bootstrap-datetimepicker", "version":"4.7.14", "url":"aggrid/groupingtable/lib/bootstrap-datetimepicker/css/bootstrap-datetimepicker.css", "mimetype":"text/css" }
+		{ "name":"bootstrap-datetimepicker", "version":"4.7.47", "url":"aggrid/groupingtable/lib/bootstrap-datetimepicker/js/bootstrap-datetimepicker.js", "mimetype":"text/javascript" },
+		{ "name":"bootstrap-datetimepicker", "version":"4.7.47", "url":"aggrid/groupingtable/lib/bootstrap-datetimepicker/css/bootstrap-datetimepicker.css", "mimetype":"text/css" }
 	],
 	"model":
 	{
