@@ -259,6 +259,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 				// used in HTML template to toggle sync button
 				$scope.isGroupView = false;
 
+				// set to true when root foundset is loaded
+				var isRootFoundsetLoaded = false;
+
 				// set to true when is rendered
 				var isRendered = undefined;
 
@@ -1735,9 +1738,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 				$scope.$watch("model.myFoundset", function(newValue, oldValue) {
 
 						$log.debug('myFoundset root changed');
-
-						initRootFoundset();
-
+						if($scope.model.myFoundset.viewPort.size > 0) {
+							// browser refresh
+							initRootFoundset();
+						}
+						else {
+							// newly set foundset
+							isRootFoundsetLoaded = false;
+						}
 						// TODO ASK R&D should i remove and add the previous listener ?
 						$scope.model.myFoundset.removeChangeListener(changeListener);
 						$scope.model.myFoundset.addChangeListener(changeListener);
@@ -2895,6 +2903,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 				function changeListener(change) {
 					$log.debug("Root change listener is called " + state.waitfor.loadRecords);
 					$log.debug(change);
+
+					if(!isRootFoundsetLoaded) {
+						if(change[$foundsetTypeConstants.NOTIFY_HAS_MORE_ROWS_CHANGED]) {
+							isRootFoundsetLoaded = true;
+							initRootFoundset();
+						}
+						return;
+					}
 
 					// Floor
 					var idRandom = Math.floor(1000 * Math.random());
