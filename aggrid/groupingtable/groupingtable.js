@@ -2912,6 +2912,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 						return;
 					}
 
+					if (sortPromise) {
+						$log.debug('sort has been requested clientside, no need to update the changeListener');
+						return;
+					}
+
 					// Floor
 					var idRandom = Math.floor(1000 * Math.random());
 
@@ -2922,11 +2927,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 
 						// sort changed
 						$log.debug("Change Sort Model " + newSort);
-
-						if (sortPromise) {
-							$log.debug('sort has been requested clientside, no need to update the changeListener');
-							return;
-						}
 	
 						/** TODO check with R&D, sortColumns is updated only after the viewPort is update or there could be a concurrency race. When i would know when sort is completed ? */
 						if (newSort && oldSort && newSort != oldSort) {
