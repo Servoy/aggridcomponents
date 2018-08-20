@@ -7,10 +7,10 @@
     "wikiUrl": "https://github.com/Servoy/aggridcomponents/wiki",
     "sourceUrl" : "https://github.com/Servoy/aggridcomponents",
     "releases" : [{"version":"1.0.0rc1","url":"https://github.com/Servoy/aggridcomponents/releases/download/v1.0.0rc1/aggrid.zip", "servoy-version":"8.2.1"},
-   				  {"version":"1.0.1","url":"https://github.com/Servoy/aggridcomponents/releases/download/v1.0.1/aggrid.zip", "servoy-version":"8.2.1"},
-   				  {"version":"1.0.2","url":"https://github.com/Servoy/aggridcomponents/releases/download/v1.0.2/aggrid.zip", "servoy-version":"8.2.1"},
-   				  {"version":"2.0.0-RC1","url":"https://github.com/Servoy/aggridcomponents/releases/download/v2.0.0-RC1/Servoy-NG-Grids.zip", "servoy-version":"8.3.1"}
-                  {"version":"2.0.0-rc2","url":"https://github.com/Servoy/aggridcomponents/releases/download/v2.0.0-rc2/Servoy-NG-Grids.zip", "servoy-version":"8.3.2"}
+                    {"version":"1.0.1","url":"https://github.com/Servoy/aggridcomponents/releases/download/v1.0.1/aggrid.zip", "servoy-version":"8.2.1"},
+                    {"version":"1.0.2","url":"https://github.com/Servoy/aggridcomponents/releases/download/v1.0.2/aggrid.zip", "servoy-version":"8.2.1"},
+                    {"version":"2.0.0-RC1","url":"https://github.com/Servoy/aggridcomponents/releases/download/v2.0.0-RC1/Servoy-NG-Grids.zip", "servoy-version":"8.3.1"},
+                    {"version":"2.0.0-rc2","url":"https://github.com/Servoy/aggridcomponents/releases/download/v2.0.0-rc2/Servoy-NG-Grids.zip", "servoy-version":"8.3.2"}
                  ]
     
 }
