@@ -1115,7 +1115,32 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 				 **************************************************************************************************
 				 **************************************************************************************************/
 
-				function getValuelist(column, params, asCodeString) {
+				function getValuelist(params, asCodeString) {
+					var column;
+					var foundsetRows;
+
+					var row = params.node.data;
+					var foundsetManager = getFoundsetManagerByFoundsetUUID(row._svyFoundsetUUID);
+					// if not root, it should use the column/foundsetRows from the hashed map,
+					// but calling valulist.filterList on those is not working now
+					if(true /*foundsetManager.isRoot */) {
+						column = getColumn(params.column.colId);
+						foundsetRows = $scope.model.myFoundset.viewPort.rows;
+					}
+					else if ($scope.model.hashedFoundsets) {
+						for (var i = 0; i < $scope.model.hashedFoundsets.length; i++) {
+							if ($scope.model.hashedFoundsets[i].foundsetUUID == foundsetManager.foundsetUUID) {
+								column = getColumn(params.column.colId, $scope.model.hashedFoundsets[i].columns);
+								foundsetRows = foundsetManager.foundset.viewPort.rows;
+								break;
+							}
+						}
+					}
+					if(!column || !foundsetRows) {
+						$log.error('Cannot find column/foundset to read the valuelist.');
+						return null;
+					}
+
 					// if it's a foundset linked prop (starting with Servoy 8.3.2) or not (prior to 8.3.2)
 					if (column.valuelist && column.valuelist[$sabloConverters.INTERNAL_IMPL]
 							&& angular.isDefined(column.valuelist[$sabloConverters.INTERNAL_IMPL]["recordLinked"])) {
@@ -1123,22 +1148,18 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 						var rowId = params.node.data[$foundsetTypeConstants.ROW_ID_COL_KEY];
 						if (rowId.indexOf(";") >= 0) rowId = rowId.substring(0, rowId.indexOf(";") + 1);
 						
-						var idxInMainFoundsetViewport = -1;
-						var mainFoundsetRows = $scope.model.myFoundset.viewPort.rows;
-						for (var idx in mainFoundsetRows)
-							if (mainFoundsetRows[idx][$foundsetTypeConstants.ROW_ID_COL_KEY].indexOf(rowId) == 0) {
-								idxInMainFoundsetViewport = idx;
+						var idxInFoundsetViewport = -1;
+						for (var idx in foundsetRows)
+							if (foundsetRows[idx][$foundsetTypeConstants.ROW_ID_COL_KEY].indexOf(rowId) == 0) {
+								idxInFoundsetViewport = idx;
 								break;
 							}
 						
-						if (idxInMainFoundsetViewport >= 0 && idxInMainFoundsetViewport < column.valuelist.length) return asCodeString ? ".valuelist[" + idxInMainFoundsetViewport + "]" : column.valuelist[idxInMainFoundsetViewport];
+						if (idxInFoundsetViewport >= 0 && idxInFoundsetViewport < column.valuelist.length) return asCodeString ? ".valuelist[" + idxInFoundsetViewport + "]" : column.valuelist[idxInFoundsetViewport];
 						else if (!column.valuelist[$sabloConverters.INTERNAL_IMPL]["recordLinked"] && column.valuelist.length > 0) return asCodeString ? ".valuelist[0]" : column.valuelist[0];
 						else {
-							// TODO this is strange - valuelists are for now only based on main "myfoundset" from .spec, so there is one VL entry for each
-							// record in that foundset's viewport; if this is called when a record from another foundset is clicked we might not be able
-							// to locate that record in main foundset; in order to support that, .spec needs to change as well
 							$log.error('Cannot find the valuelist entry for the row that was clicked.');
-							return asCodeString ? null : null;
+							return null;
 						}
 					}
 					else return asCodeString ? ".valuelist" : column.valuelist;
@@ -1164,7 +1185,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 							}
 							var columnIndex = getColumnIndex(params.column.colId);
 							
-							var getVLAsCode = getValuelist(column, params, true);
+							var getVLAsCode = getValuelist(params, true);
 							this.eInput.setAttribute("uib-typeahead", "value.displayValue | formatFilter:model.columns[" + columnIndex + "].format.display:model.columns[" + columnIndex + "].format.type for value in " + (getVLAsCode == null ? "null" : "model.columns[" + columnIndex + "]" + getVLAsCode + ".filterList($viewValue)"));
 							this.eInput.setAttribute("typeahead-wait-ms", "300");
 							this.eInput.setAttribute("typeahead-min-length", "0");
@@ -1174,7 +1195,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 							$compile(this.eInput)($scope);
 							$scope.$digest();
 
-							var vl = getValuelist(column, params);
+							var vl = getValuelist(params);
 							if (vl) {
 								var valuelistValuesPromise = vl.filterList("");
 								var thisEditor = this;
@@ -1448,8 +1469,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 
 					SelectEditor.prototype.init = function(params) {
 						this.params = params;
-						var col = getColumn(params.column.colId);
-						var vl = getValuelist(col, params);
+						var vl = getValuelist(params);
 						if (vl) {
 							var row = params.node.data;
 							var foundsetManager = getFoundsetManagerByFoundsetUUID(row._svyFoundsetUUID);
@@ -1832,7 +1852,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 					 * @param {Number} [endIndex]
 					 * */
 					var getViewPortData = function(startIndex, endIndex) {
-						var data = [];
 						var result = [];
 						startIndex = startIndex ? startIndex : 0;
 						endIndex = endIndex ? endIndex : thisInstance.foundset.viewPort.rows.length;
@@ -1841,32 +1860,28 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 						startIndex = Math.min(startIndex, thisInstance.foundset.serverSize);
 						endIndex = Math.min(endIndex, thisInstance.foundset.serverSize);
 
-						if (this.isRoot) { // if is the root foundset is should build the rows
-							for (var j = startIndex; j < endIndex; j++) {
-								var row = thisInstance.getViewPortRow(j);
-								if (row) data.push(row);
+						var columnsModel;
+						if (this.isRoot) {
+							columnsModel = $scope.model.columns;
+						} else if ($scope.model.hashedFoundsets) {
+							for (var i = 0; i < $scope.model.hashedFoundsets.length; i++) {
+								if ($scope.model.hashedFoundsets[i].foundsetUUID == this.foundsetUUID) {
+									columnsModel = $scope.model.hashedFoundsets[i].columns;
+									break;
+								}
 							}
-							result = data;
-						} else { // if is a referenced foundset rows are already available
-							// TODO is it possible to have duplicates ?
-							data = thisInstance.foundset.viewPort.rows;
-
-							// TODO apply filter&valuelists&columnFormat
-
-							// TODO check limit startIndex/endIndex;
-							// TODO how can i add the foundset UUID to these ?
-							result = data.slice(startIndex, endIndex);
-
-							// TODO could be done directly server side ?
-							result.forEach(function(item) {
-								item._svyFoundsetUUID = thisInstance.foundsetUUID;
-							});
 						}
+
+						for (var j = startIndex; j < endIndex; j++) {
+							var row = thisInstance.getViewPortRow(j, columnsModel);
+							if (row) result.push(row);
+						}
+
 						return result;
 					}
 
 					/** return the row in viewport at the given index */
-					var getViewPortRow = function(index) {
+					var getViewPortRow = function(index, columnsModel) {
 						var r;
 						try {
 							r = new Object();
@@ -1880,9 +1895,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 							r._svyRowId = viewPortRow._svyRowId;
 							r._svyFoundsetUUID = this.foundsetUUID;
 
+							var columns = columnsModel ? columnsModel : $scope.model.columns;
+
 							// push each dataprovider
-							for (var i = 0; i < $scope.model.columns.length; i++) {
-								var header = $scope.model.columns[i];
+							for (var i = 0; i < columns.length; i++) {
+								var header = columns[i];
 								var field = getColumnID(header, i);
 
 								var value = header.dataprovider ? header.dataprovider[index] : null;
@@ -1922,22 +1939,24 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 						}
 
 						// Wait for response
+						var isRootFoundset = thisInstance.isRoot;
 						var requestId = 1 + Math.random();
-						state.waitfor.loadRecords = requestId;
+						state.waitfor.loadRecords = isRootFoundset ? requestId : 0; // we use state.waitfor.loadRecords only in the root foundset change listener
 						// TODO can it handle multiple requests ?
 						var promise = this.foundset.loadRecordsAsync(startIndex, size);
 						//var promise = this.foundset.loadExtraRecordsAsync(size);
 						promise.finally(function(e) {
 							// foundset change listener that checks for 'state.waitfor.loadRecords' is executed later,
 							// as last step when the response is processed, so postpone clearing the flag
-							setTimeout(function() {
-								if (state.waitfor.loadRecords !== requestId) {
-									// FIXME if this happen reduce parallel async requests to 1
-									$log.error("Load record request id '" + state.waitfor.loadRecords + "' is different from the resolved promise '" + requestId + "'; this should not happen !!!");
-								}
-	
-								state.waitfor.loadRecords = 0;
-							}, 0);
+							if(isRootFoundset) {
+								setTimeout(function() {
+									if (state.waitfor.loadRecords !== requestId) {
+										// FIXME if this happen reduce parallel async requests to 1
+										$log.error("Load record request id '" + state.waitfor.loadRecords + "' is different from the resolved promise '" + requestId + "'; this should not happen !!!");
+									}		
+									state.waitfor.loadRecords = 0;							
+								}, 0);
+							}
 						});
 
 						return promise;
@@ -3384,11 +3403,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 							var index = params.rowIndex - foundset.foundset.viewPort.startIndex;
 							styleClassProvider = column.styleClassDataprovider[index];
 						}
-					} else if (column && column.dataprovider) {
+					} else {
 							var foundsetManager = getFoundsetManagerByFoundsetUUID(params.data._svyFoundsetUUID);
 							var index = foundsetManager.getRowIndex(params.data) - foundsetManager.foundset.viewPort.startIndex;
 							if (index >= 0) {
-								styleClassProvider = foundsetManager.foundset.viewPort.rows[index][column.dataprovider.idForFoundset + "_styleClassDataprovider"];
+								styleClassProvider = foundsetManager.foundset.viewPort.rows[index][params.colDef.field + "_styleClassDataprovider"];
 							} else {
 								$log.warn('cannot render styleClassDataprovider for row at index ' + index)
 								$log.warn(params.data);
@@ -3484,7 +3503,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 				 * @param {String} field
 				 * @return {Object}
 				 * */
-				function getColumn(field) {
+				function getColumn(field, columnsModel) {
 					var fieldToCompare = field;
 					var fieldIdx = 0;
 					if (field.indexOf('_') > 0) { // has index
@@ -3494,17 +3513,17 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 							fieldIdx = parseInt(fieldParts[1]);
 						}
 					}
-					if (state.columns[field]) { // check if is already cached
+					if (!columnsModel && state.columns[field]) { // check if is already cached
 						return state.columns[field];
 					} else {
-						var columns = $scope.model.columns;
+						var columns = columnsModel ? columnsModel : $scope.model.columns;
 						for (var i = 0; i < columns.length; i++) {
 							var column = columns[i];
 							if (column.id === fieldToCompare || getColumnID(column, i) === fieldToCompare) {
 								if(fieldIdx < 1) {
 									// cache it in hashmap for quick retrieval
-									state.columns[field] = column;
-									return $scope.model.columns[i];
+									if(!columnsModel) state.columns[field] = column;
+									return columns[i];
 								}
 								fieldIdx--;
 							}

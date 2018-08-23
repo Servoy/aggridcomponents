@@ -254,10 +254,17 @@
 			"id": {"type" : "string"},
 			"columnDef": {"type" : "map"}
 		},
+		"groupedColumn" : {
+            "dataprovider": { "type": "dataprovider", "forFoundset": "foundset", "resolveValuelist": true },
+            "format" : { "type": "format",  "for": [ "valuelist", "dataprovider" ]},
+			"valuelist": { "type": "valuelist", "for": "dataprovider", "forFoundset": "foundset" },
+			"id": {"type" : "string"}
+        },
 		 "hashedFoundset" : {
             "foundset": "foundset",
             "foundsetUUID": "foundsetRef",
-            "uuid" : "string"
+            "uuid" : "string",
+			"columns": { "type": "groupedColumn[]" }
         },
         "gridConfig" : {
         	"enableSorting" : {"type": "boolean", "default" : true, "tags" : {"scope": "design"}},

@@ -151,11 +151,11 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 	for (var idx = 0; idx < $scope.model.columns.length; idx++) {
 		var column = $scope.model.columns[idx];
 		// the dataprovider name e.g. orderid
-		var dpId = column.dataprovider;
+		// var dpId = column.dataprovider;
 		// the idForFoundset(exists only client-side, therefore i need to retrieve it from the client)
 		var idForFoundset = idForFoundsets[idx];
 		// Servoy resolves the real dataprovider name into the dataprovider 'field'
-		dps[idForFoundset] = dpId;
+		// dps[idForFoundset] = dpId;
 		// TODO it could be the hashmap of groupkeys/groupcolumns ?
 		// dps._svyFoundsetUUID = null;
 
@@ -175,6 +175,17 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 		console.warn(e);
 	}
 
+
+	var columns = [];
+	for (var idx = 0; idx < $scope.model.columns.length; idx++) {
+		columns.push({
+			dataprovider: $scope.model.columns[idx].dataprovider,
+			format: $scope.model.columns[idx].format,
+			valuelist: $scope.model.columns[idx].valuelist,
+			id: $scope.model.columns[idx].id
+		});
+	}
+
 	// TODO perhaps R&D can improve this
 	// send the column mapping; clientside i don't have the dataprovider id name and server side i don't have the idForFoundset.
 	$scope.model.hashedFoundsets.push({
@@ -184,7 +195,8 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 			sendSelectionViewportInitially: false,
 			initialPreferredViewPortSize: 15
 		},
-		foundsetUUID: childFoundset
+		foundsetUUID: childFoundset,
+		columns: columns
 	}); // send it to client as a foundset property with a UUID
 
 	log('Group foundset retrieved' + $scope.model.hashedFoundsets[$scope.model.hashedFoundsets.length - 1], LOG_LEVEL.WARN);
