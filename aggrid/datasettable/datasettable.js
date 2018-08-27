@@ -546,7 +546,11 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
 							// set selected cell on current cell + 1
 							gridOptions.api.forEachNode( function(node) {
 								if (previousCell.rowIndex + 1 === node.rowIndex) {
-									node.setSelected(true, true);
+									if ($scope.model.multiSelect) {
+										// node.setSelected(true); // keep previus selection
+									} else {
+										node.setSelected(true, true);	// exclusive selection
+									}
 								}
 							});
 							return suggestedNextCell;
@@ -555,7 +559,11 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
 							// set selected cell on current cell - 1
 							gridOptions.api.forEachNode( function(node) {
 								if (previousCell.rowIndex - 1 === node.rowIndex) {
-									node.setSelected(true, true);
+									if ($scope.model.multiSelect) {
+										// node.setSelected(true); // keep previus selection
+									} else {
+										node.setSelected(true, true);	// exclusive selection
+									}
 								}
 							});
 							return suggestedNextCell;
