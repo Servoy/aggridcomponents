@@ -216,7 +216,8 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
 			// register listener for selection changed
 			gridOptions.api.addEventListener('rowSelected', onRowSelected);
 			gridOptions.api.addEventListener('selectionChanged', onSelectionChanged);
-            gridOptions.api.addEventListener('cellClicked', onCellClicked);
+            gridOptions.api.addEventListener('cellClicked', cellClickHandler);
+			gridOptions.api.addEventListener('cellDoubleClicked', onCellDoubleClicked);
             gridOptions.api.addEventListener('displayedColumnsChanged', function() {
                 sizeColumnsToFit();
             });
@@ -489,11 +490,45 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
 				return;
 			}
 
-            function onCellClicked(params) {
-            	  if ($scope.handlers.onCellClick && params.data && params.colDef.field) {
-                    $scope.handlers.onCellClick(params.data, params.colDef.colId != undefined ? params.colDef.colId : params.colDef.field, params.value, params.event);
-                }
-            }
+				function onCellClicked(params) {
+					if ($scope.handlers.onCellClick && params.data && params.colDef.field) {
+						$scope.handlers.onCellClick(params.data, params.colDef.colId != undefined ? params.colDef.colId : params.colDef.field, params.value, params.event);
+					}
+				}
+
+				// grid handlers
+				var clickTimer;
+				function cellClickHandler(params) {
+					if ($scope.handlers.onCellDoubleClick) {
+						if (clickTimer) {
+							clearTimeout(clickTimer);
+							clickTimer = null;
+						} else {
+							clickTimer = setTimeout(function() {
+									clickTimer = null;
+									onCellClicked(params);
+								}, 250);
+						}
+					} else {
+						onCellClicked(params);
+					}
+				}
+
+				/**
+				 * On Double Click Event
+				 *
+				 * @private
+				 * */
+				function onCellDoubleClicked(params) {
+					$log.debug(params);
+					if ($scope.handlers.onCellDoubleClick) {
+						if (params.data && params.colDef.field) {
+							$scope.handlers.onCellDoubleClick(params.data, params.colDef.colId != undefined ? params.colDef.colId : params.colDef.field, params.value, params.event);
+						}
+
+					}
+				}
+
             
 			/**
 			 * Create a JSEvent
