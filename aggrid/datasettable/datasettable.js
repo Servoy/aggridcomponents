@@ -94,7 +94,7 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                 rowSelection: $scope.model.multiSelect === true ? 'multiple' : 'single',
                 rowDeselection: false,
 //                suppressRowClickSelection: rowGroupColsDefault.length === 0 ? false : true,
-                suppressCellSelection: true, // TODO implement focus lost/gained
+                suppressCellSelection: false, // TODO implement focus lost/gained
                 enableRangeSelection: false,
 
                 // stopEditingWhenGridLosesFocus: true,
@@ -137,11 +137,13 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
 //                onFilterChanged: storeColumnsState,			 disable filter sets for now
 //                onColumnVisible: storeColumnsState,			 covered by onDisplayedColumnsChanged
 //                onColumnPinned: storeColumnsState,			 covered by onDisplayedColumnsChanged
-                onColumnResized: storeColumnsState				// NOT covered by onDisplayedColumnsChanged
+                onColumnResized: storeColumnsState,				// NOT covered by onDisplayedColumnsChanged
 //                onColumnRowGroupChanged: storeColumnsState,	 covered by onDisplayedColumnsChanged
 //                onColumnValueChanged: storeColumnsState,
 //                onColumnMoved: storeColumnsState,              covered by onDisplayedColumnsChanged
 //                onColumnGroupOpened: storeColumnsState		 i don't think we need that, it doesn't include the open group in column state
+
+				navigateToNextCell: selectionChangeNavigation
             };
 
             if($scope.model.useLazyLoading) {
@@ -527,6 +529,42 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
 						}
 
 					}
+				}
+				
+				function selectionChangeNavigation(params) {
+					var previousCell = params.previousCellDef;
+					var suggestedNextCell = params.nextCellDef;
+				 
+					var KEY_UP = 38;
+					var KEY_DOWN = 40;
+					var KEY_LEFT = 37;
+					var KEY_RIGHT = 39;
+				 
+					switch (params.key) {
+						case KEY_DOWN:
+							previousCell = params.previousCellDef;
+							// set selected cell on current cell + 1
+							gridOptions.api.forEachNode( function(node) {
+								if (previousCell.rowIndex + 1 === node.rowIndex) {
+									node.setSelected(true, true);
+								}
+							});
+							return suggestedNextCell;
+						case KEY_UP:
+							previousCell = params.previousCellDef;
+							// set selected cell on current cell - 1
+							gridOptions.api.forEachNode( function(node) {
+								if (previousCell.rowIndex - 1 === node.rowIndex) {
+									node.setSelected(true, true);
+								}
+							});
+							return suggestedNextCell;
+						case KEY_LEFT:
+						case KEY_RIGHT:
+							return suggestedNextCell;
+						default:
+							throw "this will never happen, navigation is always on of the 4 keys above";
+					}					
 				}
 
             
