@@ -76,74 +76,25 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 
 	}
 
+	var childFoundset;
 	if (groupColumns.length > groupKeys.length) {
-
-		// get the pks
 		query.result.clear();
-		query.result.addPk();
-		var pkColumns = query.result.getColumns();
-		query.result.clear();
-
-		log("There are " + pkColumns.length + " pks", LOG_LEVEL.WARN);
-		
-		if (pkColumns < 1) {
-			console.error("No primary key has been found for the given foundset. The component's foundset must have one single primary key to enable grouping");
-			throw "No primary key has been found for the given foundset. The component's foundset must have one single primary key to enable grouping";
-		}
-		if (pkColumns.length > 1) {
-			//			if (pkColumns.length === 2) {
-			//
-			//							//				 WHERE order_details.productid = (\
-			//							//							select order_details2.productid \
-			//							//							 from order_details order_details2 \
-			//							//							 left outer join products order_details_to_products2 on order_details2.productid=order_details_to_products2.productid \
-			//							//							 left outer join categories products_to_categories2 on order_details_to_products2.categoryid=products_to_categories2.categoryid \
-			//							//							 where products_to_categories2.categoryname = products_to_categories.categoryname and order_details2.orderid = order_details.orderid limit 1\
-			//							//					 )\
-			//
-			//						}
-
-			console.error("Grouping is not supported on foundset having multiple primary keys. The component's foundset must have one single primary key to enable grouping");
-			throw "Grouping is not supported on foundset having multiple primary keys. The component's foundset must have one single primary key to enable grouping";
-		}
-		
-		// Group pks handle pks
-		var UUID_COLUMN_TYPE = 4;
-		for (var pkIndex = 0; pkIndex < pkColumns.length; pkIndex++) {
-			var flags = pkColumns[pkIndex].getFlags();
-			if((flags & UUID_COLUMN_TYPE) != 0) {
-				// is uuid
-				query.result.add(pkColumns[pkIndex].cast(QUERY_COLUMN_TYPES.TYPE_TEXT).min);
-			}
-			else {
-				query.result.add(pkColumns[pkIndex].min);
-			}
-		}
-
-
+		query.result.add(groupColumn);
 		query.groupBy.add(groupColumn);
 		query.sort.clear();
-		//		console.log(sort)
+
 		if (sort === 'desc') {
 			query.sort.add(groupColumn.desc);
 		} else {
 			query.sort.add(groupColumn.asc);
 		}
 
-		//		console.log('Run Query ' + query);
-
+		childFoundset = servoyApi.getViewFoundSet("", query);
 	} else { // is not a new group, will be a leaf !
-
+		childFoundset = parentFoundset.duplicateFoundSet();
+		if (sFilterModel) filterFoundset(childFoundset, sFilterModel);
+		childFoundset.loadRecords(query);
 	}
-
-	// console.log('try');
-
-	// this is the first grouping operation; alter initial query to get all first level groups
-	var childFoundset = parentFoundset.duplicateFoundSet();
-	if (sFilterModel) filterFoundset(childFoundset, sFilterModel);
-	childFoundset.loadRecords(query);
-
-	//	console.log('Matching records ' + childFoundset.getSize());
 
 	// push dataproviders to the clientside foundset
 	var dps = { };
