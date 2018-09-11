@@ -355,7 +355,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 					suppressAnimationFrame: true,
 
 					rowSelection: $scope.model.myFoundset && ($scope.model.myFoundset.multiSelect === true) ? 'multiple' : 'single',
-					rowDeselection: false,
+					rowDeselection: $scope.model.myFoundset && ($scope.model.myFoundset.multiSelect === true),
 					suppressRowClickSelection: rowGroupColsDefault.length === 0 ? false : true,
 					suppressCellSelection: true, // TODO implement focus lost/gained
 					enableRangeSelection: false,
