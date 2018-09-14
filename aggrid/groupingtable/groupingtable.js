@@ -399,14 +399,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 						$log.debug("gridReady");
 						// without timeout the column don't fit automatically
 						setTimeout(function() {
-								sizeColumnsToFit();
+							sizeHeaderAndColumnsToFit();
 							}, 150);
 					},
 					onGridSizeChanged: function() {
-						sizeColumnsToFit();
+						sizeHeaderAndColumnsToFit();
 					},
 					onDisplayedColumnsChanged: function() {
-						sizeColumnsToFit();
+						sizeHeaderAndColumnsToFit();
 						storeColumnsState();
 					},
 	                onColumnEverythingChanged: storeColumnsState,	// do we need that ?, when is it actually triggered ?
@@ -414,7 +414,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 //	                onFilterChanged: storeColumnsState,			 // TODO enable this once filters are enabled
 //	                onColumnVisible: storeColumnsState,			 covered by onDisplayedColumnsChanged
 //	                onColumnPinned: storeColumnsState,			 covered by onDisplayedColumnsChanged
-	                onColumnResized: storeColumnsState,				// NOT covered by onDisplayedColumnsChanged
+					onColumnResized: function() {				 // NOT covered by onDisplayedColumnsChanged
+						sizeHeader();
+						storeColumnsState();
+					},
 //	                onColumnRowGroupChanged: storeColumnsState,	 covered by onDisplayedColumnsChanged
 //	                onColumnValueChanged: storeColumnsState,
 //	                onColumnMoved: storeColumnsState,              covered by onDisplayedColumnsChanged
@@ -946,8 +949,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 
 					// resize the columns
 					setTimeout(function() {
-							sizeColumnsToFit();
-						}, 50);
+						sizeHeaderAndColumnsToFit();
+					}, 50);
 
 				}
 
@@ -1088,10 +1091,27 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 				}
 
 				/**
-				 * Resize all columns so they can fit the horizontal space
+				 * Resize header and all columns so they can fit the horizontal space
 				 *  */
-				function sizeColumnsToFit() {
+				function sizeHeaderAndColumnsToFit() {
 					gridOptions.api.sizeColumnsToFit();
+					sizeHeader();
+				}
+
+				/**
+				 * Update header height based on cells content height
+				 */
+				function sizeHeader() {
+					var headerCell = $element.find('.ag-header-cell');
+					var paddingTop = headerCell.length ? parseInt(headerCell.css('padding-top'), 10) : 0;
+					var paddinBottom = headerCell.length ? parseInt(headerCell.css('padding-bottom'), 10) : 0;
+					var headerCellLabels = $element.find('.ag-header-cell-label');
+					var minHeight = 25;
+
+					for(var i = 0; i < headerCellLabels.length; i++) {
+						minHeight = Math.max(minHeight, headerCellLabels[i].scrollHeight + paddingTop + paddinBottom);
+					}
+					gridOptions.api.setHeaderHeight(minHeight);
 				}
 
 				/**
