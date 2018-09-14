@@ -252,7 +252,8 @@
 			"rowGroupIndex":  {"type": "int", "default": -1},
 			"editType": {"type": "string", "values": ["NONE", "TEXTFIELD", "DATEPICKER", "COMBOBOX", "TYPEAHEAD"], "default": "NONE"},
 			"id": {"type" : "string"},
-			"columnDef": {"type" : "map"}
+			"columnDef": {"type" : "map"},
+			"showAs": { "type": "string", "default": "text", "values": ["text", "html", "sanitizedHtml"] }
 		},
 		"groupedColumn" : {
             "dataprovider": { "type": "dataprovider", "forFoundset": "foundset", "resolveValuelist": true },

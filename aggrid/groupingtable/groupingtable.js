@@ -1,5 +1,5 @@
-angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenterpriselicensekey']).directive('aggridGroupingtable', ['$sabloApplication', '$sabloConstants', '$log', '$q', '$foundsetTypeConstants', '$filter', '$compile', '$formatterUtils', '$sabloConverters', '$injector', '$services',
-	function($sabloApplication, $sabloConstants, $log, $q, $foundsetTypeConstants, $filter, $compile, $formatterUtils, $sabloConverters, $injector, $services) {
+angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenterpriselicensekey']).directive('aggridGroupingtable', ['$sabloApplication', '$sabloConstants', '$log', '$q', '$foundsetTypeConstants', '$filter', '$compile', '$formatterUtils', '$sabloConverters', '$injector', '$services', "$sanitize",
+	function($sabloApplication, $sabloConstants, $log, $q, $foundsetTypeConstants, $filter, $compile, $formatterUtils, $sabloConverters, $injector, $services, $sanitize) {
 		return {
 			restrict: 'E',
 			scope: {
@@ -3219,11 +3219,20 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 					};
 
 					var cellRenderer = function(params) {
+						var col = getColumn(params.colDef.field);
 						var value = params.value;
-						if (value && value.contentType && value.contentType.indexOf('image/') == 0 && value.url) {
-							return '<img class="ag-table-image-cell" src="' + value.url + '">';
+
+						if(col.showAs == 'html') {
+							return value;
+						} else if(col.showAs == 'sanitizedHtml') {
+							value = $sanitize(value)
+							return value;
+						} else {
+							if (value && value.contentType && value.contentType.indexOf('image/') == 0 && value.url) {
+								return '<img class="ag-table-image-cell" src="' + value.url + '">';
+							}
+							return document.createTextNode(params.valueFormatted);
 						}
-						return document.createTextNode(params.valueFormatted);
 					}
 
 					//create the column definitions from the specified columns in designer
