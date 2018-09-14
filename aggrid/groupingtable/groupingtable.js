@@ -698,27 +698,23 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 					if(newValue && newValue.realValue != undefined) {
 						newValue = newValue.realValue;
 					}
+					var oldValue = params.oldValue;
+					if(oldValue && oldValue.realValue != undefined) {
+						oldValue = oldValue.realValue;
+					}
+
 					var col = getColumn(params.colDef.field);
-					if(col && col.dataprovider && col.dataprovider.idForFoundset) {
-						foundsetRef.updateViewportRecord(row._svyRowId, col.dataprovider.idForFoundset, newValue, params.oldValue);
+					if(col && col.dataprovider && col.dataprovider.idForFoundset && newValue !== oldValue) {
+						foundsetRef.updateViewportRecord(row._svyRowId, col.dataprovider.idForFoundset, newValue, oldValue);
+						if($scope.handlers.onColumnDataChange) {
+							$scope.handlers.onColumnDataChange(
+								getFoundsetIndexFromEvent(params),
+								getColumnIndex(params.column.colId),
+								oldValue,
+								newValue
+							);
+						}
 					}
-				}
-
-				function onColumnDataChange(params, newValueObj) {
-					if ($scope.handlers.onColumnDataChange) {
-						var oldValue = params.value;
-						if(oldValue && oldValue.realValue) oldValue = oldValue.realValue;
-						var newValue = newValueObj;
-						if(newValue && newValue.realValue) newValue = newValue.realValue;
-
-						return $scope.handlers.onColumnDataChange(
-							getFoundsetIndexFromEvent(params),
-							getColumnIndex(params.column.colId),
-							oldValue,
-							newValue
-						);
-					}
-					return true;
 				}
 
 				/**
@@ -1308,10 +1304,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 							$(this.eInput).mask(this.format.edit, settings);
 						}
 					};
-				
-					TextEditor.prototype.isCancelAfterEnd = function() {
-						return !onColumnDataChange(this.params, this.getValue());
-					}
 
 					// returns the new value after editing
 					TextEditor.prototype.getValue = function() {
@@ -1437,10 +1429,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 						this.eInput.focus();
 						this.eInput.select();
 					};
-				
-					Datepicker.prototype.isCancelAfterEnd = function() {
-						return !onColumnDataChange(this.params, this.getValue());
-					}
 
 					// returns the new value after editing
 					Datepicker.prototype.getValue = function() {
@@ -1518,10 +1506,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 					SelectEditor.prototype.afterGuiAttached = function () {
 						this.eSelect.focus();
 					};
-					
-					SelectEditor.prototype.isCancelAfterEnd = function() {
-						return !onColumnDataChange(this.params, this.getValue());
-					}					
 
 					SelectEditor.prototype.getValue = function () {
 						var displayValue = this.eSelect.options[this.eSelect.selectedIndex ].text;
