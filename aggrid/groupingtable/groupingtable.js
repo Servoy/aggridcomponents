@@ -1137,13 +1137,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 
 					var row = params.node.data;
 					var foundsetManager = getFoundsetManagerByFoundsetUUID(row._svyFoundsetUUID);
-					// if not root, it should use the column/foundsetRows from the hashed map,
-					// but calling valulist.filterList on those is not working now
-					if(true /*foundsetManager.isRoot */) {
+					// if not root, it should use the column/foundsetRows from the hashed map
+					if (foundsetManager.isRoot) {
 						column = getColumn(params.column.colId);
 						foundsetRows = $scope.model.myFoundset.viewPort.rows;
-					}
-					else if ($scope.model.hashedFoundsets) {
+					} else if ($scope.model.hashedFoundsets) {
 						for (var i = 0; i < $scope.model.hashedFoundsets.length; i++) {
 							if ($scope.model.hashedFoundsets[i].foundsetUUID == foundsetManager.foundsetUUID) {
 								column = getColumn(params.column.colId, $scope.model.hashedFoundsets[i].columns);
@@ -1163,6 +1161,18 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 						// _svyRowId: "5.10643;_0"
 						var rowId = params.node.data[$foundsetTypeConstants.ROW_ID_COL_KEY];
 						if (rowId.indexOf(";") >= 0) rowId = rowId.substring(0, rowId.indexOf(";") + 1);
+						
+						if (column.valuelist.length == 0 && foundsetRows.length > 0) {
+							// this if is just for backwards compatilility editing comboboxes with valuelists with Servoy < 8.3.3 (there the foundset-linked-in-spec valuelists in custom objects
+							// would not be able to reference their foundset from client-side JS => for valuelists that were not actually linked
+							// client side valuelist.js would simulate a viewport that has as many items as the foundset rows containing really the same valuelist object
+							// and this did not work until the fix of SVY-12718 (valuelist.js was not able to find foundset from the same custom object) => valuelist viewport
+							// was length 0; this whole if can be removed once groupingtable's package will require Servoy >= 8.3.3
+							
+							// fall back to what was done previously - use root valuelist and foundset to resolve stuff (which will probably work except for related valuelists)
+							column = getColumn(params.column.colId);
+							foundsetRows = $scope.model.myFoundset.viewPort.rows;
+						}
 						
 						var idxInFoundsetViewport = -1;
 						for (var idx in foundsetRows)
