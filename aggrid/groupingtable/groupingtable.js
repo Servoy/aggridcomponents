@@ -3227,9 +3227,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 						var value = params.value;
 
 						if(col.showAs == 'html') {
-							return value;
+							return value && value.displayValue != undefined ? value.displayValue : value;
 						} else if(col.showAs == 'sanitizedHtml') {
-							value = $sanitize(value)
+							value = $sanitize(value && value.displayValue != undefined ? value.displayValue : value)
 							return value;
 						} else {
 							if (value && value.contentType && value.contentType.indexOf('image/') == 0 && value.url) {
