@@ -3670,7 +3670,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 							}
 							for(var j = 0; j < $scope.model.columns.length; j++) {
 								if(($scope.model.columns[j].id && fieldToCompare == $scope.model.columns[j].id) ||
-								($scope.model.columns[j].dataprovider && fieldToCompare == $scope.model.columns[j].dataprovider.idForFoundset)) {
+								($scope.model.columns[j].dataprovider && fieldToCompare == getColumnID($scope.model.columns[j], j))) {
 										if(fieldIdx < 1) {
 											columnExist = true;
 											break;
