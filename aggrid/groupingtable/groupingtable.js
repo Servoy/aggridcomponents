@@ -1774,6 +1774,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 						$log.debug('myFoundset root changed');
 						if($scope.model.myFoundset.viewPort.size > 0) {
 							// browser refresh
+							isRootFoundsetLoaded = true;
 							initRootFoundset();
 						}
 						else {
@@ -3100,10 +3101,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 				 *  */
 				function updateRows(rowUpdates, oldStartIndex, oldSize) {
 
-					var editCells = gridOptions.api.getEditingCells();
-
-					// Don't update automatically if the row are grouped or the table has an editor in use
-					if (isTableGrouped() || editCells.length) {
+					// Don't update automatically if the row are grouped
+					if (isTableGrouped()) {
 						// register update
 						$scope.dirtyCache = true;
 						return;
@@ -3148,9 +3147,26 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 					}
 
 					if (row) {
+						// find editing cells for the updating row, and skip updating them
+						var editCells = gridOptions.api.getEditingCells();
+						var editingColumnIds = [];
+						for(var i = 0; i < editCells.length; i++) {
+							if(index == editCells[i].rowIndex) {
+								editingColumnIds.push(editCells[i].column.colId);
+							}
+						}
 						gridOptions.api.forEachNode( function(node) {
 							if(row._svyFoundsetUUID == node.data._svyFoundsetUUID && row._svyRowId == node.data._svyRowId) {
-								node.setData(row);
+								if(editingColumnIds.length) {
+									for(var colId in node.data) {
+										if(editingColumnIds.indexOf(colId) == -1) {
+											node.setDataValue(colId, row[colId]);
+										}
+									}
+								}
+								else {
+									node.setData(row);
+								}
 								return;
 							}
 						});
