@@ -707,7 +707,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 					}
 
 					var col = getColumn(params.colDef.field);
-					if(col && col.dataprovider && col.dataprovider.idForFoundset && newValue !== oldValue) {
+					if(col && col.dataprovider && col.dataprovider.idForFoundset && newValue != oldValue) {
 						foundsetRef.updateViewportRecord(row._svyRowId, col.dataprovider.idForFoundset, newValue, oldValue);
 						if($scope.handlers.onColumnDataChange) {
 							$scope.handlers.onColumnDataChange(
