@@ -397,6 +397,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 					purgeClosedRowNodes: true,
 					onGridReady: function() {
 						$log.debug("gridReady");
+						if($scope.handlers.onReady) {
+							$scope.handlers.onReady();
+						}
 						// without timeout the column don't fit automatically
 						setTimeout(function() {
 							sizeHeaderAndColumnsToFit();

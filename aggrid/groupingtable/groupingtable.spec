@@ -120,6 +120,9 @@
 				"type": "object",
 				"optional": true
 			}]
+		},
+		"onReady": {
+			"description": "Called when the table is ready to be shown"
 		}
 	}, 
 	"api" : {

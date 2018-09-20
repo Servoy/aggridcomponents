@@ -111,6 +111,9 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
 
                 onGridReady: function() {
                     $log.debug("gridReady");
+                    if($scope.handlers.onReady) {
+                        $scope.handlers.onReady();
+                    }
                     // without timeout the column don't fit automatically
                     setTimeout(function() {
                         sizeColumnsToFit();
