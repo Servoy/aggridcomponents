@@ -3254,17 +3254,44 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 					var cellRenderer = function(params) {
 						var col = getColumn(params.colDef.field);
 						var value = params.value;
-
+						
+						var returnValueFormatted = false;
 						if(col.showAs == 'html') {
-							return value && value.displayValue != undefined ? value.displayValue : value;
+							value =  value && value.displayValue != undefined ? value.displayValue : value;
 						} else if(col.showAs == 'sanitizedHtml') {
 							value = $sanitize(value && value.displayValue != undefined ? value.displayValue : value)
-							return value;
+						} else if (value && value.contentType && value.contentType.indexOf('image/') == 0 && value.url) {
+							value = '<img class="ag-table-image-cell" src="' + value.url + '">';
 						} else {
-							if (value && value.contentType && value.contentType.indexOf('image/') == 0 && value.url) {
-								return '<img class="ag-table-image-cell" src="' + value.url + '">';
+							returnValueFormatted = true;
+						}
+					
+						var styleClassProvider = null;
+						if (!isTableGrouped()) {
+							var column = getColumn(params.colDef.field);
+							if (column && column.styleClassDataprovider) {
+								var index = params.rowIndex - foundset.foundset.viewPort.startIndex;
+								styleClassProvider = column.styleClassDataprovider[index];
 							}
-							return document.createTextNode(params.valueFormatted);
+						} else {
+								var foundsetManager = getFoundsetManagerByFoundsetUUID(params.data._svyFoundsetUUID);
+								var index = foundsetManager.getRowIndex(params.data) - foundsetManager.foundset.viewPort.startIndex;
+								if (index >= 0) {
+									styleClassProvider = foundsetManager.foundset.viewPort.rows[index][params.colDef.field + "_styleClassDataprovider"];
+								} else {
+									$log.warn('cannot render styleClassDataprovider for row at index ' + index)
+									$log.warn(params.data);
+								}
+						}
+							
+						if(styleClassProvider) {
+							var divContainer = document.createElement("div");
+							divContainer.className = styleClassProvider;
+							divContainer.innerHTML = returnValueFormatted ? params.valueFormatted : value;
+							return divContainer;
+						}
+						else {
+							return returnValueFormatted ? document.createTextNode(params.valueFormatted) : value;
 						}
 					}
 
@@ -3431,34 +3458,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 				}
 
 				function getCellClass(params) {
-					var styleClassProvider;
-
-					// TODO can i get styleClassDataprovider from grouped foundset ?
-					// var foundsetManager = getFoundsetManagerByFoundsetUUID(params.data._svyFoundsetUUID);
-
-					// TODO get direct access to column is quicker than array scanning
 					var column = getColumn(params.colDef.field);
-					if (!isTableGrouped()) {
-						if (column) {
-
-							// TODO get value from the proper foundset
-							var index = params.rowIndex - foundset.foundset.viewPort.startIndex;
-							styleClassProvider = column.styleClassDataprovider[index];
-						}
-					} else {
-							var foundsetManager = getFoundsetManagerByFoundsetUUID(params.data._svyFoundsetUUID);
-							var index = foundsetManager.getRowIndex(params.data) - foundsetManager.foundset.viewPort.startIndex;
-							if (index >= 0) {
-								styleClassProvider = foundsetManager.foundset.viewPort.rows[index][params.colDef.field + "_styleClassDataprovider"];
-							} else {
-								$log.warn('cannot render styleClassDataprovider for row at index ' + index)
-								$log.warn(params.data);
-							}
-					}
 
 					var cellClass = 'ag-table-cell';
 					if(column.styleClass) cellClass += ' ' + column.styleClass;
-					if(styleClassProvider) cellClass += ' ' + styleClassProvider;
 
 					return cellClass;
 				}
