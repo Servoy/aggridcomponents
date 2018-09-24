@@ -3408,6 +3408,17 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 					var rowIndex = params.node.rowIndex;
 					var styleClassProvider;
 
+					// make sure we remove non ag- classes, we consider those added by rowStyleClassDataprovider
+					var rowElement = $element.find("[row-index='" + params.rowIndex + "']"); 
+					if(rowElement.length) {
+						var classes = rowElement.attr("class").split(/\s+/);
+						for(var j = 0; j < classes.length; j++) {
+							if(classes[j].indexOf("ag-") != 0) {
+								rowElement.removeClass(classes[j]);
+							}
+						}
+					}
+
 					// TODO can i get rowStyleClassDataprovider from grouped foundset ?
 					if (!isTableGrouped()) {
 						var index = rowIndex - foundset.foundset.viewPort.startIndex;
