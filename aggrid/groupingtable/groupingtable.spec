@@ -252,6 +252,7 @@
 			"enableToolPanel" : {"type": "boolean", "default" : true},
 			"autoResize" : {"type": "boolean", "default" : true},
 			"rowGroupIndex":  {"type": "int", "default": -1},
+			"isEditableDataprovider": { "type": "dataprovider", "forFoundset": "myFoundset"},
 			"editType": {"type": "string", "values": ["NONE", "TEXTFIELD", "DATEPICKER", "COMBOBOX", "TYPEAHEAD"], "default": "NONE"},
 			"id": {"type" : "string"},
 			"columnDef": {"type" : "map"},

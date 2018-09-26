@@ -162,6 +162,10 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 		if (column.hasOwnProperty("styleClassDataprovider")) {
 			dps[idForFoundset + "_styleClassDataprovider"] = column.styleClassDataprovider;
 		}
+
+		if (column.hasOwnProperty("isEditableDataprovider")) {
+			dps[idForFoundset + "_isEditableDataprovider"] = column.isEditableDataprovider;
+		}
 	}
 	try {
 		// TODO implement rowStyleClassDataprovider

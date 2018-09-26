@@ -3228,12 +3228,29 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 				 */
 				function isColumnEditable(args) {
 					var rowGroupCols = getRowGroupColumns();
-					for(var i = 0; i < rowGroupCols.length; i++) {
-						if(args.colDef.field == rowGroupCols[i].colDef.field) {
+					for (var i = 0; i < rowGroupCols.length; i++) {
+						if (args.colDef.field == rowGroupCols[i].colDef.field) {
 							return false;	// don't allow editing columns used for grouping
 						}
 					}
-					return true;
+
+					var isColumnEditable = true;
+					if (!isTableGrouped()) {
+						var column = getColumn(args.colDef.field);
+						if (column && column.isEditableDataprovider) {
+							var index = args.node.rowIndex - foundset.foundset.viewPort.startIndex;
+							isColumnEditable = column.isEditableDataprovider[index];
+						}
+					}
+					else {
+						var foundsetManager = getFoundsetManagerByFoundsetUUID(args.data._svyFoundsetUUID);
+						var index = foundsetManager.getRowIndex(args.data) - foundsetManager.foundset.viewPort.startIndex;
+						if (index >= 0) {
+							isColumnEditable = foundsetManager.foundset.viewPort.rows[index][args.colDef.field + "_isEditableDataprovider"];
+						}
+					}
+
+					return isColumnEditable;
 				}
 
 				/**
