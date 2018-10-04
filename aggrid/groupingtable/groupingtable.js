@@ -3394,7 +3394,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 						// column sort
 						if (column.enableSort === false) colDef.suppressSorting = true;
 
-						if (column.editType != 'NONE') {
+						if (column.editType) {
 							colDef.editable = isColumnEditable;
 
 							if(column.editType == 'TEXTFIELD' || column.editType == 'TYPEAHEAD') {

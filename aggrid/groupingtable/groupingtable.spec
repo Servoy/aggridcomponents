@@ -253,10 +253,10 @@
 			"autoResize" : {"type": "boolean", "default" : true},
 			"rowGroupIndex":  {"type": "int", "default": -1},
 			"isEditableDataprovider": { "type": "dataprovider", "forFoundset": "myFoundset"},
-			"editType": {"type": "string", "values": ["NONE", "TEXTFIELD", "DATEPICKER", "COMBOBOX", "TYPEAHEAD"], "default": "NONE"},
+			"editType": {"type": "string", "values": [{"NONE":null}, {"TEXTFIELD":"TEXTFIELD"}, {"DATEPICKER":"DATEPICKER"}, {"COMBOBOX":"COMBOBOX"}, {"TYPEAHEAD":"TYPEAHEAD"}]},
 			"id": {"type" : "string"},
 			"columnDef": {"type" : "map"},
-			"showAs": { "type": "string", "default": "text", "values": ["text", "html", "sanitizedHtml"] }
+			"showAs": { "type": "string", "values": [{"text":null}, {"html":"html"}, {"sanitizedHtml":"sanitizedHtml"}] }
 		},
 		"groupedColumn" : {
             "dataprovider": { "type": "dataprovider", "forFoundset": "foundset", "resolveValuelist": true },
