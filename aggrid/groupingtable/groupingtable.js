@@ -1135,10 +1135,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 				 **************************************************************************************************/
 
 				function getValuelist(params, asCodeString) {
-					return getValuelist(params.node.data, params.column.colId, asCodeString)
+					return getValuelistEx(params.node.data, params.column.colId, asCodeString)
 				}
 
-				function getValuelist(row, colId, asCodeString) {
+				function getValuelistEx(row, colId, asCodeString) {
 					var column;
 					var foundsetRows;
 
@@ -1585,7 +1585,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 							groupKeys[i] = null;	// reset to real null, so we use the right value for grouping
 						}
 						else {
-							var vl = getValuelist(params.parentNode.data, rowGroupCols[i]['id'], false);
+							var vl = getValuelistEx(params.parentNode.data, rowGroupCols[i]['id'], false);
 							if(vl) {
 								filterPromises.push(vl.filterList(groupKeys[i]));
 								var idx = i;
