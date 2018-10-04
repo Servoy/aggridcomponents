@@ -1135,19 +1135,22 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 				 **************************************************************************************************/
 
 				function getValuelist(params, asCodeString) {
+					return getValuelist(params.node.data, params.column.colId, asCodeString)
+				}
+
+				function getValuelist(row, colId, asCodeString) {
 					var column;
 					var foundsetRows;
 
-					var row = params.node.data;
 					var foundsetManager = getFoundsetManagerByFoundsetUUID(row._svyFoundsetUUID);
 					// if not root, it should use the column/foundsetRows from the hashed map
 					if (foundsetManager.isRoot) {
-						column = getColumn(params.column.colId);
+						column = getColumn(colId);
 						foundsetRows = $scope.model.myFoundset.viewPort.rows;
 					} else if ($scope.model.hashedFoundsets) {
 						for (var i = 0; i < $scope.model.hashedFoundsets.length; i++) {
 							if ($scope.model.hashedFoundsets[i].foundsetUUID == foundsetManager.foundsetUUID) {
-								column = getColumn(params.column.colId, $scope.model.hashedFoundsets[i].columns);
+								column = getColumn(colId, $scope.model.hashedFoundsets[i].columns);
 								foundsetRows = foundsetManager.foundset.viewPort.rows;
 								break;
 							}
@@ -1162,7 +1165,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 					if (column.valuelist && column.valuelist[$sabloConverters.INTERNAL_IMPL]
 							&& angular.isDefined(column.valuelist[$sabloConverters.INTERNAL_IMPL]["recordLinked"])) {
 						// _svyRowId: "5.10643;_0"
-						var rowId = params.node.data[$foundsetTypeConstants.ROW_ID_COL_KEY];
+						var rowId = row[$foundsetTypeConstants.ROW_ID_COL_KEY];
 						if (rowId.indexOf(";") >= 0) rowId = rowId.substring(0, rowId.indexOf(";") + 1);
 						
 						if (column.valuelist.length == 0 && foundsetRows.length > 0) {
@@ -1173,7 +1176,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 							// was length 0; this whole if can be removed once groupingtable's package will require Servoy >= 8.3.3
 							
 							// fall back to what was done previously - use root valuelist and foundset to resolve stuff (which will probably work except for related valuelists)
-							column = getColumn(params.column.colId);
+							column = getColumn(colId);
 							foundsetRows = $scope.model.myFoundset.viewPort.rows;
 						}
 						
@@ -1568,11 +1571,45 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 
 				FoundsetDatasource.prototype.getRows = function(params) {
 					$log.debug('FoundsetDatasource.getRows: params = ', params);
-					this.foundsetServer.getData(params.request,
-						function successCallback(resultForGrid, lastRow) {
-							params.successCallback(resultForGrid, lastRow);
-							selectedRowIndexesChanged();
-						});
+
+					// the row group cols, ie the cols that the user has dragged into the 'group by' zone, eg 'Country' and 'Customerid'
+					var rowGroupCols = params.request.rowGroupCols
+					// the keys we are looking at. will be empty if looking at top level (either no groups, or looking at top level groups). eg ['United States','2002']
+					var groupKeys = params.request.groupKeys;
+
+					// resolve valuelist display values to real values
+					var filterPromises = [];
+
+					for (var i = 0; i < groupKeys.length; i++) {
+						if (groupKeys[i] == NULL_VALUE) {
+							groupKeys[i] = null;	// reset to real null, so we use the right value for grouping
+						}
+						else {
+							var vl = getValuelist(params.parentNode.data, rowGroupCols[i]['id'], false);
+							if(vl) {
+								filterPromises.push(vl.filterList(groupKeys[i]));
+								var idx = i;
+								filterPromises[filterPromises.length - 1].then(function(valuelistValues) {
+									if(valuelistValues && valuelistValues.length) {
+										if(valuelistValues[0] && valuelistValues[0].realValue != undefined) {
+											groupKeys[idx] = valuelistValues[0].realValue;
+										}
+									}
+								});
+							}
+						}
+					}
+
+					var thisFoundsetDatasource = this;
+					$q.all(filterPromises).then(function() {
+						thisFoundsetDatasource.foundsetServer.getData(params.request, groupKeys,
+							function successCallback(resultForGrid, lastRow) {
+								params.successCallback(resultForGrid, lastRow);
+								selectedRowIndexesChanged();
+							});
+					}, function(reason) {
+						$log.error('Can not get realValues for groupKeys ' + reason);
+					});
 				};
 
 				function FoundsetServer(allData) {
@@ -1581,22 +1618,17 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 
 				/**
 				 * @param {AgDataRequestType} request
+				 * @param {Array} groupKeys
 				 * @param {Function} callback callback(data, isLastRow)
 				 * @protected
 				 * */
-				FoundsetServer.prototype.getData = function(request, callback) {
+				FoundsetServer.prototype.getData = function(request, groupKeys, callback) {
 
 					$log.debug(request);
 
 					// the row group cols, ie the cols that the user has dragged into the 'group by' zone, eg 'Country' and 'Customerid'
 					var rowGroupCols = request.rowGroupCols
-					// the keys we are looking at. will be empty if looking at top level (either no groups, or looking at top level groups). eg ['United States','2002']
-					var groupKeys = request.groupKeys;
-					for (var i = 0; i < groupKeys.length; i++) {
-						if (groupKeys[i] == NULL_VALUE) {
-							groupKeys[i] = null;	// reset to real null, so we use the right value for grouping
-						}
-					}
+
 					// if going aggregation, contains the value columns, eg ['gold','silver','bronze']
 					var valueCols = request.valueCols;
 
