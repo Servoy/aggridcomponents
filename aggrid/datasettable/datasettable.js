@@ -146,7 +146,26 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
 //                onColumnMoved: storeColumnsState,              covered by onDisplayedColumnsChanged
 //                onColumnGroupOpened: storeColumnsState		 i don't think we need that, it doesn't include the open group in column state
 
-				navigateToNextCell: selectionChangeNavigation
+                navigateToNextCell: selectionChangeNavigation,
+                
+                sideBar : {
+                    toolPanels: [
+                        {
+                            id: 'columns',
+                            labelDefault: 'Columns',
+                            labelKey: 'columns',
+                            iconKey: 'columns',
+                            toolPanel: 'agColumnsToolPanel',
+                        },
+                        {
+                        	id: 'filters',
+                        	labelDefault: 'Filters',
+                        	labelKey: 'filters',
+                        	iconKey: 'filter',
+                        	toolPanel: 'agFiltersToolPanel',
+                        }
+                    ]
+                }
             };
 
             if($scope.model.useLazyLoading) {

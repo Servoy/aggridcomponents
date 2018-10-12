@@ -20,7 +20,7 @@
 		"responsiveHeight": { "type": "int", "default": 300 },
 		"rowHeight" : {"type" : "int", "default": 25, "tags": {"scope": "design"}},
 		"rowStyleClassDataprovider": { "type": "dataprovider", "forFoundset": "myFoundset" },
-		"styleClass": { "type": "styleclass", "default" : "ag-bootstrap"},
+		"styleClass": { "type": "styleclass", "default" : "ag-theme-bootstrap"},
 		"enableColumnResize": { "type": "boolean", "default": true, "tags": {"scope": "design"}},
 		"enableColumnMove": { "type": "boolean", "default": true, "tags": {"scope": "design"}},
 		"enableSorting": { "type": "boolean", "default": true, "tags": {"scope": "design"}},
@@ -33,7 +33,8 @@
 		"toolPanelConfig": { "type": "toolPanelConfig", "tags": { "scope": "design" } },
 		"iconConfig": { "type": "iconConfig", "tags": { "scope": "design" } },
 		"gridOptions": {"type": "map"},
-		"localeText": {"type": "map"}
+		"localeText": {"type": "map"},
+		"filterModel": {"type": "object", "default": {}, "tags": {"scope": "private"}}
 	},
 	"handlers" : {
 		"onCellClick": {
@@ -230,7 +231,15 @@
                     "type": "foundsetRef"
                 }
             ]
-        }
+        },
+		"filterMyFoundset" : {
+            "parameters" : [{
+					"name": "sFilterModel",
+					"type": "string",
+					"optional": true
+				}
+            ]
+		}
 	},
 	"types" : {
 		"column" : {

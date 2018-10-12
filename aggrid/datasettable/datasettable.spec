@@ -17,7 +17,7 @@
 		"responsiveHeight": { "type": "int", "default": 300 },
 		"rowHeight" : {"type" : "int", "default": 25, "tags": {"scope": "design"}},
 		"rowStyleClassFunc": { "type": "string"},
-		"styleClass": { "type": "styleclass", "default" : "ag-bootstrap"},
+		"styleClass": { "type": "styleclass", "default" : "ag-theme-bootstrap"},
 		"visible": "visible",
 		"enableColumnResize": { "type": "boolean", "default": true, "tags": {"scope": "design"}},
 		"enableSorting": { "type": "boolean", "default": true, "tags": {"scope": "design"}},

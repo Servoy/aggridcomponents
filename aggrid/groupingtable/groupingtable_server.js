@@ -209,6 +209,49 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 	return childFoundset; // return the UUID that points to this foundset (return type will make it UUID)
 };
 
+$scope.filterMyFoundset = function(sFilterModel) {
+	var filterModel = JSON.parse(sFilterModel);
+
+	for(var i = 0; i < $scope.model.columns.length; i++) {
+		var dp = $scope.model.columns[i].dataprovider;
+		$scope.model.myFoundset.foundset.removeFoundSetFilterParam('ag-' + dp);
+		var filter = filterModel[i];
+		if(filter) {
+			var op, value;
+			switch(filter["type"]) {
+				case "equals":
+					op = "=";
+					value = filter["filter"];
+					break;
+				case "notEqual":
+					op = "!=";
+					value = filter["filter"];
+					break;
+				case "startsWith":
+					op = "like";
+					value = filter["filter"] + "%";
+					break;
+				case "endsWith":
+					op = "like";
+					value = "%" + filter["filter"];
+					break;				
+				case "contains":
+					op = "like";
+					value = "%" + filter["filter"] + "%";
+					break;		
+				case "notContains":
+					op = "not like";
+					value = "%" + filter["filter"] + "%";
+					break;	
+			}
+			if(op != undefined && value != undefined) {
+				$scope.model.myFoundset.foundset.addFoundSetFilterParam(dp, op, value, 'ag-' + dp);
+			}
+		}
+	}
+	$scope.model.myFoundset.foundset.loadAllRecords();
+}
+
 $scope.removeGroupedFoundsetUUID = function(parentFoundset) {
 	for (var i = 0; i < $scope.model.hashedFoundsets.length; i++) {
 		var hashedFoundset = $scope.model.hashedFoundsets[i];

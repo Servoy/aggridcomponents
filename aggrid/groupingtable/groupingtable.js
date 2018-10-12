@@ -349,7 +349,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 					autoSizePadding: 25,
 					suppressFieldDotNotation: true,
 
-					enableServerSideFilter: false, // TODO implement serverside filtering
+					enableServerSideFilter: true, // TODO implement serverside filtering
 					suppressMovingInCss: true,
 					suppressColumnMoveAnimation: true,
 					suppressAnimationFrame: true,
@@ -433,7 +433,26 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 					//					}
 					// TODO localeText: how to provide localeText to the grid ? can the grid be shipped with i18n ?
 
-					navigateToNextCell: selectionChangeNavigation
+					navigateToNextCell: selectionChangeNavigation,
+
+					sideBar : {
+						toolPanels: [
+							{
+								id: 'columns',
+								labelDefault: 'Columns',
+								labelKey: 'columns',
+								iconKey: 'columns',
+								toolPanel: 'agColumnsToolPanel',
+							},
+							{
+								id: 'filters',
+								labelDefault: 'Filters',
+								labelKey: 'filters',
+								iconKey: 'filter',
+								toolPanel: 'agFiltersToolPanel',
+							}
+						]
+					}
 				};
 				
 
@@ -1686,6 +1705,21 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 						// groupManager (UUID)
 						// group, in the foundsetHashmap and in the state ?
 						var foundsetRefManager = getFoundsetManagerByFoundsetUUID(foundsetUUID);
+
+						if (foundsetRefManager.isRoot && JSON.stringify(filterModel) != JSON.stringify($scope.model.filterModel)) {
+							var filterMyFoundsetArg = [];
+							var updatedFilterModel = {};
+							for(var c in filterModel) {
+								var columnIndex = getColumnIndex(c);
+								if(columnIndex != -1) {
+									updatedFilterModel[columnIndex] = filterModel[c];
+								}
+							}
+							filterMyFoundsetArg.push(JSON.stringify(updatedFilterModel));
+
+							var filterPromise = $scope.svyServoyapi.callServerSideApi("filterMyFoundset", filterMyFoundsetArg);
+							$scope.model.filterModel = filterModel;
+						}
 
 						if (sortString === "") {
 							// TODO restore a default sort order when sort is removed
@@ -3414,6 +3448,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 								updateFoundsetRecord(params);
 							}
 						}
+
+						colDef.suppressFilter = false;
+						colDef.filter = 'agTextColumnFilter';
+    					colDef.filterParams = { applyButton : true, newRowsAction: 'keep' };
 
 						if(column.columnDef) {
 							for (var property in column.columnDef) {
