@@ -1654,7 +1654,31 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 					// rowGroupCols cannot be 2 level deeper than groupKeys
 					// rowGroupCols = rowGroupCols.slice(0, groupKeys.length + 1);
 
+					var allPromises = [];
+
 					var filterModel = request.filterModel;
+					var updatedFilterModel = {};
+					for(var c in filterModel) {
+						var columnIndex = getColumnIndex(c);
+						if(columnIndex != -1) {
+							updatedFilterModel[columnIndex] = filterModel[c];
+						}
+					}
+					var sUpdatedFilterModel = JSON.stringify(updatedFilterModel);
+					if (sUpdatedFilterModel != $scope.model.filterModel && !(sUpdatedFilterModel == "{}" && $scope.model.filterModel == undefined)) {
+						$scope.model.filterModel = sUpdatedFilterModel;
+						var filterMyFoundsetArg = [];
+						filterMyFoundsetArg.push(sUpdatedFilterModel);
+
+						if(rowGroupCols.length) {
+							groupManager.removeFoundsetRefAtLevel(0);
+						}
+						else {
+							allPromises.push($scope.svyServoyapi.callServerSideApi("filterMyFoundset", filterMyFoundsetArg));
+						}
+					}
+
+
 					var sortModel = request.sortModel;
 
 					var result;
@@ -1685,11 +1709,12 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 					// Sort on the foundset Group
 					if (sortRootGroup) { // no sort need to be applied
 						// Should change the foundset with a different sort order
-						groupManager.createOrReplaceFoundsetRef(rowGroupCols, groupKeys, sortModel[0].sort).then(getFoundsetRefSuccess).catch(getFoundsetRefError);
+						allPromises.push(groupManager.createOrReplaceFoundsetRef(rowGroupCols, groupKeys, sortModel[0].sort));
 					} else {
 						// get the foundset reference
-						groupManager.getFoundsetRef(rowGroupCols, groupKeys).then(getFoundsetRefSuccess).catch(getFoundsetRefError);
+						allPromises.push(groupManager.getFoundsetRef(rowGroupCols, groupKeys));
 					}
+					$q.all(allPromises).then(getFoundsetRefSuccess).catch(getFoundsetRefError);
 
 					/**
 					 * GetFoundserRef Promise Callback
@@ -1697,7 +1722,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 					 * @param {String} foundsetUUID
 					 * @protected
 					 *  */
-					function getFoundsetRefSuccess(foundsetUUID) {
+					function getFoundsetRefSuccess(args) {
+
+						var foundsetUUID = args[args.length - 1];
 
 						// TODO search in state first ?
 						// The foundsetUUID exists in the
@@ -1705,21 +1732,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 						// groupManager (UUID)
 						// group, in the foundsetHashmap and in the state ?
 						var foundsetRefManager = getFoundsetManagerByFoundsetUUID(foundsetUUID);
-
-						if (foundsetRefManager.isRoot && JSON.stringify(filterModel) != JSON.stringify($scope.model.filterModel)) {
-							var filterMyFoundsetArg = [];
-							var updatedFilterModel = {};
-							for(var c in filterModel) {
-								var columnIndex = getColumnIndex(c);
-								if(columnIndex != -1) {
-									updatedFilterModel[columnIndex] = filterModel[c];
-								}
-							}
-							filterMyFoundsetArg.push(JSON.stringify(updatedFilterModel));
-
-							var filterPromise = $scope.svyServoyapi.callServerSideApi("filterMyFoundset", filterMyFoundsetArg);
-							$scope.model.filterModel = filterModel;
-						}
 
 						if (sortString === "") {
 							// TODO restore a default sort order when sort is removed
@@ -2842,7 +2854,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 
 						var hasRowStyleClassDataprovider = $scope.model.rowStyleClassDataprovider ? true : false;
 						childFoundsetPromise = $scope.svyServoyapi.callServerSideApi("getGroupedFoundsetUUID",
-							[groupColumns, groupKeys, idForFoundsets, sort, hasRowStyleClassDataprovider]);
+							[groupColumns, groupKeys, idForFoundsets, sort, $scope.model.filterModel, hasRowStyleClassDataprovider]);
 
 						childFoundsetPromise.then(function(childFoundsetUUID) {
 								$log.debug(childFoundsetUUID);
@@ -3225,7 +3237,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 							}
 						}
 						gridOptions.api.forEachNode( function(node) {
-							if(row._svyFoundsetUUID == node.data._svyFoundsetUUID && row._svyRowId == node.data._svyRowId) {
+							if(node.data && row._svyFoundsetUUID == node.data._svyFoundsetUUID && row._svyRowId == node.data._svyRowId) {
 								if(editingColumnIds.length) {
 									for(var colId in node.data) {
 										if(editingColumnIds.indexOf(colId) == -1) {
@@ -3451,7 +3463,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 
 						colDef.suppressFilter = false;
 						colDef.filter = 'agTextColumnFilter';
-    					colDef.filterParams = { applyButton : true, newRowsAction: 'keep' };
+						colDef.filterParams = { applyButton: true, clearButton: true, newRowsAction: 'keep', suppressAndOrCondition: true };
 
 						if(column.columnDef) {
 							for (var property in column.columnDef) {

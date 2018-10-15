@@ -34,7 +34,7 @@
 		"iconConfig": { "type": "iconConfig", "tags": { "scope": "design" } },
 		"gridOptions": {"type": "map"},
 		"localeText": {"type": "map"},
-		"filterModel": {"type": "object", "default": {}, "tags": {"scope": "private"}}
+		"filterModel": {"type": "string", "tags": {"scope": "private"}}
 	},
 	"handlers" : {
 		"onCellClick": {
@@ -193,7 +193,10 @@
                 }, {
                 	"name" : "sort",
                 	"type" : "string"
-                },{
+				},{
+                	"name" : "sFilterModel",
+                	"type" : "string"
+				},{
                 	"name" : "hasRowStyleClassDataprovider",
                 	"type" : "boolean",
                 	"optional" : true
@@ -235,8 +238,7 @@
 		"filterMyFoundset" : {
             "parameters" : [{
 					"name": "sFilterModel",
-					"type": "string",
-					"optional": true
+					"type": "string"
 				}
             ]
 		}

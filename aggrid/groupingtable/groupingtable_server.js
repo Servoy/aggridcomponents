@@ -5,7 +5,7 @@
  * @param {String} [sort]
  *
  * */
-$scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets, sort, hasRowStyleClassDataprovider) {
+$scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets, sort, sFilterModel, hasRowStyleClassDataprovider) {
 	log('START SERVER SIDE ------------------------------------------ ', LOG_LEVEL.WARN);
 
 	// root is the parent
@@ -140,6 +140,7 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 
 	// this is the first grouping operation; alter initial query to get all first level groups
 	var childFoundset = parentFoundset.duplicateFoundSet();
+	if (sFilterModel) filterFoundset(childFoundset, sFilterModel);
 	childFoundset.loadRecords(query);
 
 	//	console.log('Matching records ' + childFoundset.getSize());
@@ -210,45 +211,7 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 };
 
 $scope.filterMyFoundset = function(sFilterModel) {
-	var filterModel = JSON.parse(sFilterModel);
-
-	for(var i = 0; i < $scope.model.columns.length; i++) {
-		var dp = $scope.model.columns[i].dataprovider;
-		$scope.model.myFoundset.foundset.removeFoundSetFilterParam('ag-' + dp);
-		var filter = filterModel[i];
-		if(filter) {
-			var op, value;
-			switch(filter["type"]) {
-				case "equals":
-					op = "=";
-					value = filter["filter"];
-					break;
-				case "notEqual":
-					op = "!=";
-					value = filter["filter"];
-					break;
-				case "startsWith":
-					op = "like";
-					value = filter["filter"] + "%";
-					break;
-				case "endsWith":
-					op = "like";
-					value = "%" + filter["filter"];
-					break;				
-				case "contains":
-					op = "like";
-					value = "%" + filter["filter"] + "%";
-					break;		
-				case "notContains":
-					op = "not like";
-					value = "%" + filter["filter"] + "%";
-					break;	
-			}
-			if(op != undefined && value != undefined) {
-				$scope.model.myFoundset.foundset.addFoundSetFilterParam(dp, op, value, 'ag-' + dp);
-			}
-		}
-	}
+	if (sFilterModel) filterFoundset($scope.model.myFoundset.foundset, sFilterModel);
 	$scope.model.myFoundset.foundset.loadAllRecords();
 }
 
@@ -418,6 +381,48 @@ function log(msg, level) {
 			console.log(msg);
 		}
 		break;
+	}
+}
+
+function filterFoundset(foundset, sFilterModel) {
+	var filterModel = JSON.parse(sFilterModel);
+
+	for(var i = 0; i < $scope.model.columns.length; i++) {
+		var dp = $scope.model.columns[i].dataprovider;
+		foundset.removeFoundSetFilterParam('ag-' + dp);
+		var filter = filterModel[i];
+		if(filter) {
+			var op, value;
+			switch(filter["type"]) {
+				case "equals":
+					op = "=";
+					value = filter["filter"];
+					break;
+				case "notEqual":
+					op = "!=";
+					value = filter["filter"];
+					break;
+				case "startsWith":
+					op = "like";
+					value = filter["filter"] + "%";
+					break;
+				case "endsWith":
+					op = "like";
+					value = "%" + filter["filter"];
+					break;				
+				case "contains":
+					op = "like";
+					value = "%" + filter["filter"] + "%";
+					break;		
+				case "notContains":
+					op = "not like";
+					value = "%" + filter["filter"] + "%";
+					break;	
+			}
+			if(op != undefined && value != undefined) {
+				foundset.addFoundSetFilterParam(dp, op, value, 'ag-' + dp);
+			}
+		}
 	}
 }
 
