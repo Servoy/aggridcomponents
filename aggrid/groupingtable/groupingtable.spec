@@ -265,6 +265,7 @@
 			"rowGroupIndex":  {"type": "int", "default": -1},
 			"isEditableDataprovider": { "type": "dataprovider", "forFoundset": "myFoundset"},
 			"editType": {"type": "string", "values": [{"NONE":null}, {"TEXTFIELD":"TEXTFIELD"}, {"DATEPICKER":"DATEPICKER"}, {"COMBOBOX":"COMBOBOX"}, {"TYPEAHEAD":"TYPEAHEAD"}]},
+			"filterType": {"type": "string", "values": [{"NONE":null}, {"TEXT":"TEXT"}, {"NUMBER":"NUMBER"}, {"DATE":"DATE"}]},
 			"id": {"type" : "string"},
 			"columnDef": {"type" : "map"},
 			"showAs": { "type": "string", "values": [{"text":null}, {"html":"html"}, {"sanitizedHtml":"sanitizedHtml"}] }

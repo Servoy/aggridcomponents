@@ -393,32 +393,88 @@ function filterFoundset(foundset, sFilterModel) {
 		var filter = filterModel[i];
 		if(filter) {
 			var op, value;
-			switch(filter["type"]) {
-				case "equals":
-					op = "=";
-					value = filter["filter"];
-					break;
-				case "notEqual":
-					op = "!=";
-					value = filter["filter"];
-					break;
-				case "startsWith":
-					op = "like";
-					value = filter["filter"] + "%";
-					break;
-				case "endsWith":
-					op = "like";
-					value = "%" + filter["filter"];
-					break;				
-				case "contains":
-					op = "like";
-					value = "%" + filter["filter"] + "%";
-					break;		
-				case "notContains":
-					op = "not like";
-					value = "%" + filter["filter"] + "%";
-					break;	
+
+			if(filter["filterType"] == "text") {
+				switch(filter["type"]) {
+					case "equals":
+						op = "=";
+						value = filter["filter"];
+						break;
+					case "notEqual":
+						op = "!=";
+						value = filter["filter"];
+						break;
+					case "startsWith":
+						op = "like";
+						value = filter["filter"] + "%";
+						break;
+					case "endsWith":
+						op = "like";
+						value = "%" + filter["filter"];
+						break;				
+					case "contains":
+						op = "like";
+						value = "%" + filter["filter"] + "%";
+						break;		
+					case "notContains":
+						op = "not like";
+						value = "%" + filter["filter"] + "%";
+						break;	
+				}
 			}
+			else if(filter["filterType"] == "number") {
+				value = filter["filter"];
+				switch(filter["type"]) {
+					case "equals":
+						op = "=";
+						break;
+					case "notEqual":
+						op = "!=";
+						break;
+					case "greaterThan":
+						op = ">";
+						break;
+					case "greaterThanOrEqual":
+						op = ">=";
+						break;
+					case "lessThan":
+						op = "<";
+						break;
+					case "lessThanOrEqual":
+						op = "<=";
+						break;
+					case "inRange":
+						op = "between";
+						value = new Array();
+						value.push(filter["filter"]);
+						value.push(filter["filterTo"]);
+						break;
+				}
+			}
+			else if(filter["filterType"] == "date") {
+				value = new Date(filter["dateFrom"]);
+				switch(filter["type"]) {
+					case "equals":
+						op = "=";
+						break;
+					case "notEqual":
+						op = "!=";
+						break;
+					case "greaterThan":
+						op = ">";
+						break;
+					case "lessThan":
+						op = "<";
+						break;
+					case "inRange":
+						op = "between";
+						value = new Array();
+						value.push(filter["dateFrom"]);
+						value.push(filter["dateTo"]);
+					break;
+				}
+			}
+
 			if(op != undefined && value != undefined) {
 				foundset.addFoundSetFilterParam(dp, op, value, 'ag-' + dp);
 			}

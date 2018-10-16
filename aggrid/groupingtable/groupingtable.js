@@ -443,18 +443,24 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 								labelKey: 'columns',
 								iconKey: 'columns',
 								toolPanel: 'agColumnsToolPanel',
-							},
-							{
-								id: 'filters',
-								labelDefault: 'Filters',
-								labelKey: 'filters',
-								iconKey: 'filter',
-								toolPanel: 'agFiltersToolPanel',
 							}
 						]
 					}
 				};
 				
+				// check if we have filters
+				for(var i = 0; i < columnDefs.length; i++) {
+					if(columnDefs[i].suppressFilter === false) {
+						gridOptions.sideBar.toolPanels.push({
+							id: 'filters',
+							labelDefault: 'Filters',
+							labelKey: 'filters',
+							iconKey: 'filter',
+							toolPanel: 'agFiltersToolPanel',
+						})
+						break;
+					}
+				}
 
 				// TODO check if test enabled
 				//gridOptions.ensureDomOrder = true;
@@ -3472,9 +3478,21 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 							}
 						}
 
-						colDef.suppressFilter = false;
-						colDef.filter = 'agTextColumnFilter';
-						colDef.filterParams = { applyButton: true, clearButton: true, newRowsAction: 'keep', suppressAndOrCondition: true };
+						if (column.filterType) {
+							colDef.suppressFilter = false;
+
+							if(column.filterType == 'TEXT') {
+								colDef.filter = 'agTextColumnFilter';
+							}
+							else if(column.filterType == 'NUMBER') {
+								colDef.filter = 'agNumberColumnFilter';
+							}
+							else if(column.filterType == 'DATE') {
+								colDef.filter = 'agDateColumnFilter';
+							}
+							
+							colDef.filterParams = { applyButton: true, clearButton: true, newRowsAction: 'keep', suppressAndOrCondition: true };
+						}
 
 						if(column.columnDef) {
 							for (var property in column.columnDef) {
