@@ -57,7 +57,7 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
 
                 defaultColDef: {
                     width: 0,
-//                    suppressFilter: true,
+                    suppressFilter: true,
 //                    valueFormatter: displayValueFormatter,
                     menuTabs: ['generalMenuTab', 'filterMenuTab'],
 			        headerCheckboxSelection: false, //$scope.model.multiSelect === true ? isFirstColumn : false,	// FIXME triggers a long loop of onRowSelection event when a new selection is made.
@@ -127,7 +127,6 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                     headerName: ' ',
                     cellClass: $scope.model.groupStyleClass
                 },
-                enableFilter: true,
 				onGridSizeChanged: function() {
 					sizeColumnsToFit();
 				},
@@ -156,17 +155,23 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                             labelKey: 'columns',
                             iconKey: 'columns',
                             toolPanel: 'agColumnsToolPanel',
-                        },
-                        {
-                        	id: 'filters',
-                        	labelDefault: 'Filters',
-                        	labelKey: 'filters',
-                        	iconKey: 'filter',
-                        	toolPanel: 'agFiltersToolPanel',
-                        }
-                    ]
+                        }                    ]
                 }
             };
+
+            // check if we have filters
+            for(var i = 0; i < columnDefs.length; i++) {
+                if(columnDefs[i].suppressFilter === false) {
+                    gridOptions.sideBar.toolPanels.push({
+                        id: 'filters',
+                        labelDefault: 'Filters',
+                        labelKey: 'filters',
+                        iconKey: 'filter',
+                        toolPanel: 'agFiltersToolPanel',
+                    })
+                    break;
+                }
+            }
 
             if($scope.model.useLazyLoading) {
                 gridOptions.rowModelType = 'enterprise';
@@ -365,12 +370,20 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                         colDef.cellRenderer = createColumnCallbackFunctionFromString(column.cellRendererFunc);
                     }                    
 
-                    if(column.enableFilter) {
-                        colDef.filter = 'text';
-                        colDef.filterParams = {newRowsAction: 'keep'};
-                    }
-                    else {
-                        colDef.suppressFilter = true;
+                    if (column.filterType) {
+                        colDef.suppressFilter = false;
+
+                        if(column.filterType == 'TEXT') {
+                            colDef.filter = 'agTextColumnFilter';
+                        }
+                        else if(column.filterType == 'NUMBER') {
+                            colDef.filter = 'agNumberColumnFilter';
+                        }
+                        else if(column.filterType == 'DATE') {
+                            colDef.filter = 'agDateColumnFilter';
+                        }
+                        
+                        colDef.filterParams = { applyButton: true, clearButton: true, newRowsAction: 'keep', suppressAndOrCondition: true };
                     }
 
                     if(column.headerGroup) {
