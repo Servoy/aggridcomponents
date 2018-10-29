@@ -122,8 +122,6 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                 getContextMenuItems: getContextMenuItems,
                 enableSorting: config.enableSorting,
                 autoGroupColumnDef: {
-                    cellRenderer: DatasetTableGroupCellRenderer,
-                    cellRendererParams : { suppressCount: false},
                     headerName: ' ',
                     cellClass: $scope.model.groupStyleClass
                 },
@@ -198,6 +196,14 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                         gridOptions[property] = userGridOptions[property];
                     }
                 }
+            }
+
+            if(gridOptions.groupUseEntireRow) {
+                var groupRowRendererFunc = groupRowInnerRenderer;
+                if($scope.model.groupRowRendererFunc) {
+                    groupRowRendererFunc = eval($scope.model.groupRowRendererFunc);
+                }
+                gridOptions.groupRowInnerRenderer = groupRowRendererFunc;
             }
 
             // init the grid. If is in designer render a mocked grid
@@ -625,6 +631,19 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                     gridOptions.api.setSortModel(columnState.sortingState);
                 }
                 return true;
+            }
+
+            function groupRowInnerRenderer(params) {
+                var label = params.node.key
+                if(params.node.aggData) {
+                    label += ' ['
+                    for(var agg in params.node.aggData) {
+                        var column = gridOptions.columnApi.getColumn(agg);
+                        label += column.aggFunc + '(' + agg + '): ' + params.node.aggData[agg] + ', ';
+                    }
+                    label = label.substring(0, label.length - 2) + '] ';
+                }
+                return label;
             }
 
             $scope.showEditorHint = function() {
