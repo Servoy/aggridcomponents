@@ -122,6 +122,8 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                 getContextMenuItems: getContextMenuItems,
                 enableSorting: config.enableSorting,
                 autoGroupColumnDef: {
+                    cellRenderer: DatasetTableGroupCellRenderer,
+                    cellRendererParams : { suppressCount: false},
                     headerName: ' ',
                     cellClass: $scope.model.groupStyleClass
                 },
@@ -203,6 +205,7 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                 if($scope.model.groupRowRendererFunc) {
                     groupRowRendererFunc = eval($scope.model.groupRowRendererFunc);
                 }
+                gridOptions.groupRowRenderer = DatasetTableGroupCellRenderer;
                 gridOptions.groupRowInnerRenderer = groupRowRendererFunc;
             }
 
@@ -634,14 +637,18 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
             }
 
             function groupRowInnerRenderer(params) {
-                var label = params.node.key
+                var label = '<span class="ag-group-label">' + params.node.key + '</span>';
                 if(params.node.aggData) {
-                    label += ' ['
+                    var needsSeparator = false;
                     for(var agg in params.node.aggData) {
-                        var column = gridOptions.columnApi.getColumn(agg);
-                        label += column.aggFunc + '(' + agg + '): ' + params.node.aggData[agg] + ', ';
+                        if(needsSeparator) {
+                            label += '<span class="ag-group-aggregate-separator">,</span>';
+                        } else {
+                            needsSeparator = true;
+                        }
+                        label += '<span class="ag-group-aggregate">' + agg + ':</span><span class="ag-group-aggregate-value">'
+                        + params.node.aggData[agg] + '</span>';
                     }
-                    label = label.substring(0, label.length - 2) + '] ';
                 }
                 return label;
             }

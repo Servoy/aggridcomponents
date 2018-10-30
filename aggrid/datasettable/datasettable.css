@@ -1,0 +1,26 @@
+.ag-group-label {
+    margin-right: 5px;
+}
+
+.ag-group-aggregate-separator {
+    margin-right: 5px;
+}
+
+.ag-group-aggregate {
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+.ag-group-aggregate-value {
+    margin-right: 5px;
+}
+
+/* Uncomment to have the group count enclosed between ()
+.ag-group-child-count-prefix:after {
+    content: "(";
+}
+
+.ag-group-child-count-suffix:before {
+    content: ")";
+}
+*/
