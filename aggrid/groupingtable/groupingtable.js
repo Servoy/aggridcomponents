@@ -137,6 +137,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 					if (isTableGrouped()) {
 						groupManager.removeFoundsetRefAtLevel(0);
 					}
+					// reset root foundset
+					foundset.foundset = $scope.model.myFoundset;
 
 					gridOptions.api.purgeEnterpriseCache();
 					$scope.dirtyCache = false;
@@ -1842,19 +1844,18 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 						"enableResize",
 						"enableToolPanel",
 						"autoResize",
-						"rowGroupIndex",
 						"editType",
 						"id"
 					];
 					for(var i = 0; i < $scope.model.columns.length; i++) {
 						for( var j = 0; j < columnKeysToWatch.length; j++) {
 							var columnWatch = $scope.$watch("model.columns[" + i + "]['" + columnKeysToWatch[j] + "']",
-								function(newValue, oldValue) {
-									if(newValue != oldValue) {
-										$log.debug('column property changed');
-										gridOptions.api.setColumnDefs(getColumnDefs());
-									}
-								});
+							function(newValue, oldValue) {
+								if(newValue != oldValue) {
+									$log.debug('column property changed');
+									gridOptions.api.setColumnDefs(getColumnDefs());
+								}
+							});
 							columnWatches.push(columnWatch);
 						}
 					}
