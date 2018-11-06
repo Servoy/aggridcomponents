@@ -4,7 +4,14 @@
 	<comment></comment>
 	<projects>
 		<project>resources</project>
+		<project>exampleDataModel</project>
+		<project>exampleSharedWebPackages</project>
+		<project>svyMicroSamples</project>
 		<project>aggrid</project>
+		<project>webstorage</project>
+		<project>bootstrapcomponents</project>
+		<project>12grid</project>
+		<project>bootstrapextracomponents</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

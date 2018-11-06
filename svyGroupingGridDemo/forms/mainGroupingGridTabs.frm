@@ -20,7 +20,7 @@ uuid:"22188349-37B8-4DDA-A6FE-121600C4FE75"
 },
 {
 containsFormID:"B469C9BA-C793-4D54-B203-D11B08AF31D5",
-location:"311,22",
+location:"352,22",
 name:"agGridOrdersTest",
 text:"agGridOrdersTest",
 typeid:15,
@@ -28,11 +28,19 @@ uuid:"4EF7FFAB-303A-4E0F-822A-3F95F007896E"
 },
 {
 containsFormID:"1A83CEFF-5C53-463B-9AE1-C6DC658D2B2C",
-location:"346,32",
+location:"462,32",
 name:"agGridOrderResponsive",
 text:"agGridOrdersResponsive",
 typeid:15,
 uuid:"BCD16698-2D19-4061-84B9-38BFD0BC1E3A"
+},
+{
+containsFormID:"D79198F8-7D0D-42EC-AFDA-C1B98A6BA875",
+location:"424,159",
+name:"agGridSmartLayout",
+text:"NG Grid Smart Layout",
+typeid:15,
+uuid:"DFA19861-47C8-4762-8932-198E9D346F60"
 }
 ],
 location:"0,0",
