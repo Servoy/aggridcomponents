@@ -3302,13 +3302,25 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 					};
 
 					var cellRenderer = function(params) {
-						var col = getColumn(params.colDef.field);
+						var isGroupColumn = false;
+						var colId = null;
+						if(params.colDef.field == undefined) {
+							isGroupColumn = true;
+							if(params.colDef.colId.indexOf("ag-Grid-AutoColumn-") == 0) {
+								colId = params.colDef.colId.substring("ag-Grid-AutoColumn-".length);
+							}
+						}
+						else {
+							colId = params.colDef.field;
+						}
+
+						var col = colId != null ? getColumn(colId) : null;
 						var value = params.value;
 						
 						var returnValueFormatted = false;
-						if(col.showAs == 'html') {
+						if(col != null && col.showAs == 'html') {
 							value =  value && value.displayValue != undefined ? value.displayValue : value;
-						} else if(col.showAs == 'sanitizedHtml') {
+						} else if(col != null && col.showAs == 'sanitizedHtml') {
 							value = $sanitize(value && value.displayValue != undefined ? value.displayValue : value)
 						} else if (value && value.contentType && value.contentType.indexOf('image/') == 0 && value.url) {
 							value = '<img class="ag-table-image-cell" src="' + value.url + '">';
@@ -3317,21 +3329,23 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 						}
 					
 						var styleClassProvider = null;
-						if (!isTableGrouped()) {
-							var column = getColumn(params.colDef.field);
-							if (column && column.styleClassDataprovider) {
-								var index = params.rowIndex - foundset.foundset.viewPort.startIndex;
-								styleClassProvider = column.styleClassDataprovider[index];
-							}
-						} else {
-								var foundsetManager = getFoundsetManagerByFoundsetUUID(params.data._svyFoundsetUUID);
-								var index = foundsetManager.getRowIndex(params.data) - foundsetManager.foundset.viewPort.startIndex;
-								if (index >= 0) {
-									styleClassProvider = foundsetManager.foundset.viewPort.rows[index][params.colDef.field + "_styleClassDataprovider"];
-								} else {
-									$log.warn('cannot render styleClassDataprovider for row at index ' + index)
-									$log.warn(params.data);
+						if(!isGroupColumn) {
+							if (!isTableGrouped()) {
+								var column = getColumn(params.colDef.field);
+								if (column && column.styleClassDataprovider) {
+									var index = params.rowIndex - foundset.foundset.viewPort.startIndex;
+									styleClassProvider = column.styleClassDataprovider[index];
 								}
+							} else {
+									var foundsetManager = getFoundsetManagerByFoundsetUUID(params.data._svyFoundsetUUID);
+									var index = foundsetManager.getRowIndex(params.data) - foundsetManager.foundset.viewPort.startIndex;
+									if (index >= 0) {
+										styleClassProvider = foundsetManager.foundset.viewPort.rows[index][params.colDef.field + "_styleClassDataprovider"];
+									} else {
+										$log.warn('cannot render styleClassDataprovider for row at index ' + index)
+										$log.warn(params.data);
+									}
+							}
 						}
 							
 						if(styleClassProvider) {
