@@ -400,9 +400,14 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
 
 
             function setHeight() {
-                if (isResponsive()) {
-                    gridDiv.style.height = $scope.model.responsiveHeight + 'px';
-                }
+				if (isResponsive()) {
+					if ($scope.model.responsiveHeight) {
+						gridDiv.style.height = $scope.model.responsiveHeight + 'px';
+					} else {
+						// when responsive height is 0 or undefined, use 100% of the parent container.
+						gridDiv.style.height = '100%';
+					}
+				}
             }
 
             function sizeColumnsToFit() {
