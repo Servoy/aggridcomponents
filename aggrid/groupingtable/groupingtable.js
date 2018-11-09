@@ -3491,7 +3491,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 								colDef.filter = 'agDateColumnFilter';
 							}
 							
-							colDef.filterParams = { applyButton: true, clearButton: true, newRowsAction: 'keep', suppressAndOrCondition: true };
+							colDef.filterParams = { applyButton: true, clearButton: true, newRowsAction: 'keep', suppressAndOrCondition: true, caseSensitive: true };
 						}
 
 						if(column.columnDef) {

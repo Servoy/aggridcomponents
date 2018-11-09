@@ -387,9 +387,14 @@ function log(msg, level) {
 function filterFoundset(foundset, sFilterModel) {
 	var filterModel = JSON.parse(sFilterModel);
 
+	// first make sure all existing ag- filters are removed
 	for(var i = 0; i < $scope.model.columns.length; i++) {
 		var dp = $scope.model.columns[i].dataprovider;
 		foundset.removeFoundSetFilterParam('ag-' + dp);
+	}
+
+	for(var i = 0; i < $scope.model.columns.length; i++) {
+		var dp = $scope.model.columns[i].dataprovider;
 		var filter = filterModel[i];
 		if(filter) {
 			var op, value;
