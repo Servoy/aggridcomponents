@@ -20,7 +20,7 @@
 		"responsiveHeight": { "type": "int", "default": 300 },
 		"rowHeight" : {"type" : "int", "default": 25, "tags": {"scope": "design"}},
 		"rowStyleClassDataprovider": { "type": "dataprovider", "forFoundset": "myFoundset" },
-		"styleClass": { "type": "styleclass", "default" : "ag-bootstrap"},
+		"styleClass": { "type": "styleclass", "default" : "ag-theme-bootstrap"},
 		"enableColumnResize": { "type": "boolean", "default": true, "tags": {"scope": "design"}},
 		"enableColumnMove": { "type": "boolean", "default": true, "tags": {"scope": "design"}},
 		"enableSorting": { "type": "boolean", "default": true, "tags": {"scope": "design"}},
@@ -33,7 +33,8 @@
 		"toolPanelConfig": { "type": "toolPanelConfig", "tags": { "scope": "design" } },
 		"iconConfig": { "type": "iconConfig", "tags": { "scope": "design" } },
 		"gridOptions": {"type": "map"},
-		"localeText": {"type": "map"}
+		"localeText": {"type": "map"},
+		"filterModel": {"type": "string", "tags": {"scope": "private"}}
 	},
 	"handlers" : {
 		"onCellClick": {
@@ -192,7 +193,10 @@
                 }, {
                 	"name" : "sort",
                 	"type" : "string"
-                },{
+				},{
+                	"name" : "sFilterModel",
+                	"type" : "string"
+				},{
                 	"name" : "hasRowStyleClassDataprovider",
                 	"type" : "boolean",
                 	"optional" : true
@@ -230,7 +234,14 @@
                     "type": "foundsetRef"
                 }
             ]
-        }
+        },
+		"filterMyFoundset" : {
+            "parameters" : [{
+					"name": "sFilterModel",
+					"type": "string"
+				}
+            ]
+		}
 	},
 	"types" : {
 		"column" : {
@@ -254,6 +265,7 @@
 			"rowGroupIndex":  {"type": "int", "default": -1},
 			"isEditableDataprovider": { "type": "dataprovider", "forFoundset": "myFoundset"},
 			"editType": {"type": "string", "values": [{"NONE":null}, {"TEXTFIELD":"TEXTFIELD"}, {"DATEPICKER":"DATEPICKER"}, {"COMBOBOX":"COMBOBOX"}, {"TYPEAHEAD":"TYPEAHEAD"}]},
+			"filterType": {"type": "string", "values": [{"NONE":null}, {"TEXT":"TEXT"}, {"NUMBER":"NUMBER"}, {"DATE":"DATE"}]},
 			"id": {"type" : "string", "tags": {"showInOutlineView": true }},
 			"columnDef": {"type" : "map"},
 			"showAs": { "type": "string", "values": [{"text":null}, {"html":"html"}, {"sanitizedHtml":"sanitizedHtml"}] }

@@ -5,7 +5,7 @@
  * @param {String} [sort]
  *
  * */
-$scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets, sort, hasRowStyleClassDataprovider) {
+$scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets, sort, sFilterModel, hasRowStyleClassDataprovider) {
 	log('START SERVER SIDE ------------------------------------------ ', LOG_LEVEL.WARN);
 
 	// root is the parent
@@ -140,6 +140,7 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 
 	// this is the first grouping operation; alter initial query to get all first level groups
 	var childFoundset = parentFoundset.duplicateFoundSet();
+	if (sFilterModel) filterFoundset(childFoundset, sFilterModel);
 	childFoundset.loadRecords(query);
 
 	//	console.log('Matching records ' + childFoundset.getSize());
@@ -208,6 +209,11 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 
 	return childFoundset; // return the UUID that points to this foundset (return type will make it UUID)
 };
+
+$scope.filterMyFoundset = function(sFilterModel) {
+	if (sFilterModel) filterFoundset($scope.model.myFoundset.foundset, sFilterModel);
+	$scope.model.myFoundset.foundset.loadAllRecords();
+}
 
 $scope.removeGroupedFoundsetUUID = function(parentFoundset) {
 	for (var i = 0; i < $scope.model.hashedFoundsets.length; i++) {
@@ -375,6 +381,109 @@ function log(msg, level) {
 			console.log(msg);
 		}
 		break;
+	}
+}
+
+function filterFoundset(foundset, sFilterModel) {
+	var filterModel = JSON.parse(sFilterModel);
+
+	// first make sure all existing ag- filters are removed
+	for(var i = 0; i < $scope.model.columns.length; i++) {
+		var dp = $scope.model.columns[i].dataprovider;
+		foundset.removeFoundSetFilterParam('ag-' + dp);
+	}
+
+	for(var i = 0; i < $scope.model.columns.length; i++) {
+		var dp = $scope.model.columns[i].dataprovider;
+		var filter = filterModel[i];
+		if(filter) {
+			var op, value;
+
+			if(filter["filterType"] == "text") {
+				switch(filter["type"]) {
+					case "equals":
+						op = "=";
+						value = filter["filter"];
+						break;
+					case "notEqual":
+						op = "!=";
+						value = filter["filter"];
+						break;
+					case "startsWith":
+						op = "like";
+						value = filter["filter"] + "%";
+						break;
+					case "endsWith":
+						op = "like";
+						value = "%" + filter["filter"];
+						break;				
+					case "contains":
+						op = "like";
+						value = "%" + filter["filter"] + "%";
+						break;		
+					case "notContains":
+						op = "not like";
+						value = "%" + filter["filter"] + "%";
+						break;	
+				}
+			}
+			else if(filter["filterType"] == "number") {
+				value = filter["filter"];
+				switch(filter["type"]) {
+					case "equals":
+						op = "=";
+						break;
+					case "notEqual":
+						op = "!=";
+						break;
+					case "greaterThan":
+						op = ">";
+						break;
+					case "greaterThanOrEqual":
+						op = ">=";
+						break;
+					case "lessThan":
+						op = "<";
+						break;
+					case "lessThanOrEqual":
+						op = "<=";
+						break;
+					case "inRange":
+						op = "between";
+						value = new Array();
+						value.push(filter["filter"]);
+						value.push(filter["filterTo"]);
+						break;
+				}
+			}
+			else if(filter["filterType"] == "date") {
+				value = new Date(filter["dateFrom"]);
+				switch(filter["type"]) {
+					case "equals":
+						op = "=";
+						break;
+					case "notEqual":
+						op = "!=";
+						break;
+					case "greaterThan":
+						op = ">";
+						break;
+					case "lessThan":
+						op = "<";
+						break;
+					case "inRange":
+						op = "between";
+						value = new Array();
+						value.push(filter["dateFrom"]);
+						value.push(filter["dateTo"]);
+					break;
+				}
+			}
+
+			if(op != undefined && value != undefined) {
+				foundset.addFoundSetFilterParam(dp, op, value, 'ag-' + dp);
+			}
+		}
 	}
 }
 

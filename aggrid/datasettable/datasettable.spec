@@ -17,7 +17,7 @@
 		"responsiveHeight": { "type": "int", "default": 300 },
 		"rowHeight" : {"type" : "int", "default": 25, "tags": {"scope": "design"}},
 		"rowStyleClassFunc": { "type": "string"},
-		"styleClass": { "type": "styleclass", "default" : "ag-bootstrap"},
+		"styleClass": { "type": "styleclass", "default" : "ag-theme-bootstrap"},
 		"visible": "visible",
 		"enableColumnResize": { "type": "boolean", "default": true, "tags": {"scope": "design"}},
 		"enableSorting": { "type": "boolean", "default": true, "tags": {"scope": "design"}},
@@ -214,7 +214,6 @@
 			"enablePivot":  {"type": "boolean", "default": false},
 			"pivotIndex":  {"type": "int", "default": -1},
 			"aggFunc": {"type": "string", "values" : ["sum", "min", "max", "count", "avg", "first", "last"], "default": ""},
-			"enableFilter": {"type": "boolean", "default" : false},
 			"enableSort" : {"type": "boolean", "default" : true},
 			"enableResize" : {"type": "boolean", "default" : true},
 			"enableToolPanel" : {"type": "boolean", "default" : true},
@@ -223,6 +222,7 @@
 			"cellRendererFunc": {"type": "string"},
 			"format": {"type": "tagstring"},
 			"formatType": {"type": "string", "values": ["TEXT", "NUMBER", "DATETIME"], "default": "TEXT"},
+			"filterType": {"type": "string", "values": [{"NONE":null}, {"TEXT":"TEXT"}, {"NUMBER":"NUMBER"}, {"DATE":"DATE"}]},
 			"id": {"type" : "string", "tags": {"showInOutlineView": true }}
 		},
         "iconConfig" : {
