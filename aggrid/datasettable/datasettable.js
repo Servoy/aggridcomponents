@@ -78,19 +78,10 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                 autoSizePadding: 25,
                 suppressFieldDotNotation: true,
 
-                suppressMovingInCss: true,
+                // suppressMovingInCss: true,
                 suppressColumnMoveAnimation: true,
                 suppressAnimationFrame: true,
 				
-                toolPanelSuppressRowGroups: toolPanelConfig ? toolPanelConfig.suppressRowGroups : false,
-                toolPanelSuppressValues: toolPanelConfig ? toolPanelConfig.suppressValues : false,
-                toolPanelSuppressPivots: toolPanelConfig ? toolPanelConfig.suppressPivots : false,
-                toolPanelSuppressPivotMode: toolPanelConfig ? toolPanelConfig.suppressPivotMode : false,
-                toolPanelSuppressSideButtons: toolPanelConfig ? toolPanelConfig.suppressSideButtons : false,
-                toolPanelSuppressColumnFilter: toolPanelConfig ? toolPanelConfig.suppressColumnFilter : false,
-                toolPanelSuppressColumnSelectAll: toolPanelConfig ? toolPanelConfig.suppressColumnSelectAll : false,
-                toolPanelSuppressColumnExpandAll: toolPanelConfig ? toolPanelConfig.suppressColumnExpandAll : false,
-
                 rowSelection: $scope.model.multiSelect === true ? 'multiple' : 'single',
                 rowDeselection: false,
 //                suppressRowClickSelection: rowGroupColsDefault.length === 0 ? false : true,
@@ -155,6 +146,16 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                             labelKey: 'columns',
                             iconKey: 'columns',
                             toolPanel: 'agColumnsToolPanel',
+                            toolPanelParams: {
+                                suppressRowGroups: toolPanelConfig ? toolPanelConfig.suppressRowGroups : false,
+                                suppressValues: toolPanelConfig ? toolPanelConfig.suppressValues : false,
+                                suppressPivots: toolPanelConfig ? toolPanelConfig.suppressPivots : false,
+                                suppressPivotMode: toolPanelConfig ? toolPanelConfig.suppressPivotMode : false,
+                                suppressSideButtons: toolPanelConfig ? toolPanelConfig.suppressSideButtons : false,
+                                suppressColumnFilter: toolPanelConfig ? toolPanelConfig.suppressColumnFilter : false,
+                                suppressColumnSelectAll: toolPanelConfig ? toolPanelConfig.suppressColumnSelectAll : false,
+                                suppressColumnExpandAll: toolPanelConfig ? toolPanelConfig.suppressColumnExpandAll : false
+                            }
                         }                    ]
                 }
             };
@@ -174,10 +175,10 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
             }
 
             if($scope.model.useLazyLoading) {
-                gridOptions.rowModelType = 'enterprise';
+                gridOptions.rowModelType = 'serverSide';
             }
             else {
-                gridOptions.rowModelType = 'inMemory';
+                gridOptions.rowModelType = 'clientSide';
                 gridOptions.rowData = $scope.model.data;
             }
 
@@ -237,7 +238,7 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
             if ($scope.svyServoyapi.isInDesigner()) {
                 
                 var designGridOptions = {
-                    rowModelType: 'inMemory',
+                    rowModelType: 'clientSide',
                     columnDefs: columnDefs,
                     rowHeight: $scope.model.rowHeight,
                     rowData: []

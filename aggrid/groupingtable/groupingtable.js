@@ -327,7 +327,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 				var gridOptions = {
 
 					debug: false,
-					rowModelType: 'enterprise',
+					rowModelType: 'serverSide',
 					rowGroupPanelShow: 'onlyWhenGrouping', // TODO expose property
 
 					defaultColDef: {
@@ -352,7 +352,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 					suppressFieldDotNotation: true,
 
 					enableServerSideFilter: true, // TODO implement serverside filtering
-					suppressMovingInCss: true,
+					// suppressMovingInCss: true,
 					suppressColumnMoveAnimation: true,
 					suppressAnimationFrame: true,
 
@@ -370,17 +370,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 					groupMultiAutoColumn: true,
 					suppressAggFuncInHeader: true, // TODO support aggregations
 
-					toolPanelSuppressRowGroups: toolPanelConfig ? toolPanelConfig.suppressRowGroups : false,
-					toolPanelSuppressValues: true,
-					toolPanelSuppressPivots: true,
-					toolPanelSuppressPivotMode: true,
-	                toolPanelSuppressSideButtons: toolPanelConfig ? toolPanelConfig.suppressSideButtons : false,
-	                toolPanelSuppressColumnFilter: toolPanelConfig ? toolPanelConfig.suppressColumnFilter : false,
-	                toolPanelSuppressColumnSelectAll: toolPanelConfig ? toolPanelConfig.suppressColumnSelectAll : false,
-	                toolPanelSuppressColumnExpandAll: toolPanelConfig ? toolPanelConfig.suppressColumnExpandAll : false,
-					
 					suppressColumnVirtualisation: false,
-					suppressScrollLag: false,
 					suppressScrollOnNewData: true,
 
 					pivotMode: false,
@@ -445,6 +435,16 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 								labelKey: 'columns',
 								iconKey: 'columns',
 								toolPanel: 'agColumnsToolPanel',
+								toolPanelParams: {
+									suppressRowGroups: toolPanelConfig ? toolPanelConfig.suppressRowGroups : false,
+									suppressValues: true,
+									suppressPivots: true,
+									suppressPivotMode: true,
+									suppressSideButtons: toolPanelConfig ? toolPanelConfig.suppressSideButtons : false,
+									suppressColumnFilter: toolPanelConfig ? toolPanelConfig.suppressColumnFilter : false,
+									suppressColumnSelectAll: toolPanelConfig ? toolPanelConfig.suppressColumnSelectAll : false,
+									suppressColumnExpandAll: toolPanelConfig ? toolPanelConfig.suppressColumnExpandAll : false
+								}
 							}
 						]
 					}
@@ -520,7 +520,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 				if ($scope.svyServoyapi.isInDesigner()) {
 
 					var designGridOptions = {
-						rowModelType: 'inMemory',
+						rowModelType: 'clientSide',
 						columnDefs: columnDefs,
 						rowHeight: $scope.model.rowHeight,
 						rowData: []
@@ -1754,7 +1754,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 
 						if (sortString === "") {
 							// TODO restore a default sort order when sort is removed
-							$log.warn(" Use the default foundset sort.. which is ? ");
+							// $log.warn(" Use the default foundset sort.. which is ? ");
 						}
 
 						// if not sorting on a group column
@@ -1852,13 +1852,13 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 
 					var foundsetServer = new FoundsetServer([]);
 					var datasource = new FoundsetDatasource(foundsetServer);
-					gridOptions.api.setEnterpriseDatasource(datasource);
+					gridOptions.api.setServerSideDatasource(datasource);
 				}
 
 				function refreshDatasource() {
 					var foundsetServer = new FoundsetServer([]);
 					var datasource = new FoundsetDatasource(foundsetServer);
-					gridOptions.api.setEnterpriseDatasource(datasource);
+					gridOptions.api.setServerSideDatasource(datasource);
 				}
 
 				/**************************************************************************************************
@@ -3355,15 +3355,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 				 *  */
 				function getColumnDefs() {
 					
-					//renderer for header tooltip
-					var headerRenderer = function(params) {
-						var tooltip = ''
-						if (params.colDef.header_tooltip.length > 0) {
-							tooltip = '<span class="ag-table-header-tooltip">' + params.colDef.header_tooltip + '</span>'
-						}
-						return tooltip + params.value;
-					};
-
 					var cellRenderer = function(params) {
 						var isGroupColumn = false;
 						var colId = null;
@@ -3432,12 +3423,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 						var field = getColumnID(column, i);
 						//create a column definition based on the properties defined at design time
 						colDef = {
-							headerName: "" + (column.headerTitle ? column.headerTitle : "") + "",
+							headerName: column.headerTitle ? column.headerTitle : "",
 							field: field,
-							header_tooltip: "" + (column.headerTooltip ? column.headerTooltip : "") + "",
-							headerCellRenderer: headerRenderer,
+							headerTooltip: column.headerTooltip ? column.headerTooltip : "",
 							cellRenderer: cellRenderer
-
 						};
 
 						if(column.id) {
