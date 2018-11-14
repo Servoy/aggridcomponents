@@ -447,7 +447,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 								}
 							}
 						]
-					}
+					},
+					popupParent: gridDiv
 				};
 				
 				// check if we have filters
