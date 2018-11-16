@@ -212,7 +212,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 								// if the table was never visible
 								if (isRendered === false && value === true) {
 									// refresh the columnDefs since was null the first time
-									gridOptions.api.setColumnDefs(getColumnDefs());
+									updateColumnDefs();
 									isRendered = true;
 								}
 								break;
@@ -1917,14 +1917,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 							function(newValue, oldValue) {
 								if(newValue != oldValue) {
 									$log.debug('column property changed');
-									gridOptions.api.setColumnDefs(getColumnDefs());
+									updateColumnDefs();
 								}
 							});
 							columnWatches.push(columnWatch);
 						}
 					}
 					if(newValue != oldValue) {
-						gridOptions.api.setColumnDefs(getColumnDefs());
+						updateColumnDefs();
 					}
 				});
 
@@ -3435,11 +3435,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 						}
 
 						// styleClass
-						colDef.headerClass = 'ag-table-header ' + column.headerStyleClass;
+						colDef.headerClass = 'ag-table-header' + (column.headerStyleClass ? ' ' + column.headerStyleClass : '');
 						if (column.styleClassDataprovider) {
 							colDef.cellClass = getCellClass;
 						} else {
-							colDef.cellClass = 'ag-table-cell ' + column.styleClass;
+							colDef.cellClass = 'ag-table-cell' + (column.styleClass ? ' ' + column.styleClass : '');
 						}
 
 						// column grouping
@@ -3532,6 +3532,12 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 					});
 
 					return colDefs;
+				}
+
+				function updateColumnDefs() {
+					gridOptions.api.setColumnDefs(getColumnDefs());
+					// selColumnDefs should redraw the grid, but it stopped doing so from v19.1.2
+					$scope.purge();	
 				}
 
 				// FIXME styleClass Dataprovider on groups

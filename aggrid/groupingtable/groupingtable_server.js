@@ -535,7 +535,17 @@ $scope.api.newColumn = function(dataproviderid,index) {
 	 for(var i = $scope.model.columns.length; i > insertPosition; i--) {
 		  $scope.model.columns[i] = $scope.model.columns[i - 1]; 
 	 }
-	 $scope.model.columns[insertPosition] = {'dataprovider':dataproviderid};
+	 $scope.model.columns[insertPosition] = {
+		 'dataprovider': dataproviderid,
+		 'visible': true,
+		 'width': 0,
+		 'enableRowGroup': true,
+		 'enableSort': true,
+		 'enableResize': true,
+		 'enableToolPanel': true,
+		 'autoResize': true,
+		 'rowGroupIndex': -1
+		};
 	 return $scope.model.columns[insertPosition];
 }
 
