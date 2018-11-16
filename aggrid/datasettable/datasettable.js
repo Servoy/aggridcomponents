@@ -680,13 +680,19 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                 if(params.node.aggData) {
                     var needsSeparator = false;
                     for(var agg in params.node.aggData) {
+                        var column = gridOptions.columnApi.getColumn(agg);
+                        var columnText = column.aggFunc + '(' + column.colDef.headerName + ')';
+                        var value = params.node.aggData[agg];
+                        if(column.aggFunc != 'count') {
+                            value = column.colDef.valueFormatter(value.value != undefined ? value : {'value': value });
+                        }
                         if(needsSeparator) {
                             label += '<span class="ag-group-aggregate-separator">,</span>';
                         } else {
                             needsSeparator = true;
                         }
-                        label += '<span class="ag-group-aggregate">' + agg + ':</span><span class="ag-group-aggregate-value">'
-                        + params.node.aggData[agg] + '</span>';
+                        label += '<span class="ag-group-aggregate">' + columnText + ':</span><span class="ag-group-aggregate-value">'
+                        + value + '</span>';
                     }
                 }
                 return label;
