@@ -157,7 +157,8 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                                 suppressColumnExpandAll: toolPanelConfig ? toolPanelConfig.suppressColumnExpandAll : false
                             }
                         }                    ]
-                }
+                },
+                popupParent: gridDiv
             };
 
             // check if we have filters
