@@ -402,27 +402,27 @@ function filterFoundset(foundset, sFilterModel) {
 			if(filter["filterType"] == "text") {
 				switch(filter["type"]) {
 					case "equals":
-						op = "=";
+						op = "#=";
 						value = filter["filter"];
 						break;
 					case "notEqual":
-						op = "!=";
+						op = "#!=";
 						value = filter["filter"];
 						break;
 					case "startsWith":
-						op = "like";
+						op = "#like";
 						value = filter["filter"] + "%";
 						break;
 					case "endsWith":
-						op = "like";
+						op = "#like";
 						value = "%" + filter["filter"];
 						break;				
 					case "contains":
-						op = "like";
+						op = "#like";
 						value = "%" + filter["filter"] + "%";
 						break;		
 					case "notContains":
-						op = "not like";
+						op = "#not like";
 						value = "%" + filter["filter"] + "%";
 						break;	
 				}
