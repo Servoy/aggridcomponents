@@ -93,6 +93,15 @@
 }
 */
 
+/** Side Bar Adjustments when no style */
+.ag-side-bar .ag-side-buttons .ag-side-button button {
+	background: transparent;
+    border: 0;
+}
+
+.ag-side-bar .ag-side-buttons .ag-selected button {
+	background-color: #f6f6f6;
+}
 
 /**
  *
@@ -100,16 +109,32 @@
  *
  **/
 .ag-table.ag-theme-bootstrap .ag-root {
-    border: 1px solid darkgrey;
+    border: 1px solid darkgray;
 }
 
 .ag-table.ag-theme-bootstrap .ag-header {
-    border-bottom: 1px solid darkgrey;
+    border-bottom: 1px solid darkgray;
     font-weight: 600;
 }
 
 .ag-table.ag-theme-bootstrap .ag-header-cell {
-    border-right: 1px solid darkgrey;
+    border-right: 1px solid darkgray;
+}
+
+.ag-table.ag-theme-bootstrap .ag-side-bar .ag-side-buttons .ag-side-button button {
+	background: transparent;
+    border: 0;
+    padding: 8px 0 8px 0;
+}
+
+.ag-table.ag-theme-bootstrap .ag-side-bar .ag-side-buttons .ag-selected button {
+	background-color: #f6f6f6;
+}
+
+.ag-table.ag-theme-bootstrap .ag-side-bar {
+    border-right: 1px solid darkgray;
+    border-top: 1px solid darkgray;
+    border-bottom: 1px solid darkgray;
 }
 
 /**
