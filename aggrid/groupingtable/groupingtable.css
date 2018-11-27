@@ -58,11 +58,3 @@
 .ag-popup-editor {
 	z-index: 1;
 }
-
-.ag-header-cell-label {
-	height: auto !important;
-}
-
-.ag-header-cell-label .ag-header-cell-text {
-	white-space: normal !important;
-}

@@ -26,6 +26,20 @@
 	border: 0;
 }
 
+/* Clickable & Draggable empty header */
+.ag-cell-label-container {
+	height: 100%;
+}
+
+.ag-header-cell-label {
+    min-height: 100%;
+	height: auto !important;
+}
+
+.ag-header-cell-label .ag-header-cell-text {
+	white-space: normal !important;
+}
+
 /** style the droppable column label in the row group panel 
 .ag-table.ag-theme-fresh .ag-column-drop-cell,
 .ag-table.ag-theme-bootstrap .ag-column-drop-cell {
