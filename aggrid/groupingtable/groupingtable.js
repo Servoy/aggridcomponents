@@ -142,7 +142,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 
 					gridOptions.api.purgeServerSideCache();
 					$scope.dirtyCache = false;
-					$log.warn('purge cache');
+					// $log.warn('purge cache');
 
 					// TODO expand previously expanded rows
 					//
