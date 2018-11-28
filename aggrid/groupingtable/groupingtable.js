@@ -140,7 +140,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 					// reset root foundset
 					foundset.foundset = $scope.model.myFoundset;
 
-					gridOptions.api.purgeEnterpriseCache();
+					gridOptions.api.purgeServerSideCache();
 					$scope.dirtyCache = false;
 					$log.warn('purge cache');
 
@@ -3066,7 +3066,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 						if (newSort && oldSort && newSort != oldSort) {
 							$log.debug('myFoundset sort changed ' + newSort);
 							gridOptions.api.setSortModel(getSortModel());
-							gridOptions.api.purgeEnterpriseCache();
+							gridOptions.api.purgeServerSideCache();
 						} else if (newSort == oldSort && !newSort && !oldSort) {
 							$log.warn("this should not be happening");
 						}
