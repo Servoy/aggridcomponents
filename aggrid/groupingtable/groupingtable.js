@@ -1144,7 +1144,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 					var headerCell = $element.find('.ag-header-cell');
 					var paddingTop = headerCell.length ? parseInt(headerCell.css('padding-top'), 10) : 0;
 					var paddinBottom = headerCell.length ? parseInt(headerCell.css('padding-bottom'), 10) : 0;
-					var headerCellLabels = $element.find('.ag-header-cell-label');
+					var headerCellLabels = $element.find('.ag-header-cell-text');
 					var minHeight = 25;
 
 					for(var i = 0; i < headerCellLabels.length; i++) {
