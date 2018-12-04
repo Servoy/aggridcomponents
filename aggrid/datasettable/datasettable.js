@@ -648,6 +648,7 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                     columnState: gridOptions.columnApi.getColumnState(),
                     rowGroupColumnsState: gridOptions.columnApi.getColumnGroupState(),
                     isToolPanelShowing: gridOptions.api.isToolPanelShowing(),
+					isSideBarVisible: gridOptions.api.isSideBarVisible(),
 					// filterState: gridOptions.api.getFilterModel(), TODO persist column states
 					sortingState: gridOptions.api.getSortModel()
                 }
@@ -669,6 +670,7 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                     gridOptions.columnApi.setColumnState(columnState.columnState);
                     gridOptions.columnApi.setColumnGroupState(columnState.rowGroupColumnsState);
                     gridOptions.api.showToolPanel(columnState.isToolPanelShowing);
+                    gridOptions.api.setSideBarVisible(columnState.isSideBarVisible);
                     gridOptions.api.setFilterModel(columnState.filterState);
                     gridOptions.api.setSortModel(columnState.sortingState);
                 }
