@@ -1873,6 +1873,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 				$scope.$watch("model.myFoundset", function(newValue, oldValue) {
 
 						$log.debug('myFoundset root changed');
+						if(isTableGrouped()) {
+							$scope.purge();
+						}
 						if($scope.model.myFoundset.viewPort.size > 0) {
 							// browser refresh
 							isRootFoundsetLoaded = true;
