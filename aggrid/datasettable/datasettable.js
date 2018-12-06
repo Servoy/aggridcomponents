@@ -49,6 +49,8 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                 localeText = config.localeText;
             }
 
+            var isGridReady = false;
+
             // AG grid definition
             var gridOptions = {
                 
@@ -102,6 +104,14 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
 
                 onGridReady: function() {
                     $log.debug("gridReady");
+                    isGridReady = true;
+                    if($scope.model._internalColumnState !== "_empty") {
+                        $scope.model.columnState = $scope.model._internalColumnState;
+                        // need to clear it, so the watch can be used, if columnState changes, and we want to apply the same _internalColumnState again
+                        $scope.model._internalColumnState = "_empty";
+                        $scope.svyServoyapi.apply('_internalColumnState');
+                    }
+                    restoreColumnsState();
                     if($scope.handlers.onReady) {
                         $scope.handlers.onReady();
                     }
@@ -314,7 +324,21 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                     restoreColumnsState();
                 }
             });
-            
+
+            $scope.$watch("model._internalColumnState", function(newValue, oldValue) {
+                if(isGridReady && (newValue !== "_empty")) {
+                    $scope.model.columnState = newValue;
+                    // need to clear it, so the watch can be used, if columnState changes, and we want to apply the same _internalColumnState again
+                    $scope.model._internalColumnState = "_empty";
+                    $scope.svyServoyapi.apply('_internalColumnState');
+                    if($scope.model.columnState) {
+                        restoreColumnsState();
+                    }
+                    else {
+                        gridOptions.columnApi.resetColumnState();
+                    }
+                }
+            });
 
             function getColumnDefs() {
                 
@@ -655,7 +679,7 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                 var newColumnState = JSON.stringify(columnState);
                 
                 if (newColumnState !== $scope.model.columnState) {
-	                $scope.model.columnState = newColumnState;
+                    $scope.model.columnState = newColumnState;
 	                $scope.svyServoyapi.apply('columnState');
 	                if ($scope.handlers.onColumnStateChanged) {
 	                    $scope.handlers.onColumnStateChanged($scope.model.columnState);
@@ -665,7 +689,6 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
 
             function restoreColumnsState() {
                 if($scope.model.columnState) {
-                    // TODO: add checks if restore can't be done, and return false
                     var columnState = JSON.parse($scope.model.columnState);
                     gridOptions.columnApi.setColumnState(columnState.columnState);
                     gridOptions.columnApi.setColumnGroupState(columnState.rowGroupColumnsState);
@@ -674,7 +697,6 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                     gridOptions.api.setFilterModel(columnState.filterState);
                     gridOptions.api.setSortModel(columnState.sortingState);
                 }
-                return true;
             }
 
             function groupRowInnerRenderer(params) {
@@ -747,23 +769,6 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                 }
                 else {
                     gridOptions.api.exportDataAsExcel(params);
-                }
-            }
-
-            /**
-             * Restore columns state to a previously save one, using getColumnState.
-             * If no argument is used, it restores the columns to designe time state.
-             * 
-             * @param {String} columnState
-             */            
-            $scope.api.restoreColumnState = function(columnState) {
-                if(columnState) {
-                    $scope.model.columnState = columnState;
-                    return restoreColumnsState();
-                }
-                else {
-                    gridOptions.columnApi.resetColumnState();
-                    return true;
                 }
             }
             
