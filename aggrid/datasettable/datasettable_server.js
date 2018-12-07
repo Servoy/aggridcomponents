@@ -58,11 +58,11 @@ $scope.api.getColumnState = function() {
  * If no argument is used, it restores the columns to designe time state.
  * 
  * @param {String} columnState
+ * @return {boolean}
  */            
 $scope.api.restoreColumnState = function(columnState) {
     // TODO: add checks if restore can't be done, and return false
     $scope.model._internalColumnState = columnState;
-    return true;
 }
 
 /**

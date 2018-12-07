@@ -585,3 +585,27 @@ $scope.api.removeAllColumns = function() {
 	   }
 	   return false;
 }
+
+/**
+ * Restore columns state to a previously save one, using getColumnState.
+ * If no argument is used, it restores the columns to designe time state.
+ * If the columns from columnState does not match with the columns of the component,
+ * no restore will be done.
+ * 
+ * @param {String} columnState
+ * @param {Function} onError
+ */
+$scope.api.restoreColumnState = function(columnState, onError) {
+	$scope.model._internalColumnState = columnState;
+	$scope.model.columnStateOnError = onError;
+}
+
+/**
+ * Returns the current state of the columns (width, position, grouping state) as a json string
+ * that can be used to restore to this state using restoreColumnState
+ * 
+ * @return {String}
+ */
+$scope.api.getColumnState = function() {
+	return $scope.model.columnState;
+}

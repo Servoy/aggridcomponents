@@ -17,6 +17,8 @@
 		"myFoundset": {"type": "foundset", "default" : {"foundsetSelector":""}, "pushToServer" : "allow" ,"dynamicDataproviders": true, "initialPreferredViewPortSize": 50, "sendSelectionViewportInitially": true },
 		"columns": { "type": "column[]", "droppable" : true, "pushToServer": "shallow"},
 		"columnState": { "type": "string", "tags": {"scope" : "private"}, "pushToServer": "allow"},
+		"columnStateOnError": { "type": "function", "tags": {"scope" : "private"}},
+		"_internalColumnState": { "type": "string", "tags": {"scope" : "private"}, "pushToServer": "allow"},
 		"responsiveHeight": { "type": "int", "default": 300 },
 		"rowHeight" : {"type" : "int", "default": 25, "tags": {"scope": "design"}},
 		"rowStyleClassDataprovider": { "type": "dataprovider", "forFoundset": "myFoundset" },
@@ -138,9 +140,9 @@
 		},
 		"restoreColumnState" : {
 			"parameters": [
-				{ "name": "columnState", "type": "string", "optional": true}
-			],
-			"returns": "boolean"
+				{ "name": "columnState", "type": "string", "optional": true},
+				{ "name": "onError", "type": "function", "optional": true}
+			]
 		},
 		"getColumnsCount": {
 	        "returns": "int"

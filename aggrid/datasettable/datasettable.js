@@ -692,7 +692,6 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                     var columnState = JSON.parse($scope.model.columnState);
                     gridOptions.columnApi.setColumnState(columnState.columnState);
                     gridOptions.columnApi.setColumnGroupState(columnState.rowGroupColumnsState);
-                    gridOptions.api.showToolPanel(columnState.isToolPanelShowing);
                     gridOptions.api.setSideBarVisible(columnState.isSideBarVisible);
                     gridOptions.api.setFilterModel(columnState.filterState);
                     gridOptions.api.setSortModel(columnState.sortingState);
