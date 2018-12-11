@@ -14,6 +14,7 @@
 		"data": { "type": "object[]", "tags": {"scope" : "private"}},
 		"columns": { "type": "column[]", "droppable" : true, "tags": {}},
 		"columnState": { "type": "string", "tags": {"scope" : "private"}, "pushToServer": "allow"},
+		"_internalColumnState": { "type": "string", "tags": {"scope" : "private"}, "pushToServer": "allow"},
 		"responsiveHeight": { "type": "int", "default": 300 },
 		"rowHeight" : {"type" : "int", "default": 25, "tags": {"scope": "design"}},
 		"rowStyleClassFunc": { "type": "string"},
@@ -188,8 +189,7 @@
 		"restoreColumnState" : {
 			"parameters": [
 				{ "name": "columnState", "type": "string", "optional": true}
-			],
-			"returns": "boolean"
+			]
 		},
 		"appendLazyRequestData": {
 			"parameters": [

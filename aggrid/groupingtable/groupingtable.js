@@ -1,5 +1,5 @@
-angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenterpriselicensekey']).directive('aggridGroupingtable', ['$sabloApplication', '$sabloConstants', '$log', '$q', '$foundsetTypeConstants', '$filter', '$compile', '$formatterUtils', '$sabloConverters', '$injector', '$services', "$sanitize",
-	function($sabloApplication, $sabloConstants, $log, $q, $foundsetTypeConstants, $filter, $compile, $formatterUtils, $sabloConverters, $injector, $services, $sanitize) {
+angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenterpriselicensekey']).directive('aggridGroupingtable', ['$sabloApplication', '$sabloConstants', '$log', '$q', '$foundsetTypeConstants', '$filter', '$compile', '$formatterUtils', '$sabloConverters', '$injector', '$services', "$sanitize", '$window',
+	function($sabloApplication, $sabloConstants, $log, $q, $foundsetTypeConstants, $filter, $compile, $formatterUtils, $sabloConverters, $injector, $services, $sanitize, $window) {
 		return {
 			restrict: 'E',
 			scope: {
@@ -324,6 +324,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 
 				var vMenuTabs = ['generalMenuTab'] //, 'filterMenuTab'];
 				if(config.showColumnsMenuTab) vMenuTabs.push('columnsMenuTab');
+
+				var isGridReady = false;
+
 				var gridOptions = {
 
 					debug: false,
@@ -389,6 +392,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 					purgeClosedRowNodes: true,
 					onGridReady: function() {
 						$log.debug("gridReady");
+						isGridReady = true;
+						if($scope.model._internalColumnState !== "_empty") {
+							$scope.model.columnState = $scope.model._internalColumnState;
+							// need to clear it, so the watch can be used, if columnState changes, and we want to apply the same _internalColumnState again
+							$scope.model._internalColumnState = "_empty";
+							$scope.svyServoyapi.apply('_internalColumnState');
+						}
+						restoreColumnsState();
 						if($scope.handlers.onReady) {
 							$scope.handlers.onReady();
 						}
@@ -1930,6 +1941,21 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 						updateColumnDefs();
 					}
 				});
+
+				$scope.$watch("model._internalColumnState", function(newValue, oldValue) {
+					if(isGridReady && (newValue !== "_empty")) {
+						$scope.model.columnState = newValue;
+						// need to clear it, so the watch can be used, if columnState changes, and we want to apply the same _internalColumnState again
+						$scope.model._internalColumnState = "_empty";
+						$scope.svyServoyapi.apply('_internalColumnState');
+						if($scope.model.columnState) {
+							restoreColumnsState();
+						}
+						else {
+							gridOptions.columnApi.resetColumnState();
+						}
+					}
+				});				
 
 				/**************************************************************************************************
 				 **************************************************************************************************
@@ -3817,57 +3843,60 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 	
 				function restoreColumnsState() {
 					if($scope.model.columnState) {
-						var columnState = JSON.parse($scope.model.columnState);
-
-						// if columns were added/removed, skip the restore
-						var savedColumns = [];
-						for(var i = 0; i < columnState.columnState.length; i++) {
-							if(columnState.columnState[i].colId.indexOf('_') == 0) {
-								continue; // if special column, that starts with '_'
+						var columnStateJSON = JSON.parse($scope.model.columnState);
+						if($scope.model.columnStateOnError) {
+							// if columns were added/removed, skip the restore
+							var savedColumns = [];
+							for(var i = 0; i < columnStateJSON.columnState.length; i++) {
+								if(columnStateJSON.columnState[i].colId.indexOf('_') == 0) {
+									continue; // if special column, that starts with '_'
+								}
+								savedColumns.push(columnStateJSON.columnState[i].colId);
 							}
-							savedColumns.push(columnState.columnState[i].colId);
-						}
-						if(savedColumns.length != $scope.model.columns.length) {
-							$log.error('Cannot restore columns state, different number of columns in saved state and component');
-							return false;
-						}
-
-						for(var i = 0; i < savedColumns.length; i++) {
-							var columnExist = false;
-							var fieldToCompare = savedColumns[i];
-							var fieldIdx = 0;
-							if (fieldToCompare.indexOf('_') > 0) { // has index
-								var fieldParts = fieldToCompare.split('_');
-								if(!isNaN(fieldParts[1])) {
-									fieldToCompare = fieldParts[0];
-									fieldIdx = parseInt(fieldParts[1]);
+							if(savedColumns.length != $scope.model.columns.length) {
+									$window.executeInlineScript(
+										$scope.model.columnStateOnError.formname,
+										$scope.model.columnStateOnError.script,
+										['Cannot restore columns state, different number of columns in saved state and component']);
+									return;
+							}
+	
+							for(var i = 0; i < savedColumns.length; i++) {
+								var columnExist = false;
+								var fieldToCompare = savedColumns[i];
+								var fieldIdx = 0;
+								if (fieldToCompare.indexOf('_') > 0) { // has index
+									var fieldParts = fieldToCompare.split('_');
+									if(!isNaN(fieldParts[1])) {
+										fieldToCompare = fieldParts[0];
+										fieldIdx = parseInt(fieldParts[1]);
+									}
+								}
+								for(var j = 0; j < $scope.model.columns.length; j++) {
+									if(($scope.model.columns[j].id && fieldToCompare == $scope.model.columns[j].id) ||
+									($scope.model.columns[j].dataprovider && fieldToCompare == getColumnID($scope.model.columns[j], j))) {
+											if(fieldIdx < 1) {
+												columnExist = true;
+												break;
+											}
+											fieldIdx--;
+									}
+								}
+								if(!columnExist) {
+									$window.executeInlineScript(
+										$scope.model.columnStateOnError.formname,
+										$scope.model.columnStateOnError.script,
+										['Cannot restore columns state, cant find column from state in component columns']);
+									return;
 								}
 							}
-							for(var j = 0; j < $scope.model.columns.length; j++) {
-								if(($scope.model.columns[j].id && fieldToCompare == $scope.model.columns[j].id) ||
-								($scope.model.columns[j].dataprovider && fieldToCompare == getColumnID($scope.model.columns[j], j))) {
-										if(fieldIdx < 1) {
-											columnExist = true;
-											break;
-										}
-										fieldIdx--;
-								}
-							}
-							if(!columnExist) {
-								$log.error('Cannot restore columns state, cant find column from state in component columns');
-								return false;
-							}
 						}
 
-						// TODO add filterState once filter is enabled
-						// TODO do we need to restore sortingState ?
-						gridOptions.columnApi.setColumnState(columnState.columnState);
+						gridOptions.columnApi.setColumnState(columnStateJSON.columnState);
 
-						if(columnState.rowGroupColumnsState.length > 0) {
-							gridOptions.columnApi.setRowGroupColumns(columnState.rowGroupColumnsState);
+						if(columnStateJSON.rowGroupColumnsState.length > 0) {
+							gridOptions.columnApi.setRowGroupColumns(columnStateJSON.rowGroupColumnsState);
 						}
-
-						return true;
 					}
 				}
 
@@ -3986,35 +4015,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 				 * */
 				$scope.api.refreshData = function() {
 					$scope.purge();
-				}
-
-				/**
-				 * Restore columns state to a previously save one, using getColumnState.
-				 * If no argument is used, it restores the columns to designe time state.
-				 * If the columns from columnState does not match with the columns of the component,
-				 * no restore will be done.
-				 * 
-				 * @param {String} columnState
-				 */
-				$scope.api.restoreColumnState = function(columnState) {
-					if(columnState) {
-						$scope.model.columnState = columnState;
-						return restoreColumnsState();
-					}
-					else {
-						gridOptions.columnApi.resetColumnState();
-						return true;
-					}
-				}
-
-				/**
-				 * Returns the current state of the columns (width, position, grouping state) as a json string
-				 * that can be used to restore to this state using restoreColumnState
-				 * 
-				 * @return {String}
-				 */
-				$scope.api.getColumnState = function() {
-					return $scope.model.columnState;
 				}
 
 				/**
