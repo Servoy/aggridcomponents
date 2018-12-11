@@ -48,6 +48,10 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
             if(config.localeText) {
                 localeText = config.localeText;
             }
+            
+			var vMenuTabs = ['generalMenuTab','filterMenuTab'];
+			
+			if(config.showColumnsMenuTab) vMenuTabs.push('columnsMenuTab');
 
             // AG grid definition
             var gridOptions = {
@@ -59,7 +63,7 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                     width: 0,
                     suppressFilter: true,
 //                    valueFormatter: displayValueFormatter,
-                    menuTabs: ['generalMenuTab', 'filterMenuTab'],
+                    menuTabs: vMenuTabs,
 			        headerCheckboxSelection: false, //$scope.model.multiSelect === true ? isFirstColumn : false,	// FIXME triggers a long loop of onRowSelection event when a new selection is made.
 			        checkboxSelection: $scope.model.multiSelect === true ? isFirstColumn : false
                 },

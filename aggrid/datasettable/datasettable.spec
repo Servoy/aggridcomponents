@@ -28,7 +28,8 @@
 		"lastRowIndex": { "type": "long", "tags": {"scope" : "private"}},
 		"multiSelect": { "type": "boolean", "default": false, "tags": {"scope": "design"}},
 		"headerHeight" : {"type" : "int", "default": 33, "tags": {"scope": "design"}},
-		"toolPanelConfig": { "type": "toolPanelConfig", "tags": { "scope": "design" } },
+		"showColumnsMenuTab": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},
+		"toolPanelConfig": { "type": "toolPanelConfig", "tags": { "scope": "design" }},
 		"gridOptions": {"type": "map"},
 		"localeText": {"type": "map"},
 		"groupRowRendererFunc": { "type": "string"}
