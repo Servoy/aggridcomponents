@@ -281,7 +281,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 				var gridDiv = $element.find('.ag-table')[0];
 				var columnDefs = getColumnDefs();
 				var sortModelDefault = getSortModel();
-				var rowGroupColsDefault = getDefaultRowGroupCols();
 
 				$log.debug(columnDefs);
 				$log.debug(sortModelDefault);
@@ -361,7 +360,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 
 					rowSelection: 'multiple',
 					rowDeselection: true,
-					suppressRowClickSelection: rowGroupColsDefault.length === 0 ? false : true,
 					suppressCellSelection: true, // TODO implement focus lost/gained
 					enableRangeSelection: false,
 
@@ -1022,33 +1020,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 							selectedNodes[i].setSelected(false);
 						}
 					}
-				}
-
-				/** @return {Array<RowGroupColType>} */
-				function getDefaultRowGroupCols() {
-					var rowGroupCols = [];
-					for (var i = 0; $scope.model.columns && i < $scope.model.columns.length; i++) {
-						var column = $scope.model.columns[i];
-						if (column.rowGroupIndex !== null && !isNaN(column.rowGroupIndex) && column.rowGroupIndex > -1) {
-							/** @type {RowGroupColType} */
-							var rowGroupCol = new Object();
-							rowGroupCol.id = getColumnID(column, i);
-							rowGroupCol.field = rowGroupCol.id;
-							rowGroupCol.displayName = column.headerTitle;
-							// rowGroupCols should be well sorted
-							var rowGroupIndex = column.rowGroupIndex
-							if (rowGroupCols[rowGroupIndex]) { // there is already an item at position rowGroupIndex
-								if (rowGroupIndex === rowGroupCols.length - 1) {
-									rowGroupCols = rowGroupCols.push(rowGroupCol);
-								} else {
-									rowGroupCols = rowGroupCols.slice(0, rowGroupIndex + 1).concat([rowGroupCol]).concat(rowGroupCols.slice(rowGroupIndex + 1));
-								}
-							} else {
-								rowGroupCols[rowGroupIndex] = rowGroupCol;
-							}
-						}
-					}
-					return rowGroupCols;
 				}
 
 				/**
@@ -3033,7 +3004,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 						if (removed) {
 							delete state.foundsetManagers[foundsetHash];
 						} else {
-							$log.error("could not delete hashed foundset " + foundsetHash);
+							$log.warn("could not delete hashed foundset " + foundsetHash);
 						}
 					}).catch(function(e) {
 						$log.error(e);
