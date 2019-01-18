@@ -28,7 +28,9 @@
 
 /* Clickable & Draggable empty header */
 .ag-cell-label-container {
-	height: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: row-reverse;
 }
 
 .ag-header-cell-label {
