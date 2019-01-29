@@ -3247,25 +3247,25 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 					}
 
 					if (row) {
-						// find editing cells for the updating row, and skip updating them
+						// find first editing cell for the updating row
 						var editCells = gridOptions.api.getEditingCells();
-						var editingColumnIds = [];
+						var editingColumnId = null;
 						for(var i = 0; i < editCells.length; i++) {
 							if(index == editCells[i].rowIndex) {
-								editingColumnIds.push(editCells[i].column.colId);
+								editingColumnId = editCells[i].column.colId;
+								break;
 							}
 						}
 						gridOptions.api.forEachNode( function(node) {
 							if(node.data && row._svyFoundsetUUID == node.data._svyFoundsetUUID && row._svyRowId == node.data._svyRowId) {
-								if(editingColumnIds.length) {
-									for(var colId in node.data) {
-										if(editingColumnIds.indexOf(colId) == -1) {
-											node.setDataValue(colId, row[colId]);
-										}
-									}
+								// stop editing to allow setting the new data
+								if(editingColumnId) {
+									gridOptions.api.stopEditing(false);
 								}
-								else {
-									node.setData(row);
+								node.setData(row);
+								// restart the editing
+								if(editingColumnId) {
+									gridOptions.api.startEditingCell({rowIndex: index, colKey: editingColumnId});
 								}
 								return;
 							}
