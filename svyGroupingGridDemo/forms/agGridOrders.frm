@@ -300,59 +300,68 @@ columns:[
 {
 dataprovider:"orderid",
 headerTitle:"orderid",
+id:"orderid",
 svyUUID:"16D6DB35-291E-4DC7-AAE2-DE3273D4A2BA"
 },
 {
 dataprovider:"orders_to_customers.companyname",
 headerTitle:"Customer",
+id:"companyname",
 svyUUID:"651B9C41-8084-4B90-9754-20A24E9F5BE1"
 },
 {
 dataprovider:"shipcity",
 headerTitle:"City",
-rowGroupIndex:1,
+id:"city",
 svyUUID:"ED1503BF-14FC-45E6-A2BC-6BF0E32A7AB0"
 },
 {
 dataprovider:"shipcountry",
 headerTitle:"Country",
+id:"country",
 rowGroupIndex:0,
 svyUUID:"705E1CF4-A2DB-4512-AAE8-A1A77FACE32E"
 },
 {
 dataprovider:"orders_to_customers.contactname",
 headerTitle:"Customer Name",
+id:"customer",
 svyUUID:"12EB58B7-B8D6-45B6-813B-F1E29384375F"
 },
 {
 dataprovider:"orders_to_customers.city",
 headerTitle:"Customer City",
+id:"customer city",
 svyUUID:"F87447F8-6C20-4401-97CA-24442E69D925"
 },
 {
 dataprovider:"orders_to_customers.country",
 headerTitle:"Customer Country",
+id:"customer country",
 svyUUID:"9C0ED4B1-D13B-4254-AA7C-613ACF7F0031"
 },
 {
 dataprovider:"orders_to_employees.lastname",
 headerTitle:"Employee",
+id:"employee",
 svyUUID:"EC50F9A1-8089-4DD9-AAE8-A4C35FA0D68D"
 },
 {
 dataprovider:"shippostalcode",
 headerTitle:"Zipcode",
+id:"zipcode",
 svyUUID:"00E30368-A604-4ECD-A254-83F2E302F766"
 },
 {
-dataprovider:"orderid",
+dataprovider:"currency",
 headerTitle:"Extra Order ID",
+id:"orderid2",
 svyUUID:"33A0D16F-9721-4B1C-ABFD-15E8ADFC5A6B"
 }
 ],
 groupUseEntireRow:false,
 location:{
-x:47,
+x:41,
 y:312
 },
 myFoundset:{
@@ -368,9 +377,11 @@ size:{
 height:296,
 width:835
 },
-styleClass:"ag-bootstrap"
+toolPanelConfig:{
+svyUUID:"D527D42D-1757-4CDE-A1A5-69B4097BE515"
+}
 },
-location:"47,312",
+location:"41,312",
 size:"835,296",
 typeid:47,
 uuid:"DB1383A5-2090-44E5-B12E-AE93430824DA"
