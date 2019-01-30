@@ -414,7 +414,13 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 						storeColumnsState();
 					},
 	                onColumnEverythingChanged: storeColumnsState,	// do we need that ?, when is it actually triggered ?
-//	                onSortChanged: storeColumnsState,			 // TODO shall we store the sortState ?
+	                onSortChanged: function() {
+						var sortState = gridOptions.api.getSortModel();
+						if(sortState && sortState.length && sortState[0].colId && sortState[0].colId.indexOf("ag-Grid-AutoColumn-") == 0) {
+							// grouping column sorting
+							gridOptions.api.purgeServerSideCache();
+						}
+					},
 //	                onFilterChanged: storeColumnsState,			 // TODO enable this once filters are enabled
 //	                onColumnVisible: storeColumnsState,			 covered by onDisplayedColumnsChanged
 //	                onColumnPinned: storeColumnsState,			 covered by onDisplayedColumnsChanged
@@ -1688,7 +1694,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 
 					// if clicking sort on the grouping column
 					if (rowGroupCols.length > 0 && sortModel[0] &&
-						(sortModel[0].colId === ("ag-Grid-AutoColumn-" + rowGroupCols[0].id) || sortModel[0].colId === rowGroupCols[0].id)) {
+						(sortModel[0].colId === ("ag-Grid-AutoColumn-" + rowGroupCols[0].id) || sortModel[0].colId === rowGroupCols[0].id) && groupKeys.length == 0) {
 						// replace colFd with the id of the grouped column
 						sortRootGroup = true;
 						sortModel = [{ colId: rowGroupCols[0].id, sort: sortModel[0].sort }];
