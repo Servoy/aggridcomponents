@@ -285,6 +285,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 				$log.debug(columnDefs);
 				$log.debug(sortModelDefault);
 
+				// position of cell with invalid data as reported by the return of onColumnDataChange
+				var invalidCellDataIndex = { rowIndex: -1, colKey: ''};
+				var onColumnDataChangePromise = null;
+
 				// if aggrid service is present read its defaults
 				var toolPanelConfig = null;
 				var iconConfig = null;
@@ -463,7 +467,20 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 							}
 						]
 					},
-					popupParent: gridDiv
+					popupParent: gridDiv,
+					onCellEditingStopped : function(event) {
+						// don't allow escape if cell data is invalid
+						if(onColumnDataChangePromise == null) {
+							var rowIndex = event.rowIndex;
+							var colId = event.column.colId;
+							if(invalidCellDataIndex.rowIndex == rowIndex  && invalidCellDataIndex.colKey == colId) {
+								gridOptions.api.startEditingCell({
+									rowIndex: rowIndex,
+									colKey: colId
+								});
+							}
+						}
+					}
 				};
 				
 				// check if we have filters
@@ -738,6 +755,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 				}
 
 				function updateFoundsetRecord(params) {
+					var rowIndex = params.node.rowIndex;
+					var colId = params.column.colId;
+
+					// if we have an invalid cell data, ignore any updates for other cells
+					if((invalidCellDataIndex.rowIndex != -1 && invalidCellDataIndex.rowIndex != rowIndex)
+						|| (invalidCellDataIndex.colKey != '' && invalidCellDataIndex.colKey != colId)) {
+						return;
+					}
 
 					var row = params.data;
 					var foundsetManager = getFoundsetManagerByFoundsetUUID(row._svyFoundsetUUID);
@@ -753,15 +778,48 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 					}
 
 					var col = getColumn(params.colDef.field);
-					if(col && col.dataprovider && col.dataprovider.idForFoundset && newValue != oldValue) {
-						foundsetRef.updateViewportRecord(row._svyRowId, col.dataprovider.idForFoundset, newValue, oldValue);
+					if(col && col.dataprovider && col.dataprovider.idForFoundset && (newValue != oldValue || invalidCellDataIndex.rowIndex != -1)) {
+						if(newValue != oldValue) {
+							foundsetRef.updateViewportRecord(row._svyRowId, col.dataprovider.idForFoundset, newValue, oldValue);
+						}
 						if($scope.handlers.onColumnDataChange) {
-							$scope.handlers.onColumnDataChange(
+							onColumnDataChangePromise = $scope.handlers.onColumnDataChange(
 								getFoundsetIndexFromEvent(params),
 								getColumnIndex(params.column.colId),
 								oldValue,
 								newValue
 							);
+							onColumnDataChangePromise.then(function(r) {
+								if(r == false) {
+									invalidCellDataIndex.rowIndex = rowIndex;
+									invalidCellDataIndex.colKey = colId;
+									var editCells = gridOptions.api.getEditingCells();
+									if(editCells.length && (editCells[0].rowIndex != rowIndex || editCells[0].column.colId != colId)) {
+										gridOptions.api.stopEditing();
+										gridOptions.api.startEditingCell({
+											rowIndex: rowIndex,
+											colKey: colId
+										});
+										setTimeout(function() {
+											gridOptions.api.forEachNode( function(node) {
+												if (node.rowIndex === rowIndex) {
+													node.setSelected(true, true);
+												}
+											});
+										}, 0);
+									}
+								}
+								else {
+									invalidCellDataIndex.rowIndex = -1;
+									invalidCellDataIndex.colKey = '';
+								}
+								onColumnDataChangePromise = null;
+							}).catch(function(e) {
+								$log.error(e);
+								invalidCellDataIndex.rowIndex = -1;
+								invalidCellDataIndex.colKey = '';
+								onColumnDataChangePromise = null;
+							});
 						}
 					}
 				}

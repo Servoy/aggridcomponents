@@ -122,7 +122,8 @@
 				"name": "newvalue",
 				"type": "object",
 				"optional": true
-			}]
+			}],
+			"returns": "boolean"
 		},
 		"onReady": {
 			"description": "Called when the table is ready to be shown"
