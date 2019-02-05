@@ -408,6 +408,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 						// without timeout the column don't fit automatically
 						setTimeout(function() {
 							sizeHeaderAndColumnsToFit();
+							scrollToSelection();
 							}, 150);
 					},
 					onGridSizeChanged: function() {
@@ -3219,6 +3220,21 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 							// TODO selected record is not in viewPort: how to render it ?
 						}
 					}
+				}
+
+				function scrollToSelection(foundsetManager)
+				{
+					if (!foundsetManager) {
+						foundsetManager = foundset;
+					}
+
+					// virtual row count must be multiple of CHUNK_SIZE (limitation/bug of aggrid)
+					var offset = foundsetManager.foundset.selectedRowIndexes[0] % CHUNK_SIZE
+					var virtualRowCount = foundsetManager.foundset.selectedRowIndexes[0] + (CHUNK_SIZE - offset);
+
+					var model = gridOptions.api.getModel();
+					model.rootNode.childrenCache.setVirtualRowCount(virtualRowCount);
+					gridOptions.api.ensureIndexVisible(foundsetManager.foundset.selectedRowIndexes[0]);
 				}
 
 				/**
