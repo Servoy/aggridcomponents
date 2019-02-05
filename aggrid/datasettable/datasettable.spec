@@ -2,7 +2,7 @@
 	"name": "aggrid-datasettable",
 	"displayName": "Power Grid",
 	"version": 1,
-	"icon" :"aggrid/groupingtable/ag-dataset.svg",
+	"icon" :"aggrid/datasettable/ag-dataset.svg",
 	"definition": "aggrid/datasettable/datasettable.js",
 	"serverscript": "aggrid/datasettable/datasettable_server.js",
 	"libraries": [
