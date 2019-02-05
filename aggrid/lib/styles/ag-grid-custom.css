@@ -29,8 +29,6 @@
 /* Clickable & Draggable empty header */
 .ag-cell-label-container {
     height: 100%;
-    display: flex;
-    flex-direction: row-reverse;
 }
 
 .ag-header-cell-label {
@@ -40,6 +38,10 @@
 
 .ag-header-cell-label .ag-header-cell-text {
 	white-space: normal !important;
+}
+
+.ag-header-cell-menu-button {
+    width: 12px;
 }
 
 /** style the droppable column label in the row group panel 
