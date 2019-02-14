@@ -511,6 +511,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 						break;
 					}
 				}
+				
+				var gridFooterData = getFooterData();
+				if (gridFooterData) {
+					gridOptions.pinnedBottomRowData = gridFooterData;
+				}
 
 				// TODO check if test enabled
 				//gridOptions.ensureDomOrder = true;
@@ -1989,8 +1994,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 					}
 					// watch the column header title
 					for (var i = 0; i < $scope.model.columns.length; i++) {
-						watchColumnHeaderTitle(i)						
+						watchColumnHeaderTitle(i);
+						watchColumnFooterText(i);
 					}
+				
 					
 					if(newValue != oldValue) {
 						updateColumnDefs();
@@ -2019,6 +2026,16 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 									return;
 								}
 								updateColumnHeaderTitle(colId, newValue);
+							}
+					});
+				}
+				
+				function watchColumnFooterText(index) {
+					var columnWatch = $scope.$watch("model.columns[" + index + "]['footerText']",
+						function(newValue, oldValue) {
+							if(newValue != oldValue) {
+								$log.debug('footer text column property changed');
+								gridOptions.api.setPinnedBottomRowData(getFooterData());
 							}
 					});
 				}
@@ -3477,6 +3494,27 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 					}
 
 					return isColumnEditable;
+				}
+				
+				function getFooterData() {
+					var result = [];
+					var hasFooterData = false;
+					var resultData = {}
+					for (var i = 0; $scope.model.columns && i < $scope.model.columns.length; i++) {
+						var column = $scope.model.columns[i];
+						if (column.footerText) {
+							var	colId = getColumnID(column, i);
+							if (colId) {
+								resultData[colId] = column.footerText;
+								hasFooterData = true;
+							}
+							
+						}
+					}
+					if (hasFooterData) {
+						result.push(resultData)
+					}
+					return result;
 				}
 
 				/**

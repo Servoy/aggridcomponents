@@ -248,6 +248,7 @@
 	},
 	"types" : {
 		"column" : {
+			"footerText" : {"type" : "tagstring"},
 			"headerTitle": {"type" : "tagstring"},
 			"headerStyleClass" : {"type" : "styleclass"},
 			"headerTooltip" : {"type" : "tagstring"},
