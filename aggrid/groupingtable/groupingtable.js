@@ -797,7 +797,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 						if(newValue != oldValue) {
 							foundsetRef.updateViewportRecord(row._svyRowId, col.dataprovider.idForFoundset, newValue, oldValue);
 						}
-						if($scope.handlers.onColumnDataChange) {
+						if($scope.handlers.onColumnDataChange && newValue != oldValue) {
 							onColumnDataChangePromise = $scope.handlers.onColumnDataChange(
 								getFoundsetIndexFromEvent(params),
 								getColumnIndex(params.column.colId),
