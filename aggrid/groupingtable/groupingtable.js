@@ -255,7 +255,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 					/** Store the latest rowGroupCols */
 					rowGroupCols: [],
 					/** Stor the latest groupKeys*/
-					groupKeys: []
+					groupKeys: [],
+					/** Sort state of the root group */
+					rootGroupSort: null
 				}
 
 				// used in HTML template to toggle sync button
@@ -419,13 +421,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 						storeColumnsState();
 					},
 	                onColumnEverythingChanged: storeColumnsState,	// do we need that ?, when is it actually triggered ?
-	                onSortChanged: function() {
-						var sortState = gridOptions.api.getSortModel();
-						if(sortState && sortState.length && sortState[0].colId && sortState[0].colId.indexOf("ag-Grid-AutoColumn-") == 0) {
-							// grouping column sorting
-							gridOptions.api.purgeServerSideCache();
-						}
-					},
 //	                onFilterChanged: storeColumnsState,			 // TODO enable this once filters are enabled
 //	                onColumnVisible: storeColumnsState,			 covered by onDisplayedColumnsChanged
 //	                onColumnPinned: storeColumnsState,			 covered by onDisplayedColumnsChanged
@@ -1010,6 +1005,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 							gridOptions.api.setFilterModel(null);
 						}
 						$scope.isGroupView = false;
+						state.rootGroupSort = null;
 
 						// TODO clear group when changed
 						//groupManager.clearAll();
@@ -1772,10 +1768,13 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 
 					// if clicking sort on the grouping column
 					if (rowGroupCols.length > 0 && sortModel[0] &&
-						(sortModel[0].colId === ("ag-Grid-AutoColumn-" + rowGroupCols[0].id) || sortModel[0].colId === rowGroupCols[0].id) && groupKeys.length == 0) {
-						// replace colFd with the id of the grouped column
-						sortRootGroup = true;
-						sortModel = [{ colId: rowGroupCols[0].id, sort: sortModel[0].sort }];
+						(sortModel[0].colId === ("ag-Grid-AutoColumn-" + rowGroupCols[0].id) || sortModel[0].colId === rowGroupCols[0].id)) {
+						// replace colFd with the id of the grouped column						
+						sortModel = [{ colId: rowGroupCols[0].field, sort: sortModel[0].sort }];
+						if(!state.rootGroupSort  || state.rootGroupSort.colId != sortModel[0].colId || state.rootGroupSort.sort != sortModel[0].sort) {
+							sortRootGroup = true;
+							state.rootGroupSort = sortModel[0];
+						}
 					}
 					var foundsetSortModel = getFoundsetSortModel(sortModel);
 					var sortString = foundsetSortModel.sortString;
