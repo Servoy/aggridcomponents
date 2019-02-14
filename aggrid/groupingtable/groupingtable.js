@@ -1987,10 +1987,41 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 							columnWatches.push(columnWatch);
 						}
 					}
+					// watch the column header title
+					for (var i = 0; i < $scope.model.columns.length; i++) {
+						watchColumnHeaderTitle(i)						
+					}
+					
 					if(newValue != oldValue) {
 						updateColumnDefs();
 					}
 				});
+				
+				/**
+				 * 
+				 * @private 
+				 *  */
+				function watchColumnHeaderTitle(index) {
+					var columnWatch = $scope.$watch("model.columns[" + index + "]['headerTitle']",
+						function(newValue, oldValue) {
+							if(newValue != oldValue) {
+								$log.debug('header title column property changed');
+								
+								// column id is either the id of the column
+								var column = $scope.model.columns[index];
+								var colId = column.id;
+								if (!colId) {	// or column is retrieved by getColumnID !?
+									colId = getColumnID(column, index);
+								}
+								
+								if (!colId) {
+									$log.warn("cannot update header title for column at position index " + index);
+									return;
+								}
+								updateColumnHeaderTitle(colId, newValue);
+							}
+					});
+				}
 
 				$scope.$watch("model._internalColumnState", function(newValue, oldValue) {
 					if(isGridReady && (newValue !== "_empty")) {
@@ -3636,6 +3667,20 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 					gridOptions.api.setColumnDefs(getColumnDefs());
 					// selColumnDefs should redraw the grid, but it stopped doing so from v19.1.2
 					$scope.purge();	
+				}
+				
+				function updateColumnHeaderTitle(id, text) {					
+					// get a reference to the column
+					var col = gridOptions.columnApi.getColumn(id);
+
+					// obtain the column definition from the column
+					var colDef = col.getColDef();
+
+					// update the header name
+					colDef.headerName = text;
+
+					// the column is now updated. to reflect the header change, get the grid refresh the header
+					gridOptions.api.refreshHeader();
 				}
 
 				// FIXME styleClass Dataprovider on groups
