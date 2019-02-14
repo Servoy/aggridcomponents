@@ -481,6 +481,20 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 								});
 							}
 						}
+					},
+					onCellEditingStarted : function(event) {
+						// don't allow editing another cell if we have an invalidCellData
+						if(invalidCellDataIndex.rowIndex != -1 && invalidCellDataIndex.colKey != '') {
+							var rowIndex = event.rowIndex;
+							var colId = event.column.colId;
+							if(invalidCellDataIndex.rowIndex != rowIndex  || invalidCellDataIndex.colKey != colId) {
+								gridOptions.api.stopEditing();
+								gridOptions.api.startEditingCell({
+									rowIndex: invalidCellDataIndex.rowIndex,
+									colKey: invalidCellDataIndex.colKey
+								});
+							}
+						}
 					}
 				};
 				
@@ -795,7 +809,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 									invalidCellDataIndex.rowIndex = rowIndex;
 									invalidCellDataIndex.colKey = colId;
 									var editCells = gridOptions.api.getEditingCells();
-									if(editCells.length && (editCells[0].rowIndex != rowIndex || editCells[0].column.colId != colId)) {
+									if(!editCells.length || (editCells[0].rowIndex != rowIndex || editCells[0].column.colId != colId)) {
 										gridOptions.api.stopEditing();
 										gridOptions.api.startEditingCell({
 											rowIndex: rowIndex,
