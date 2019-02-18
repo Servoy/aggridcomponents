@@ -784,11 +784,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 					if (!foundsetManager) foundsetManager = foundset;
 					var foundsetRef = foundsetManager.foundset;
 					var newValue = params.newValue;
-					if(newValue && newValue.realValue != undefined) {
+					if(newValue && newValue.realValue !== undefined) {
 						newValue = newValue.realValue;
 					}
 					var oldValue = params.oldValue;
-					if(oldValue && oldValue.realValue != undefined) {
+					if(oldValue && oldValue.realValue !== undefined) {
 						oldValue = oldValue.realValue;
 					}
 
@@ -1607,7 +1607,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 							valuelistValuesPromise.then(function(valuelistValues) {
 								valuelistValues.forEach(function (value) {
 									var option = document.createElement('option');
-									option.value = value.realValue;
+									option.value = value.realValue == null ? '_SERVOY_NULL' : value.realValue;
 									option.text = value.displayValue;
 									if (v != null && v.toString() === value.displayValue) {
 										option.selected = true;
@@ -1643,7 +1643,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 
 					SelectEditor.prototype.getValue = function () {
 						var displayValue = this.eSelect.options[this.eSelect.selectedIndex ].text;
-						var realValue = this.eSelect.value;
+						var realValue = this.eSelect.value == '_SERVOY_NULL' ? null : this.eSelect.value;
 						return displayValue != realValue ? {displayValue: displayValue, realValue: realValue} : realValue;
 					};
 
