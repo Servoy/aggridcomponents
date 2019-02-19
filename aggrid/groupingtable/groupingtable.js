@@ -1941,7 +1941,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 						if(isTableGrouped()) {
 							$scope.purge();
 						}
-						if($scope.model.myFoundset.viewPort.size > 0) {
+						var isChangedToEmpty = newValue && oldValue && newValue.serverSize == 0 && oldValue.serverSize > 0;
+						if($scope.model.myFoundset.viewPort.size > 0 || isChangedToEmpty) {
 							// browser refresh
 							isRootFoundsetLoaded = true;
 							initRootFoundset();
