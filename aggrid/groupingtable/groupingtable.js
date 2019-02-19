@@ -3289,6 +3289,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 
 				function scrollToSelection(foundsetManager)
 				{
+					// don't do anything if table is grouped.
+					if (isTableGrouped()) {
+						return;
+					}
+					
 					if (!foundsetManager) {
 						foundsetManager = foundset;
 					}
