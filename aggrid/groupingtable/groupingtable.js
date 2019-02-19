@@ -327,7 +327,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 					localeText = config.localeText;
 				}
 
-				var vMenuTabs = ['generalMenuTab'] //, 'filterMenuTab'];
+				var vMenuTabs = ['generalMenuTab', 'filterMenuTab'];
 				if(config.showColumnsMenuTab) vMenuTabs.push('columnsMenuTab');
 
 				var isGridReady = false;
@@ -495,15 +495,18 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 				
 				// check if we have filters
 				for(var i = 0; i < columnDefs.length; i++) {
-					if(columnDefs[i].suppressFilter === false) {
-						gridOptions.sideBar.toolPanels.push({
-							id: 'filters',
-							labelDefault: 'Filters',
-							labelKey: 'filters',
-							iconKey: 'filter',
-							toolPanel: 'agFiltersToolPanel',
-						})
-						break;
+					// suppress the side filter if the suppressColumnFilter is set to true
+					if (!(toolPanelConfig && toolPanelConfig.suppressColumnFilter == true)) {
+						if(columnDefs[i].suppressFilter === false) {
+							gridOptions.sideBar.toolPanels.push({
+								id: 'filters',
+								labelDefault: 'Filters',
+								labelKey: 'filters',
+								iconKey: 'filter',
+								toolPanel: 'agFiltersToolPanel',
+							})
+							break;
+						}
 					}
 				}
 				
@@ -3629,6 +3632,13 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 						// column sort
 						if (column.enableSort === false) colDef.suppressSorting = true;
 
+						// define the columnMenuTabs
+//						var colMenuTabs = [];
+//						// TODO shall always allow the column generalMenuTab, so it can have pinning auto-resize etc !?
+//						if (column.enableRowGroup) colMenuTabs.push('generalMenuTab');
+//						if (column.filterType) colMenuTabs.push('filterMenuTab');				
+//						column.menuTabs = colMenuTabs;
+						
 						if (column.editType) {
 							colDef.editable = isColumnEditable;
 
