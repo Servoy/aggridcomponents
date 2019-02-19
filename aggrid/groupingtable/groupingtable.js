@@ -1082,6 +1082,12 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 					setTimeout(function() {
 						sizeHeaderAndColumnsToFit();
 					}, 50);
+					
+					// scroll to the selected row when switching from Group to plain view.
+					// without timeout the column don't fit automatically
+					setTimeout(function() {
+						scrollToSelection();
+					}, 150);
 
 				}
 
