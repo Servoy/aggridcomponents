@@ -3305,15 +3305,17 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 					}
 
 					if(foundsetManager.foundset.selectedRowIndexes.length) {
-						// virtual row count must be multiple of CHUNK_SIZE (limitation/bug of aggrid)
-						var offset = foundsetManager.foundset.selectedRowIndexes[0] % CHUNK_SIZE
-						var virtualRowCount = foundsetManager.foundset.selectedRowIndexes[0] + (CHUNK_SIZE - offset);
-
 						var model = gridOptions.api.getModel();
 						if(model.rootNode.childrenCache) {
-							model.rootNode.childrenCache.setVirtualRowCount(virtualRowCount);
-							gridOptions.api.ensureIndexVisible(foundsetManager.foundset.selectedRowIndexes[0]);
+							// virtual row count must be multiple of CHUNK_SIZE (limitation/bug of aggrid)
+							var offset = foundsetManager.foundset.selectedRowIndexes[0] % CHUNK_SIZE
+							var virtualRowCount = foundsetManager.foundset.selectedRowIndexes[0] + (CHUNK_SIZE - offset);
+
+							if(virtualRowCount < foundsetManager.foundset.serverSize) {
+								model.rootNode.childrenCache.setVirtualRowCount(virtualRowCount);
+							}
 						}
+						gridOptions.api.ensureIndexVisible(foundsetManager.foundset.selectedRowIndexes[0]);
 					}
 				}
 
