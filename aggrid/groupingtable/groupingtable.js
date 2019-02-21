@@ -3311,7 +3311,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 							var offset = foundsetManager.foundset.selectedRowIndexes[0] % CHUNK_SIZE
 							var virtualRowCount = foundsetManager.foundset.selectedRowIndexes[0] + (CHUNK_SIZE - offset);
 
-							if(virtualRowCount < foundsetManager.foundset.serverSize) {
+							if(virtualRowCount <= foundsetManager.foundset.serverSize) {
 								model.rootNode.childrenCache.setVirtualRowCount(virtualRowCount);
 							}
 						}
