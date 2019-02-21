@@ -3564,6 +3564,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 							returnValueFormatted = true;
 						}
 					
+						if(value instanceof Date) returnValueFormatted = true;
+
 						var styleClassProvider = null;
 						if(!isGroupColumn) {
 							if (!isTableGrouped()) {
