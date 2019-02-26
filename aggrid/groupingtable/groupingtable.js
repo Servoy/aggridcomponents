@@ -434,10 +434,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 //	                onColumnGroupOpened: storeColumnsState		 i don't think we need that, it doesn't include the open group in column state
 					
 					getContextMenuItems: getContextMenuItems,
-					// TODO since i can't use getRowNode(id) in enterprise model, is pointeless to get id per node
-					//					getRowNodeId: function(data) {
-					//						return data._svyRowId;
-					//					}
+					getRowNodeId: function(data) {
+						return data._svyFoundsetUUID + '_' + data._svyRowId;
+					},
 					// TODO localeText: how to provide localeText to the grid ? can the grid be shipped with i18n ?
 
 					navigateToNextCell: selectionChangeNavigation,
@@ -3283,7 +3282,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 							}
 
 							var rowId = foundsetManager.foundset.viewPort.rows[rowIndex]._svyRowId;
-							var node = getTableRow(rowId);
+							var node = gridOptions.api.getRowNode(foundsetManager.foundsetUUID + '_' + rowId);
 							if (node) {
 								node.setSelected(true);
 							}
@@ -3317,23 +3316,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 						}
 						gridOptions.api.ensureIndexVisible(foundsetManager.foundset.selectedRowIndexes[0]);
 					}
-				}
-
-				/**
-				 * @param {String} id the _svyRowId of the node, retuns the full row matching the the id
-				 *
-				 * @return {Object}
-				 *  */
-				function getTableRow(id) {
-					var result;
-
-					gridOptions.api.forEachNode(function(rowNode, index) {
-						if (rowNode && rowNode.data && rowNode.data._svyRowId === id) {
-							result = rowNode;
-						}
-					});
-
-					return result;
 				}
 
 				/**
@@ -3418,42 +3400,45 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 								break;
 							}
 						}
-						gridOptions.api.forEachNode( function(node) {
-							if(node.data && row._svyFoundsetUUID == node.data._svyFoundsetUUID && row._svyRowId == node.data._svyRowId) {
-								// stop editing to allow setting the new data
-								if(editingColumnId) {
-									gridOptions.api.stopEditing(false);
-								}
-								node.setData(row);
 
-								// refresh cells with styleClassDataprovider
-								var styleClassDPColumns = [];
-								var allDisplayedColumns = gridOptions.columnApi.getAllDisplayedColumns();
-
-								for (i = 0; i < allDisplayedColumns.length; i++) {
-									var column = allDisplayedColumns[i];
-									var columnModel = getColumn(column.colDef.field)
-									if (columnModel && columnModel.styleClassDataprovider) {
-										styleClassDPColumns.push(column);
-									}
-								}
-								if(styleClassDPColumns.length) {
-									var refreshParam = {
-										rowNodes: [node],
-										columns: styleClassDPColumns,
-										force: true
-									};
-									gridOptions.api.refreshCells(refreshParam);
-								}
-
-								// restart the editing
-								if(editingColumnId) {
-									gridOptions.api.startEditingCell({rowIndex: index, colKey: editingColumnId});
-								}
-								return;
+						var node = gridOptions.api.getRowNode(row._svyFoundsetUUID + '_' + row._svyRowId);
+						if(node) {
+							// stop editing to allow setting the new data
+							if(editingColumnId) {
+								gridOptions.api.stopEditing(false);
 							}
-						});
-					} else {
+							node.setData(row);
+
+							// refresh cells with styleClassDataprovider
+							var styleClassDPColumns = [];
+							var allDisplayedColumns = gridOptions.columnApi.getAllDisplayedColumns();
+
+							for (i = 0; i < allDisplayedColumns.length; i++) {
+								var column = allDisplayedColumns[i];
+								var columnModel = getColumn(column.colDef.field)
+								if (columnModel && columnModel.styleClassDataprovider) {
+									styleClassDPColumns.push(column);
+								}
+							}
+							if(styleClassDPColumns.length) {
+								var refreshParam = {
+									rowNodes: [node],
+									columns: styleClassDPColumns,
+									force: true
+								};
+								gridOptions.api.refreshCells(refreshParam);
+							}
+
+							// restart the editing
+							if(editingColumnId) {
+								gridOptions.api.startEditingCell({rowIndex: index, colKey: editingColumnId});
+							}
+						}
+						else {
+							$log.warn("could not find row at index " + index);	
+						}
+					}
+					else {
 						$log.warn("could not update row at index " + index);
 					}
 				}
