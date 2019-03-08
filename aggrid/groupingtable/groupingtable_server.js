@@ -338,10 +338,18 @@ function log(msg, level) {
 function filterFoundset(foundset, sFilterModel) {
 	var filterModel = JSON.parse(sFilterModel);
 
-	// first make sure all existing ag- filters are removed
-	for(var i = 0; i < $scope.model.columns.length; i++) {
-		var dp = $scope.model.columns[i].dataprovider;
-		foundset.removeFoundSetFilterParam('ag-' + dp);
+	foundset.removeFoundSetFilterParam("ag-groupingtable");
+	var isFilterSet = false;
+	
+	var query;
+	if(servoyApi.getQuerySelect) {
+		query = servoyApi.getQuerySelect(foundset.getDataSource());
+	}
+	else {
+		// there is an issue in Servoy, that queries are not cleared after calling removeFoundSetFilterParam
+		// until loadAllRecords is called
+		foundset.loadAllRecords();
+		query = foundset.getQuery();
 	}
 
 	for(var i = 0; i < $scope.model.columns.length; i++) {
@@ -349,31 +357,36 @@ function filterFoundset(foundset, sFilterModel) {
 		var filter = filterModel[i];
 		if(filter) {
 			var op, value;
+			var useNot = false;
+			var useIgnoreCase = false;
 
 			if(filter["filterType"] == "text") {
+				useIgnoreCase = true;
 				switch(filter["type"]) {
 					case "equals":
-						op = "#=";
+						op = "eq";
 						value = filter["filter"];
 						break;
 					case "notEqual":
-						op = "#!=";
+						useNot = true;
+						op = "eq";
 						value = filter["filter"];
 						break;
 					case "startsWith":
-						op = "#like";
+						op = "like";
 						value = filter["filter"] + "%";
 						break;
 					case "endsWith":
-						op = "#like";
+						op = "like";
 						value = "%" + filter["filter"];
 						break;				
 					case "contains":
-						op = "#like";
+						op = "like";
 						value = "%" + filter["filter"] + "%";
 						break;		
 					case "notContains":
-						op = "#not like";
+						useNot = true;
+						op = "like";
 						value = "%" + filter["filter"] + "%";
 						break;	
 				}
@@ -382,22 +395,23 @@ function filterFoundset(foundset, sFilterModel) {
 				value = filter["filter"];
 				switch(filter["type"]) {
 					case "equals":
-						op = "=";
+						op = "eq";
 						break;
 					case "notEqual":
-						op = "!=";
+						useNot = true;
+						op = "eq";
 						break;
 					case "greaterThan":
-						op = ">";
+						op = "gt";
 						break;
 					case "greaterThanOrEqual":
-						op = ">=";
+						op = "ge";
 						break;
 					case "lessThan":
-						op = "<";
+						op = "lt";
 						break;
 					case "lessThanOrEqual":
-						op = "<=";
+						op = "le";
 						break;
 					case "inRange":
 						op = "between";
@@ -411,16 +425,17 @@ function filterFoundset(foundset, sFilterModel) {
 				value = new Date(filter["dateFrom"]);
 				switch(filter["type"]) {
 					case "equals":
-						op = "=";
+						op = "eq";
 						break;
 					case "notEqual":
-						op = "!=";
+						useNot = true;
+						op = "eq";
 						break;
 					case "greaterThan":
-						op = ">";
+						op = "gt";
 						break;
 					case "lessThan":
-						op = "<";
+						op = "lt";
 						break;
 					case "inRange":
 						op = "between";
@@ -432,9 +447,30 @@ function filterFoundset(foundset, sFilterModel) {
 			}
 
 			if(op != undefined && value != undefined) {
-				foundset.addFoundSetFilterParam(dp, op, value, 'ag-' + dp);
+				var whereClause = null;
+				var aDP = dp.split('.');
+				for(var j = 0; j < aDP.length - 1; j++) {
+					whereClause = whereClause == null ? query.joins[aDP[j]] : whereClause.joins[aDP[j]];
+				}
+
+				whereClause = whereClause == null ? query.columns[aDP[aDP.length - 1]] : whereClause.columns[aDP[aDP.length - 1]];
+
+				if(useIgnoreCase) {
+					whereClause = whereClause["lower"];
+					value = value.toLowerCase();
+				}
+				if(useNot) {
+					whereClause = whereClause["not"];
+				}
+				whereClause = op == "between" ? whereClause[op](value[0], value[1]) : whereClause[op](value);
+				if(!isFilterSet) isFilterSet = true;
+				query.where.add(whereClause);
 			}
 		}
+	}
+
+	if(isFilterSet) {
+		foundset.addFoundSetFilterParam(query, "ag-groupingtable");
 	}
 }
 
