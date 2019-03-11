@@ -14,7 +14,7 @@
 	],
 	"model":
 	{
-		"myFoundset": {"type": "foundset", "default" : {"foundsetSelector":""}, "pushToServer" : "allow" ,"dynamicDataproviders": true, "initialPreferredViewPortSize": 50, "sendSelectionViewportInitially": true },
+		"myFoundset": {"type": "foundset", "default" : {"foundsetSelector":""}, "pushToServer" : "allow" ,"initialPreferredViewPortSize": 50, "sendSelectionViewportInitially": true },
 		"columns": { "type": "column[]", "droppable" : true, "pushToServer": "shallow"},
 		"columnState": { "type": "string", "tags": {"scope" : "private"}, "pushToServer": "allow"},
 		"columnStateOnError": { "type": "function", "tags": {"scope" : "private"}},
