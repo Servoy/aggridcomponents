@@ -3733,6 +3733,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 				}
 
 				function updateColumnDefs() {
+					// need to clear/remove old columns first, else the id for
+					// the new columns will have the counter at the end (ex. "myid_1")
+					// and that will broke our getColumn()
+					gridOptions.api.setColumnDefs([]);
+
 					gridOptions.api.setColumnDefs(getColumnDefs());
 					// selColumnDefs should redraw the grid, but it stopped doing so from v19.1.2
 					$scope.purge();	
