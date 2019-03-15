@@ -36,18 +36,26 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
 
             var config = $scope.model;
 
-            if(config.toolPanelConfig) {
-                toolPanelConfig = config.toolPanelConfig;
+            function mergeConfig(target, source) {
+                var mergeConfig = target;
+                if(source) {
+                    if(mergeConfig) {
+                        for (var property in source) {
+                            if (source.hasOwnProperty(property)) {
+                                mergeConfig[property] = source[property];
+                            }
+                        }
+                    } else {
+                        mergeConfig = source;
+                    }
+                }
+                return mergeConfig;
             }
-            if(config.iconConfig) {
-                iconConfig = config.iconConfig;
-            }
-            if(config.gridOptions) {
-                userGridOptions = config.gridOptions; 
-            }
-            if(config.localeText) {
-                localeText = config.localeText;
-            }
+
+            toolPanelConfig = mergeConfig(toolPanelConfig, config.toolPanelConfig);
+            iconConfig = mergeConfig(iconConfig, config.iconConfig);
+            userGridOptions = mergeConfig(userGridOptions, config.gridOptions);
+            localeText = mergeConfig(localeText, config.localeText);
             
 			var vMenuTabs = ['generalMenuTab','filterMenuTab'];
 			
