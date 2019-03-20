@@ -4040,8 +4040,25 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 	
 				function restoreColumnsState() {
 					if($scope.model.columnState) {
-						var columnStateJSON = JSON.parse($scope.model.columnState);
+						var columnStateJSON = null;
+
+						try {
+							columnStateJSON = JSON.parse($scope.model.columnState);
+						}
+						catch(e) {
+							$log.error(e);
+						}
+						
 						if($scope.model.columnStateOnError) {
+							// can't parse columnState
+							if(columnStateJSON == null || !Array.isArray(columnStateJSON.columnState)) {
+								$window.executeInlineScript(
+									$scope.model.columnStateOnError.formname,
+									$scope.model.columnStateOnError.script,
+									['Cannot restore columns state, invalid format']);
+								return;
+							}
+
 							// if columns were added/removed, skip the restore
 							var savedColumns = [];
 							for(var i = 0; i < columnStateJSON.columnState.length; i++) {
@@ -4089,10 +4106,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 							}
 						}
 
-						gridOptions.columnApi.setColumnState(columnStateJSON.columnState);
+						if(columnStateJSON != null) {
+							if(Array.isArray(columnStateJSON.columnState) && columnStateJSON.columnState.length > 0) {
+								gridOptions.columnApi.setColumnState(columnStateJSON.columnState);
+							}
 
-						if(columnStateJSON.rowGroupColumnsState.length > 0) {
-							gridOptions.columnApi.setRowGroupColumns(columnStateJSON.rowGroupColumnsState);
+							if(Array.isArray(columnStateJSON.rowGroupColumnsState) && columnStateJSON.rowGroupColumnsState.length > 0) {
+								gridOptions.columnApi.setRowGroupColumns(columnStateJSON.rowGroupColumnsState);
+							}
 						}
 					}
 				}
