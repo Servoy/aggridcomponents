@@ -809,6 +809,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 							foundsetRef.updateViewportRecord(row._svyRowId, col.dataprovider.idForFoundset, newValue, oldValue);
 						}
 						if($scope.handlers.onColumnDataChange && newValue != oldValue) {
+							var currentEditCells = gridOptions.api.getEditingCells();
 							onColumnDataChangePromise = $scope.handlers.onColumnDataChange(
 								getFoundsetIndexFromEvent(params),
 								getColumnIndex(params.column.colId),
@@ -817,8 +818,19 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 							);
 							onColumnDataChangePromise.then(function(r) {
 								if(r == false) {
-									invalidCellDataIndex.rowIndex = rowIndex;
-									invalidCellDataIndex.colKey = colId;
+									// if old value was reset, clear invalid state
+									var currentValue = gridOptions.api.getValue(colId, params.node);
+									if(currentValue && currentValue.realValue !== undefined) {
+										currentValue = currentValue.realValue;
+									}
+									if(oldValue === currentValue) {
+										invalidCellDataIndex.rowIndex = -1;
+										invalidCellDataIndex.colKey = '';
+									}
+									else {
+										invalidCellDataIndex.rowIndex = rowIndex;
+										invalidCellDataIndex.colKey = colId;
+									}
 									var editCells = gridOptions.api.getEditingCells();
 									if(!editCells.length || (editCells[0].rowIndex != rowIndex || editCells[0].column.colId != colId)) {
 										gridOptions.api.stopEditing();
@@ -838,6 +850,13 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 								else {
 									invalidCellDataIndex.rowIndex = -1;
 									invalidCellDataIndex.colKey = '';
+									var editCells = gridOptions.api.getEditingCells();
+									if(editCells.length == 0 && currentEditCells.length != 0) {
+										gridOptions.api.startEditingCell({
+											rowIndex: currentEditCells[0].rowIndex,
+											colKey: currentEditCells[0].column.colId
+										});
+									}
 								}
 								onColumnDataChangePromise = null;
 							}).catch(function(e) {
