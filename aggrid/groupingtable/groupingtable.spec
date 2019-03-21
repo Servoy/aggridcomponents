@@ -2,7 +2,7 @@
 	"name": "aggrid-groupingtable",
 	"displayName": "Data Grid",
 	"version": 1,
-	"icon" :"aggrid/groupingtable/ag-grouping.svg",
+	"icon" :"aggrid/groupingtable/ag-grouping.png",
 	"definition": "aggrid/groupingtable/groupingtable.js",
 	"serverscript": "aggrid/groupingtable/groupingtable_server.js",
 	"libraries": [
