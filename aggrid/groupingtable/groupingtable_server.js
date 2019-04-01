@@ -79,6 +79,7 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 	var childFoundset;
 	if (groupColumns.length > groupKeys.length) {
 		query.result.clear();
+		query.result.add(groupColumn, groupDataprovider);
 		query.result.add(groupColumn);
 		query.groupBy.add(groupColumn);
 		query.sort.clear();
