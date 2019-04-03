@@ -18,8 +18,8 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
             var iconConfig = null;
             var userGridOptions = null;
             var localeText = null;
-            if($injector.has('datasettableDefaultConfig')) {
-                var datasettableDefaultConfig = $services.getServiceScope('datasettableDefaultConfig').model;
+            if($injector.has('ngPowerGrid')) {
+                var datasettableDefaultConfig = $services.getServiceScope('ngPowerGrid').model;
                 if(datasettableDefaultConfig.toolPanelConfig) {
                     toolPanelConfig = datasettableDefaultConfig.toolPanelConfig;
                 }

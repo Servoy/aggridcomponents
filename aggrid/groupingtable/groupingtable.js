@@ -296,8 +296,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 				var iconConfig = null;
 				var userGridOptions = null
 				var localeText = null;
-				if($injector.has('groupingtableDefaultConfig')) {
-					var groupingtableDefaultConfig = $services.getServiceScope('groupingtableDefaultConfig').model;
+				if($injector.has('ngDataGrid')) {
+					var groupingtableDefaultConfig = $services.getServiceScope('ngDataGrid').model;
 					if(groupingtableDefaultConfig.toolPanelConfig) {
 						toolPanelConfig = groupingtableDefaultConfig.toolPanelConfig;
 					}
