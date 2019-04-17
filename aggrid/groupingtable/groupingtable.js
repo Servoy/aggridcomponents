@@ -1,4 +1,4 @@
-angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenterpriselicensekey']).directive('aggridGroupingtable', ['$sabloApplication', '$sabloConstants', '$log', '$q', '$foundsetTypeConstants', '$filter', '$compile', '$formatterUtils', '$sabloConverters', '$injector', '$services', "$sanitize", '$window',
+angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('aggridGroupingtable', ['$sabloApplication', '$sabloConstants', '$log', '$q', '$foundsetTypeConstants', '$filter', '$compile', '$formatterUtils', '$sabloConverters', '$injector', '$services', "$sanitize", '$window',
 	function($sabloApplication, $sabloConstants, $log, $q, $foundsetTypeConstants, $filter, $compile, $formatterUtils, $sabloConverters, $injector, $services, $sanitize, $window) {
 		return {
 			restrict: 'E',
@@ -4812,6 +4812,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 			},
 			templateUrl: 'aggrid/groupingtable/groupingtable.html'
 		};
-	}]).run(['$aggridenterpriselicensekey', function($aggridenterpriselicensekey) {
-	$aggridenterpriselicensekey.setLicenseKey();
-}]);
+	}]).run(function() {
+		// this is not part of the open source license, can only be used in combination of the Servoy NG Grids components
+		agGrid.LicenseManager.setLicenseKey("Servoy_B.V._Servoy_7Devs_1OEM_22_August_2019__MTU2NjQyODQwMDAwMA==6c490d5c7f432e256493c8ca91624202");
+});

@@ -1,4 +1,4 @@
-angular.module('aggridDatasettable', ['servoy', 'aggridenterpriselicensekey']).directive('aggridDatasettable', ['$sabloConstants', '$log', '$q', '$filter', '$formatterUtils', '$injector', '$services',
+angular.module('aggridDatasettable', ['servoy']).directive('aggridDatasettable', ['$sabloConstants', '$log', '$q', '$filter', '$formatterUtils', '$injector', '$services',
 function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $services) {
     return {
         restrict: 'E',
@@ -802,6 +802,7 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
         },
         templateUrl: 'aggrid/datasettable/datasettable.html'
     };
-}]).run(['$aggridenterpriselicensekey', function($aggridenterpriselicensekey) {
-$aggridenterpriselicensekey.setLicenseKey();
-}]);
+}]).run(function() {
+    // this is not part of the open source license, can only be used in combination of the Servoy NG Grids components
+    agGrid.LicenseManager.setLicenseKey("Servoy_B.V._Servoy_7Devs_1OEM_22_August_2019__MTU2NjQyODQwMDAwMA==6c490d5c7f432e256493c8ca91624202");
+});

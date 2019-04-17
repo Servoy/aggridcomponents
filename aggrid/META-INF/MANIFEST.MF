@@ -4,7 +4,7 @@ Bundle-SymbolicName: aggrid
 Bundle-Version: 2.0.2
 Bundle-Name: Servoy NG-Grids
 Package-Type: Web-Component
-JS-ClientLibs: aggrid/lib/ag-grid-enterprise.js;name=ag-grid-enterprise;version=17.1.2,https://cdn.rawgit.com/Servoy/aggridcomponents-license/lic-2019/dist/ag-grid-enterprise-licensekey.js;name=ag-grid-enterprise-licensekey;version=17.1.2
+JS-ClientLibs: aggrid/lib/ag-grid-enterprise.js;name=ag-grid-enterprise;version=17.1.2
 
 Name: groupingtable/groupingtable.spec
 Web-Component: True
