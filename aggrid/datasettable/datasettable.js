@@ -60,6 +60,32 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
 			var vMenuTabs = ['generalMenuTab','filterMenuTab'];
 			
 			if(config.showColumnsMenuTab) vMenuTabs.push('columnsMenuTab');
+			
+			var sideBar;
+			if (toolPanelConfig && toolPanelConfig.suppressSideButtons === true) {
+				sideBar = false;
+			} else {
+				sideBar = {
+                    toolPanels: [
+                    {
+                        id: 'columns',
+                        labelDefault: 'Columns',
+                        labelKey: 'columns',
+                        iconKey: 'columns',
+                        toolPanel: 'agColumnsToolPanel',
+                        toolPanelParams: {
+                            suppressRowGroups: toolPanelConfig ? toolPanelConfig.suppressRowGroups : false,
+                            suppressValues: toolPanelConfig ? toolPanelConfig.suppressValues : false,
+                            suppressPivots: toolPanelConfig ? toolPanelConfig.suppressPivots : false,
+                            suppressPivotMode: toolPanelConfig ? toolPanelConfig.suppressPivotMode : false,
+                            suppressSideButtons: toolPanelConfig ? toolPanelConfig.suppressSideButtons : false,
+                            suppressColumnFilter: toolPanelConfig ? toolPanelConfig.suppressColumnFilter : false,
+                            suppressColumnSelectAll: toolPanelConfig ? toolPanelConfig.suppressColumnSelectAll : false,
+                            suppressColumnExpandAll: toolPanelConfig ? toolPanelConfig.suppressColumnExpandAll : false
+                        }
+                    }                    
+                ]};
+			}
 
             var isGridReady = false;
 
@@ -160,31 +186,12 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
 
                 navigateToNextCell: selectionChangeNavigation,
                 
-                sideBar : {
-                    toolPanels: [
-                        {
-                            id: 'columns',
-                            labelDefault: 'Columns',
-                            labelKey: 'columns',
-                            iconKey: 'columns',
-                            toolPanel: 'agColumnsToolPanel',
-                            toolPanelParams: {
-                                suppressRowGroups: toolPanelConfig ? toolPanelConfig.suppressRowGroups : false,
-                                suppressValues: toolPanelConfig ? toolPanelConfig.suppressValues : false,
-                                suppressPivots: toolPanelConfig ? toolPanelConfig.suppressPivots : false,
-                                suppressPivotMode: toolPanelConfig ? toolPanelConfig.suppressPivotMode : false,
-                                suppressSideButtons: toolPanelConfig ? toolPanelConfig.suppressSideButtons : false,
-                                suppressColumnFilter: toolPanelConfig ? toolPanelConfig.suppressColumnFilter : false,
-                                suppressColumnSelectAll: toolPanelConfig ? toolPanelConfig.suppressColumnSelectAll : false,
-                                suppressColumnExpandAll: toolPanelConfig ? toolPanelConfig.suppressColumnExpandAll : false
-                            }
-                        }                    ]
-                },
+                sideBar : sideBar,
                 popupParent: gridDiv
             };
 
             // check if we have filters
-            for(var i = 0; i < columnDefs.length; i++) {
+            for(var i = 0; gridOptions.sideBar && gridOptions.sideBar.toolPanels && i < columnDefs.length; i++) {
                 if(columnDefs[i].suppressFilter === false) {
                     gridOptions.sideBar.toolPanels.push({
                         id: 'filters',
