@@ -3282,14 +3282,15 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy', 'aggridenter
 					// FIXME can't select the record when is not in viewPort. Need to synchornize with viewPort record selection
 					$log.debug(' - 2.1 Request selection changes');
 
+					// Disable selection when table is grouped
+					if (isTableGrouped()) {
+						return;
+					}
+
 					// clear selection
 					var selectedNodes = gridOptions.api.getSelectedNodes();
 					for (var i = 0; i < selectedNodes.length; i++) {
 						selectedNodes[i].setSelected(false);
-					}
-					// Disable selection when table is grouped
-					if (isTableGrouped()) {
-						return;
 					}
 
 					// CHANGE Seleciton
