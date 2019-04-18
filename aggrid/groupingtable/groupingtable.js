@@ -3272,9 +3272,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					if (change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROW_UPDATES_RECEIVED]) {
 						$log.debug(idRandom + ' - 4. Notify viewport row update');
 						var updates = change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROW_UPDATES_RECEIVED].updates;
-						updateRows(updates, null, null);
-						// i don't need a selection update in case of purge
-						return;
+						if(updateRows(updates, null, null)) {
+							// i don't need a selection update in case of purge
+							return;
+						}
 					}
 
 					// gridOptions.api.purgeEnterpriseCache();
@@ -3378,17 +3379,18 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 * @param {Number} [oldStartIndex]
 				 * @param {Number} oldSize
 				 *
+				 * return {Boolean} whatever a purge ($scope.purge();) was done due to update
 				 *  */
 				function updateRows(rowUpdates, oldStartIndex, oldSize) {
+					var needPurge = false;
 
 					// Don't update automatically if the row are grouped
 					if (isTableGrouped()) {
 						// register update
 						$scope.dirtyCache = true;
-						return;
+						return needPurge;
 					}
 					
-					var needPurge = false;
 					for (var i = 0; i < rowUpdates.length; i++) {
 						var rowUpdate = rowUpdates[i];
 						switch (rowUpdate.type) {
@@ -3410,6 +3412,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					if(needPurge) {
 						$scope.purge();
 					}
+					return needPurge;
 				}
 
 				/**
