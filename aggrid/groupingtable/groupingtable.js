@@ -3884,19 +3884,28 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							// TODO parse sortColumns into default sort string
 							/** @type {String} */
 							var sortColumn = sortColumns[i];
+							var idForFoundset;
+							var sortDirection;
 							if (!sortColumn) {
 								continue;
 							} else if (sortColumn.substr(sortColumn.length - 5, 5) === " desc") {
-
-								sortModel.push({
-									colId: sortColumn.substring(0, sortColumn.length - 5),
-									sort: "desc"
-								})
+								var idForFoundset = sortColumn.substring(0, sortColumn.length - 5);
+								sortDirection = "desc";
 							} else if (sortColumn.substr(sortColumn.length - 4, 4) === " asc") {
-								sortModel.push({
-									colId: sortColumn.substring(0, sortColumn.length - 4),
-									sort: "asc"
-								})
+								idForFoundset = sortColumn.substring(0, sortColumn.length - 4),
+								sortDirection = "asc";
+							}
+							
+							// add it into the sort model
+							if (idForFoundset && sortDirection) {
+								var agColIds = getColIDs(idForFoundset);
+								
+								for (var j = 0; j < agColIds.length; j++) {
+									sortModel.push({
+										colId: agColIds[j],
+										sort: sortDirection
+									});
+								}
 							}
 						}
 					}
@@ -3938,7 +3947,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 *
 				 * @private
 				 * */
-				function getColumnID(column, idx) {
+				function getColumnID(column, idx) {					
 					if (column.dataprovider) {
 						return column.dataprovider.idForFoundset + ':' + idx;
 					} else {
@@ -4005,6 +4014,37 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						}
 					}
 					return -1;
+				}
+				
+				
+				/**
+				 * @param {String} idsForFoundset
+				 * Finds all the columns with the given idForFoundset
+				 *
+				 * @return {Array<String>}
+				 *
+				 * @private
+				 * */
+				function getColIDs(idsForFoundset) {
+					
+					var result = [];
+					if (!idsForFoundset) {
+						return [];
+					}
+					
+					for (var i = 0; i < $scope.model.columns.length; i++) {
+						var column = $scope.model.columns[i];
+						if (column.dataprovider && column.dataprovider.idForFoundset === idsForFoundset) {
+							if (column.id) {
+								// Use the colId if is set
+								result.push(column.id);
+							} else {
+								// Use the field if colId is not available
+								result.push(getColumnID(column, i));
+							}
+						}
+					}
+					return result;
 				}
 
 				/**
