@@ -1,5 +1,5 @@
-angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('aggridGroupingtable', ['$sabloApplication', '$sabloConstants', '$log', '$q', '$foundsetTypeConstants', '$filter', '$compile', '$formatterUtils', '$sabloConverters', '$injector', '$services', "$sanitize", '$window',
-	function($sabloApplication, $sabloConstants, $log, $q, $foundsetTypeConstants, $filter, $compile, $formatterUtils, $sabloConverters, $injector, $services, $sanitize, $window) {
+angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('aggridGroupingtable', ['$sabloApplication', '$sabloConstants', '$log', '$q', '$foundsetTypeConstants', '$filter', '$compile', '$formatterUtils', '$sabloConverters', '$injector', '$services', "$sanitize", '$window', "$applicationService",
+	function($sabloApplication, $sabloConstants, $log, $q, $foundsetTypeConstants, $filter, $compile, $formatterUtils, $sabloConverters, $injector, $services, $sanitize, $window, $applicationService) {
 		return {
 			restrict: 'E',
 			scope: {
@@ -1584,6 +1584,13 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						if (locale.language) {
 							options.locale = locale.language;
 						}
+						
+						var showISOWeeks = $applicationService.getUIProperty('ngCalendarShowISOWeeks');
+						if (showISOWeeks)
+						{
+							options.isoCalendarWeeks = true;
+						}	
+						
 						$(this.eInput).datetimepicker(options);
 
 						var editFormat = 'MM/dd/yyyy hh:mm a';
