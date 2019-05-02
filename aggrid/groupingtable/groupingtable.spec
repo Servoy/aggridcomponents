@@ -178,6 +178,15 @@
 	    },
 		"getGroupedSelection": {
 			"returns": "record[]"
+		},
+		"editCellAt": {
+			"parameters": [{
+				"name": "foundsetindex",
+				"type": "int"
+			}, {
+				"name": "columnindex",
+				"type": "int"
+			}]
 		}
     },
 	"internalApi" : {

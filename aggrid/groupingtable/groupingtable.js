@@ -4330,6 +4330,29 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					return groupedSelection;
 				}
 
+				/**
+				 * Start cell editing (only works when the table is not in grouping mode).
+				 * @param foundsetindex foundset row index of the editing cell (1-based)
+				 * @param columnindex column index in the model of the editing cell (0-based)
+				 */
+				$scope.api.editCellAt = function(foundsetindex, columnindex) {
+					if(isTableGrouped()) {
+						$log.warn('editCellAt API is not supported in grouped mode');
+					}
+					else if (foundsetindex < 1) {
+						$log.warn('editCellAt API, invalid foundsetindex:' + foundsetindex);
+					}
+					else if(columnindex < 0 || columnindex > $scope.model.columns.length - 1) {
+					}
+					else {
+						var	colId = getColumnID($scope.model.columns[columnindex], columnindex);
+						gridOptions.api.startEditingCell({
+							rowIndex: foundsetindex - 1,
+							colKey: colId
+						});
+					}
+				}
+
 				// FIXME how to force re-fit when table is shown for the first time
 
 				// bind resize event
