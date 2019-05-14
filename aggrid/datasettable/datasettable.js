@@ -708,12 +708,30 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
 
             function restoreColumnsState() {
                 if($scope.model.columnState) {
-                    var columnState = JSON.parse($scope.model.columnState);
-                    gridOptions.columnApi.setColumnState(columnState.columnState);
-                    gridOptions.columnApi.setColumnGroupState(columnState.rowGroupColumnsState);
-                    gridOptions.api.setSideBarVisible(columnState.isSideBarVisible);
-                    gridOptions.api.setFilterModel(columnState.filterState);
-                    gridOptions.api.setSortModel(columnState.sortingState);
+                    var columnStateJSON = null;
+
+                    try {
+                        columnStateJSON = JSON.parse($scope.model.columnState);
+                    }
+                    catch(e) {
+                        $log.error(e);
+                    }
+
+                    if(columnStateJSON != null) {
+                        if(Array.isArray(columnStateJSON.columnState) && columnStateJSON.columnState.length > 0) {
+                            gridOptions.columnApi.setColumnState(columnStateJSON.columnState);
+                        }
+
+                        if(Array.isArray(columnStateJSON.rowGroupColumnsState) && columnStateJSON.rowGroupColumnsState.length > 0) {
+                            gridOptions.columnApi.setRowGroupColumns(columnStateJSON.rowGroupColumnsState);
+                        }
+
+                        if(Array.isArray(columnStateJSON.sortingState) && columnStateJSON.sortingState.length > 0) {
+                            gridOptions.columnApi.setSortModel(columnStateJSON.sortingState);
+                        }
+
+                        gridOptions.api.setSideBarVisible(columnStateJSON.isSideBarVisible);
+                    }
                 }
             }
 
