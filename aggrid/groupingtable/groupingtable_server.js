@@ -58,6 +58,9 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 				if (existingJoin) {
 					join = existingJoin;
 				} else {
+					// TODO check the joinType of the relation and make sure to add a join with "outer join" join type
+					// 		but don't think this is possible: no way to introspect the relation before adding it and if the wrong time, (manually) duplicate the relation with the proper type
+					//		and no way to either remove a wrong relation-based join (to manually add a proper duplicate) or modifying the joinType after adding the join
 					join = join.joins.add(relationName, relationPath);
 				}
 			}
@@ -80,7 +83,7 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 	if (groupColumns.length > groupKeys.length) {
 		query.result.clear();
 		query.result.add(groupColumn, groupDataprovider);
-		query.groupBy.add(groupColumn);
+		query.groupBy.add(groupColumn); // CHECKME with multilevel groups upper parent groups might return grouprows that don't have child groupd rows. Happens at least when using inner joins for non-exiting related data. Example "'T Veld". Causes the grid to stop rendering
 		query.sort.clear();
 
 		if (sort === 'desc') {
@@ -131,14 +134,16 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 		console.warn(e);
 	}
 
-
+	// CHECKME this seems a basic copy of limited fields from $scope.model.columns that gets stored on each grouped FS
+	// 	If just a plain copy, why not always reference $scope.model.columns clientside and remove .columns from hashedFoundsets?
 	var columns = [];
 	for (var idx = 0; idx < $scope.model.columns.length; idx++) {
 		columns.push({
 			dataprovider: $scope.model.columns[idx].dataprovider,
 			format: $scope.model.columns[idx].format,
 			valuelist: $scope.model.columns[idx].valuelist,
-			id: $scope.model.columns[idx].id
+			id: $scope.model.columns[idx].id,
+			columnDef: $scope.model.columns[idx].columnDef
 		});
 	}
 
@@ -196,7 +201,7 @@ $scope.getFoundsetRecord = function(parentFoundset, parentRecordFinder) {
 }
 
 /**
- * The only use case is to retrieve the record index while gruped.
+ * The only use case is to retrieve the record index while grouped.
  * Don't implement for now
  * @deprecated
  * Get the foundset index of the given record
@@ -288,17 +293,6 @@ function getJoin(query, alias) {
 		}
 	}
 	return null;
-}
-
-/**
- * @deprecated is not actually used
- * Generate an UUID
- *  */
-function generateUUID() {
-	function chr4() {
-		return (new Date().getTime() * Math.random()).toString(16).slice(-4).toUpperCase();
-	}
-	return chr4() + chr4() + '-' + chr4() + '-' + chr4() + '-' + chr4() + '-' + chr4() + chr4() + chr4();
 }
 
 var LOG_LEVEL = {
@@ -485,7 +479,7 @@ function filterFoundset(foundset, sFilterModel) {
  *	%%prefix%%%%elementName%%.getColumnsCount()
  */ 
 $scope.api.getColumnsCount = function() {
-    return $scope.model.columns.length; 
+    return $scope.model.columns.length; // Bombs if columns is null
 }
 
 /**
@@ -519,7 +513,7 @@ $scope.api.getColumn = function(index) {
 $scope.api.newColumn = function(dataproviderid,index) {
 	 if (!$scope.model.columns) $scope.model.columns = [];
 	 var insertPosition = (index == undefined) ? $scope.model.columns.length : ((index == -1 || index > $scope.model.columns.length) ? $scope.model.columns.length : index);
-	 for(var i = $scope.model.columns.length; i > insertPosition; i--) {
+	 for(var i = $scope.model.columns.length; i > insertPosition; i--) { // Use splice?!?!
 		  $scope.model.columns[i] = $scope.model.columns[i - 1]; 
 	 }
 	 $scope.model.columns[insertPosition] = {
@@ -548,7 +542,7 @@ $scope.api.newColumn = function(dataproviderid,index) {
  */
 $scope.api.removeColumn = function(index) {
 	if(index >= 0 && index < $scope.model.columns.length) {
-		for(var i = index; i < $scope.model.columns.length - 1; i++) {
+		for(var i = index; i < $scope.model.columns.length - 1; i++) { // Use splice?!?!
 			$scope.model.columns[i] = $scope.model.columns[i + 1];
 		}
 		$scope.model.columns.length = $scope.model.columns.length - 1;

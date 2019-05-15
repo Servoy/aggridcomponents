@@ -179,6 +179,36 @@
 		"getGroupedSelection": {
 			"returns": "record[]"
 		},
+				"expandGroup": {
+			"parameters": [{
+				"name": "path",
+				"type": "object[]"
+			}],
+			"returns": "boolean"
+		},
+		"expandAll": {
+			"returns": "boolean"
+		},
+		"collapseGroup": {
+			"parameters": [{
+				"name": "path",
+				"type": "object[]"
+			}],
+			"returns": "boolean"
+		},
+		"collapseAll": {
+			"returns": "boolean"
+		},
+		"getGroupedState": {
+			"returns": "array<string[]>"
+		},
+		"setGroupedState": {
+			"parameters": [{
+				"name": "paths",
+				"type": "array<string[]>"
+			}],
+			"returns": "array<string[]>"
+		},
 		"editCellAt": {
 			"parameters": [{
 				"name": "foundsetindex",
@@ -287,7 +317,8 @@
             "dataprovider": { "type": "dataprovider", "forFoundset": "foundset", "resolveValuelist": true },
             "format" : { "type": "format",  "for": [ "valuelist", "dataprovider" ]},
 			"valuelist": { "type": "valuelist", "for": "dataprovider", "forFoundset": "foundset" },
-			"id": {"type" : "string"}
+			"id": {"type" : "string"},
+			"field": {"type": "string"}
         },
 		 "hashedFoundset" : {
             "foundset": "foundset",

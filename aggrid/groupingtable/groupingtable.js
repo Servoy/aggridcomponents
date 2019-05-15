@@ -1,5 +1,14 @@
 angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('aggridGroupingtable', ['$sabloApplication', '$sabloConstants', '$log', '$q', '$foundsetTypeConstants', '$filter', '$compile', '$formatterUtils', '$sabloConverters', '$injector', '$services', "$sanitize", '$window', "$applicationService",
 	function($sabloApplication, $sabloConstants, $log, $q, $foundsetTypeConstants, $filter, $compile, $formatterUtils, $sabloConverters, $injector, $services, $sanitize, $window, $applicationService) {
+		// Constants: can't use const keyword, not supported in IE 9 & 10
+		var ROOT_FOUNDSET_ID = 'root'; // TODO should just use Servoy's assigned id's, but since GrouoManager is instantiated even when there's no foundset: maybe instantiate a new GroupManager once myfoundset is set, passing it's value as argument?
+		var NULL_DISPLAY_VALUE = {
+			displayValue: '',
+			realValue: null
+		};
+		var CHUNK_SIZE = 50;
+		var CACHED_CHUNK_BLOCKS = 2;
+		
 		return {
 			restrict: 'E',
 			scope: {
@@ -80,7 +89,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 * 1. Edit record at position 10.000 to a value that is not in group.
 				 * 		The foundset may not receive any notificaiton because is not in group
 				 *
-				 *  */
+				 */
 
 				/**
 				 * @typedef{{
@@ -142,14 +151,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 					gridOptions.api.purgeServerSideCache();
 					$scope.dirtyCache = false;
-					// $log.warn('purge cache');
-
-					// TODO expand previously expanded rows
-					//
-					//					var columns = state.expanded.columns;
-					//					for (var field in columns) {
-					//						// FIXME there is no ag-grid method to force group expand for a specific key value
-					//					}
 				}
 
 				/**
@@ -200,25 +201,26 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 				}
 
+				// TODO wrap all the controller init code in a IIFE, so it can be collapses, for readability
 				/** Listen for changes */
 				Object.defineProperty($scope.model, $sabloConstants.modelChangeNotifier, {
-						configurable: true,
-						value: function(property, value) {
-							switch (property) {
-							case "responsiveHeight":
-								setHeight();
-								break;
-							case "visible":
-								// if the table was never visible
-								if (isRendered === false && value === true) {
-									// refresh the columnDefs since was null the first time
-									updateColumnDefs();
-									isRendered = true;
-								}
-								break;
+					configurable: true,
+					value: function(property, value) {
+						switch (property) {
+						case "responsiveHeight":
+							setHeight();
+							break;
+						case "visible":
+							// if the table was never visible
+							if (isRendered === false && value === true) {
+								// refresh the columnDefs since was null the first time
+								updateColumnDefs();
+								isRendered = true;
 							}
+							break;
 						}
-					});
+					}
+				});
 
 				// data can already be here, if so call the modelChange function so that it is initialized correctly.
 				//				var modelChangFunction = $scope.model[$sabloConstants.modelChangeNotifier];
@@ -227,9 +229,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				//				}
 
 				$scope.reload = function(count) { }
-				var CHUNK_SIZE = 50;
-				var CACHED_CHUNK_BLOCKS = 2;
-
+				
 				/**
 				 * Store the state of the table. TODO to be persisted
 				 * */
@@ -242,27 +242,38 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					columns: { },
 					foundsetManagers: { },
 					/** valuelists stored per field */
-					valuelists: { },
-					expanded: {
-						/** The column collapsed */
-						columns: { },
-						buffer: []
-					},
-					/** Store the latest column group, as an ordered array of colId  */
-					grouped: {
-						columns: []
-					},
+					valuelists: { }, // NOT USED?
 					/** Store the latest rowGroupCols */
 					rowGroupCols: [],
 					/** Stor the latest groupKeys*/
-					groupKeys: [],
+					groupKeys: [], // NOT USED?
 					/** Sort state of the root group */
-					rootGroupSort: null
+					rootGroupSort: null // NOT USED?
 				}
 
+				// wish we could use a simpler structure by utilizing Symbols to track collapsed state, but IE doesn't support Symbols...
+				// TODO rename to groupState as only used when grouping
+				// TODO move this state into GroupNode/FoundsetManager
+				$scope.groupState = {
+					// TODO clear properly when rowGroups change
+					// TODO persist to serverside: maybe flatten in the process? Just for persistance there's no need to track the collapsed state, as that's just done for UX/performance in the client
+					children: { // TODO remove hardcoded test values
+						AACHEN: {
+							children: {
+								DUITSLAND: {
+									children: {}
+								}
+							}//,
+							//collapsed: true
+						}
+					}
+				}
+				$scope.groupState.children.AACHEN.parent = $scope.groupState
+				$scope.groupState.children.AACHEN.children.DUITSLAND.parent = $scope.groupState.children.AACHEN
+				
 				// used in HTML template to toggle sync button
 				$scope.isGroupView = false;
-
+			
 				// set to true when root foundset is loaded
 				var isRootFoundsetLoaded = false;
 
@@ -275,10 +286,12 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				// formatFilter function
 				var formatFilter = $filter("formatFilter");
 
+				// CHECKME shouldn't this code go through initRootFoundset? What if $scope.model.myFoundset is null?
 				// init the root foundset manager
-				var foundset = new FoundSetManager($scope.model.myFoundset, 'root', true);
+				var foundset = new FoundSetManager($scope.model.myFoundset, ROOT_FOUNDSET_ID);
+				
 				// the group manager
-				var groupManager = new GroupManager();
+				var groupManager = new GroupManager(); // Should maybe be instantiated only when myfoundset gets set, passing myfoundset as rootNode
 
 				var gridDiv = $element.find('.ag-table')[0];
 				var columnDefs = getColumnDefs();
@@ -288,7 +301,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				$log.debug(sortModelDefault);
 
 				// position of cell with invalid data as reported by the return of onColumnDataChange
-				var invalidCellDataIndex = { rowIndex: -1, colKey: ''};
+				var invalidCellDataIndex = { 
+					rowIndex: -1,
+					colKey: ''
+				};
 				var onColumnDataChangePromise = null;
 
 				// if aggrid service is present read its defaults
@@ -296,18 +312,20 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				var iconConfig = null;
 				var userGridOptions = null
 				var localeText = null;
-				if($injector.has('ngDataGrid')) {
+				
+				if ($injector.has('ngDataGrid')) {
 					var groupingtableDefaultConfig = $services.getServiceScope('ngDataGrid').model;
-					if(groupingtableDefaultConfig.toolPanelConfig) {
+					
+					if (groupingtableDefaultConfig.toolPanelConfig) {
 						toolPanelConfig = groupingtableDefaultConfig.toolPanelConfig;
 					}
-					if(groupingtableDefaultConfig.iconConfig) {
+					if (groupingtableDefaultConfig.iconConfig) {
 						iconConfig = groupingtableDefaultConfig.iconConfig;
 					}
-					if(groupingtableDefaultConfig.gridOptions) {
+					if (groupingtableDefaultConfig.gridOptions) {
 						userGridOptions = groupingtableDefaultConfig.gridOptions;
 					}
-					if(groupingtableDefaultConfig.localeText) {
+					if (groupingtableDefaultConfig.localeText) {
 						localeText = groupingtableDefaultConfig.localeText;
 					}
 				}
@@ -337,7 +355,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				localeText = mergeConfig(localeText, config.localeText);
 
 				var vMenuTabs = ['generalMenuTab', 'filterMenuTab'];
-				if(config.showColumnsMenuTab) vMenuTabs.push('columnsMenuTab');
+				if (config.showColumnsMenuTab) vMenuTabs.push('columnsMenuTab');
 				
 				var sideBar;
 				if (toolPanelConfig && toolPanelConfig.suppressSideButtons === true) {
@@ -369,7 +387,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				var isGridReady = false;
 
 				var gridOptions = {
-
 					debug: false,
 					rowModelType: 'serverSide',
 					rowGroupPanelShow: 'onlyWhenGrouping', // TODO expose property
@@ -397,10 +414,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 					enableServerSideFilter: true, // TODO implement serverside filtering
 					// suppressMovingInCss: true,
-					suppressColumnMoveAnimation: true,
-					suppressAnimationFrame: true,
+//					suppressColumnMoveAnimation: true,
+//					suppressAnimationFrame: true,
 
-					rowSelection: 'multiple',
+					rowSelection: $scope.model.myFoundset.multiSelect ? 'multiple' : 'single',
 					rowDeselection: true,
 					suppressCellSelection: true, // TODO implement focus lost/gained
 					enableRangeSelection: false,
@@ -471,13 +488,34 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					
 					getContextMenuItems: getContextMenuItems,
 					getRowNodeId: function(data) {
-						return data._svyFoundsetUUID + '_' + data._svyRowId;
+						return data._svyFoundsetUUID + '_' + data._svyRowId; // CHECKME I had this working with just return data._svyRowId;
 					},
 					// TODO localeText: how to provide localeText to the grid ? can the grid be shipped with i18n ?
 
 					navigateToNextCell: selectionChangeNavigation,
 
 					sideBar : sideBar,
+					sideBar : {
+						toolPanels: [
+							{
+								id: 'columns',
+								labelDefault: 'Columns',
+								labelKey: 'columns',
+								iconKey: 'columns',
+								toolPanel: 'agColumnsToolPanel',
+								toolPanelParams: {
+									suppressRowGroups: toolPanelConfig ? toolPanelConfig.suppressRowGroups : false,
+									suppressValues: true,
+									suppressPivots: true,
+									suppressPivotMode: true,
+									suppressSideButtons: toolPanelConfig ? toolPanelConfig.suppressSideButtons : false,
+									suppressColumnFilter: toolPanelConfig ? toolPanelConfig.suppressColumnFilter : false,
+									suppressColumnSelectAll: toolPanelConfig ? toolPanelConfig.suppressColumnSelectAll : false,
+									suppressColumnExpandAll: toolPanelConfig ? toolPanelConfig.suppressColumnExpandAll : false //CHECKME
+								}
+							}
+						]
+					},
 					popupParent: gridDiv,
 					onCellEditingStopped : function(event) {
 						// don't allow escape if cell data is invalid
@@ -508,11 +546,13 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 				};
 				
-				// check if we have filters
-				for(var i = 0; gridOptions.sideBar && gridOptions.sideBar.toolPanels && i < columnDefs.length; i++) {
-					// suppress the side filter if the suppressColumnFilter is set to true
-					if (!(toolPanelConfig && toolPanelConfig.suppressColumnFilter == true)) {
-						if(columnDefs[i].suppressFilter === false) {
+				//Loop through all columnsDefs and init certain things
+				for (var i = 0; i < columnDefs.length; i++) {
+					var column = columnDefs[i];
+					
+					// check if we have filters, suppress the side filter if the suppressColumnFilter is set to true
+					if (gridOptions.sideBar && gridOptions.sideBar.toolPanels && !(toolPanelConfig && toolPanelConfig.suppressColumnFilter == true)) {
+						if (column.suppressFilter === false) {
 							gridOptions.sideBar.toolPanels.push({
 								id: 'filters',
 								labelDefault: 'Filters',
@@ -522,6 +562,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							})
 							break;
 						}
+					}
+					
+					if (column.rowGroupIndex > -1 || column.rowGroup) {
+						$scope.isGroupView = true
 					}
 				}
 				
@@ -539,7 +583,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				}
 
 				// https://www.ag-grid.com/javascript-grid-icons/#gsc.tab=0
-				var icons = new Object();
+				gridOptions.icons = {};
 
 				// set the icons
 				if (iconConfig == null) {
@@ -552,19 +596,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				}
 
 				// set all custom icons
-	            if (iconConfig) {
-	                var icons = new Object();
-	                
-	                for (var iconName in iconConfig) {
-	                	if (iconName == "iconRefreshData") continue;
-	                	
-	                	var aggridIcon = iconName.slice(4);
-	                	aggridIcon = aggridIcon[0].toLowerCase() + aggridIcon.slice(1);
-	                	icons[aggridIcon] = getIconElement(iconConfig[iconName]);
-	                }
-	                gridOptions.icons = icons
+	            for (var iconName in iconConfig) {
+	               	if (iconName == "iconRefreshData") continue;
+	               	
+	               	var aggridIcon = iconName.slice(4);
+	               	aggridIcon = aggridIcon[0].toLowerCase() + aggridIcon.slice(1);
+	               	gridOptions.icons[aggridIcon] = getIconElement(iconConfig[iconName]);
 	            }
-				
+  
 				// set a fixed height if is in designer
 				setHeight();
 
@@ -614,14 +653,141 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				// default sort order
 				gridOptions.api.setSortModel(sortModelDefault);
 
+				/**
+				 * Programatically sets the selected state of all direct direct children of the provided group row node
+				 * only if the group row is either selected or deselected (so ignoring mixed state)
+				 * 
+				 * Setting the selected state on the direct children will trigger the appropriate selection-related events
+				 * which will take care of propagating the selected state to nested descendants
+				 * 
+				 * @param {Object} node
+				 */
+				function selectChildNodes(node) {
+					if (!node.group) return
+					
+					var selectedState = node.selected
+					
+					if (typeof selectedState === 'boolean') { // selectedState is undefined if there are both selected and unselected children
+						var model = gridOptions.api.getModel()
+						var row = model.getRow(node.rowIndex + 1); // get the first row after the current node's row
+						
+						while (row && !( row.group && row.level <= node.level )) { // loop through all (nested) childRows
+							if (row.level === node.level + 1 && selectedState !== row.isSelected()) {
+								row.setSelected(selectedState) // triggers the selection-related events, which in turn trigger the process for the next level of group rows (if any)
+							}
+							
+							row = model.getRow(row.rowIndex + 1)
+						}						
+					}
+				}
+				
+				// TODO encapsulate in groupState class or something
+				function getGroupPath(node) {
+					var groupKeys = [];
+					var groupNode = node.group ? node : node.parent;
+					
+					while (groupNode.level !== -1) {
+						groupKeys.push(groupNode.key);
+						groupNode = groupNode.parent;
+					}
+					
+					return groupKeys.reverse();
+				}
+				
+				function getGroupState(nodeOrKeys, force) {
+					var groupState = $scope.groupState;
+					var groupKeys = Array.isArray(nodeOrKeys) ? nodeOrKeys : getGroupPath(nodeOrKeys);
+					
+					for (var index = 0; groupState && index < groupKeys.length; index++) {
+						if (groupState.children.hasOwnProperty(groupKeys[index])) {
+							groupState = groupState.children[groupKeys[index]];
+						} else if (force) {
+							groupState = groupState.children[groupKeys[index]] = {
+								parent: groupState,
+								children: {}
+							}
+						} else {
+							groupState = null;
+						}
+					}
+					
+					return groupState;
+				}
+				
+				function setParentGroupState(node) {
+					var parent = node.parent
+					
+					// Set the proper selected state on the parent group row if any
+					if (parent && parent.level !== -1) {
+						var model = gridOptions.api.getModel()
+						var row = model.getRow(parent.rowIndex + 1); // get the first row after the current node's row
+						var selectedState = row.isSelected();
+						
+						// FIXME this wont take into account lazy loading, should check selectedState instead
+						while (row && !(row.group && row.level <= parent.level) && selectedState !== undefined) { 
+							if (row.level === parent.level + 1 && selectedState !== row.isSelected()) {
+								selectedState = undefined;
+							}
+							
+							row = model.getRow(row.rowIndex + 1)
+						}
+						
+						parent.selectThisNode(selectedState);
+					}
+				}
+				
+				/**
+				 * Event handler for rowSelected event
+				 * 
+				 * Takes care of:
+				 * - properly selecting all (already loaded) childNodes of a group row if the group row's selected state is true or false (ignoring undefined, which means mixed state)
+				 * - properly setting the selected state of all parent group rows
+				 * - persisting selected state
+				 * 
+				 * Only operates when grid is in group mode
+				 */
+				gridOptions.api.addEventListener('rowSelected', function (event) {
+					console.log('rowSelected', event)
+					
+					if (!isTableGrouped()) return // if the table is not grouped, there's not selection state bubbling/cascading to be taken care of
+					
+					var node = event.node;
+					
+					// set the selected state of all (loaded) childNodes (if any). Will only do something if the selected row is a group row
+					selectChildNodes(node); // CHECKME inline this function?
+					
+					// Set the proper selected state on the parent group row if any
+					setParentGroupState(node);
+					
+					// persist selected state, only for the current node: parent logic will trigger through async rowSelected events on the parent a bit later
+					var groupState = getGroupState(node, true)
+					
+					if (node.group) {
+						// TODO implement
+						
+					} else if (groupState.parent && groupState.parent.selected !== node.isSelected()) {
+						if (!groupState.pks) {
+							groupState.pks = [];
+						}
+						
+						var pk = /\d+\_\d+.(\d+);\_\d+/.exec(node.id)[1];
+						if (node.isSelected()) {
+							groupState.pks.push(pk);
+						} else {
+							groupState.pks.splice(groupState.pks.indexOf(pk), 1)
+						}
+					}
+				});
+
 				// register listener for selection changed
 				gridOptions.api.addEventListener('selectionChanged', onSelectionChanged);
 
 				// grid handlers
 				var clickTimer;
 				function cellClickHandler(params) {
-					if($scope.handlers.onCellDoubleClick) {
-						if(clickTimer) {
+					console.log('cellClicked', params)
+					if ($scope.handlers.onCellDoubleClick) {
+						if (clickTimer) {
 							clearTimeout(clickTimer);
 							clickTimer = null;
 						}
@@ -636,42 +802,236 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						onCellClicked(params);
 					}
 				}
+				
+				// TODO inline the event handlers as anonymous functions in the addEventHandler code
 				gridOptions.api.addEventListener('cellClicked', cellClickHandler);
 				gridOptions.api.addEventListener('cellDoubleClicked', onCellDoubleClicked);
 				gridOptions.api.addEventListener('cellContextMenu', onCellContextMenu);
 
-				// listen to group changes
-				gridOptions.api.addEventListener('columnRowGroupChanged', onColumnRowGroupChanged);
+				/**
+				 * Event handler for grouping changes, ie. when a change occurs to the columns by which the grid is grouped
+				 * 
+				 * Takes care of:
+				 * - persist on which columns the grid is grouped
+				 * - remove obsolete foundsets
+				 * - sets the $scope.isGroupView flag
+				 * - cleans up obsolete expanded/collapsed persist state 
+				 * - (optional) makes the columns by which the grid was previously grouped visible again, see setting ... // TODO finish
+				 * 
+				 * CHECKME what is happening with filtering in here?
+				 */
+				gridOptions.api.addEventListener('columnRowGroupChanged', function (event) {
+					$log.debug(event);
+					
+					var rowGroupCols = event.columns;
+	
+					var i;
+					var column;
+					var field;
+	
+					if (!rowGroupCols.length) { // Grid not grouped anymore
+						if ($scope.isGroupView) { // grid was grouped before
+							// clear filter
+							gridOptions.api.setFilterModel(null);
+						}
+						$scope.isGroupView = false;
+						state.rootGroupSort = null;
+	
+						// Remove all obsolete group foundsets
+						// TODO clear group when changed
+						//groupManager.clearAll();
+						groupManager.removeFoundsetRefAtLevel(0);
+	
+						// clear all columns
+						for (i = 0; i < $scope.model.columns.length; i++) {
+							column = $scope.model.columns[i];
+							
+							if (column.hasOwnProperty('rowGroupIndex')) {
+								column.rowGroupIndex = -1;
+								
+								if (true) { // TODO expose behavior as option
+									gridOptions.columnApi.setColumnVisible(getColumnID(column, i), true);
+								}
+							}
+						}
+						
+						// Clear all expanded/collapsed persist state
+						$scope.groupState = {
+							children: []
+						}
+					} else {
+						if (!$scope.isGroupView) { // grid wasn't grouped before, but is now
+							// clear filter
+							gridOptions.api.setFilterModel(null);
+							
+							// CHECKME should the selection on the root foundset not be cleared, as that one isn't being used now anymore
+							//		   or should the selection it had be persisted to group mode?
+							//		   Also: shouldn't the root foundset be cleared (or records), as to prevent devs still looking at it while the grid is in groupMode and the rootfoundset is not being used anymore?
+							//		   If clearing the root fs of records: need to think about what happens when switching back to non-grouped mode
+							
+							//		   At the moment, if you have a selection in non-group mode and switch to grouped mode, there is nothign selected in group mode.
+							//		   if you remove the groups and thus end up in non-group mode, the old selection is still in place
+							//		   Haven't tested it, but most likely any changes in filtering is not synces between the two either...
+						}
+						$scope.isGroupView = true;
+	
+						// persist new grouping and optionally make previously grouped columns visible again
+						var oldGroupedFields = []
+						var newGroupedFields = rowGroupCols.map(function(col) { // get an array of the field values of the new grouped columns
+							return col.colDef.field;
+						});
+						
+						for (i = 0; i < $scope.model.columns.length; i++) {
+							column = $scope.model.columns[i];
+							field = getColumnID(column, i);
+							
+							var newGroupIndex = newGroupedFields.indexOf(field);
+							var isGroupedBy = newGroupIndex !== -1;
+							var wasGroupedBy = column.rowGroupIndex > -1;
+							
+							var newVisibility;
+							
+							if (wasGroupedBy) {
+								oldGroupedFields[column.rowGroupIndex] = field;
+								newVisibility = true;
+							}
+							
+							if (isGroupedBy) {
+								newVisibility = false;
+							}
+							
+							column.rowGroupIndex = newGroupIndex; // persist
+							
+							if (true && (wasGroupedBy || isGroupedBy)) { // TODO expose behavior as option
+								gridOptions.columnApi.setColumnVisible(field, newVisibility); // column visibility
+							}
+						}
+							
+						// TODO test this
+						for (i = 0; i < oldGroupedFields.length; i++) {
+							if (oldGroupedFields[i] !== newGroupedFields[i]) {
+								groupManager.removeFoundsetRefAtLevel(i); // clean up obsolete foundsets
+								
+								// TODO clean up collapse/expand persist state from the right level downwards
+								
+	//							$scope.groupState = {
+	//								children: []
+	//							}
+								break;
+							}
+						}
+	
+	//					// CHECKME does this logic properly clear foundsets when just changing the order of grouping?
+	//					// clear HashTreeCache if column group state changed
+	//					for (i = 0; state.grouped.columns && i < state.grouped.columns.length; i++) {
+	//						// if the column has been removed or order of columns has been changed
+	//						if (i >= event.columns.length || state.grouped.columns[i] != event.columns[i].colId) {
+	//							//	if (i === 0) {
+	//							// FIXME does it breaks it, why does it happen ? concurrency issue ?
+	//							//	groupManager.clearAll();
+	//							// FIXME this is a workadound, i don't why does it fail when i change a root level (same issue of sort and expand/collapse)
+	//							//		groupManager.clearAll();
+	//							//	} else {
+	//							// Clear Column X and all it's child
+	//							// NOTE: level are at deep 2 (1 column + 1 key)
+	//							var level = Math.max(0, (i * 2) - 1);
+	//							groupManager.removeFoundsetRefAtLevel(level);
+	//							//	}
+	//							break;
+	//						}
+	//					}
+					}
+	
+					// resize the columns
+					setTimeout(function() {
+						sizeHeaderAndColumnsToFit();
+					}, 50);
+					
+					// scroll to the selected row when switching from Group to plain view.  // CHECKME seems to not only do it when switching to plain view
+					// without timeout the column don't fit automatically
+					setTimeout(function() {
+						scrollToSelection();
+					}, 150);
+				});
 
-				// listen to group collapsed
-				//				gridOptions.api.addEventListener('rowGroupOpened', onRowGroupOpened);
+				// listen to group expand/collapsed
+				gridOptions.api.addEventListener('rowGroupOpened', function(event) { // while event is called 'rowGroupOpened' it also fires when closing a group
+					$log.debug(event);
+					
+					var node = event.node;
+					var state = $scope.groupState;
+					
+					var groupKeys = getGroupPath(node);
+					
+					for (var index = 0; index < groupKeys.length; index++) {
+						var groupKey = groupKeys[index];
+						
+						if (node.expanded) { // row was expanded
+							if (state.children.hasOwnProperty(groupKey)) {
+								state = state.children[groupKey];
+								delete state.collapsed;
+							} else {
+								state = state.children[groupKey] = {
+									parent: state,
+									children: {}
+								};
+							}
+						} else { // node was collapsed
+							if (index === groupKeys.length - 1) { // on the level that is actually being collapsed
+								if (state.children[groupKey] && Object.keys(state.children[groupKey]).length) { // row that is being collapsed has expanded children. We want to keep that state so when the user expands the node again, all descendants remain expanded as before
+									state.children[groupKey].collapsed = true;
+								} else {
+									delete state.children[groupKey];
+								}
+							} else if (state.children.hasOwnProperty(groupKey)) {
+								state = state.children[groupKey];
+							} else {
+								$log.warn('Unexpected state: group got expanded/collapsed while one of its parents was collapsed. This should not be possible');
+								break;
+							}
+						}
+					}
+					
+					// CHECKME this is old code that was already commented out. What to do with it? Ideally, the fs is removed after a delay and when the total # of fs's reaches a threshold
+//					// TODO remove foundset from memory when a group is closed
+//					// TODO expose model property to control perfomance
+//					if (isExpanded === false && $scope.model.perfomanceClearCacheStateOnCollapse === true) {
+//						// FIXME remove foundset based on values
+//						groupManager.removeChildFoundsetRef(column.data._svyFoundsetUUID, column.field, column.data[field]);
+//					}
+//
+//					//var foundsetManager = getFoundsetManagerByFoundsetUUID(column.data._svyFoundsetUUID);
+//					//foundsetManager.destroy();
+
+				});
 
 				/**
-				 * Grid Event
+				 * Event handler for selection changes. Only used in non-groupng mode
+				 * 
 				 * @private
-				 *
-				 * */
+				 */
 				function onSelectionChanged(event) {
-					// Don't trigger foundset selection if table is grouping
+					console.log('selectionChanged', event, gridOptions.api.getSelectedNodes());
+					
+					// selection in grouped mode is tracked differently, via the rowSelected event
 					if (isTableGrouped()) {
-						return;
+						return
 					}
 
 					var selectedNodes = gridOptions.api.getSelectedNodes();
-					if (selectedNodes.length > 0) {
-						var foundsetIndexes = new Array();
+					
+					if (selectedNodes.length) { // CHECKME can length ever be zero?
+						var foundsetIndexes = [];
 
-						for(var i = 0; i < selectedNodes.length; i++) {
+						for (var i = 0; i < selectedNodes.length; i++) {
 							var node = selectedNodes[i];
-							if(node) foundsetIndexes.push(node.rowIndex);				
+							if (node) foundsetIndexes.push(node.rowIndex);				
 						}
-						if(foundsetIndexes.length > 0) {
+						
+						if (foundsetIndexes.length > 0) {
 							foundset.foundset.requestSelectionUpdate(foundsetIndexes).then(
-								function(serverRows){
-									//success
-								},
-								function(serverRows){
-									//canceled 
+								function (serverRows) {}, // success
+								function (serverRows) { // canceled
 									if (typeof serverRows === 'string'){
 										return;
 									}
@@ -681,12 +1041,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							);
 							return;
 						}
-
+					} else { // handle last node deselection, which AG Grid allows through rowDeselection
+						// TODO handle: as foundsets always have at least one row selected, guess the only thing to do is log a warning and 
 					}
+					
 					$log.debug("table must always have a selected record");
-					selectedRowIndexesChanged();
-
+					selectedRowIndexesChanged(); // CHECKME seems suboptimal, as it might get executed twice
 				}
+				
 				/**
 				 * On ClickEvent
 				 *
@@ -694,6 +1056,12 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 * */
 				function onCellClicked(params) {
 					$log.debug(params);
+					
+					// Tried toggling group row selection here, which works, but would miss support for ctrl/shift multi/range select + restrictions AG Grid has based on other config/features would have to be duplicated
+//					if (params.node.group) {
+//						params.node.selectThisNode(params.node.isSelected() ? false : true)
+//					}
+					
 					if ($scope.handlers.onCellClick) {
 						//						var row = params.data;
 						//						var foundsetManager = getFoundsetManagerByFoundsetUUID(row._svyFoundsetUUID);
@@ -762,7 +1130,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					var promiseResult = $q.defer();
 					var row = params.data;
 					var foundsetManager = getFoundsetManagerByFoundsetUUID(row._svyFoundsetUUID);
-					if (!foundsetManager) foundsetManager = foundset;
+					if (!foundsetManager) foundsetManager = foundset;  
 					var foundsetRef = foundsetManager.foundset;
 					var foundsetUUID = foundsetManager.foundsetUUID;
 
@@ -846,6 +1214,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 											colKey: colId
 										});
 										setTimeout(function() {
+											// CHECKME can probably be done through the rowId instead of a loop?
 											gridOptions.api.forEachNode( function(node) {
 												if (node.rowIndex === rowIndex) {
 													node.setSelected(true, true);
@@ -987,6 +1356,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					return [];
 				}
 
+				// CHECKME does this handling match nav in ACtionButton/More Menu
+				// CHECKME impact on selectionModel?
 				function selectionChangeNavigation(params) {
 					var previousCell = params.previousCellDef;
 					var suggestedNextCell = params.nextCellDef;
@@ -1024,174 +1395,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				}
 
 				/**
-				 * When Column Group Changes
-				 * @private
-				 * */
-				function onColumnRowGroupChanged(event) {
-					// return;
-					var rowGroupCols = event.columns;
-					// FIXME why does give an error,  i don't uderstand
-					var i;
-					var column;
-					$log.debug(event);
-
-					// store in columns the change
-					if (!rowGroupCols || rowGroupCols.length === 0) {
-						if($scope.isGroupView) {
-							// clear filter
-							gridOptions.api.setFilterModel(null);
-						}
-						$scope.isGroupView = false;
-						state.rootGroupSort = null;
-
-						// TODO clear group when changed
-						//groupManager.clearAll();
-						groupManager.removeFoundsetRefAtLevel(0);
-
-						// clear all columns
-						for (i = 0; i < $scope.model.columns.length; i++) {
-							column = $scope.model.columns[i];
-							if (column.hasOwnProperty('rowGroupIndex')) {
-								column.rowGroupIndex = -1;
-							}
-						}
-
-					} else {
-						if(!$scope.isGroupView) {
-							// clear filter
-							gridOptions.api.setFilterModel(null);
-						}
-						$scope.isGroupView = true;
-
-						var groupedFields = [];
-
-						// set new rowGroupIndex
-						for (i = 0; i < rowGroupCols.length; i++) {
-							var rowGroupCol = rowGroupCols[i];
-							var field = rowGroupCol.colDef.field;
-							groupedFields.push(field);
-							column = getColumn(field);
-							column.rowGroupIndex = i;
-						}
-
-						// reset all other columns;
-						for (i = 0; i < $scope.model.columns.length; i++) {
-							column = $scope.model.columns[i];
-							if (groupedFields.indexOf(getColumnID(column, i)) === -1) {
-								if (column.hasOwnProperty('rowGroupIndex')) {
-									column.rowGroupIndex = -1;
-								}
-							}
-
-						}
-
-						// clear HashTreeCache if column group state changed
-						for (i = 0; state.grouped.columns && i < state.grouped.columns.length; i++) {
-							// if the column has been removed or order of columns has been changed
-							if (i >= event.columns.length || state.grouped.columns[i] != event.columns[i].colId) {
-								//	if (i === 0) {
-								// FIXME does it breaks it, why does it happen ? concurrency issue ?
-								//	groupManager.clearAll();
-								// FIXME this is a workadound, i don't why does it fail when i change a root level (same issue of sort and expand/collapse)
-								//		groupManager.clearAll();
-								//	} else {
-								// Clear Column X and all it's child
-								// NOTE: level are at deep 2 (1 column + 1 key)
-								var level = Math.max(0, (i * 2) - 1);
-								groupManager.removeFoundsetRefAtLevel(level);
-								//	}
-								break;
-							}
-						}
-						// TODO remove logs
-						$log.debug($scope.model.hashedFoundsets);
-						$log.debug(state.foundsetManagers);
-
-					}
-
-					// persist grouped columns state
-					setStateGroupedColumns(event.columns);
-
-					// resize the columns
-					setTimeout(function() {
-						sizeHeaderAndColumnsToFit();
-					}, 50);
-					
-					// scroll to the selected row when switching from Group to plain view.
-					// without timeout the column don't fit automatically
-					setTimeout(function() {
-						scrollToSelection();
-					}, 150);
-
-				}
-
-				/**
-				 * Suppress or enable row slection
-				 * @param {Boolean} enabled
-				 * @private
-				 * */
-				function enableRowSelection(enabled) {
-					if (enabled) {
-						// enable selection
-						gridOptions.suppressRowClickSelection = false;
-						selectedRowIndexesChanged(foundset);
-					} else {
-						// disable selection
-						gridOptions.suppressRowClickSelection = true;
-						var selectedNodes = gridOptions.api.getSelectedNodes();
-						for (i = 0; i < selectedNodes.length; i++) {
-							selectedNodes[i].setSelected(false);
-						}
-					}
-				}
-
-				/**
-				 * Grid Event
-				 * @deprecated
-				 * @private
-				 * */
-				function onRowGroupOpened(event) {
-					$log.debug(event);
-					// TODO remove foundset from memory when a group is closed
-
-					var column = event.node;
-					var field = column.field;
-					var key = column.key;
-					var groupIndex = column.level;
-					var isExpanded = column.expanded;
-
-					// TODO doesn't make sense if i can't make a particoular row to open via API
-					// Persist the state of an expanded row
-					var expandedState = state.expanded;
-					if (isExpanded) { // add expanded node to cache
-						if (!expandedState.columns[field]) {
-							expandedState.columns[field] = new Object();
-						}
-						var node = expandedState.columns[field];
-						node[key] = groupIndex;
-					} else { // remove expanded node from cache when collapsed
-						if (expandedState.columns[field]) {
-							delete expandedState.columns[field][key];
-						}
-					}
-
-					// TODO expose model property to control perfomance
-					if (isExpanded === false && $scope.model.perfomanceClearCacheStateOnCollapse === true) {
-						// FIXME remove foundset based on values
-						groupManager.removeChildFoundsetRef(column.data._svyFoundsetUUID, column.field, column.data[field]);
-					}
-					// TODO remove logs
-					//					console.log($scope.model.hashedFoundsets);
-					//					console.log(state.foundsetManagers);
-
-					//var foundsetManager = getFoundsetManagerByFoundsetUUID(column.data._svyFoundsetUUID);
-					//foundsetManager.destroy();
-
-				}
-
-				var NULL_VALUE = {displayValue: '', realValue: null};
-
-				/**
 				 * Returns the formatted value
 				 * Compute value format and column valuelist
 				 * @private
@@ -1213,7 +1416,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						value = formatFilter(value, column.format.display, column.format.type, column.format);
 					}
 
-					if (value == null && params.value == NULL_VALUE) {
+					if (value == null && params.value === NULL_DISPLAY_VALUE) {
 						value = '';
 					}
 
@@ -1226,7 +1429,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						var value = params.data[field];
 
 						if (value == null) {
-							value = NULL_VALUE; // need to use an object for null, else grouping won't work in ag grid
+							// TODO this null object breaks empty value serialization in the range select functionality
+							value = NULL_DISPLAY_VALUE; // need to use an object for null, else grouping won't work in ag grid
 						}
 						return value;
 					}
@@ -1236,7 +1440,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 				/**
 				 * Resize header and all columns so they can fit the horizontal space
-				 *  */
+				 */
 				function sizeHeaderAndColumnsToFit() {
 					gridOptions.api.sizeColumnsToFit();
 					sizeHeader();
@@ -1267,14 +1471,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					return '<i class="' + iconStyleClass + '"/>';
 				}
 
-				/**************************************************************************************************
-				 **************************************************************************************************
-				 *
-				 *  Cell editors
-				 *
-				 **************************************************************************************************
-				 **************************************************************************************************/
-
+				// **************************** Cell editors **************************** //
 				function getValuelist(params, asCodeString) {
 					return getValuelistEx(params.node.data, params.column.colId, asCodeString)
 				}
@@ -1297,7 +1494,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							}
 						}
 					}
-					if(!column || !foundsetRows) {
+					if (!column || !foundsetRows) {
 						$log.error('Cannot find column/foundset to read the valuelist.');
 						return null;
 					}
@@ -1410,6 +1607,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						this.initialDisplayValue = v;
 
 						var thisEditor = this;
+						// CHECKME duplication with other keyboard nav code?
 						this.keyDownListener = function (event) {
 							var isNavigationLeftRightKey = event.keyCode === 37 || event.keyCode === 39;
 							var isNavigationUpDownEntertKey = event.keyCode === 38 || event.keyCode === 40 || event.keyCode === 13;
@@ -1629,7 +1827,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 					return Datepicker;
 				}
-				
 
 				function getSelectEditor() {
 					function SelectEditor() {
@@ -1705,18 +1902,19 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					return SelectEditor;
 				}
 
-				/**************************************************************************************************
-				 **************************************************************************************************
-				 *
-				 *  Enterprise Model
-				 *
-				 **************************************************************************************************
-				 **************************************************************************************************/
-
+				// **************************** Enterprise Model **************************** //
+				/**
+				 * Implements the IServerSideDatasource interface of AG Grids Serverside Row Model
+				 * 
+				 * @see https://www.ag-grid.com/javascript-grid-server-side-model/
+				 */
 				function FoundsetDatasource(foundsetServer) {
 					this.foundsetServer = foundsetServer;
 				}
 
+				/**
+				 * getRows from IServerSideDatasource interface
+				 */
 				FoundsetDatasource.prototype.getRows = function(params) {
 					$log.debug('FoundsetDatasource.getRows: params = ', params);
 
@@ -1729,7 +1927,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					var filterPromises = [];
 
 					for (var i = 0; i < groupKeys.length; i++) {
-						if (groupKeys[i] == NULL_VALUE) {
+						if (groupKeys[i] === NULL_DISPLAY_VALUE) {
 							groupKeys[i] = null;	// reset to real null, so we use the right value for grouping
 						}
 						else {
@@ -1747,13 +1945,99 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							}
 						}
 					}
-
+					
 					var thisFoundsetDatasource = this;
 					$q.all(filterPromises).then(function() {
 						thisFoundsetDatasource.foundsetServer.getData(params.request, groupKeys,
 							function successCallback(resultForGrid, lastRow) {
+								// CHECKME if resultForGrid.length == 0 and the fetch is for group children, maybe refresh the group row's foundset, as apparently there's a group w/o children?
+								//		   should be implemented only after making sure the joins based on related dataproviders are added using the proper outer join, otherwise resultForGrid.length == 0 might be a false negative
+								//		   and should make sure that the refresh doesn't cause expanded or selection state to get lost
 								params.successCallback(resultForGrid, lastRow);
 								selectedRowIndexesChanged();
+								
+								// special handling when in group mode to mimic AG Grid features that aren't enabled when using the serverside rowmodel
+								if ($scope.isGroupView) {
+									var model;
+									var groupState = getGroupState(groupKeys);
+									
+									// TODO move code below to GroupManager
+									
+									// Expanded/collapsed state handling
+									expandCollapse: if (typeof gridOptions.groupDefaultExpanded === 'number' && params.request.rowGroupCols.length && (gridOptions.groupDefaultExpanded === -1 || gridOptions.groupDefaultExpanded > groupKeys.length)) { // emulate groupDefaultExpanded setting
+										model = gridOptions.api.getModel();
+										
+										for (var index = 0; index < resultForGrid.length; index++) {
+											var node = model.getRowNode(resultForGrid[index]._svyFoundsetUUID + '_' + resultForGrid[index]._svyRowId)
+											node.setExpanded(true);
+										}
+									} else if (groupKeys.length < params.request.rowGroupCols.length) { // Apply desired expanded state
+										var nodeValuesToExpand = Object.keys(groupState.children).reduce(function(accumulator, currentValue) {
+											if (!groupState.children[currentValue].collapsed) {
+												accumulator.push(currentValue);
+											}
+											return accumulator
+										}, [])
+										
+										if (nodeValuesToExpand.length) {
+											model = model || gridOptions.api.getModel();
+											var field = params.request.rowGroupCols[groupKeys.length].field
+											
+											for (var index = 0; nodeValuesToExpand.length && index < resultForGrid.length; index++) { // CHECKME Maybe use a binary search impl. instead of sequential looping? see https://stackoverflow.com/questions/10264239/fastest-way-to-determine-if-an-element-is-in-a-sorted-array
+												var nodeMustExpand = nodeValuesToExpand.indexOf(resultForGrid[index][field]) !== -1;
+												
+												if (nodeMustExpand) {
+													var node = model.getRowNode(resultForGrid[index]._svyFoundsetUUID + '_' + resultForGrid[index]._svyRowId)
+													
+													if (!node) continue; // On browser refresh its sometimes null?!?!? Need to investigate it, but just ignoring it for now. Maybe some thing is happening twice, because in the end the grid renders properly...
+													
+													node.setExpanded(true);
+													
+													nodeValuesToExpand.splice(idx, 1);
+												}
+											}
+										}
+									}
+
+									// Set selectedState based on the persisted selection state
+									//setParentGroupState(node) // ..... check/fix
+									if (params.parentNode.group && params.parentNode.selected) { // Need to select all children
+										model = model || gridOptions.api.getModel();
+									
+										var selectedState = params.parentNode.selected;
+										
+										for (var i = 0; i < resultForGrid.length; i++) {
+											var node = model.getRowNode(resultForGrid[i]._svyFoundsetUUID + '_' + resultForGrid[i]._svyRowId)
+
+//											if (node.selected === selectedState) { // this can happen when collapsing previously collapsed nodes with selected children
+//												// making sure the parent has the proper selected state as node.setSelected(...) doesn't fire the rowSelected event if the current and desired selected state are equal
+//												
+//											} else {
+												node.setSelected(selectedState); // CHECKME should it check whether the node is selectable?
+											//}
+										}
+									} else if (!params.parentNode.group && Object.keys(groupState.children).length) {
+										// TODO this looping through children should somehow be combined with the children loop for expanding, so looping through children only happens once...
+										var nodeValuesToSelect = Object.keys(groupState.children);
+										
+										model = model || gridOptions.api.getModel();
+										var field = params.request.rowGroupCols[groupKeys.length].field
+										
+										for (var index = 0; nodeValuesToSelect.length && index < resultForGrid.length; index++) { // CHECKME Maybe use a binary search impl. instead of sequential looping? see https://stackoverflow.com/questions/10264239/fastest-way-to-determine-if-an-element-is-in-a-sorted-array
+											var nodeMustSelect = nodeValuesToSelect.indexOf(resultForGrid[index][field]) !== -1;
+											
+											if (nodeMustSelect) {
+												var node = model.getRowNode(resultForGrid[index]._svyFoundsetUUID + '_' + resultForGrid[index]._svyRowId)
+												
+												if (!node) continue; // On browser refresh its sometimes null?!?!? Need to investigate it, but just ignoring it for now. Maybe some thing is happening twice, because in the end the grid renders properly...
+												
+												node.setSelected(true);
+												
+												nodeValuesToSelect.splice(idx, 1);
+											}
+										}
+									}
+								}
 							});
 					}, function(reason) {
 						$log.error('Can not get realValues for groupKeys ' + reason);
@@ -1801,7 +2085,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						var filterMyFoundsetArg = [];
 						filterMyFoundsetArg.push(sUpdatedFilterModel);
 
-						if(rowGroupCols.length) {
+						if (rowGroupCols.length) {
 							groupManager.removeFoundsetRefAtLevel(0);
 							filterMyFoundsetArg.push("{}");
 						}
@@ -1830,16 +2114,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					var sortString = foundsetSortModel.sortString;
 
 					$log.debug("Group " + (rowGroupCols[0] ? rowGroupCols[0].displayName : '/') + ' + ' + (groupKeys[0] ? groupKeys[0] : '/') + ' # ' + request.startRow + ' # ' + request.endRow);
-
-					// init state of grouped columns. Is normally done by onRowColumnsChanged but is not triggered if rowGroupIndex is set at design time
-					// FIXME should handle runtime changes to model.columns. It does not at the moment
-					if (!state.grouped.columns.length) {
-						for (var i = 0; i < rowGroupCols.length; i++) {
-							state.grouped.columns.push(rowGroupCols[i].field);
-						}
-						// is in group view first time the form is shown ?
-						$scope.isGroupView = rowGroupCols.length > 0;
-					}
 
 					// Sort on the foundset Group
 					if (sortRootGroup) { // no sort need to be applied
@@ -1964,7 +2238,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 				function initRootFoundset() {
 
-					foundset = new FoundSetManager($scope.model.myFoundset, 'root', true);
+					foundset = new FoundSetManager($scope.model.myFoundset, ROOT_FOUNDSET_ID);
 
 					var foundsetServer = new FoundsetServer([]);
 					var datasource = new FoundsetDatasource(foundsetServer);
@@ -1977,22 +2251,15 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					gridOptions.api.setServerSideDatasource(datasource);
 				}
 
-				/**************************************************************************************************
-				 **************************************************************************************************
-				 *
-				 *  Watches
-				 *
-				 **************************************************************************************************
-				 **************************************************************************************************/
-
+				// **************************** Watches **************************** //
 				$scope.$watch("model.myFoundset", function(newValue, oldValue) {
 
 						$log.debug('myFoundset root changed');
-						if(isTableGrouped()) {
+						if (isTableGrouped()) {
 							$scope.purge();
 						}
 						var isChangedToEmpty = newValue && oldValue && newValue.serverSize == 0 && oldValue.serverSize > 0;
-						if($scope.model.myFoundset.viewPort.size > 0 || isChangedToEmpty) {
+						if ($scope.model.myFoundset.viewPort.size > 0 || isChangedToEmpty) {
 							// browser refresh
 							isRootFoundsetLoaded = true;
 							initRootFoundset();
@@ -2006,6 +2273,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						$scope.model.myFoundset.addChangeListener(changeListener);
 
 					});
+				
 				var columnWatches = [];
 				$scope.$watchCollection("model.columns", function(newValue, oldValue) {
 					$log.debug('columns changed');
@@ -2105,27 +2373,22 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 				});				
 
-				/**************************************************************************************************
-				 **************************************************************************************************
-				 *
-				 *  Foundset Managment
-				 *
-				 **************************************************************************************************
-				 **************************************************************************************************/
-
+				// **************************** Foundset Managment **************************** //
 				/**
+				 * Wrapper around the clientside representation of Servoy FoundSet 
+				 * 
 				 * Handle viewPort, row, sort, isLastRow of a foundsetReference object
 				 *
-				 * FoundsetManager
 				 * @constructor
 				 *
-				 * */
-				function FoundSetManager(foundsetRef, foundsetUUID, isRoot) {
+				 * TODO maybe rename to GroupFoundSet? Because this is not a manager of foundsets, but a wrapper around a single foundset
+				 */
+				function FoundSetManager(foundsetRef, foundsetUUID) {
 					var thisInstance = this;
 
 					// properties
 					this.foundset = foundsetRef;
-					this.isRoot = isRoot ? true : false;
+					this.isRoot = foundsetUUID === ROOT_FOUNDSET_ID
 					this.foundsetUUID = foundsetUUID;
 
 					// methods
@@ -2156,14 +2419,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						if (this.isRoot) {
 							columnsModel = $scope.model.columns;
 						} else if ($scope.model.hashedFoundsets) {
-							for (var i = 0; i < $scope.model.hashedFoundsets.length; i++) {
+							for (var i = 0; i < $scope.model.hashedFoundsets.length; i++) { // TODO should make this into a utility function
 								if ($scope.model.hashedFoundsets[i].foundsetUUID == this.foundsetUUID) {
 									columnsModel = $scope.model.hashedFoundsets[i].columns;
 									break;
 								}
 							}
 						}
-
+						
 						for (var j = startIndex; j < endIndex; j++) {
 							var row = thisInstance.getViewPortRow(j, columnsModel);
 							if (row) result.push(row);
@@ -2176,7 +2439,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					var getViewPortRow = function(index, columnsModel) {
 						var r;
 						try {
-							r = new Object();
+							r = {};
 							// push the id so the rows can be merged
 							var viewPortRow = this.foundset.viewPort.rows[index];
 							if (!viewPortRow) {
@@ -2267,7 +2530,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 					/**
 					 * @return {Number} return the foundset index of the given row in viewPort (includes the startIndex diff)
-					 *  */
+					 */
 					this.getRowIndex = function(row) {
 						var id = row._svyRowId;
 						var viewPortRows = this.foundset.viewPort.rows;
@@ -2292,7 +2555,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						}
 
 						// gridOptions.api.purgeEnterpriseCache();
-						if (change[$foundsetTypeConstants.NOTIFY_SELECTED_ROW_INDEXES_CHANGED]) {
+						if (change[$foundsetTypeConstants.NOTIFY_SELECTED_ROW_INDEXES_CHANGED]) { // CHECKME is the foundste selection model used at all?
 							selectedRowIndexesChanged(thisInstance);
 						}
 
@@ -2334,19 +2597,22 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 * @constructor
 				 *
 				 * @public
+				 * 
 				 * @param {String} id
-				 *  */
+				 */
 				function GroupNode(id) {
 					this.id = id;
-					this.nodes = new Object();
+					this.nodes = {};
 					this.foundsetUUID = undefined;
 
 					var thisInstance = this;
 
 					/**
+					 * Calls the callback sequentially for each childNode
 					 * @public
+					 * 
 					 * @param {Function} callback execute function for each subnode. Arguments GroupNode
-					 *  */
+					 **/
 					this.forEach = function(callback) {
 						for (var key in this.nodes) {
 							callback.call(this, this.nodes[key]);
@@ -2355,9 +2621,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 					/**
 					 * @public
-					 * @return {Boolean} returns true if the callback ever returns true
+					 * 
 					 * @param {Function} callback execute function for each subnode until returns true. Arguments GroupNode
-					 *  */
+					 * 
+					 * @return {Boolean} returns true if the callback ever returns true
+					 */
 					this.forEachUntilSuccess = function(callback) {
 						for (var key in this.nodes) {
 							if (callback.call(this, this.nodes[key]) === true) {
@@ -2370,13 +2638,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 					/**
 					 * @public
+					 * 
 					 * @return {Boolean} returns true if the callback ever returns true
-					 *  */
+					 */
 					this.hasNodes = function() {
-						for (var key in this.nodes) {
-							return true;
-						}
-						return false;
+						return Object.keys(this.nodes).length > 0;
 					}
 
 					/**
@@ -2390,7 +2656,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						this.removeAllSubNodes();
 
 						// do nothing if the foundset doesn't exist
-						if (this.foundsetUUID && this.foundsetUUID !== 'root') {
+						if (this.foundsetUUID && this.foundsetUUID !== ROOT_FOUNDSET_ID) {
 							// TODO should this method access the foundsetManager ? is not a good encapsulation
 							//		if (this.onDestroy) {
 							//			this.onDestroy.call(this, [this.id, this.foundsetUUID]);
@@ -2404,15 +2670,16 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						this.forEach(function(subNode) {
 							subNode.destroy();
 						});
-						this.nodes = [];
+						this.nodes = {};
 					}
 				}
 
-				// TODO to be completed, use the GroupHashCache to persist foundset UUID for rowGroupCols/groupKeys combinations
 				/**
-				 * This object is used to keep track of cached foundset depending on rowGroupCol and groupKeys criteria.
+				 * Used by GroupManager to cache and track foundsets by rowGroupCol and groupKeys criteria.
 				 * Any time a foundset is retrieved is persisted in this object.
 				 *
+				 * @constructor
+				 * 
 				 * Question: can i use an hash instead of a tree structure ? e.g hash of columnName:keyValue,columnName:keyValue..
 				 *
 				 * TODO is not stateful (lost once is refreshed) while the foundset are statefull, potentially can create memory leaks (too many foundset for the same criteria retrieved)
@@ -2420,56 +2687,71 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 * 		Clear ALL
 				 * 		Clear Node
 				 * 		Clear ALL subnodes
-				 * */
+				 */
 				function GroupHashCache() {
 
-					var rootGroupNode = new GroupNode('root');
+					var rootGroupNode = new GroupNode(ROOT_FOUNDSET_ID);
 
-					// methods
-					this.getCachedFoundset;
-					this.setCachedFoundset;
-					this.clearAll;
-					this.removeCachedFoundset;
-					this.removeCachedFoundsetAtLevel;
-					this.removeChildFoundsets;
-
-					// TODO rename in foundsetUUID
+					// **************************** public methods **************************** //
+					/**
+					 * @public
+					 * 
+					 * TODO rename in foundsetUUID
+					 */
 					this.getCachedFoundset = function(rowGroupCols, groupKeys) {
 						var node = getTreeNode(rootGroupNode, rowGroupCols, groupKeys);
 						return node ? node.foundsetUUID : null;
 					}
 
+					/**
+					 * @public
+					 */
 					this.setCachedFoundset = function(rowGroupCols, groupKeys, foundsetUUID) {
 						var tree = getTreeNode(rootGroupNode, rowGroupCols, groupKeys, true);
 						tree.foundsetUUID = foundsetUUID;
 					}
 
 					/**
+					 * Remove the node
+					 * 
+					 * @public
+					 * 
 					 * @param {String} foundsetUUID
-					 * Remove the node */
+					 */
 					this.removeCachedFoundset = function(foundsetUUID) {
 						return removeFoundset(rootGroupNode, foundsetUUID);
 					}
 
 					/**
+					 * Remove the node 
+					 * 
+					 * @public
+					 * 
 					 * @param {Number} level
-					 * Remove the node */
+					 */
 					this.removeCachedFoundsetAtLevel = function(level) {
 						return removeFoundsetAtLevel(rootGroupNode, level);
 					}
 
 					/**
+					 * Remove all it's child node
+					 * 
+					 * @public
+					 * 
 					 * @param {String} foundsetUUID
 					 * @param {String} [field]
 					 * @param {String} [value]
-					 * Remove all it's child node */
+					 */
 					this.removeChildFoundset = function(foundsetUUID, field, value) {
 						return removeChildFoundsets(rootGroupNode, foundsetUUID, field, value);
 					}
 
-					/** @deprecated
+					/**
 					 * Use removeFoundsetRefAtLevel(0) instead
-					 *  */
+					 * 
+					 * @deprecated
+					 * @public
+					 */
 					this.clearAll = function() {
 
 						rootGroupNode.forEach(function(node) {
@@ -2481,11 +2763,13 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							}
 
 						});
-						if ($scope.model.hashedFoundsets.length > 0) {
+						
+						if ($scope.model.hashedFoundsets.length) {
 							$log.error("Clear All was not successful, please debug");
 						}
 					}
 
+					// **************************** internal methods **************************** //
 					/**
 					 * @param {GroupNode} tree
 					 * @param {String} foundsetUUID
@@ -2530,7 +2814,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						var success = true;
 
 						tree.forEach(function(node) {
-
 							// remove the foundset and all it's child nodes if foundsetUUID or level === 0
 							if (level === 0) {
 								var id = node.id;
@@ -2544,6 +2827,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								return success;
 							}
 						});
+						
 						return success;
 					}
 
@@ -2789,52 +3073,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						return parentNode;
 					}
 
-					/**
-					 * @param {GroupNode} tree
-					 * @param {String} foundsetUUID
-					 * @return {Array<GroupNode>}
-					 *
-					 * @deprecated
-					 *
-					 * */
-					function getTreeNodePath(tree, foundsetUUID) {
-						if (!tree) {
-							return null;
-						}
-
-						if (!foundsetUUID) {
-							return null;
-						}
-
-						var path = [];
-
-						var resultNode = null;
-						tree.forEachUntilSuccess(function(node) {
-							if (node.foundsetUUID === foundsetUUID) {
-								path.push(node);
-								return true;
-							} else if (node.hasNodes()) { // search in subnodes
-								var isInSubNodes = node.forEachUntilSuccess(function(subNode) {
-									var subPath = getTreeNodePath(node, foundsetUUID);
-									if (resultNode) { // if has found the result
-										return true;
-									} else { // keep searching
-										return false;
-									}
-								});
-
-								if (isInSubNodes) {
-									path.concat(subPath);
-								}
-
-							} else { // didn't find the node in all it's childs
-								return false;
-							}
-						});
-
-						return path;
-					}
-
 					// enable testMethods
 					/**
 					 * @param {String} foundsetUUID
@@ -2849,55 +3087,33 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					this.getParentGroupNode = function(foundsetUUID) {
 						return getParentGroupNode(rootGroupNode, foundsetUUID);
 					};
-
-					/**
-					 * @param {String} foundsetUUID
-					 * @deprecated
-					 * */
-					this.getTreeNodePath = function(foundsetUUID) {
-						return getTreeNodePath(rootGroupNode, foundsetUUID);
-					};
-
 				}
-				//End constructor GroupHashCache
 
 				/**
+				 * Singleton class to manage grouping for the serverside row model implemented with Servoy FoundSets
+				 * 
 				 * @constructor
-				 * */
-				function GroupManager() {
-
+				 * 
+				 * TODO pass root foundset as argument and use Servoys unitue id for each foundset as the root identifier
+				 * TODO allow passing additional (persisted) state to the GroupManager
+				 * TODO instantiate a new GroupManager everytime myfroundset is set
+				 * TODO store all state related to groups inside GroupManager and let GroupManager persist what needs persiting to the server
+				 */
+				function GroupManager() { //Rename to Serverside Rowmodel Group Manager?
 					var hashTree = new GroupHashCache();
 
-					// properties
-					this.groupedColumns = [];
-					this.groupedValues = new Object();
-
-					// methods
-					this.getCachedFoundsetUUID;
-					this.getFoundsetRef;
-					this.updateFoundsetRefs;
-					this.removeFoundsetRef;
-					this.removeChildFoundsetRef;
-					this.createOrReplaceFoundsetRef;
-					this.clearAll;
-
-					//					this.updateGroupColumns = function(rowGroupCols) {
-					//
-					//						for (var i = 0; i < rowGroupCols.length; i++) {
-					//
-					//						}
-					//
-					//					}
-
+					// **************************** public methods **************************** //
 					/**
 					 * Returns the foundset with the given grouping criteria is already exists in cache
+					 *
+					 * @public
 					 *
 					 * @param {Array} rowGroupCols
 					 * @param {Array} groupKeys
 					 * @param {String} [sort] desc or asc. Default asc
 					 *
 					 * @return {String} returns the UUID of the foundset if exists in cache
-					 * */
+					 */
 					this.getCachedFoundsetUUID = function(rowGroupCols, groupKeys) {
 						return hashTree.getCachedFoundset(rowGroupCols, groupKeys);
 					}
@@ -2905,12 +3121,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					/**
 					 * Returns the foundset with the given grouping criteria
 					 *
+					 * @public
+					 *
 					 * @param {Array} rowGroupCols
 					 * @param {Array} groupKeys
 					 * @param {String} [sort] desc or asc. Default asc
 					 *
 					 * @return {PromiseType} returns a promise
-					 * */
+					 */
 					this.getFoundsetRef = function(rowGroupCols, groupKeys, sort) {
 
 						// create a promise
@@ -2919,7 +3137,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 						// return the root foundset if no grouping criteria
 						if (rowGroupCols.length === 0 && groupKeys.length === 0) { // no group return root foundset
-							resultPromise.resolve('root');
+							resultPromise.resolve(ROOT_FOUNDSET_ID);
 							return resultPromise.promise;
 						}
 
@@ -3028,14 +3246,67 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 
 					/**
+					 * @public
+					 */
+					this.updateFoundsetRefs = function(rowGroupCols) {
+						// TODO update all foundset refs
+						// results in closing all nodes and refresh all foundsets
+						this.clearAll();
+						return this.getFoundsetRef([rowGroupCols[0].colDef], []);
+					}
+
+					/**
+					 * Creates a new foundset reference with the given group criterias.
+					 * If a foundset reference with the given references already exists, will be overriden
+					 *
+					 * @public
+					 *
+					 */
+					this.createOrReplaceFoundsetRef = function(groupColumns, groupKeys, sort) {
+						var foundsetHash = hashTree.getCachedFoundset(groupColumns, groupKeys)
+						if (foundsetHash) {
+							this.removeFoundsetRef(foundsetHash);
+
+						}
+						return this.getFoundsetRef(groupColumns, groupKeys, sort);
+					}
+
+					/**
+					 * @public
+					 * 
+					 * @param {Number} level
+					 */
+					this.removeFoundsetRefAtLevel = function(level) {
+						return hashTree.removeCachedFoundsetAtLevel(level);
+					}
+					
+					/**
+					 * NOTE currently not used, but could be used to purge foundsets for collapsed groups
+					 * 
+					 * @public
+					 * 
+					 * @param {String} foundsetUUID
+					 * @param {String} [field] if given delete only the child having field equal to value
+					 * @param {Object} [value] if given delete only the child having field equal to value
+					 *
+					 */
+					this.removeChildFoundsetRef = function(foundsetUUID, field, value) {
+						return hashTree.removeChildFoundset(foundsetUUID, field, value);
+					}
+					
+					// **************************** private methods **************************** //
+					/**
 					 * Handle ChildFoundsets
 					 * Returns the foundset in a promise
+					 * 
+					 * @private
+					 * 
 					 * @param {Array<Number>} groupColumns index of all grouped columns
 					 * @param {Array} groupKeys value for each grouped column
 					 * @param {String} [sort]
 					 *
 					 * @return {PromiseType}
-					 *  */
+					 */
 					function getHashFoundset(groupColumns, groupKeys, sort) {
 
 						var resultDeferred = $q.defer();
@@ -3069,57 +3340,21 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 						return resultDeferred.promise;
 					}
-
-					this.updateFoundsetRefs = function(rowGroupCols) {
-						// TODO update all foundset refs
-						// results in closing all nodes and refresh all foundsets
-						this.clearAll();
-						return this.getFoundsetRef([rowGroupCols[0].colDef], []);
-					}
-
-					/**
-					 * Creates a new foundset reference with the given group criterias.
-					 * If a foundset reference with the given references already exists, will be overriden
-					 *
-					 * */
-					this.createOrReplaceFoundsetRef = function(groupColumns, groupKeys, sort) {
-						var foundsetHash = hashTree.getCachedFoundset(groupColumns, groupKeys)
-						if (foundsetHash) {
-							this.removeFoundsetRef(foundsetHash);
-
-						}
-						return this.getFoundsetRef(groupColumns, groupKeys, sort);
-					}
+					
 					/**
 					 * @private
 					 * Should this method be used ?
-					 *  */
+					 */
 					this.removeFoundsetRef = function(foundsetUUID) {
 						return hashTree.removeCachedFoundset(foundsetUUID);
 					}
 
-					/**
-					 * @param {Number} level
-					 *
-					 *  */
-					this.removeFoundsetRefAtLevel = function(level) {
-						return hashTree.removeCachedFoundsetAtLevel(level);
-					}
-
-					/**
-					 * @param {String} foundsetUUID
-					 * @param {String} [field] if given delete only the child having field equal to value
-					 * @param {Object} [value] if given delete only the child having field equal to value
-					 *
-					 * */
-					this.removeChildFoundsetRef = function(foundsetUUID, field, value) {
-						return hashTree.removeChildFoundset(foundsetUUID, field, value);
-					}
-
+					/*
+					 * @private
+					 */
 					this.clearAll = function() {
 						hashTree.clearAll();
 					}
-
 				}
 
 				/**
@@ -3128,7 +3363,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 * */
 				function getFoundSetByFoundsetUUID(foundsetHash) {
 					// TODO return something else here ?
-					if (foundsetHash === 'root') return $scope.model.myFoundset;
+					if (foundsetHash === ROOT_FOUNDSET_ID) return $scope.model.myFoundset;
 					if ($scope.model.hashedFoundsets) {
 						for (var i = 0; i < $scope.model.hashedFoundsets.length; i++) {
 							if ($scope.model.hashedFoundsets[i].foundsetUUID == foundsetHash)
@@ -3147,7 +3382,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				function getFoundsetManagerByFoundsetUUID(foundsetHash) {
 					if (!foundsetHash) return null;
 
-					if (foundsetHash === 'root') return foundset;
+					if (foundsetHash === ROOT_FOUNDSET_ID) return foundset;
 
 					if (state.foundsetManagers[foundsetHash]) {
 						// double check if foundset hashmap still exists
@@ -3158,7 +3393,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						return state.foundsetManagers[foundsetHash];
 					} else {
 						var foundsetRef = getFoundSetByFoundsetUUID(foundsetHash);
-						var foundsetManager = new FoundSetManager(foundsetRef, foundsetHash, false);
+						if (!foundsetRef) {
+							$log.error('How can this happen?!?!?:  ' + foundsetHash);
+							return null
+						}
+						var foundsetManager = new FoundSetManager(foundsetRef, foundsetHash);
 						state.foundsetManagers[foundsetHash] = foundsetManager;
 						return foundsetManager;
 					}
@@ -3171,7 +3410,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 *  */
 				function removeFoundSetByFoundsetUUID(foundsetHash) {
 
-					if (foundsetHash === 'root') {
+					if (foundsetHash === ROOT_FOUNDSET_ID) {
 						$log.error('Trying to remove root foundset');
 						return false;
 					}
@@ -3189,34 +3428,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 				}
 
-				/**
-				 * TODO rename grouped columns into stateGroupedColumns
-				 *
-				 * @type {Array}
-				 * */
-				function setStateGroupedColumns(columns) {
-					// cache order of grouped columns
-					state.grouped.columns = [];
-					for (i = 0; i < columns.length; i++) {
-						state.grouped.columns.push(columns[i].colId);
-					}
-				}
-
-				/*************************************************************************************
-				 *************************************************************************************
-				 *
-				 * Global Table Methods
-				 *
-				 *************************************************************************************
-				 *************************************************************************************/
-
+				// **************************** Global Table Methods **************************** //
 				/** Listener for the root foundset */
 				function changeListener(change) {
 					$log.debug("Root change listener is called " + state.waitfor.loadRecords);
 					$log.debug(change);
 
-					if(!isRootFoundsetLoaded) {
-						if(change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROWS_COMPLETELY_CHANGED]) {
+					if (!isRootFoundsetLoaded) {
+						if (change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROWS_COMPLETELY_CHANGED]) {
 							isRootFoundsetLoaded = true;
 							initRootFoundset();
 						}
@@ -3239,7 +3458,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						// sort changed
 						$log.debug("Change Sort Model " + newSort);
 	
-						/** TODO check with R&D, sortColumns is updated only after the viewPort is update or there could be a concurrency race. When i would know when sort is completed ? */
+						// TODO check with R&D, sortColumns is updated only after the viewPort is update or there could be a concurrency race. When i would know when sort is completed ?
 						if (newSort && oldSort && newSort != oldSort) {
 							$log.debug('myFoundset sort changed ' + newSort);
 							gridOptions.api.setSortModel(getSortModel());
@@ -3250,6 +3469,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						// do nothing else after a sort ?
 						// sort should skip purge
 						return;
+					}
+			
+					if (change[$foundsetTypeConstants.NOTIFY_MULTI_SELECT_CHANGED]) { // CHECKME only supported as of Servoy 2019.03
+						var multiSelect = change[$foundsetTypeConstants.NOTIFY_MULTI_SELECT_CHANGED].newValue
+						
+						gridOptions.rowSelection = multiSelect ? 'multiple' : 'single'
+						console.log('gridOptions.rowSelection set: ' + gridOptions.rowSelection)
+						gridOptions.api.refreshView()
 					}
 
 					// if viewPort changes and startIndex does not change is the result of a sort or of a loadRecords
@@ -3279,10 +3506,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					if (change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROW_UPDATES_RECEIVED]) {
 						$log.debug(idRandom + ' - 4. Notify viewport row update');
 						var updates = change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROW_UPDATES_RECEIVED].updates;
-						if(updateRows(updates, null, null)) {
-							// i don't need a selection update in case of purge
-							return;
-						}
+						updateRows(updates, null, null);
+						// i don't need a selection update in case of purge
+						return;
 					}
 
 					// gridOptions.api.purgeEnterpriseCache();
@@ -3293,8 +3519,13 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 				}
 
+				/**
+				 * Clears the current selection in the grid for the provided foundset and applies the (new) selection based on the selectedIndexes of the foundset
+				 * 
+				 * @param {FoundsetManager} foundsetManager default: root foundset
+				 */
 				function selectedRowIndexesChanged(foundsetManager) {
-					// FIXME can't select the record when is not in viewPort. Need to synchornize with viewPort record selection
+					// FIXME can't select the record when is not in viewPort. Need to synchronize with viewPort record selection
 					$log.debug(' - 2.1 Request selection changes');
 
 					// Disable selection when table is grouped
@@ -3313,9 +3544,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						foundsetManager = foundset;
 					}
 
-					for(var i = 0; i < foundsetManager.foundset.selectedRowIndexes.length; i++) {
-
+					for (var i = 0; i < foundsetManager.foundset.selectedRowIndexes.length; i++) {
 						var rowIndex = foundsetManager.foundset.selectedRowIndexes[i] - foundsetManager.foundset.viewPort.startIndex;
+
 						// find rowid
 						if (rowIndex > -1 && foundsetManager.foundset.viewPort.rows[rowIndex]) {
 							//rowIndex >= foundsetManager.foundset.viewPort.startIndex && rowIndex <= foundsetManager.foundset.viewPort.size + foundsetManager.foundset.viewPort.startIndex) {
@@ -3327,6 +3558,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 							var rowId = foundsetManager.foundset.viewPort.rows[rowIndex]._svyRowId;
 							var node = gridOptions.api.getRowNode(foundsetManager.foundsetUUID + '_' + rowId);
+							
 							if (node) {
 								node.setSelected(true);
 							}
@@ -3376,8 +3608,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 * @return {Boolean}
 				 *  */
 				function getRowGroupColumns() {
-					var rowGroupCols = gridOptions.columnApi.getRowGroupColumns();
-					return rowGroupCols;
+					return gridOptions.columnApi.getRowGroupColumns();
 				}
 
 				/**
@@ -3387,7 +3618,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 * @param {Number} oldSize
 				 *
 				 * return {Boolean} whatever a purge ($scope.purge();) was done due to update
-				 *  */
+				 */
 				function updateRows(rowUpdates, oldStartIndex, oldSize) {
 					var needPurge = false;
 
@@ -3448,7 +3679,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						}
 
 						var node = gridOptions.api.getRowNode(row._svyFoundsetUUID + '_' + row._svyRowId);
-						if(node) {
+						if (node) {
 							// stop editing to allow setting the new data
 							if(editingColumnId) {
 								gridOptions.api.stopEditing(false);
@@ -3466,7 +3697,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 									styleClassDPColumns.push(column);
 								}
 							}
-							if(styleClassDPColumns.length) {
+							if (styleClassDPColumns.length) {
 								var refreshParam = {
 									rowNodes: [node],
 									columns: styleClassDPColumns,
@@ -3498,21 +3729,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					return row;
 				}
 
-				/**
-				 * @deprecated
-				 * return the row in grid with the given id */
-				function getUiGridRow(svyRowId) {
-					if ($scope.gridOptions && $scope.gridOptions.data) {
-						var data = $scope.gridOptions.data;
-						for (var i = 0; i < data.length; i++) {
-							if (data[i]._svyRowId === svyRowId) {
-								return data[i];
-							}
-						}
-					}
-				}
-
-				function getMainMenuItems(params) {
+				function getMainMenuItems(params) { // TODO make configurable
 					// default items
 					//					pinSubMenu: Submenu for pinning. Always shown.
 					//					valueAggSubMenu: Submenu for value aggregation. Always shown.
@@ -3521,7 +3738,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					//					rowGroup: Group by this column. Only shown if column is not grouped.
 					//					rowUnGroup: Un-group by this column. Only shown if column is grouped.
 					//					resetColumns: Reset column details. Always shown.
-					//					expandAll: Expand all groups. Only shown if grouping by at least one column.
+					//					expandAll: Expand all groups. Only shown if grouping by at least one column. //CHECKME
 					//					contractAll: Contract all groups. Only shown if grouping by at least one column.
 					//					toolPanel: Show the tool panel.
 					var menuItems = [];
@@ -3621,26 +3838,27 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						if(value instanceof Date) returnValueFormatted = true;
 
 						var styleClassProvider = null;
-						if(!isGroupColumn) {
+						if (!isGroupColumn) {
+							// CHECKME this code seems a bit of a duplicate with .getRowClass()
 							if (!isTableGrouped()) {
 								var column = getColumn(params.colDef.field);
 								if (column && column.styleClassDataprovider) {
 									var index = params.rowIndex - foundset.foundset.viewPort.startIndex;
 									styleClassProvider = column.styleClassDataprovider[index];
 								}
-							} else if (params.data._svyFoundsetUUID) {
-									var foundsetManager = getFoundsetManagerByFoundsetUUID(params.data._svyFoundsetUUID);
-									var index = foundsetManager.getRowIndex(params.data) - foundsetManager.foundset.viewPort.startIndex;
-									if (index >= 0) {
-										styleClassProvider = foundsetManager.foundset.viewPort.rows[index][params.colDef.field + "_styleClassDataprovider"];
-									} else {
-										$log.warn('cannot render styleClassDataprovider for row at index ' + index)
-										$log.warn(params.data);
-									}
+							} else if (params.data && params.data._svyFoundsetUUID) { // params.data might be empty for group rows whoms children have been deleted since the group rows query was fired
+								var foundsetManager = getFoundsetManagerByFoundsetUUID(params.data._svyFoundsetUUID);
+								var index = foundsetManager.getRowIndex(params.data) - foundsetManager.foundset.viewPort.startIndex;
+								if (index >= 0) {
+									styleClassProvider = foundsetManager.foundset.viewPort.rows[index][params.colDef.field + "_styleClassDataprovider"];
+								} else {
+									$log.warn('cannot render styleClassDataprovider for row at index ' + index)
+									$log.warn(params.data);
+								}
 							}
 						}
 							
-						if(styleClassProvider) {
+						if (styleClassProvider) {
 							var divContainer = document.createElement("div");
 							divContainer.className = styleClassProvider;
 							divContainer.innerHTML = returnValueFormatted ? params.valueFormatted : value;
@@ -3781,7 +3999,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				function updateColumnDefs() {
 					// need to clear/remove old columns first, else the id for
 					// the new columns will have the counter at the end (ex. "myid_1")
-					// and that will broke our getColumn()
+					// and that will break our getColumn()
 					gridOptions.api.setColumnDefs([]);
 
 					gridOptions.api.setColumnDefs(getColumnDefs());
@@ -3803,19 +4021,22 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					gridOptions.api.refreshHeader();
 				}
 
-				// FIXME styleClass Dataprovider on groups
-
+				/**
+				 * Callback for the grid to get the row's styleclass when the rowStyleClassDataprovider property is set
+				 * 
+				 * TODO support styling group rows
+				 */
 				function getRowClass(params) {
 
 					var rowIndex = params.node.rowIndex;
-					var styleClassProvider;
+					var rowStyleClass;
 
 					// make sure we remove non ag- classes, we consider those added by rowStyleClassDataprovider
 					var rowElement = $element.find("[row-index='" + params.rowIndex + "']"); 
-					if(rowElement.length) {
+					if (rowElement.length) {
 						var classes = rowElement.attr("class").split(/\s+/);
-						for(var j = 0; j < classes.length; j++) {
-							if(classes[j].indexOf("ag-") != 0) {
+						for (var j = 0; j < classes.length; j++) {
+							if (classes[j].indexOf("ag-") != 0) {
 								rowElement.removeClass(classes[j]);
 							}
 						}
@@ -3825,7 +4046,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					if (!isTableGrouped()) {
 						var index = rowIndex - foundset.foundset.viewPort.startIndex;
 						// TODO get proper foundset
-						styleClassProvider = $scope.model.rowStyleClassDataprovider[index];
+						rowStyleClass = $scope.model.rowStyleClassDataprovider[index];
 					} else if (params.node.group === false) {
 
 						var rowGroupCols = [];
@@ -3839,7 +4060,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							if (!parentNode.field && !parentNode.data) {
 								$log.warn("cannot resolve rowStyleClassDataprovider for row at rowIndex " + rowIndex);
 								// exit
-								return styleClassProvider;
+								return rowStyleClass;
 							}
 
 							// is reverse order
@@ -3858,7 +4079,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						if (foundsetManager && foundsetManager.foundset.viewPort.rows[0]['__rowStyleClassDataprovider']) {
 							var index = childRowIndex - foundsetManager.foundset.viewPort.startIndex;
 							if (index >= 0 && index < foundsetManager.foundset.viewPort.size) {
-								styleClassProvider = foundsetManager.foundset.viewPort.rows[index]['__rowStyleClassDataprovider'];
+								rowStyleClass = foundsetManager.foundset.viewPort.rows[index]['__rowStyleClassDataprovider'];
 							} else {
 								$log.warn('cannot render rowStyleClassDataprovider for row at index ' + index)
 								$log.warn(params.data);
@@ -3867,7 +4088,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							$log.debug("Something went wrong for foundset hash " + foundsetUUID)
 						}
 					}
-					return styleClassProvider;
+					
+					return rowStyleClass;
 				}
 
 				function getCellClass(params) {
@@ -3923,32 +4145,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				}
 
 				/**
-				 * @param {String} field
-				 * @param {String|Number|Boolean} value
-				 * @param {Object} column
-				 * @deprecated
-				 *
-				 * @return {String}
-				 * */
-				function getValuelistValue(field, value, column) {
-					var valuelist = column.valuelist;
-					if (valuelist) {
-						for (i = 0; i < valuelist.length; i++) {
-							if (value === valuelist[i].realValue) {
-								return valuelist[i].displayValue;
-							}
-						}
-
-						// else do the query
-						// what should i do once the result is returned ???
-						return valuelist.getDisplayValue(value);
-
-					}
-
-					return value;
-				}
-
-				/**
 				 * Returns the column identifier
 				 * @param {Object} column
 				 * @param {Number} idx
@@ -3957,8 +4153,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 *
 				 * @private
 				 * */
-				function getColumnID(column, idx) {					
-					if (column.dataprovider) {
+				function getColumnID(column, idx) {
+					if (column.columnDef && column.columnDef.field) { // allow devs to specify the field through columnDef, as some AG Grid features require passing the field identifier, like the displaying leaf data on autoGroupColumn
+						return column.columnDef.field;
+					} else if (column.dataprovider) {
 						return column.dataprovider.idForFoundset + ':' + idx;
 					} else {
 						return "col_" + idx;
@@ -3967,30 +4165,39 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 				/**
 				 * Returns the column with the given fieldName
+				 * 
 				 * @param {String} field
+				 * 
 				 * @return {Object}
-				 * */
+				 */
 				function getColumn(field, columnsModel) {
 					var fieldToCompare = field;
 					var fieldIdx = 0;
-					if (field.indexOf('_') > 0) { // has index
+					
+					// TODO better logic
+					if (field.indexOf('col_') > 0) { // has index
 						var fieldParts = field.split('_');
-						if('col' != fieldParts[0] && !isNaN(fieldParts[1])) {
+						
+						if ('col' !== fieldParts[0] && !isNaN(fieldParts[1])) { // CHECKME 'col' !== looks wrong, shouldn't it be ===?
 							fieldToCompare = fieldParts[0];
 							fieldIdx = parseInt(fieldParts[1]);
 						}
 					}
+					
 					if (!columnsModel && state.columns[field]) { // check if is already cached
 						return state.columns[field];
 					} else {
 						var columns = columnsModel ? columnsModel : $scope.model.columns;
+						
 						for (var i = 0; i < columns.length; i++) {
 							var column = columns[i];
+							
 							if (column.id === fieldToCompare || getColumnID(column, i) === fieldToCompare) {
-								if(fieldIdx < 1) {
+								if (fieldIdx < 1) {
 									// cache it in hashmap for quick retrieval
-									if(!columnsModel) state.columns[field] = column;
-									return columns[i];
+									if (!columnsModel) state.columns[field] = column;
+									
+									return column;
 								}
 								fieldIdx--;
 							}
@@ -4006,18 +4213,23 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				function getColumnIndex(field) {
 					var fieldToCompare = field;
 					var fieldIdx = 0;
-					if (field.indexOf('_') > 0) { // has index
+					
+					// TODO better logic
+					if (field.indexOf('col_') > 0) { // has index
 						var fieldParts = field.split('_');
-						if('col' != fieldParts[0] && !isNaN(fieldParts[1])) {
+						
+						if ('col' !== fieldParts[0] && !isNaN(fieldParts[1])) {
 							fieldToCompare = fieldParts[0];
 							fieldIdx = parseInt(fieldParts[1]);
 						}
 					}
+					
 					var columns = $scope.model.columns;
 					for (var i = 0; i < columns.length; i++) {
 						var column = columns[i];
-						if (column.id === fieldToCompare || getColumnID(column, i) == fieldToCompare) {
-							if(fieldIdx < 1) {
+						
+						if (column.id === fieldToCompare || getColumnID(column, i) === fieldToCompare) {
+							if (fieldIdx < 1) {
 								return i;
 							}
 							fieldIdx--;
@@ -4028,13 +4240,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				
 				
 				/**
-				 * @param {String} idsForFoundset
 				 * Finds all the columns with the given idForFoundset
+				 * 
+				 * @private
+				 *
+				 * @param {String} idsForFoundset
 				 *
 				 * @return {Array<String>}
-				 *
-				 * @private
-				 * */
+				 */
 				function getColIDs(idsForFoundset) {
 					
 					var result = [];
@@ -4195,15 +4408,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 				}
 
-
-				/***********************************************************************************************************************************
-				 ***********************************************************************************************************************************
-				 *
-				 * Generic methods
-				 *
-				 ************************************************************************************************************************************
-				 ***********************************************************************************************************************************/
-
+				// **************************** Generic methods **************************** //
 				$scope.showEditorHint = function() {
 					return (!$scope.model.columns || $scope.model.columns.length == 0) && $scope.svyServoyapi.isInDesigner();
 				}
@@ -4278,14 +4483,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					return event;
 				}
 
-				/***********************************************************************************************************************************
-				 ***********************************************************************************************************************************
-				 *
-				 * API methods
-				 *
-				 ************************************************************************************************************************************
-				 ***********************************************************************************************************************************/
-
+				// **************************** API methods start **************************** //
 				/**
 				 * Notify the component about a data change. Makes the component aware of a data change that requires a refresh data.
 				 * Call this method when you are aware of a relevant data change in the foundset which may affect data grouping (e.g. group node created or removed).
@@ -4312,13 +4510,134 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					$scope.purge();
 				}
 
+				$scope.api.ensureVisible = function() {
+					// TODO expose and properly implement
+					//gridOptions.api.ensureNodeVisible(comparator, 'middle')
+				}
+				
+				// ------------ APIs related to grouping ------------ //
+				/**
+				 * This functionality is shaky due to lazy loading
+				 * TODO maybe add param to add to groupedState even if no match was found?
+				 * TODO maybe add option to force loading and scroll into view?
+				 * TODO maybe overload with ...position::int to expand based on index instead of value?
+				 * 
+				 * @param {string[]} groupKeys
+				 * @param {boolean} ensureVisible
+				 */
+				$scope.api.expandGroup = function(groupKeys, ensureVisible) { // TODO use ensureVisible, maybe make serverside api accept a recordas param? Can deduct group(s) from record
+					// TODO needs other/better impl...
+					// 		due to lazy loading, you can only kick off expanding the first level
+					//		so the rest of the expansion needs to happen through $scope.state.expanded
+					//		so how to return whether it was succesfull or not? It's async... guess we cannot
+					//							
+					var groupedColumns = getRowGroupColumns();
+					var BREAK = 'breakLoop'
+					
+					if (!groupedColumns.length) {
+						return false;
+					}
+					
+					var level = 0;
+					
+					try {
+						gridOptions.api.forEachNode(function(node) {
+							if (node.group && node.level === level && node.key === path[level]) {
+								level++;
+								
+								if (!node.expanded) {
+									node.setExpanded(true);
+									
+									// The call to node.setExpanded(true) above will go and fetch data
+									// only when the nodes are loaded can the expand continue
+									// TODO Now go into waiting
+									throw BREAK;
+								} else if (level === path.length) {
+									throw BREAK;
+								}
+							}
+						});
+					} catch (e) {
+						// AG Grids forEach doesn't allow breaking out of the loop: https://github.com/ag-grid/ag-grid-enterprise/issues/157
+						if (e !== BREAK) throw e;
+					}
+
+					 
+					// TODO scoll into view?
+					//return expanded;
+				}
+				
+				$scope.api.expandAll = function() {
+					// TODO needs better implementation...
+					//		how to do this? Don't know what to set in $scope.state.expanded beforehand, so that we cannot use
+					//		setting -1 for defaultGRoupLevel is misusing that setting
+					//		and the whole thing is async offcourse
+					
+					if (getRowGroupColumns().length) {
+						// gridOptions.api.expandAll() doesn't work with ServerSide RowModel
+						
+						gridOptions.api.forEachNode(function(node) {
+							if (node.group) {
+								node.setExpanded(true);
+							}
+						});
+						
+						return true;
+					}
+					
+					return false;
+				};
+				
+				$scope.api.collapseGroup = function(groupKeys, collapseChildren) {
+					if (getRowGroupColumns().length) {
+						
+					}
+					
+					
+					
+					return false;
+				};
+
+				$scope.api.collapseAll = function() {
+					if (getRowGroupColumns().length) {
+						// gridOptions.api.collapseAll() doesn't work with ServerSide RowModel
+						
+						gridOptions.api.forEachNode(function(node) {
+							if (node.group) {
+								node.setExpanded(false);
+							}
+						});
+						
+						return true;
+					}
+					
+					return false;
+				};
+				
+				/**
+				 * As selection isn't lost when nodes get collapsed,
+				 * this method allows opening all groups that have selections
+				 */
+				$scope.api.expandAllGroupsWithSelections = function() {
+					// TODO implement: challenging, as expand is async and the nodes to expand might not exist in the data anymore... How to detect that?
+				}
+				
+				$scope.api.getGroupedState = function() {
+					return [];
+				}
+				
+				// TODO maybe add param to lazy set the state, as in: update the internal state, but not find the nodes and expand then in the UI
+				$scope.api.setGroupedState = function(paths) {
+					return [];
+				}
+				
 				/**
 				 * Returns the selected rows when in grouping mode
 				 */
 				$scope.api.getGroupedSelection = function() {
 					var groupedSelection = null;
-					if(isTableGrouped()) {
-						groupedSelection = new Array();
+					if (isTableGrouped()) {
+						groupedSelection = [];
 						var selectedNodes = gridOptions.api.getSelectedNodes();
 						for(var i = 0; i < selectedNodes.length; i++) {
 							var node = selectedNodes[i];
@@ -4330,6 +4649,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					return groupedSelection;
 				}
 
+				$scope.api.getRowGroupColumns = function() {
+					// TODO implement and expose
+				}
+				
+				$scope.api.setRowGroupColumns = function(colKeys) {
+					// TODO implement and expose
+				}
+				
 				/**
 				 * Start cell editing (only works when the table is not in grouping mode).
 				 * @param foundsetindex foundset row index of the editing cell (1-based)
@@ -4354,14 +4681,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 				}
 
-				// FIXME how to force re-fit when table is shown for the first time
-
-				// bind resize event
-				//				$(window).on('resize', onWindowResize);
-
-				var destroyListenerUnreg = $scope.$on('$destroy', function() { // unbind resize on destroy
-						//						$(window).off('resize', onWindowResize);
-
+				// **************************** Lifecycle handling **************************** //
+				var destroyListenerUnreg = $scope.$on('$destroy', function() {
 						// clear all foundsets
 						groupManager.removeFoundsetRefAtLevel(0);
 						$scope.model.myFoundset.removeChangeListener(changeListener);
@@ -4374,522 +4695,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						gridOptions.api.destroy();
 
 					});
-
-				/** @deprecated  */
-				function onWindowResize() { // resize
-					// var width = $element.parent().width();
-					// var height = $element.parent().height();
-					setTimeout(function() {
-							//sizeColumnsToFit();
-						}, 150);
-					// resize element using height and width
-				}
-
-				/**************************************************************************************************************************************************************************************************
-				 **************************************************************************************************************************************************************************************************
-				 *
-				 * MOCK SERVER METHODS
-				 *
-				 **************************************************************************************************************************************************************************************************
-				 **************************************************************************************************************************************************************************************************/
-
-				/*
-				 FoundsetServer.prototype.sortList = function(data, sortModel) {
-				 $log.warn('Sort List' + sortModel)
-
-				 console.log(data)
-				 // TODO sort foundset
-
-				 var sortPresent = sortModel && sortModel.length > 0;
-				 if (!sortPresent) {
-				 return data;
-				 }
-				 // do an in memory sort of the data, across all the fields
-				 var resultOfSort = data.slice();
-				 resultOfSort.sort(function(a, b) {
-				 for (var k = 0; k < sortModel.length; k++) {
-				 var sortColModel = sortModel[k];
-				 var valueA = a[sortColModel.colId];
-				 var valueB = b[sortColModel.colId];
-				 // this filter didn't find a difference, move onto the next one
-				 if (valueA == valueB) {
-				 continue;
-				 }
-				 var sortDirection = sortColModel.sort === 'asc' ? 1 : -1;
-				 if (valueA > valueB) {
-				 return sortDirection;
-				 } else {
-				 return sortDirection * -1;
-				 }
-				 }
-				 // no filters found a difference
-				 return 0;
-				 });
-				 return resultOfSort;
-				 };
-
-				 FoundsetServer.prototype.filterList = function(data, filterModel) {
-				 $log.warn('Filter List' + filterModel)
-
-				 var filterPresent = filterModel && Object.keys(filterModel).length > 0;
-				 if (!filterPresent) {
-				 return data;
-				 }
-
-				 var resultOfFilter = [];
-				 for (var i = 0; i < data.length; i++) {
-				 var item = data[i];
-
-				 if (filterModel.age) {
-				 var age = item.age;
-				 var allowedAge = parseInt(filterModel.age.filter);
-				 if (filterModel.age.type == 'equals') {
-				 if (age !== allowedAge) {
-				 continue;
-				 }
-				 } else if (filterModel.age.type == 'lessThan') {
-				 if (age >= allowedAge) {
-				 continue;
-				 }
-				 } else {
-				 if (age <= allowedAge) {
-				 continue;
-				 }
-				 }
-				 }
-
-				 if (filterModel.year) {
-				 if (filterModel.year.indexOf(item.year.toString()) < 0) {
-				 // year didn't match, so skip this record
-				 continue;
-				 }
-				 }
-
-				 if (filterModel.country) {
-				 if (filterModel.country.indexOf(item.country) < 0) {
-				 continue;
-				 }
-				 }
-
-				 resultOfFilter.push(item);
-				 }
-
-				 return resultOfFilter;
-				 };
-
-				 FoundsetServer.prototype.buildGroupsFromData = function(filteredData, rowGroupCols, groupKeys, valueCols) {
-				 $log.warn('buildGroupsFromData' + rowGroupCols);
-
-				 var rowGroupCol = rowGroupCols[groupKeys.length];
-				 var field = rowGroupCol.field;
-				 var mappedValues = this.groupBy(filteredData, field);
-				 var listOfKeys = Object.keys(mappedValues);
-				 var groups = [];
-				 listOfKeys.forEach(function(key) {
-				 var groupItem = { };
-				 groupItem[field] = key;
-
-				 valueCols.forEach(function(valueCol) {
-				 var field = valueCol.field;
-
-				 // the aggregation we do depends on which agg func the user picked
-				 switch (valueCol.aggFunc) {
-				 case 'sum':
-				 var sum = 0;
-				 mappedValues[key].forEach(function(childItem) {
-				 var value = childItem[field];
-				 sum += value;
-				 });
-				 groupItem[field] = sum;
-				 break;
-				 case 'min':
-				 var min = null;
-				 mappedValues[key].forEach(function(childItem) {
-				 var value = childItem[field];
-				 if (min === null || min > value) {
-				 min = value;
-				 }
-				 });
-				 groupItem[field] = min;
-				 break;
-				 case 'max':
-				 var max = null;
-				 mappedValues[key].forEach(function(childItem) {
-				 var value = childItem[field];
-				 if (max === null || max < value) {
-				 max = value;
-				 }
-				 });
-				 groupItem[field] = max;
-				 break;
-				 case 'random':
-				 groupItem[field] = Math.random(); // just make up a number
-				 break;
-				 default:
-				 $log.warn('unrecognised aggregation function: ' + valueCol.aggFunc);
-				 break;
-				 }
-
-				 });
-
-				 groups.push(groupItem)
-				 });
-				 return groups;
-				 };
-
-				 // if user is down some group levels, we take everything else out. eg
-				 // if user has opened the two groups United States and 2002, we filter
-				 // out everything that is not equal to United States and 2002.
-				 FoundsetServer.prototype.filterOutOtherGroups = function(originalData, groupKeys, rowGroupCols) {
-
-				 $log.warn('filterOutOtherGroups ' + rowGroupCols);
-
-				 var filteredData = originalData;
-				 var that = this;
-
-				 // if we are inside a group, then filter out everything that is not
-				 // part of this group
-				 groupKeys.forEach(function(groupKey, index) {
-				 var rowGroupCol = rowGroupCols[index];
-				 var field = rowGroupCol.field;
-
-				 filteredData = that.filter(filteredData, function(item) {
-				 return item[field] == groupKey;
-				 });
-				 });
-
-				 return filteredData;
-				 };
-
-				 // simple implementation of lodash groupBy
-				 FoundsetServer.prototype.groupBy = function(data, field) {
-				 $log.warn('group by ' + field);
-
-				 var result = { };
-				 data.forEach(function(item) {
-				 var key = item[field];
-				 var listForThisKey = result[key];
-				 if (!listForThisKey) {
-				 listForThisKey = [];
-				 result[key] = listForThisKey;
-				 }
-				 listForThisKey.push(item);
-				 });
-				 return result;
-				 };
-
-				 // simple implementation of lodash filter
-				 FoundsetServer.prototype.filter = function(data, callback) {
-
-				 $log.warn('filter ' + data);
-
-				 var result = [];
-				 data.forEach(function(item) {
-				 if (callback(item)) {
-				 result.push(item);
-				 }
-				 });
-				 return result;
-				 };
-
-				 */
-
-				/**************************************************************************************************************************************************************************************************
-				 **************************************************************************************************************************************************************************************************
-				 *
-				 * TABLE EXAMPLE
-				 *
-				 **************************************************************************************************************************************************************************************************
-				 **************************************************************************************************************************************************************************************************/
-
-				/*
-				 function FoundsetServer(allData) {
-				 this.initData(allData);
-				 }
-
-				 FoundsetServer.prototype.initData = function(allData) {
-				 var topLevelCountryGroups = [];
-				 var bottomLevelCountryDetails = { }; // will be a map of [country name => records]
-
-				 allData.forEach(function(dataItem) {
-				 // get country this item is for
-				 var customerid = dataItem.customerid;
-
-				 // get the top level group for this country
-				 var childrenThisCountry = bottomLevelCountryDetails[customerid];
-				 var groupThisCountry = this.find(topLevelCountryGroups, { customerid: customerid });
-				 if (!childrenThisCountry) {
-				 // no group exists yet, so create it
-				 childrenThisCountry = [];
-				 bottomLevelCountryDetails[customerid] = childrenThisCountry;
-
-				 // add a group to the top level
-				 groupThisCountry = { customerid: customerid, count: 0 };
-				 topLevelCountryGroups.push(groupThisCountry);
-				 }
-
-				 // add this record to the county group
-				 childrenThisCountry.push(dataItem);
-
-				 // increment the group sums
-				 groupThisCountry.count++;
-				 });
-
-				 this.topLevelCountryGroups = topLevelCountryGroups;
-				 this.bottomLevelCountryDetails = bottomLevelCountryDetails;
-
-				 this.topLevelCountryGroups.sort(function(a, b) {
-				 return a.country < b.customerid ? -1 : 1;
-				 });
-				 };
-
-				 FoundsetServer.prototype.sortList = function(data, sortModel) {
-				 var sortPresent = sortModel && sortModel.length > 0;
-				 if (!sortPresent) {
-				 return data;
-				 }
-				 // do an in memory sort of the data, across all the fields
-				 var resultOfSort = data.slice();
-				 resultOfSort.sort(function(a, b) {
-				 for (var k = 0; k < sortModel.length; k++) {
-				 var sortColModel = sortModel[k];
-				 var valueA = a[sortColModel.colId];
-				 var valueB = b[sortColModel.colId];
-				 // this filter didn't find a difference, move onto the next one
-				 if (valueA == valueB) {
-				 continue;
-				 }
-				 var sortDirection = sortColModel.sort === 'asc' ? 1 : -1;
-				 if (valueA > valueB) {
-				 return sortDirection;
-				 } else {
-				 return sortDirection * -1;
-				 }
-				 }
-				 // no filters found a difference
-				 return 0;
-				 });
-				 return resultOfSort;
-				 };
-
-				 // when looking for the top list, always return back the full list of countries
-				 FoundsetServer.prototype.getTopLevelCountryList = function(callback, request) {
-
-				 var lastRow = this.getLastRowResult(this.topLevelCountryGroups, request);
-				 var rowData = this.getBlockFromResult(this.topLevelCountryGroups, request);
-
-				 // put the response into a timeout, so it looks like an async call from a server
-				 setTimeout(function() {
-				 callback(rowData, lastRow);
-				 }, 1000);
-				 };
-
-				 FoundsetServer.prototype.getCountryDetails = function(callback, country, request) {
-
-				 var countryDetails = this.bottomLevelCountryDetails[country];
-
-				 var countryDetailsSorted = this.sortList(countryDetails, request.sortModel);
-
-				 var lastRow = this.getLastRowResult(countryDetailsSorted, request);
-				 var rowData = this.getBlockFromResult(countryDetailsSorted, request);
-
-				 // put the response into a timeout, so it looks like an async call from a server
-				 setTimeout(function() {
-				 callback(rowData, lastRow);
-				 }, 1000);
-				 };
-
-				 FoundsetServer.prototype.getBlockFromResult = function(data, request) {
-				 return data.slice(request.startRow, request.endRow);
-				 };
-
-				 FoundsetServer.prototype.getLastRowResult = function(result, request) {
-				 // we mimic finding the last row. if the request exceeds the length of the
-				 // list, then we assume the last row is found. this would be similar to hitting
-				 // a database, where we have gone past the last row.
-				 var lastRowFound = (result.length <= request.endRow);
-				 var lastRow = lastRowFound ? result.length : null;
-				 return lastRow;
-				 };/*
-
-				 /********************************************
-				 *  Sample Table
-				 *
-				 *  ***************************************/
-
-				/*
-				 return;
-				 var columnDefsSample = [{ headerName: "Athlete", field: "athlete" }, { headerName: "Age", field: "age" }, { headerName: "Country", field: "country", rowGroupIndex: 0 }, { headerName: "Year", field: "year" }, { headerName: "Sport", field: "sport" }, { headerName: "Gold", field: "gold" }, { headerName: "Silver", field: "silver" }, { headerName: "Bronze", field: "bronze" }];
-
-				 var gridOptionsSample = {
-				 defaultColDef: {
-				 width: 100,
-				 suppressFilter: true
-				 },
-				 enableSorting: true,
-				 columnDefs: columnDefsSample,
-				 enableColResize: true,
-				 // use the enterprise row model
-				 rowModelType: 'enterprise',
-				 // gridOptions.rowModelType = 'infinite';
-				 // bring back data 50 rows at a time
-				 cacheBlockSize: 50,
-				 // don't show the grouping in a panel at the top
-				 rowGroupPanelShow: 'never',
-				 animateRows: true,
-				 debug: true
-				 };
-
-				 var gridDivSample = document.querySelector('#myGrid2');
-				 new agGrid.Grid(gridDivSample, gridOptionsSample);
-
-				 // do http request to get our sample data - not using any framework to keep the example self contained.
-				 // you will probably use a framework like JQuery, Angular or something else to do your HTTP calls.
-				 agGrid.simpleHttpRequest({ url: '/olympicWinners.json' }).then(function(rows) {
-				 var fakeServer = new FakeServer(rows);
-				 var datasource = new EnterpriseDatasource(fakeServer);
-				 gridOptions.api.setEnterpriseDatasource(datasource);
-				 }
-				 );
-
-				 function EnterpriseDatasource(fakeServer) {
-				 this.fakeServer = fakeServer;
-				 }
-
-				 EnterpriseDatasource.prototype.getRows = function(params) {
-				 console.log('EnterpriseDatasource.getRows: params = ', params);
-
-				 var request = params.request;
-
-				 // if we are on the top level, then group keys will be [],
-				 // if we are on the second level, then group keys will be like ['United States']
-				 var groupKeys = request.groupKeys;
-				 var doingTopLevel = groupKeys.length === 0;
-
-				 if (doingTopLevel) {
-				 this.fakeServer.getTopLevelCountryList(successCallback, request);
-				 } else {
-				 var country = request.groupKeys[0];
-				 this.fakeServer.getCountryDetails(successCallback, country, request);
-				 }
-
-				 function successCallback(resultForGrid, lastRow) {
-				 params.successCallback(resultForGrid, lastRow);
-				 }
-				 };
-
-				 function FakeServer(allData) {
-				 this.initData(allData);
-				 }
-
-				 FakeServer.prototype.initData = function(allData) {
-				 var topLevelCountryGroups = [];
-				 var bottomLevelCountryDetails = { }; // will be a map of [country name => records]
-
-				 allData.forEach(function(dataItem) {
-				 // get country this item is for
-				 var country = dataItem.country;
-
-				 // get the top level group for this country
-				 var childrenThisCountry = bottomLevelCountryDetails[country];
-				 var groupThisCountry = this.find(topLevelCountryGroups, { country: country });
-				 if (!childrenThisCountry) {
-				 // no group exists yet, so create it
-				 childrenThisCountry = [];
-				 bottomLevelCountryDetails[country] = childrenThisCountry;
-
-				 // add a group to the top level
-				 groupThisCountry = { country: country, gold: 0, silver: 0, bronze: 0 };
-				 topLevelCountryGroups.push(groupThisCountry);
-				 }
-
-				 // add this record to the county group
-				 childrenThisCountry.push(dataItem);
-
-				 // increment the group sums
-				 groupThisCountry.gold += dataItem.gold;
-				 groupThisCountry.silver += dataItem.silver;
-				 groupThisCountry.bronze += dataItem.bronze;
-				 });
-
-				 this.topLevelCountryGroups = topLevelCountryGroups;
-				 this.bottomLevelCountryDetails = bottomLevelCountryDetails;
-
-				 this.topLevelCountryGroups.sort(function(a, b) {
-				 return a.country < b.country ? -1 : 1;
-				 });
-				 };
-
-				 FakeServer.prototype.sortList = function(data, sortModel) {
-				 var sortPresent = sortModel && sortModel.length > 0;
-				 if (!sortPresent) {
-				 return data;
-				 }
-				 // do an in memory sort of the data, across all the fields
-				 var resultOfSort = data.slice();
-				 resultOfSort.sort(function(a, b) {
-				 for (var k = 0; k < sortModel.length; k++) {
-				 var sortColModel = sortModel[k];
-				 var valueA = a[sortColModel.colId];
-				 var valueB = b[sortColModel.colId];
-				 // this filter didn't find a difference, move onto the next one
-				 if (valueA == valueB) {
-				 continue;
-				 }
-				 var sortDirection = sortColModel.sort === 'asc' ? 1 : -1;
-				 if (valueA > valueB) {
-				 return sortDirection;
-				 } else {
-				 return sortDirection * -1;
-				 }
-				 }
-				 // no filters found a difference
-				 return 0;
-				 });
-				 return resultOfSort;
-				 };
-
-				 // when looking for the top list, always return back the full list of countries
-				 FakeServer.prototype.getTopLevelCountryList = function(callback, request) {
-
-				 var lastRow = this.getLastRowResult(this.topLevelCountryGroups, request);
-				 var rowData = this.getBlockFromResult(this.topLevelCountryGroups, request);
-
-				 // put the response into a timeout, so it looks like an async call from a server
-				 setTimeout(function() {
-				 callback(rowData, lastRow);
-				 }, 1000);
-				 };
-
-				 FakeServer.prototype.getCountryDetails = function(callback, country, request) {
-
-				 var countryDetails = this.bottomLevelCountryDetails[country];
-
-				 var countryDetailsSorted = this.sortList(countryDetails, request.sortModel);
-
-				 var lastRow = this.getLastRowResult(countryDetailsSorted, request);
-				 var rowData = this.getBlockFromResult(countryDetailsSorted, request);
-
-				 // put the response into a timeout, so it looks like an async call from a server
-				 setTimeout(function() {
-				 callback(rowData, lastRow);
-				 }, 1000);
-				 };
-
-				 FakeServer.prototype.getBlockFromResult = function(data, request) {
-				 return data.slice(request.startRow, request.endRow);
-				 };
-
-				 FakeServer.prototype.getLastRowResult = function(result, request) {
-				 // we mimic finding the last row. if the request exceeds the length of the
-				 // list, then we assume the last row is found. this would be similar to hitting
-				 // a database, where we have gone past the last row.
-				 var lastRowFound = (result.length <= request.endRow);
-				 var lastRow = lastRowFound ? result.length : null;
-				 return lastRow;
-				 };
-
-				 */
 			},
 			templateUrl: 'aggrid/groupingtable/groupingtable.html'
 		};
