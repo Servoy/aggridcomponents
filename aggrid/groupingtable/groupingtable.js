@@ -4343,6 +4343,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						$log.warn('editCellAt API, invalid foundsetindex:' + foundsetindex);
 					}
 					else if(columnindex < 0 || columnindex > $scope.model.columns.length - 1) {
+						$log.warn('editCellAt API, invalid columnindex:' + columnindex);
 					}
 					else {
 						var	colId = getColumnID($scope.model.columns[columnindex], columnindex);
