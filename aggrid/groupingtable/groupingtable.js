@@ -316,10 +316,17 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				// console.log(config)
 
 				function mergeConfig(target, source) {
-					var mergeConfig = target;
+					var property;
+					
+					// clone target to avoid side effects
+					var mergeConfig = {};
+					for (property in target) {
+						mergeConfig[property] = target[property];
+					}
+					
 					if(source) {
 						if(mergeConfig) {
-							for (var property in source) {
+							for (property in source) {
 								if (source.hasOwnProperty(property)) {
 									mergeConfig[property] = source[property];
 								}
