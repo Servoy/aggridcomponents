@@ -60,6 +60,7 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 				} else {
 					join = join.joins.add(relationName, relationPath);
 				}
+				join.joinType = QBJoin.LEFT_OUTER_JOIN;
 			}
 
 			groupColumn = join.getColumn(columnName);
