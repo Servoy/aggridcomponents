@@ -3635,7 +3635,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 									var index = params.rowIndex - foundset.foundset.viewPort.startIndex;
 									styleClassProvider = column.styleClassDataprovider[index];
 								}
-							} else if (params.data._svyFoundsetUUID) {
+							} else if (params.data && params.data._svyFoundsetUUID) {
 									var foundsetManager = getFoundsetManagerByFoundsetUUID(params.data._svyFoundsetUUID);
 									var index = foundsetManager.getRowIndex(params.data) - foundsetManager.foundset.viewPort.startIndex;
 									if (index >= 0) {
