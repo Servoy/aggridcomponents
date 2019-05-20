@@ -187,6 +187,14 @@
 				"name": "columnindex",
 				"type": "int"
 			}]
+		},
+		"requestFocus" : {
+			"parameters": [{
+				"name": "columnindex",
+				"type": "int"
+			}],
+			"delayUntilFormLoads": true,
+			"discardPreviouslyQueuedSimilarCalls": true
 		}
     },
 	"internalApi" : {

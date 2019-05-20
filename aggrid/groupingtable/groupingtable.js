@@ -4360,6 +4360,24 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						});
 					}
 				}
+				
+				/**
+				 * Request focus on the given column
+				 * @param columnindex column index in the model of the editing cell (0-based)
+				 */
+				$scope.api.requestFocus = function(columnindex) {
+					if(isTableGrouped()) {
+						$log.warn('requestFocus API is not supported in grouped mode');
+					} else if(columnindex < 0 || columnindex > $scope.model.columns.length - 1) {
+						$log.warn('requestFocus API, invalid columnindex:' + columnindex);
+					} else {
+						if ($scope.model.myFoundset && $scope.model.myFoundset.viewPort.size && $scope.model.myFoundset.selectedRowIndexes.length ) {
+							var rowIndex = $scope.model.myFoundset.selectedRowIndexes[0];
+							var	colId = getColumnID($scope.model.columns[columnindex], columnindex);
+							gridOptions.api.setFocusedCell(rowIndex, colId, null);
+						}
+					}
+				}
 
 				// FIXME how to force re-fit when table is shown for the first time
 
