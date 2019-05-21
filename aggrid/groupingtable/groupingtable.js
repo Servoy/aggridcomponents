@@ -4392,8 +4392,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						// if is not ready to request focus, wait for the row to be rendered
 						if (isReadyToRequestFocus) {
 							if ($scope.model.myFoundset && $scope.model.myFoundset.viewPort.size && $scope.model.myFoundset.selectedRowIndexes.length ) {								
+								var column = $scope.model.columns[columnindex];
 								var rowIndex = $scope.model.myFoundset.selectedRowIndexes[0];
-								var	colId = getColumnID($scope.model.columns[columnindex], columnindex);
+								var	colId = column.id ? column.id : getColumnID(column, columnindex);
 								gridOptions.api.setFocusedCell(rowIndex, colId, null);
 								
 								// reset the request focus column index
