@@ -829,6 +829,27 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
 				}
 				return result;
             }
+            
+			/**
+			 * Request focus on the given column
+			 * @param rowindex row index of the editing cell (0-based)
+			 * @param columnindex column index in the model of the editing cell (0-based)
+			 */
+			$scope.api.requestFocus = function(rowindex, columnindex) {
+				
+				// Using a small timeout to set the focus
+				setTimeout( function () {
+					if (gridOptions && gridOptions.rowData) {								
+						var column = $scope.model.columns[columnindex];
+						var	colId = column.id ? column.id : column.dataprovider;
+						gridOptions.api.setFocusedCell(rowindex, colId, null);
+					} else {
+						$log.warn("requestFocus API, cannot be executed before the grid is rendered with data");
+					}
+				}, 150)
+
+			}
+            
         },
         templateUrl: 'aggrid/datasettable/datasettable.html'
     };

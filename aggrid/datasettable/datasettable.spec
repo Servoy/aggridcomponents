@@ -196,6 +196,17 @@
 				{ "name": "dataset", "type": {"type": "dataset"} },
 				{ "name": "lastRowIndex", "type": {"type": "long"}, "optional": true }
 			]
+		},
+		"requestFocus" : {
+			"parameters": [{
+				"name": "rowindex",
+				"type": "int"
+			},{
+				"name": "columnindex",
+				"type": "int"
+			}],
+			"delayUntilFormLoads": true,
+			"discardPreviouslyQueuedSimilarCalls": true
 		}
 	},
 	"types" : {
