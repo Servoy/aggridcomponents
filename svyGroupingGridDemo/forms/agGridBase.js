@@ -37,6 +37,7 @@ function onLoad(event) { }
  */
 function onShow(firstShow, event) {
 	getTableCount();
+	elements.groupingtable_1.requestFocus(0);
 }
 
 /**

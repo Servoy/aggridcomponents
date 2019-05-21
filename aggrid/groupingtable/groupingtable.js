@@ -268,6 +268,15 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 				// set to true when is rendered
 				var isRendered = undefined;
+				
+				// set the true when the grid is ready
+				var isGridReady = false;
+				
+				// set to true once the grid is ready to request focus
+				var isReadyToRequestFocus = false;
+				
+				// when the grid is not ready yet set the value to the column index for which has been requested focus
+				var requestFocusColumnIndex = -1;
 
 				// foundset sort promise
 				var sortPromise;
@@ -372,8 +381,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						]
 					}
 				}
-
-				var isGridReady = false;
 
 				var gridOptions = {
 
@@ -663,6 +670,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					if (isTableGrouped()) {
 						return;
 					}
+					
+					// set to true once the grid is ready to request focus
+				    isReadyToRequestFocus = true;
+				
+				    // when the grid is not ready yet set the value to the column index for which has been requested focus
+				    if (requestFocusColumnIndex > -1) {
+				    	$scope.api.requestFocus(requestFocusColumnIndex);
+				    }
 
 					var selectedNodes = gridOptions.api.getSelectedNodes();
 					if (selectedNodes.length > 0) {
@@ -4367,14 +4382,25 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 */
 				$scope.api.requestFocus = function(columnindex) {
 					if(isTableGrouped()) {
+						requestFocusColumnIndex = -1;
 						$log.warn('requestFocus API is not supported in grouped mode');
 					} else if(columnindex < 0 || columnindex > $scope.model.columns.length - 1) {
+						requestFocusColumnIndex = -1;
 						$log.warn('requestFocus API, invalid columnindex:' + columnindex);
 					} else {
-						if ($scope.model.myFoundset && $scope.model.myFoundset.viewPort.size && $scope.model.myFoundset.selectedRowIndexes.length ) {
-							var rowIndex = $scope.model.myFoundset.selectedRowIndexes[0];
-							var	colId = getColumnID($scope.model.columns[columnindex], columnindex);
-							gridOptions.api.setFocusedCell(rowIndex, colId, null);
+						
+						// if is not ready to request focus, wait for the row to be rendered
+						if (isReadyToRequestFocus) {
+							if ($scope.model.myFoundset && $scope.model.myFoundset.viewPort.size && $scope.model.myFoundset.selectedRowIndexes.length ) {								
+								var rowIndex = $scope.model.myFoundset.selectedRowIndexes[0];
+								var	colId = getColumnID($scope.model.columns[columnindex], columnindex);
+								gridOptions.api.setFocusedCell(rowIndex, colId, null);
+								
+								// reset the request focus column index
+								requestFocusColumnIndex = -1;
+							}
+						} else {
+							requestFocusColumnIndex = columnindex;
 						}
 					}
 				}
