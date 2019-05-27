@@ -626,7 +626,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				selectedRowIndexesChanged();
 
 				// default sort order
-				gridOptions.api.setSortModel(sortModelDefault);
+				if(gridOptions.enableServerSideSorting) {
+					gridOptions.api.setSortModel(sortModelDefault);
+				}
 
 				// register listener for selection changed
 				gridOptions.api.addEventListener('selectionChanged', onSelectionChanged);
