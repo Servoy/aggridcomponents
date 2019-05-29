@@ -15,7 +15,7 @@
 	"model":
 	{
 		"myFoundset": {"type": "foundset", "default" : {"foundsetSelector":""}, "pushToServer" : "allow" ,"initialPreferredViewPortSize": 50, "sendSelectionViewportInitially": true },
-		"columns": { "type": "column[]", "droppable" : true, "pushToServer": "shallow"},
+		"columns": { "type": "column[]", "default": [], "droppable" : true, "pushToServer": "shallow"},
 		"columnState": { "type": "string", "tags": {"scope" : "private"}, "pushToServer": "allow"},
 		"columnStateOnError": { "type": "function", "tags": {"scope" : "private"}},
 		"_internalColumnState": { "type": "string", "tags": {"scope" : "private"}, "pushToServer": "allow"},
@@ -36,7 +36,9 @@
 		"iconConfig": { "type": "iconConfig", "tags": { "scope": "design" } },
 		"gridOptions": {"type": "map"},
 		"localeText": {"type": "map"},
-		"filterModel": {"type": "string", "tags": {"scope": "private"}}
+		"filterModel": {"type": "string", "tags": {"scope": "private"}},
+		"disconnectedSelection": {"type": "boolean", "default": false},
+		"state": { "type": "object", "pushToServer": "allow", "tags": {"scope": "private"}}
 	},
 	"handlers" : {
 		"onCellClick": {
@@ -179,7 +181,7 @@
 		"getGroupedSelection": {
 			"returns": "record[]"
 		},
-				"expandGroup": {
+		"expandGroup": {
 			"parameters": [{
 				"name": "path",
 				"type": "object[]"
@@ -208,6 +210,9 @@
 				"type": "array<string[]>"
 			}],
 			"returns": "array<string[]>"
+		},
+		"getSelectedRecordFoundSet": {
+			"returns": "foundset"
 		},
 		"editCellAt": {
 			"parameters": [{

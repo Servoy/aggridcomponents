@@ -251,25 +251,29 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					rootGroupSort: null // NOT USED?
 				}
 
-				// wish we could use a simpler structure by utilizing Symbols to track collapsed state, but IE doesn't support Symbols...
-				// TODO rename to groupState as only used when grouping
 				// TODO move this state into GroupNode/FoundsetManager
-				$scope.groupState = {
+				$scope.model.state = {
 					// TODO clear properly when rowGroups change
 					// TODO persist to serverside: maybe flatten in the process? Just for persistance there's no need to track the collapsed state, as that's just done for UX/performance in the client
+					// TODO maybe not require empty children objects? How much extra checking is needed in code?
 					children: { // TODO remove hardcoded test values
 						AACHEN: {
+							expanded: true,
 							children: {
 								DUITSLAND: {
+									selected: true,
+									expanded: true,
 									children: {}
 								}
-							}//,
-							//collapsed: true
+							}
 						}
 					}
 				}
-				$scope.groupState.children.AACHEN.parent = $scope.groupState
-				$scope.groupState.children.AACHEN.children.DUITSLAND.parent = $scope.groupState.children.AACHEN
+				// CHECKME will we actually use these .parent references? If not remove
+				$scope.model.state.children.AACHEN = Object.assign(Object.create({parent: $scope.model.state}), $scope.model.state.children.AACHEN)
+				$scope.model.state.children.AACHEN.children.DUITSLAND = Object.assign(Object.create({parent: $scope.model.state.children.AACHEN}), $scope.model.state.children.AACHEN.children.DUITSLAND)
+				
+				$scope.svyServoyapi.apply('state');
 				
 				// used in HTML template to toggle sync button
 				$scope.isGroupView = false;
@@ -667,6 +671,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					
 					var selectedState = node.selected
 					
+					// TODO this should set/clear state in groupState
+					
 					if (typeof selectedState === 'boolean') { // selectedState is undefined if there are both selected and unselected children
 						var model = gridOptions.api.getModel()
 						var row = model.getRow(node.rowIndex + 1); // get the first row after the current node's row
@@ -681,7 +687,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 				}
 				
-				// TODO encapsulate in groupState class or something
+				// TODO encapsulate utility functions below in groupState class or something
+				/**
+				 * Gets a string array containing the group values/keys from root to the provided node
+				 */
 				function getGroupPath(node) {
 					var groupKeys = [];
 					var groupNode = node.group ? node : node.parent;
@@ -694,18 +703,22 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					return groupKeys.reverse();
 				}
 				
-				function getGroupState(nodeOrKeys, force) {
-					var groupState = $scope.groupState;
+				/**
+				 * Gets the persisted group state
+				 * 
+				 * @param {node|string[]} nodeOrKeys 
+				 * @param {boolean=} force whether to force creation of missing group state objects
+				 */
+				function getGroupPersistState(nodeOrKeys, force) {
+					var groupState = $scope.model.state;
 					var groupKeys = Array.isArray(nodeOrKeys) ? nodeOrKeys : getGroupPath(nodeOrKeys);
 					
 					for (var index = 0; groupState && index < groupKeys.length; index++) {
 						if (groupState.children.hasOwnProperty(groupKeys[index])) {
 							groupState = groupState.children[groupKeys[index]];
 						} else if (force) {
-							groupState = groupState.children[groupKeys[index]] = {
-								parent: groupState,
-								children: {}
-							}
+							groupState = groupState.children[groupKeys[index]] = Object.create({parent: groupState}); // CHECKME Object.create IE9 safe?
+							groupState.children = {}
 						} else {
 							groupState = null;
 						}
@@ -714,26 +727,85 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					return groupState;
 				}
 				
-				function setParentGroupState(node) {
-					var parent = node.parent
+				/**
+				 * Bubbles the result of a rowSelection event up through the parent groups up to the root node
+				 * so all parent groups have the proper selection state if somethign changes in the selectionState of any of its decendants
+				 */
+				function setGroupSelectedState(parent) {
+					if (!parent || !parent.group || parent.level === -1) {
+						return;
+					}
 					
 					// Set the proper selected state on the parent group row if any
-					if (parent && parent.level !== -1) {
-						var model = gridOptions.api.getModel()
-						var row = model.getRow(parent.rowIndex + 1); // get the first row after the current node's row
-						var selectedState = row.isSelected();
-						
-						// FIXME this wont take into account lazy loading, should check selectedState instead
-						while (row && !(row.group && row.level <= parent.level) && selectedState !== undefined) { 
-							if (row.level === parent.level + 1 && selectedState !== row.isSelected()) {
-								selectedState = undefined;
-							}
-							
-							row = model.getRow(row.rowIndex + 1)
+					var model = gridOptions.api.getModel()
+					var row = model.getRow(parent.rowIndex + 1); // get the first row after the current node's row
+					var selectedState = row.isSelected();
+					
+					// TODO recursively decent into children that are groups to find selections in there: if group rows aren't expanded, check groupState
+					//		
+					// FIXME this wont take into account lazy loading, should check selectedState instead
+					// loop through all subsequent rows untill either the last row, the next sibling or the selected node or until the desired state is clear
+					while (row && !(row.group && row.level <= parent.level) && selectedState !== undefined) { 
+						if (row.level === parent.level + 1 && selectedState !== row.isSelected()) {
+							selectedState = undefined;
+							break;
 						}
 						
-						parent.selectThisNode(selectedState);
+						row = model.getRow(row.rowIndex + 1)
 					}
+					
+					parent.selectThisNode(selectedState);
+				}
+				
+				/**
+				 * returns the desired selected state for a node based on:
+				 * ~~~ if parent is selected: true
+				 * - if leaf row:
+				 * 		- if row pk in groupState: true
+				 * - if group row:
+				 * 		- if group marked as selected in groupState: true
+				 * 		- if all children selected: true
+				 * 		- if no children are (partially) selected: false
+				 * 		- else: partially selected
+				 * - else false
+				 */
+				function getDesiredNodeSelectedState(node) {
+					var groupState = getGroupPersistState(node);
+					
+					if (!groupState) {
+						return false;
+					}
+					
+					if (node.group) {
+						return forEachChild(groupState); 
+					} else if (groupState.pks && groupState.pks.indexOf(/(?!\d+|root)\_\d+.(\d+);\_\d+/.exec(node.id)[1]) !== -1) { // leafNode marked as selected in groupState
+						return true;
+					}
+					
+					return false;
+				}
+				
+				function forEachChild(groupState) {
+					if (groupState.selected || (groupState.pks && groupState.pks.length)) {
+						return true;
+					}
+					
+					var selected = null;
+					var keys = Object.keys(groupState.children); // CHECKME is there a loop over object properties that we can use instead of extracting the keys first? To improve performance
+					
+					for (var i = 0; i < keys.length; i++) {
+						var childSelection = forEachChild(groupState.children[keys[i]]);
+						
+						if (selected === null) {
+							selected = childSelection;
+						} else if (selected === childSelection) {
+							continue;
+						} else {
+							return undefined;
+						}
+					}
+					
+					return false;
 				}
 				
 				/**
@@ -749,7 +821,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				gridOptions.api.addEventListener('rowSelected', function (event) {
 					console.log('rowSelected', event)
 					
-					if (!isTableGrouped()) return // if the table is not grouped, there's not selection state bubbling/cascading to be taken care of
+					if (!isTableGrouped() && !$scope.model.disconnectedSelection) return // if the table is not grouped, there's not selection state bubbling/cascading to be taken care of
 					
 					var node = event.node;
 					
@@ -757,26 +829,32 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					selectChildNodes(node); // CHECKME inline this function?
 					
 					// Set the proper selected state on the parent group row if any
-					setParentGroupState(node);
+					setGroupSelectedState(node.parent);
 					
 					// persist selected state, only for the current node: parent logic will trigger through async rowSelected events on the parent a bit later
-					var groupState = getGroupState(node, true)
+					var groupState = getGroupPersistState(node, true)
 					
 					if (node.group) {
-						// TODO implement
+						if (node.selected === true && (!node.parent || !node.parent.selected)) { // Only persisting selected state if the selection is not inherited // CHECKME should probably then also clear 'selected' on descendants when parent is selected
+							groupState.selected = true;
+						} else {
+							delete groupState.selected;
+						}
 						
-					} else if (groupState.parent && groupState.parent.selected !== node.isSelected()) {
+					} else if (!isTableGrouped() || (groupState.parent && groupState.parent.selected !== node.isSelected())) {
+						// FIXME groupState ends up with nodes containing both selected: true and a pks array with values, should instead be either/or, bot both
 						if (!groupState.pks) {
 							groupState.pks = [];
 						}
 						
-						var pk = /\d+\_\d+.(\d+);\_\d+/.exec(node.id)[1];
+						var pk = /(?!\d+|root)\_\d+.(\d+);\_\d+/.exec(node.id)[1]; // TODO extract this regex logic into utility function
 						if (node.isSelected()) {
 							groupState.pks.push(pk);
 						} else {
 							groupState.pks.splice(groupState.pks.indexOf(pk), 1)
 						}
 					}
+					$scope.svyServoyapi.apply('state');
 				});
 
 				// register listener for selection changed
@@ -856,7 +934,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						}
 						
 						// Clear all expanded/collapsed persist state
-						$scope.groupState = {
+						$scope.model.state = {
 							children: []
 						}
 					} else {
@@ -906,7 +984,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								gridOptions.columnApi.setColumnVisible(field, newVisibility); // column visibility
 							}
 						}
-							
+						
 						// TODO test this
 						for (i = 0; i < oldGroupedFields.length; i++) {
 							if (oldGroupedFields[i] !== newGroupedFields[i]) {
@@ -914,7 +992,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								
 								// TODO clean up collapse/expand persist state from the right level downwards
 								
-	//							$scope.groupState = {
+	//							$scope.model.state = {
 	//								children: []
 	//							}
 								break;
@@ -941,6 +1019,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 	//						}
 	//					}
 					}
+					
+					$scope.svyServoyapi.apply('state');
 	
 					// resize the columns
 					setTimeout(function() {
@@ -954,43 +1034,41 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}, 150);
 				});
 
-				// listen to group expand/collapsed
-				gridOptions.api.addEventListener('rowGroupOpened', function(event) { // while event is called 'rowGroupOpened' it also fires when closing a group
+				/**
+				 * Event handler for the event fired when groups are collapsed or expanded
+				 * 
+				 * while event is called 'rowGroupOpened' it also fires when closing a group
+				 * 
+				 * By the time this event fires for a collapse, the childre are already removed.
+				 * So, in order to .....
+				 */
+				gridOptions.api.addEventListener('rowGroupOpened', function(event) {
 					$log.debug(event);
 					
 					var node = event.node;
-					var state = $scope.groupState;
+					var state = getGroupPersistState(node, true)
 					
-					var groupKeys = getGroupPath(node);
-					
-					for (var index = 0; index < groupKeys.length; index++) {
-						var groupKey = groupKeys[index];
+					if (node.expanded) {
+						state.expanded = true;
+					} else {
+						var keys = Object.keys(state.children);
+						var preserveState = false;
 						
-						if (node.expanded) { // row was expanded
-							if (state.children.hasOwnProperty(groupKey)) {
-								state = state.children[groupKey];
-								delete state.collapsed;
-							} else {
-								state = state.children[groupKey] = {
-									parent: state,
-									children: {}
-								};
-							}
-						} else { // node was collapsed
-							if (index === groupKeys.length - 1) { // on the level that is actually being collapsed
-								if (state.children[groupKey] && Object.keys(state.children[groupKey]).length) { // row that is being collapsed has expanded children. We want to keep that state so when the user expands the node again, all descendants remain expanded as before
-									state.children[groupKey].collapsed = true;
-								} else {
-									delete state.children[groupKey];
-								}
-							} else if (state.children.hasOwnProperty(groupKey)) {
-								state = state.children[groupKey];
-							} else {
-								$log.warn('Unexpected state: group got expanded/collapsed while one of its parents was collapsed. This should not be possible');
+						for (var i = 0; i < keys.length; i++) {
+							if (state.children.expanded) {
+								preserveState = true;
 								break;
 							}
 						}
+						
+						if (preserveState) {
+							state.expanded = false;
+						} else {
+							delete state.expanded;
+						}
 					}
+				
+					$scope.svyServoyapi.apply('state');
 					
 					// CHECKME this is old code that was already commented out. What to do with it? Ideally, the fs is removed after a delay and when the total # of fs's reaches a threshold
 //					// TODO remove foundset from memory when a group is closed
@@ -1014,7 +1092,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					console.log('selectionChanged', event, gridOptions.api.getSelectedNodes());
 					
 					// selection in grouped mode is tracked differently, via the rowSelected event
-					if (isTableGrouped()) {
+					if (isTableGrouped() || $scope.model.disconnectedSelection) {
+						console.log(JSON.stringify($scope.model.state, (key, value) => key === 'parent' ? undefined : value))
 						return
 					}
 
@@ -1958,84 +2037,58 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								
 								// special handling when in group mode to mimic AG Grid features that aren't enabled when using the serverside rowmodel
 								if ($scope.isGroupView) {
-									var model;
-									var groupState = getGroupState(groupKeys);
+									var model = gridOptions.api.getModel();
+									var groupState = getGroupPersistState(groupKeys);
 									
 									// TODO move code below to GroupManager
 									
 									// Expanded/collapsed state handling
 									expandCollapse: if (typeof gridOptions.groupDefaultExpanded === 'number' && params.request.rowGroupCols.length && (gridOptions.groupDefaultExpanded === -1 || gridOptions.groupDefaultExpanded > groupKeys.length)) { // emulate groupDefaultExpanded setting
-										model = gridOptions.api.getModel();
-										
 										for (var index = 0; index < resultForGrid.length; index++) {
 											var node = model.getRowNode(resultForGrid[index]._svyFoundsetUUID + '_' + resultForGrid[index]._svyRowId)
 											node.setExpanded(true);
 										}
-									} else if (groupKeys.length < params.request.rowGroupCols.length) { // Apply desired expanded state
+									} else if (groupKeys.length < params.request.rowGroupCols.length && groupState) { // Apply desired expanded state
 										var nodeValuesToExpand = Object.keys(groupState.children).reduce(function(accumulator, currentValue) {
-											if (!groupState.children[currentValue].collapsed) {
+											if (groupState.children[currentValue].expanded === true) {
 												accumulator.push(currentValue);
 											}
 											return accumulator
 										}, [])
 										
 										if (nodeValuesToExpand.length) {
-											model = model || gridOptions.api.getModel();
 											var field = params.request.rowGroupCols[groupKeys.length].field
 											
 											for (var index = 0; nodeValuesToExpand.length && index < resultForGrid.length; index++) { // CHECKME Maybe use a binary search impl. instead of sequential looping? see https://stackoverflow.com/questions/10264239/fastest-way-to-determine-if-an-element-is-in-a-sorted-array
-												var nodeMustExpand = nodeValuesToExpand.indexOf(resultForGrid[index][field]) !== -1;
+												var nodeToExpandIndex = nodeValuesToExpand.indexOf(resultForGrid[index][field]);
 												
-												if (nodeMustExpand) {
+												if (nodeToExpandIndex !== -1) {
 													var node = model.getRowNode(resultForGrid[index]._svyFoundsetUUID + '_' + resultForGrid[index]._svyRowId)
 													
 													if (!node) continue; // On browser refresh its sometimes null?!?!? Need to investigate it, but just ignoring it for now. Maybe some thing is happening twice, because in the end the grid renders properly...
 													
 													node.setExpanded(true);
 													
-													nodeValuesToExpand.splice(idx, 1);
+													nodeValuesToExpand.splice(nodeToExpandIndex, 1);
 												}
 											}
 										}
 									}
 
-									// Set selectedState based on the persisted selection state
-									//setParentGroupState(node) // ..... check/fix
-									if (params.parentNode.group && params.parentNode.selected) { // Need to select all children
-										model = model || gridOptions.api.getModel();
+									// restore selection
+									var parentSelected = params.parentNode.group && params.parentNode.selected;
 									
-										var selectedState = params.parentNode.selected;
-										
-										for (var i = 0; i < resultForGrid.length; i++) {
-											var node = model.getRowNode(resultForGrid[i]._svyFoundsetUUID + '_' + resultForGrid[i]._svyRowId)
+									// TODO combine the loop through resultForGrid here with the one(s) for expanded state and optimize early break if all expands and selections are done already
+									for (var i = 0; i < resultForGrid.length; i++) {
+										var node = model.getRowNode(resultForGrid[i]._svyFoundsetUUID + '_' + resultForGrid[i]._svyRowId)
 
-//											if (node.selected === selectedState) { // this can happen when collapsing previously collapsed nodes with selected children
-//												// making sure the parent has the proper selected state as node.setSelected(...) doesn't fire the rowSelected event if the current and desired selected state are equal
-//												
-//											} else {
-												node.setSelected(selectedState); // CHECKME should it check whether the node is selectable?
-											//}
-										}
-									} else if (!params.parentNode.group && Object.keys(groupState.children).length) {
-										// TODO this looping through children should somehow be combined with the children loop for expanding, so looping through children only happens once...
-										var nodeValuesToSelect = Object.keys(groupState.children);
+										var desiredSelectionState = parentSelected || getDesiredNodeSelectedState(node);
 										
-										model = model || gridOptions.api.getModel();
-										var field = params.request.rowGroupCols[groupKeys.length].field
-										
-										for (var index = 0; nodeValuesToSelect.length && index < resultForGrid.length; index++) { // CHECKME Maybe use a binary search impl. instead of sequential looping? see https://stackoverflow.com/questions/10264239/fastest-way-to-determine-if-an-element-is-in-a-sorted-array
-											var nodeMustSelect = nodeValuesToSelect.indexOf(resultForGrid[index][field]) !== -1;
-											
-											if (nodeMustSelect) {
-												var node = model.getRowNode(resultForGrid[index]._svyFoundsetUUID + '_' + resultForGrid[index]._svyRowId)
-												
-												if (!node) continue; // On browser refresh its sometimes null?!?!? Need to investigate it, but just ignoring it for now. Maybe some thing is happening twice, because in the end the grid renders properly...
-												
-												node.setSelected(true);
-												
-												nodeValuesToSelect.splice(idx, 1);
-											}
-										}
+										//if (node.selected !== selectedState) { // can happen already has the proper selection state when collapsing previously collapsed nodes with selected children
+											node.selectThisNode(desiredSelectionState); // CHECKME should it check whether the node is selectable?
+											// TODO clear pks in relevant groupState
+											// CHECKME maybe check if the child keys stored in groupState still exist and if not delete?
+										//}
 									}
 								}
 							});
@@ -2194,8 +2247,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 							var requestViewPortStartIndex;
 							// keep the previous chunk in cache
-							if (request.startRow >= CHUNK_SIZE && request.endRow >= endIndex) {
-								requestViewPortStartIndex = request.startRow - CHUNK_SIZE;
+							if (request.startRow >= gridOptions.cacheBlockSize && request.endRow >= endIndex) {
+								requestViewPortStartIndex = request.startRow - gridOptions.cacheBlockSize;
 							} else {
 								requestViewPortStartIndex = request.startRow;
 							}
@@ -2253,34 +2306,39 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 				// **************************** Watches **************************** //
 				$scope.$watch("model.myFoundset", function(newValue, oldValue) {
+					$log.debug('myFoundset root changed');
 
-						$log.debug('myFoundset root changed');
-						if (isTableGrouped()) {
-							$scope.purge();
-						}
-						var isChangedToEmpty = newValue && oldValue && newValue.serverSize == 0 && oldValue.serverSize > 0;
-						if ($scope.model.myFoundset.viewPort.size > 0 || isChangedToEmpty) {
-							// browser refresh
-							isRootFoundsetLoaded = true;
-							initRootFoundset();
-						}
-						else {
-							// newly set foundset
-							isRootFoundsetLoaded = false;
-						}
-						// TODO ASK R&D should i remove and add the previous listener ?
-						$scope.model.myFoundset.removeChangeListener(changeListener);
-						$scope.model.myFoundset.addChangeListener(changeListener);
-
-					});
+					if (isTableGrouped()) {
+						$scope.purge();
+					}
+					
+					var isChangedToEmpty = newValue && oldValue && newValue.serverSize == 0 && oldValue.serverSize > 0;
+					
+					if ($scope.model.myFoundset.viewPort.size > 0 || isChangedToEmpty) {
+						// browser refresh
+						isRootFoundsetLoaded = true;
+						initRootFoundset();
+					} else {
+						// newly set foundset
+						isRootFoundsetLoaded = false;
+					}
+					
+					// TODO ASK R&D should i remove and add the previous listener ?
+					$scope.model.myFoundset.removeChangeListener(changeListener);
+					$scope.model.myFoundset.addChangeListener(changeListener);
+				});
 				
 				var columnWatches = [];
+				
 				$scope.$watchCollection("model.columns", function(newValue, oldValue) {
 					$log.debug('columns changed');
 					for(var i = 0; i < columnWatches.length; i++) {
 						columnWatches[i]();
 					}
 					columnWatches.length = 0;
+					
+					if (!newValue) return;
+					
 					var columnKeysToWatch = [
 						"headerTitle",
 						"headerStyleClass",
@@ -2298,8 +2356,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						"editType",
 						"id"
 					];
-					for(var i = 0; i < $scope.model.columns.length; i++) {
-						for( var j = 0; j < columnKeysToWatch.length; j++) {
+					
+					for (var i = 0; i < $scope.model.columns.length; i++) {
+						for (var j = 0; j < columnKeysToWatch.length; j++) {
 							var columnWatch = $scope.$watch("model.columns[" + i + "]['" + columnKeysToWatch[j] + "']",
 							function(newValue, oldValue) {
 								if(newValue != oldValue) {
@@ -2310,13 +2369,13 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							columnWatches.push(columnWatch);
 						}
 					}
+
 					// watch the column header title
 					for (var i = 0; i < $scope.model.columns.length; i++) {
 						watchColumnHeaderTitle(i);
 						watchColumnFooterText(i);
 					}
-				
-					
+
 					if(newValue != oldValue) {
 						updateColumnDefs();
 					}
@@ -2359,15 +2418,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				}
 
 				$scope.$watch("model._internalColumnState", function(newValue, oldValue) {
-					if(isGridReady && (newValue !== "_empty")) {
+					if (isGridReady && newValue !== "_empty") {
 						$scope.model.columnState = newValue;
 						// need to clear it, so the watch can be used, if columnState changes, and we want to apply the same _internalColumnState again
 						$scope.model._internalColumnState = "_empty";
 						$scope.svyServoyapi.apply('_internalColumnState');
-						if($scope.model.columnState) {
+						if ($scope.model.columnState) {
 							restoreColumnsState();
-						}
-						else {
+						} else {
 							gridOptions.columnApi.resetColumnState();
 						}
 					}
@@ -2484,7 +2542,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 					var loadExtraRecordsAsync = function(startIndex, size, dontNotifyYet) {
 						// TODO use loadExtraRecordsAsync to keep cache small
-						size = (size * CACHED_CHUNK_BLOCKS) + size;
+						size = (size * gridOptions.maxBlocksInCache) + size;
 						if (thisInstance.hasMoreRecordsToLoad() === false) {
 							size = this.foundset.serverSize - startIndex;
 						}
@@ -3529,7 +3587,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					$log.debug(' - 2.1 Request selection changes');
 
 					// Disable selection when table is grouped
-					if (isTableGrouped()) {
+					if (isTableGrouped() || $scope.model.disconnectedSelection) {
 						return;
 					}
 
@@ -3568,8 +3626,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 				}
 
-				function scrollToSelection(foundsetManager)
-				{
+				function scrollToSelection(foundsetManager) {
 					// don't do anything if table is grouped.
 					if (isTableGrouped()) {
 						return;
@@ -3582,9 +3639,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					if(foundsetManager.foundset.selectedRowIndexes.length) {
 						var model = gridOptions.api.getModel();
 						if(model.rootNode.childrenCache) {
-							// virtual row count must be multiple of CHUNK_SIZE (limitation/bug of aggrid)
-							var offset = foundsetManager.foundset.selectedRowIndexes[0] % CHUNK_SIZE
-							var virtualRowCount = foundsetManager.foundset.selectedRowIndexes[0] + (CHUNK_SIZE - offset);
+							// virtual row count must be multiple of gridOptions.cacheBlockSize (limitation/bug of aggrid)
+							var offset = foundsetManager.foundset.selectedRowIndexes[0] % gridOptions.cacheBlockSize
+							var virtualRowCount = foundsetManager.foundset.selectedRowIndexes[0] + (gridOptions.cacheBlockSize - offset);
 
 							if(virtualRowCount <= foundsetManager.foundset.serverSize) {
 								model.rootNode.childrenCache.setVirtualRowCount(virtualRowCount);
@@ -3803,11 +3860,13 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				}
 
 				/**
+				 * Converts the contents of $scope.model.columns to teh columnDef representation that the AG Grid expects
+				 * 
 				 * @public
+				 * 
 				 * @return {Array<Object>}
-				 *  */
-				function getColumnDefs() {
-					
+				 */
+				function getColumnDefs() {	
 					var cellRenderer = function(params) {
 						var isGroupColumn = false;
 						var colId = null;
@@ -3871,8 +3930,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 					//create the column definitions from the specified columns in designer
 					var colDefs = [];
-					var colDef = { };
+					var colDef;
 					var column;
+					
 					for (var i = 0; $scope.model.columns && i < $scope.model.columns.length; i++) {
 						column = $scope.model.columns[i];
 
@@ -3885,7 +3945,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							cellRenderer: cellRenderer
 						};
 
-						if(column.id) {
+						if (column.id) {
 							colDef.colId = column.id;
 						}
 
@@ -3927,16 +3987,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						if (column.editType) {
 							colDef.editable = isColumnEditable;
 
-							if(column.editType == 'TEXTFIELD' || column.editType == 'TYPEAHEAD') {
+							if (column.editType == 'TEXTFIELD' || column.editType == 'TYPEAHEAD') {
 								colDef.cellEditor = getTextEditor();
 								colDef.cellEditorParams = {
 							  		svyEditType: column.editType
 								}
-							}
-							else if(column.editType == 'DATEPICKER') {
+							} else if (column.editType == 'DATEPICKER') {
 								colDef.cellEditor = getDatePicker();
-							}
-							else if(column.editType == 'COMBOBOX') {
+							} else if (column.editType == 'COMBOBOX') {
 								colDef.cellEditor = getSelectEditor();
 							}
 
@@ -3950,21 +4008,29 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 							if(column.filterType == 'TEXT') {
 								colDef.filter = 'agTextColumnFilter';
-							}
-							else if(column.filterType == 'NUMBER') {
+							} else if (column.filterType == 'NUMBER') {
 								colDef.filter = 'agNumberColumnFilter';
-							}
-							else if(column.filterType == 'DATE') {
+							} else if (column.filterType == 'DATE') {
 								colDef.filter = 'agDateColumnFilter';
 							}
 							
-							colDef.filterParams = { applyButton: true, clearButton: true, newRowsAction: 'keep', suppressAndOrCondition: true, caseSensitive: false };
+							colDef.filterParams = {
+								applyButton: true,
+								clearButton: true,
+								newRowsAction: 'keep',
+								suppressAndOrCondition: true,
+								caseSensitive: false
+							};
 						}
 
-						if(column.columnDef) {
+						if (column.columnDef) {
 							for (var property in column.columnDef) {
 								if (column.columnDef.hasOwnProperty(property)) {
 									colDef[property] = column.columnDef[property];
+									
+									if (property === 'headerCheckboxSelection' && colDef[property]) {
+										// TODO force the checkbox to be visible and wire up onChange behavior
+									}
 								}
 							}
 						}
@@ -4237,8 +4303,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 					return -1;
 				}
-				
-				
+						
 				/**
 				 * Finds all the columns with the given idForFoundset
 				 * 
@@ -4329,7 +4394,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				}
 	
 				function restoreColumnsState() {
-					if($scope.model.columnState) {
+					if ($scope.model.columnState) {
 						var columnStateJSON = null;
 
 						try {
@@ -4339,9 +4404,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							$log.error(e);
 						}
 						
-						if($scope.model.columnStateOnError) {
+						if ($scope.model.columnStateOnError) {
 							// can't parse columnState
-							if(columnStateJSON == null || !Array.isArray(columnStateJSON.columnState)) {
+							if (columnStateJSON == null || !Array.isArray(columnStateJSON.columnState)) {
 								$window.executeInlineScript(
 									$scope.model.columnStateOnError.formname,
 									$scope.model.columnStateOnError.script,
@@ -4351,13 +4416,13 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 							// if columns were added/removed, skip the restore
 							var savedColumns = [];
-							for(var i = 0; i < columnStateJSON.columnState.length; i++) {
-								if(columnStateJSON.columnState[i].colId.indexOf('_') == 0) {
+							for (var i = 0; i < columnStateJSON.columnState.length; i++) {
+								if (columnStateJSON.columnState[i].colId.indexOf('_') == 0) {
 									continue; // if special column, that starts with '_'
 								}
 								savedColumns.push(columnStateJSON.columnState[i].colId);
 							}
-							if(savedColumns.length != $scope.model.columns.length) {
+							if (savedColumns.length != $scope.model.columns.length) {
 									$window.executeInlineScript(
 										$scope.model.columnStateOnError.formname,
 										$scope.model.columnStateOnError.script,
@@ -4365,7 +4430,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 									return;
 							}
 	
-							for(var i = 0; i < savedColumns.length; i++) {
+							for (var i = 0; i < savedColumns.length; i++) {
 								var columnExist = false;
 								var fieldToCompare = savedColumns[i];
 								var fieldIdx = 0;
@@ -4602,6 +4667,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					if (getRowGroupColumns().length) {
 						// gridOptions.api.collapseAll() doesn't work with ServerSide RowModel
 						
+						// CHECKME does iterating forward and closing nodes work?
+						// CHECKME does  AG Grid internally keep expanded state on nodes/rows that are "purged" at some point?
 						gridOptions.api.forEachNode(function(node) {
 							if (node.group) {
 								node.setExpanded(false);
@@ -4649,6 +4716,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					return groupedSelection;
 				}
 
+				$scope.api.setSelection = function() {
+					
+				}
+				
+				$scope.api.selectGroup = function(groupKeys, state, ensureVisible) {
+					
+				}
+				
 				$scope.api.getRowGroupColumns = function() {
 					// TODO implement and expose
 				}
