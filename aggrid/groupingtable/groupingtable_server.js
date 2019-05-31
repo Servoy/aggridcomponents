@@ -404,20 +404,19 @@ function filterFoundset(foundset, sFilterModel) {
 	var isFilterSet = false;
 	
 	var query;
-	if(servoyApi.getQuerySelect) {
+	if (servoyApi.getQuerySelect) {
 		query = servoyApi.getQuerySelect(foundset.getDataSource());
-	}
-	else {
+	} else {
 		// there is an issue in Servoy, that queries are not cleared after calling removeFoundSetFilterParam
 		// until loadAllRecords is called
 		foundset.loadAllRecords();
 		query = foundset.getQuery();
 	}
 
-	for(var i = 0; i < $scope.model.columns.length; i++) {
+	for (var i = 0; i < $scope.model.columns.length; i++) {
 		var dp = $scope.model.columns[i].dataprovider;
 		var filter = filterModel[i];
-		if(filter) {
+		if (filter) {
 			var op, value;
 			var useNot = false;
 			var useIgnoreCase = false;
@@ -452,10 +451,9 @@ function filterFoundset(foundset, sFilterModel) {
 						value = "%" + filter["filter"] + "%";
 						break;	
 				}
-			}
-			else if(filter["filterType"] == "number") {
+			} else if (filter["filterType"] == "number") {
 				value = filter["filter"];
-				switch(filter["type"]) {
+				switch (filter["type"]) {
 					case "equals":
 						op = "eq";
 						break;
@@ -482,10 +480,9 @@ function filterFoundset(foundset, sFilterModel) {
 						value.push(filter["filterTo"]);
 						break;
 				}
-			}
-			else if(filter["filterType"] == "date") {
+			} else if (filter["filterType"] == "date") {
 				value = new Date(filter["dateFrom"]);
-				switch(filter["type"]) {
+				switch (filter["type"]) {
 					case "equals":
 						op = "eq";
 						break;
@@ -508,30 +505,32 @@ function filterFoundset(foundset, sFilterModel) {
 				}
 			}
 
-			if(op != undefined && value != undefined) {
+			if (op != undefined && value != undefined) {
 				var whereClause = null;
 				var aDP = dp.split('.');
-				for(var j = 0; j < aDP.length - 1; j++) {
+				for (var j = 0; j < aDP.length - 1; j++) {
 					whereClause = whereClause == null ? query.joins[aDP[j]] : whereClause.joins[aDP[j]];
 				}
 
 				whereClause = whereClause == null ? query.columns[aDP[aDP.length - 1]] : whereClause.columns[aDP[aDP.length - 1]];
 
-				if(useIgnoreCase) {
+				if (useIgnoreCase) {
 					whereClause = whereClause["lower"];
 					value = value.toLowerCase();
 				}
-				if(useNot) {
+				
+				if (useNot) {
 					whereClause = whereClause["not"];
 				}
 				whereClause = op == "between" ? whereClause[op](value[0], value[1]) : whereClause[op](value);
+				
 				if(!isFilterSet) isFilterSet = true;
 				query.where.add(whereClause);
 			}
 		}
 	}
 
-	if(isFilterSet) {
+	if (isFilterSet) {
 		foundset.addFoundSetFilterParam(query, "ag-groupingtable");
 	}
 }
