@@ -201,15 +201,11 @@
 		"collapseAll": {
 			"returns": "boolean"
 		},
-		"getGroupedState": {
-			"returns": "array<string[]>"
-		},
-		"setGroupedState": {
-			"parameters": [{
-				"name": "paths",
-				"type": "array<string[]>"
-			}],
-			"returns": "array<string[]>"
+		"setSelection": {
+			"parameters" : [{
+				"name": "selectionState",
+				"type": "object"
+			}]
 		},
 		"getSelectedRecordFoundSet": {
 			"returns": "foundset"
