@@ -786,14 +786,18 @@ $scope.api.getSelectedRecordFoundSet = function() {
 		const groupColumnsDefs = getGroupColumnDefs();
 		const groupColumns = [];		
 		const pkColumn = selectionQuery.columns[pkColumnNames[0]];
+		
+		var hasSelection = false;
 
 		function appendSelectionWhereClauses(groupState, groupColumn, groupKey, level, condition) {
 			// CHECKME is selected ever false? Can't remember...
 			if (groupState.selected) { // selected group: include all children
-				condition.add(groupColumn.eq(groupKey))
+				condition.add(groupColumn.eq(groupKey));
+				hasSelection = true;
 			} else if (groupState.pks) { //leafgroup: include selected PK's // CHECKME what happens is pks doesn't contain any pks?
-				condition.add(pkColumn.isin(groupState.pks))
-			} else { // must be another level group level 
+				condition.add(pkColumn.isin(groupState.pks));
+				hasSelection = true;
+			} else if (groupState.children) { // must be another level group level 
 				const keys = Object.keys(groupState.children);
 				if (!keys.length) return; // Should not happen, but anyway...
 				
@@ -818,11 +822,16 @@ $scope.api.getSelectedRecordFoundSet = function() {
 				
 				if (selectedChildren.length) {
 					childrenCondition.add(groupColumn.isin(selectedChildren));
+					hasSelection = true;
 				}
 			}
 		}
 		
 		appendSelectionWhereClauses($scope.model.state, null, null, 0, selectionQuery.where);
+		
+		if (!hasSelection) {
+			selectionQuery.where.add(pkColumn.eq(null))
+		}
 	} else { // create a duplicate of the root foundset and limit it to only contain the records that are selected in the root foundset
 		const selectedRecords = $scope.model.myFoundset.foundset.getSelectedRecords();
 		
