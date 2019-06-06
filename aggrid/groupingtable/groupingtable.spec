@@ -179,7 +179,8 @@
 	        "returns": "boolean"
 	    },
 		"getGroupedSelection": {
-			"returns": "record[]"
+			"returns": "record[]",
+			"deprecated": "true"
 		},
 		"expandGroup": {
 			"parameters": [{

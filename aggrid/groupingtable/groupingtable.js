@@ -922,7 +922,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						
 						// Clear all expanded/collapsed persist state
 						$scope.model.state = {
-							children: []
+							children: {}
 						}
 					} else {
 						if (!$scope.isGroupView) { // grid wasn't grouped before, but is now
@@ -980,7 +980,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								// TODO clean up collapse/expand persist state from the right level downwards
 								
 	//							$scope.model.state = {
-	//								children: []
+	//								children: {}
 	//							}
 								break;
 							}
@@ -2438,22 +2438,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					this.isRoot = foundsetUUID === ROOT_FOUNDSET_ID
 					this.foundsetUUID = foundsetUUID;
 
-					// methods
-					this.getViewPortData;
-					this.getViewPortRow;
-					this.hasMoreRecordsToLoad;
-					this.isLastRow;
-					this.getLastRowIndex;
-					this.loadExtraRecordsAsync;
-					this.getSortColumns;
-					this.sort;
-					this.getRowIndex;
-
 					/** return the viewPort data in a new object
 					 * @param {Number} [startIndex]
 					 * @param {Number} [endIndex]
 					 * */
-					var getViewPortData = function(startIndex, endIndex) {
+					this.getViewPortData = function(startIndex, endIndex) {
 						var result = [];
 						startIndex = startIndex ? startIndex : 0;
 						endIndex = endIndex ? endIndex : thisInstance.foundset.viewPort.rows.length;
@@ -2483,7 +2472,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 
 					/** return the row in viewport at the given index */
-					var getViewPortRow = function(index, columnsModel) {
+					this.getViewPortRow = function(index, columnsModel) {
 						var r;
 						try {
 							r = {};
@@ -2516,12 +2505,12 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						return r;
 					}
 
-					var hasMoreRecordsToLoad = function() {
+					this.hasMoreRecordsToLoad = function() {
 						return thisInstance.foundset.hasMoreRows || (thisInstance.foundset.viewPort.startIndex + thisInstance.foundset.viewPort.size) < thisInstance.foundset.serverSize;
 						//						return thisInstance.foundset.hasMoreRows || thisInstance.foundset.viewPort.size < thisInstance.foundset.serverSize;
 					}
 
-					var getLastRowIndex = function() {
+					this.getLastRowIndex = function() {
 						if (this.hasMoreRecordsToLoad()) {
 							return -1;
 						} else {
@@ -2529,7 +2518,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						}
 					}
 
-					var loadExtraRecordsAsync = function(startIndex, size, dontNotifyYet) {
+					this.loadExtraRecordsAsync = function(startIndex, size, dontNotifyYet) {
 						// TODO use loadExtraRecordsAsync to keep cache small
 						size = (size * gridOptions.maxBlocksInCache) + size;
 						if (thisInstance.hasMoreRecordsToLoad() === false) {
@@ -2564,11 +2553,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						return promise;
 					}
 
-					var getSortColumns = function() {
+					this.getSortColumns = function() {
 						return thisInstance.foundset ? thisInstance.foundset.sortColumns : null;
 					}
 
-					var sort = function(sortString) {
+					this.sort = function(sortString) {
 						if (sortString) {
 							// TODO check sort
 							return thisInstance.foundset.sort(sortString);
@@ -2628,16 +2617,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						// add the change listener to the component
 						this.foundset.addChangeListener(foundsetListener);
 					}
-
-					// methods
-					this.getViewPortData = getViewPortData;
-					this.getViewPortRow = getViewPortRow;
-					this.hasMoreRecordsToLoad = hasMoreRecordsToLoad;
-					this.getLastRowIndex = getLastRowIndex;
-					this.loadExtraRecordsAsync = loadExtraRecordsAsync;
-					this.getSortColumns = getSortColumns;
-					this.sort = sort;
-
 				}
 
 				/**
@@ -3206,7 +3185,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 						var groupLevels = rowGroupCols.length;
 
-						// create groups starting from index 0
+						// recursively create groups starting from index 0
 						getRowColumnHashFoundset(0);
 
 						function getRowColumnHashFoundset(index) {
@@ -3423,9 +3402,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 				/**
 				 * Returns the foundset manager for the given hash
-				 * @return {FoundSetManager}
+				 * 
 				 * @public
-				 *  */
+				 * 
+				 * @return {FoundSetManager}
+				 */
 				function getFoundsetManagerByFoundsetUUID(foundsetHash) {
 					if (!foundsetHash) return null;
 

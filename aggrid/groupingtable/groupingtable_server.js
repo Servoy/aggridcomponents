@@ -69,7 +69,7 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 	}
 
 	// push dataproviders to the clientside foundset
-	var dps = { };
+	var dps = {};
 	// FIXME this creates an issue
 	log("There are " + $scope.model.columns.length + " columns and " + idForFoundsets.length + " idForFoundsets", LOG_LEVEL.WARN);
 	for (var idx = 0; idx < $scope.model.columns.length; idx++) {
@@ -680,7 +680,7 @@ $scope.api.getSelectedRecordFoundSet = function() {
 	const selectionQuery = $scope.model.myFoundset.foundset.getQuery();
 	
 	if (true /*&& isGrouped*/) { // build a query that takes into grouping and including all records for the group if the group was selected
-		// TODO use actual state from client
+		/*
 		const state = {
 			"children": {
 				"AACHEN": {
@@ -733,7 +733,6 @@ $scope.api.getSelectedRecordFoundSet = function() {
 			}
 		}
 		
-		/*
 		 * a state as suggested above leads to an SQL statement like:
 		where ....
 		and		(
