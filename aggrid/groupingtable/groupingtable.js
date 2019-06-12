@@ -489,7 +489,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					},
 					// TODO localeText: how to provide localeText to the grid ? can the grid be shipped with i18n ?
 
-					navigateToNextCell: selectionChangeNavigation,
+					navigateToNextCell: keySelectionChangeNavigation,
+					tabToNextCell: tabSelectionChangeNavigation,
 
 					sideBar : sideBar,
 					popupParent: gridDiv,
@@ -1011,7 +1012,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					return [];
 				}
 
-				function selectionChangeNavigation(params) {
+				function keySelectionChangeNavigation(params) {
 					var previousCell = params.previousCellDef;
 					var suggestedNextCell = params.nextCellDef;
 				 
@@ -1045,6 +1046,29 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						default:
 							throw "this will never happen, navigation is always on of the 4 keys above";
 					}					
+				}
+
+				function tabSelectionChangeNavigation(params) {
+					var suggestedNextCell = params.nextCellDef;
+
+					var suggestedNextCellSelected = false;
+					var selectedNodes = gridOptions.api.getSelectedNodes();
+					for(var i = 0; i < selectedNodes.length; i++) {
+						if(suggestedNextCell.rowIndex == selectedNodes[i].rowIndex) {
+							suggestedNextCellSelected = true;
+							break;
+						}
+					}
+
+					if(!suggestedNextCellSelected) {
+						gridOptions.api.forEachNode( function(node) {
+							if (suggestedNextCell.rowIndex === node.rowIndex) {
+								node.setSelected(true, true);
+							}
+						});
+					}
+
+					return suggestedNextCell;
 				}
 
 				/**
