@@ -925,9 +925,12 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							children: {}
 						}
 					} else {
+						var wasUngrouped = false;
+						
 						if (!$scope.isGroupView) { // grid wasn't grouped before, but is now
 							// clear filter
 							gridOptions.api.setFilterModel(null);
+							wasUngrouped = true;
 							
 							// CHECKME should the selection on the root foundset not be cleared, as that one isn't being used now anymore
 							//		   or should the selection it had be persisted to group mode?
@@ -945,6 +948,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						var newGroupedFields = rowGroupCols.map(function(col) { // get an array of the field values of the new grouped columns
 							return col.colDef.field;
 						});
+						var autoColumnGroupField = gridOptions.autoGroupColumnDef ? gridOptions.autoGroupColumnDef.field : null;
 						
 						for (i = 0; i < $scope.model.columns.length; i++) {
 							column = $scope.model.columns[i];
@@ -953,6 +957,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							var newGroupIndex = newGroupedFields.indexOf(field);
 							var isGroupedBy = newGroupIndex !== -1;
 							var wasGroupedBy = column.rowGroupIndex > -1;
+							var hideBecauseFieldSharedWithAutoColumnGroup = wasUngrouped && field && field === autoColumnGroupField;
 							
 							var newVisibility;
 							
@@ -961,13 +966,13 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								newVisibility = true;
 							}
 							
-							if (isGroupedBy) {
+							if (isGroupedBy || hideBecauseFieldSharedWithAutoColumnGroup) {
 								newVisibility = false;
 							}
 							
 							column.rowGroupIndex = newGroupIndex; // persist
 							
-							if (true && (wasGroupedBy || isGroupedBy)) { // TODO expose behavior as option
+							if (true && (wasGroupedBy || isGroupedBy || hideBecauseFieldSharedWithAutoColumnGroup)) { // TODO expose behavior as option
 								gridOptions.columnApi.setColumnVisible(field, newVisibility); // column visibility
 							}
 						}
