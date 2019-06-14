@@ -251,6 +251,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					rootGroupSort: null // NOT USED?
 				}
 
+				// FIXME this overwrites any state coming from the serverside when reshowing a form with a grid on it
 				// TODO move this state into GroupNode/FoundsetManager
 				// TODO clear properly when rowGroups change
 				// TODO persist to serverside: maybe flatten in the process? Just for persistance there's no need to track the collapsed state, as that's just done for UX/performance in the client
@@ -2021,6 +2022,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					$q.all(filterPromises).then(function() {
 						thisFoundsetDatasource.foundsetServer.getData(params.request, groupKeys,
 							function successCallback(resultForGrid, lastRow) {
+								var model = gridOptions.api.getModel();
+								
 								// CHECKME if resultForGrid.length == 0 and the fetch is for group children, maybe refresh the group row's foundset, as apparently there's a group w/o children?
 								//		   should be implemented only after making sure the joins based on related dataproviders are added using the proper outer join, otherwise resultForGrid.length == 0 might be a false negative
 								//		   and should make sure that the refresh doesn't cause expanded or selection state to get lost
@@ -2029,7 +2032,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								
 								// special handling when in group mode to mimic AG Grid features that aren't enabled when using the serverside rowmodel
 								if ($scope.isGroupView) {
-									var model = gridOptions.api.getModel();
 									var groupState = getGroupPersistState(groupKeys);
 									
 									// TODO move code below to GroupManager
@@ -2066,24 +2068,25 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 											}
 										}
 									}
+								}
 
-									// restore selection
-									var parentSelected = params.parentNode.group && params.parentNode.selected;
+								//TODO the selection restore code below probably should be done conditionally on the root foundset based on the selection handling is disconnected from the servoy foundset selection model								
+								// restore selection
+								var parentSelected = params.parentNode.group && params.parentNode.selected;
+								
+								// TODO combine the loop through resultForGrid here with the one(s) for expanded state and optimize early break if all expands and selections are done already
+								for (var i = 0; i < resultForGrid.length; i++) {
+									var node = model.getRowNode(resultForGrid[i]._svyFoundsetUUID + '_' + resultForGrid[i]._svyRowId)
+
+									if (!node) continue; // somehow its sometimes null....
 									
-									// TODO combine the loop through resultForGrid here with the one(s) for expanded state and optimize early break if all expands and selections are done already
-									for (var i = 0; i < resultForGrid.length; i++) {
-										var node = model.getRowNode(resultForGrid[i]._svyFoundsetUUID + '_' + resultForGrid[i]._svyRowId)
-
-										if (!node) continue; // somehow its sometimes null....
-										
-										var desiredSelectionState = parentSelected || getDesiredNodeSelectedState(node);
-										
-										//if (node.selected !== selectedState) { // can happen already has the proper selection state when collapsing previously collapsed nodes with selected children
-											node.selectThisNode(desiredSelectionState); // CHECKME should it check whether the node is selectable?
-											// TODO clear pks in relevant groupState
-											// CHECKME maybe check if the child keys stored in groupState still exist and if not delete?
-										//}
-									}
+									var desiredSelectionState = parentSelected || getDesiredNodeSelectedState(node);
+									
+									//if (node.selected !== selectedState) { // can happen already has the proper selection state when collapsing previously collapsed nodes with selected children
+										node.selectThisNode(desiredSelectionState); // CHECKME should it check whether the node is selectable?
+										// TODO clear pks in relevant groupState
+										// CHECKME maybe check if the child keys stored in groupState still exist and if not delete?
+									//}
 								}
 							});
 					}, function(reason) {
@@ -2217,9 +2220,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					/**
 					 * GetDataFromFoundset Promise Callback
 					 *
-					 * @param {FoundsetManager} foundsetRef the foundsetManager object
 					 * @protected
-					 *  */
+					 * 
+					 * @param {FoundsetManager} foundsetRef the foundsetManager object
+					 */
 					function getDataFromFoundset(foundsetManager) {
 						// test cache blocks
 						//if (!isTableGrouped()) test_validateCache();
@@ -3539,9 +3543,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					if (change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROW_UPDATES_RECEIVED]) {
 						$log.debug(idRandom + ' - 4. Notify viewport row update');
 						var updates = change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROW_UPDATES_RECEIVED].updates;
-						updateRows(updates, null, null);
-						// i don't need a selection update in case of purge
-						return;
+						
+						if (updateRows(updates, null, null)) {
+							// i don't need a selection update in case of purge
+							return;
+						}
 					}
 
 					// gridOptions.api.purgeEnterpriseCache();
@@ -3835,7 +3841,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				}
 
 				/**
-				 * Converts the contents of $scope.model.columns to teh columnDef representation that the AG Grid expects
+				 * Converts the contents of $scope.model.columns to the columnDef representation that the AG Grid expects
 				 * 
 				 * @public
 				 * 
@@ -4533,7 +4539,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 * the component will always present the latest data when rendered again.
 				 *
 				 * @public
-				 * */
+				 */
 				$scope.api.notifyDataChange = function() {
 					$scope.dirtyCache = true;
 				}
