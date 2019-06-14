@@ -195,7 +195,8 @@
 			}],
 			"delayUntilFormLoads": true,
 			"discardPreviouslyQueuedSimilarCalls": true
-		}
+		},
+		"scrollToSelection": {}
     },
 	"internalApi" : {
 		"getGroupedFoundsetUUID" : {

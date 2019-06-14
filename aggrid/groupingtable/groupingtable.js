@@ -4435,6 +4435,13 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 				}
 
+				/**
+				 * Scroll to the selected row
+				 */				
+				$scope.api.scrollToSelection = function() {
+					scrollToSelection();
+				}
+
 				// FIXME how to force re-fit when table is shown for the first time
 
 				// bind resize event
