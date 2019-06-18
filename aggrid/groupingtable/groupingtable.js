@@ -449,6 +449,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						if($scope.handlers.onReady) {
 							$scope.handlers.onReady();
 						}
+						
+						setColumnVisibility(getRowGroupColumns())
+						
 						// without timeout the column don't fit automatically
 						setTimeout(function() {
 							sizeHeaderAndColumnsToFit();
@@ -890,7 +893,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					$log.debug(event);
 					
 					var rowGroupCols = event.columns;
-	
+					
+					setColumnVisibility(rowGroupCols)
+				})
+	         
+				function setColumnVisibility(rowGroupCols) {
 					var i;
 					var column;
 					var field;
@@ -958,7 +965,12 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							var newGroupIndex = newGroupedFields.indexOf(field);
 							var isGroupedBy = newGroupIndex !== -1;
 							var wasGroupedBy = column.rowGroupIndex > -1;
-							var hideBecauseFieldSharedWithAutoColumnGroup = wasUngrouped && field && field === autoColumnGroupField;
+						//	var hideBecauseFieldSharedWithAutoColumnGroup = wasUngrouped && field && field === autoColumnGroupField;
+							var hideBecauseFieldSharedWithAutoColumnGroup = false
+							
+							if (autoColumnGroupField && column.columnDef.checkboxSelection) {
+								hideBecauseFieldSharedWithAutoColumnGroup = wasUngrouped || ($scope.isGroupView && field && field === autoColumnGroupField);
+							}
 							
 							var newVisibility;
 							
@@ -1025,7 +1037,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					setTimeout(function() {
 						scrollToSelection();
 					}, 150);
-				});
+				}
 
 				/**
 				 * Event handler for the event fired when groups are collapsed or expanded
