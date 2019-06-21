@@ -1051,21 +1051,23 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				function tabSelectionChangeNavigation(params) {
 					var suggestedNextCell = params.nextCellDef;
 
-					var suggestedNextCellSelected = false;
-					var selectedNodes = gridOptions.api.getSelectedNodes();
-					for(var i = 0; i < selectedNodes.length; i++) {
-						if(suggestedNextCell.rowIndex == selectedNodes[i].rowIndex) {
-							suggestedNextCellSelected = true;
-							break;
-						}
-					}
-
-					if(!suggestedNextCellSelected) {
-						gridOptions.api.forEachNode( function(node) {
-							if (suggestedNextCell.rowIndex === node.rowIndex) {
-								node.setSelected(true, true);
+					if(suggestedNextCell) {
+						var suggestedNextCellSelected = false;
+						var selectedNodes = gridOptions.api.getSelectedNodes();
+						for(var i = 0; i < selectedNodes.length; i++) {
+							if(suggestedNextCell.rowIndex == selectedNodes[i].rowIndex) {
+								suggestedNextCellSelected = true;
+								break;
 							}
-						});
+						}
+
+						if(!suggestedNextCellSelected) {
+							gridOptions.api.forEachNode( function(node) {
+								if (suggestedNextCell.rowIndex === node.rowIndex) {
+									node.setSelected(true, true);
+								}
+							});
+						}
 					}
 
 					return suggestedNextCell;
