@@ -1,3 +1,5 @@
+const SERVOY_FIND_SEARCH_CONDITION_NAME = 'SV:S'
+
 // **************************** Internal API implementation **************************** //
 /**
  * @param {Array<Number>} groupColumns
@@ -677,7 +679,12 @@ $scope.api.getSelectedRecordFoundSet = function() {
 		return null;
 	}
 	
+	/** @type {QBSelect} */
 	const selectionQuery = $scope.model.myFoundset.foundset.getQuery();
+	// Remove filter condition if still applied on the root foundset: query to get selected records based on $scope.model.state will contain the proper restrictions
+	// without removing the condition, the filter will be applied on the entire selection
+	// TODO make configurable, might depends on Servoy 2019.03 to do properly (allow selecting predefined values (for Servoy constants) or custom conditionNames (like 'pgnSearch' in our case))
+	selectionQuery.where.remove(SERVOY_FIND_SEARCH_CONDITION_NAME);
 	
 	if (true /*&& isGrouped*/) { // build a query that takes into grouping and including all records for the group if the group was selected
 		/*
