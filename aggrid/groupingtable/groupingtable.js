@@ -251,14 +251,17 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					rootGroupSort: null // NOT USED?
 				}
 
-				// FIXME this overwrites any state coming from the serverside when reshowing a form with a grid on it
-				// TODO move this state into GroupNode/FoundsetManager
-				// TODO clear properly when rowGroups change
-				// TODO persist to serverside: maybe flatten in the process? Just for persistance there's no need to track the collapsed state, as that's just done for UX/performance in the client
-				// TODO maybe not require empty children objects? How much extra checking is needed in code?
-				$scope.model.state = {};
-				
-				$scope.svyServoyapi.apply('state');
+				// Disabling the keeping of the persisted state when reshowing the component for now, untill API is ready to control selection, grouping and expanded state
+				//if (!$scope.model.state) {
+					// TODO move this state into GroupNode/FoundsetManager
+					// TODO clear properly when rowGroups change
+					// TODO maybe not require empty children objects? How much extra checking is needed in code?
+					$scope.model.state = {
+						pks: []
+					};
+					
+					$scope.svyServoyapi.apply('state');
+				//}
 				
 				// used in HTML template to toggle sync button
 				$scope.isGroupView = false;
@@ -929,9 +932,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						}
 						
 						// Clear all expanded/collapsed persist state
-						$scope.model.state = {
-							children: {}
-						}
+						$scope.model.state.children = {}
 					} else {
 						var wasUngrouped = false;
 						
