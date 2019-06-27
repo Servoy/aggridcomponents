@@ -800,7 +800,7 @@ $scope.api.getSelectedRecordFoundSet = function() {
 			if (groupState.selected) { // selected group: include all children
 				condition.add(groupColumn.eq(groupKey));
 				hasSelection = true;
-			} else if (groupState.pks) { //leafgroup: include selected PK's // CHECKME what happens is pks doesn't contain any pks?
+			} else if (groupState.pks && groupState.pks.length) { //leafgroup: include selected PK's // CHECKME what happens is pks doesn't contain any pks?
 				condition.add(pkColumn.isin(groupState.pks));
 				hasSelection = true;
 			} else if (groupState.children) { // must be another level group level 
