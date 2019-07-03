@@ -2,12 +2,13 @@ const SERVOY_FIND_SEARCH_CONDITION_NAME = 'SV:S'
 
 // **************************** Internal API implementation **************************** //
 /**
- * @param {Array<Number>} groupColumns
+ * @param {Array<number>} groupColumns
  * @param {Array} groupKeys
  * @param {Array} idForFoundsets
- * @param {String} [sort]
- *
- * */
+ * @param {string} [sort]
+ * @param {*} sFilterModel
+ * @param {boolean} hasRowStyleClassDataprovider
+ */
 $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets, sort, sFilterModel, hasRowStyleClassDataprovider) {
 	log('START SERVER SIDE ------------------------------------------ ', LOG_LEVEL.WARN);
 
@@ -807,7 +808,7 @@ $scope.api.getSelectedRecordFoundSet = function() {
 				const keys = Object.keys(groupState.children);
 				if (!keys.length) return; // Should not happen, but anyway...
 				
-				var groupColumn = groupColumns[level] || (groupColumns[level] = getGroupQBColumn(selectionQuery, groupColumnsDefs[level].dataprovider, JOIN_TYPE.LEFT_OUTER_JOIN));
+				var nextGroupColumn = groupColumns[level] || (groupColumns[level] = getGroupQBColumn(selectionQuery, groupColumnsDefs[level].dataprovider, JOIN_TYPE.LEFT_OUTER_JOIN));
 				
 				const selectedChildren = []
 				const childrenCondition = condition.root.or
@@ -822,12 +823,12 @@ $scope.api.getSelectedRecordFoundSet = function() {
 					if (child.selected) { // Optimize for case where children are only selected groups: use isin([]) instead of nested OR's
 						selectedChildren.push(key)
 					} else {
-						appendSelectionWhereClauses(groupState.children[key], groupColumn, key, level + 1, childCondition);
+						appendSelectionWhereClauses(groupState.children[key], nextGroupColumn, key, level + 1, childCondition);
 					}
 				}
 				
 				if (selectedChildren.length) {
-					childrenCondition.add(groupColumn.isin(selectedChildren));
+					childrenCondition.add(nextGroupColumn.isin(selectedChildren));
 					hasSelection = true;
 				}
 			}

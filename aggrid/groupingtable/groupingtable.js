@@ -230,9 +230,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 				$scope.reload = function(count) { }
 				
-				/**
-				 * Store the state of the table. TODO to be persisted
-				 * */
+				// Store the state of the table
+				// TODO eliminate all that is not used or should be persisted serverside and then rename to clientSideState or something
 				var state = {
 					waitfor: {
 						sort: 0,
@@ -4206,21 +4205,22 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 				/**
 				 * Returns the column identifier
-				 * @param {Object} column
-				 * @param {Number} idx
-				 *
-				 * @return {String}
-				 *
+				 * 
 				 * @private
-				 * */
+				 * 
+				 * @param {Object} column
+				 * @param {number} idx
+				 *
+				 * @return {string}
+				 */
 				function getColumnID(column, idx) {
 					if (column.columnDef && column.columnDef.field) { // allow devs to specify the field through columnDef, as some AG Grid features require passing the field identifier, like the displaying leaf data on autoGroupColumn
 						return column.columnDef.field;
 					} else if (column.dataprovider) {
-						return column.dataprovider.idForFoundset + ':' + idx;
-					} else {
-						return "col_" + idx;
+						return column.dataprovider.idForFoundset + ':' + idx; // Appending ':' + idx fixes SVY-12553: duplicate dataproviders, one with ValueList attached
 					}
+					
+					return "col_" + idx;
 				}
 
 				/**
