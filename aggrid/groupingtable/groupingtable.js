@@ -278,6 +278,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				// when the grid is not ready yet set the value to the column index for which has been requested focus
 				var requestFocusColumnIndex = -1;
 
+				// when the grid is not ready yet set the value to the foundset/column index for which has been edit cell called
+				var startEditFoundsetIndex = -1;
+				var startEditColumnIndex = -1;
+
 				// foundset sort promise
 				var sortPromise;
 
@@ -677,6 +681,13 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					// set to true once the grid is ready to request focus
 				    isReadyToRequestFocus = true;
 				
+					// rows are rendered, if there was an editCell request, now it is the time to apply it
+					if(startEditFoundsetIndex > -1 && startEditColumnIndex > -1) {
+						setTimeout(function() {
+							$scope.api.editCellAt(startEditFoundsetIndex, startEditColumnIndex);
+						}, 0);
+					}
+
 				    // when the grid is not ready yet set the value to the column index for which has been requested focus
 				    if (requestFocusColumnIndex > -1) {
 				    	$scope.api.requestFocus(requestFocusColumnIndex);
@@ -4398,12 +4409,24 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						$log.warn('editCellAt API, invalid columnindex:' + columnindex);
 					}
 					else {
-						var column = $scope.model.columns[columnindex];
-						var	colId = column.id ? column.id : getColumnID(column, columnindex);
-						gridOptions.api.startEditingCell({
-							rowIndex: foundsetindex - 1,
-							colKey: colId
-						});
+
+						// if is not ready to edit, wait for the row to be rendered
+						if(isReadyToRequestFocus) {
+							var column = $scope.model.columns[columnindex];
+							var	colId = column.id ? column.id : getColumnID(column, columnindex);
+							gridOptions.api.startEditingCell({
+								rowIndex: foundsetindex - 1,
+								colKey: colId
+							});
+
+							// reset the edit cell coordinates
+							startEditFoundsetIndex = -1;
+							startEditColumnIndex = -1;
+						}
+						else {
+							startEditFoundsetIndex = foundsetindex;
+							startEditColumnIndex = columnindex;
+						}
 					}
 				}
 				
