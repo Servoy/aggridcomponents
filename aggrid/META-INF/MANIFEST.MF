@@ -1,5 +1,6 @@
 Manifest-Version: 1.0
 CSS-ClientLibs: aggrid/lib/styles/ag-grid-custom.css;name=ag-grid-custom.css;version=1.0.0
+CSS-DesignLibs: aggrid/lib/styles/aggrid_design.css
 Bundle-SymbolicName: aggrid
 Bundle-Version: 2.0.2
 Bundle-Name: Servoy NG-Grids
