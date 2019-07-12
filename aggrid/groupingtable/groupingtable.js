@@ -142,6 +142,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 					gridOptions.api.purgeServerSideCache();
 					$scope.dirtyCache = false;
+					isSelectionReady = false;
 					// $log.warn('purge cache');
 
 					// TODO expand previously expanded rows
@@ -272,8 +273,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				// set the true when the grid is ready
 				var isGridReady = false;
 				
-				// set to true once the grid is ready to request focus
-				var isReadyToRequestFocus = false;
+				// set to true once the grid is rendered and the selection is set
+				var isSelectionReady = false;
 				
 				// when the grid is not ready yet set the value to the column index for which has been requested focus
 				var requestFocusColumnIndex = -1;
@@ -281,6 +282,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				// when the grid is not ready yet set the value to the foundset/column index for which has been edit cell called
 				var startEditFoundsetIndex = -1;
 				var startEditColumnIndex = -1;
+
+				var scrollToSelectionWhenSelectionReady = false;
 
 				// foundset sort promise
 				var sortPromise;
@@ -678,9 +681,13 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						return;
 					}
 					
-					// set to true once the grid is ready to request focus
-				    isReadyToRequestFocus = true;
+					// set to true once the grid is ready and selection is set
+				    isSelectionReady = true;
 				
+					if(scrollToSelectionWhenSelectionReady) {
+						$scope.api.scrollToSelection();
+					}
+
 					// rows are rendered, if there was an editCell request, now it is the time to apply it
 					if(startEditFoundsetIndex > -1 && startEditColumnIndex > -1) {
 						setTimeout(function() {
@@ -2032,12 +2039,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					var foundsetServer = new FoundsetServer([]);
 					var datasource = new FoundsetDatasource(foundsetServer);
 					gridOptions.api.setServerSideDatasource(datasource);
+					isSelectionReady = false;
 				}
 
 				function refreshDatasource() {
 					var foundsetServer = new FoundsetServer([]);
 					var datasource = new FoundsetDatasource(foundsetServer);
 					gridOptions.api.setServerSideDatasource(datasource);
+					isSelectionReady = false;
 				}
 
 				/**************************************************************************************************
@@ -3307,6 +3316,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							$log.debug('myFoundset sort changed ' + newSort);
 							gridOptions.api.setSortModel(getSortModel());
 							gridOptions.api.purgeServerSideCache();
+							isSelectionReady = false;
 						} else if (newSort == oldSort && !newSort && !oldSort) {
 							$log.warn("this should not be happening");
 						}
@@ -4411,7 +4421,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					else {
 
 						// if is not ready to edit, wait for the row to be rendered
-						if(isReadyToRequestFocus) {
+						if(isSelectionReady) {
 							var column = $scope.model.columns[columnindex];
 							var	colId = column.id ? column.id : getColumnID(column, columnindex);
 							gridOptions.api.startEditingCell({
@@ -4444,7 +4454,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					} else {
 						
 						// if is not ready to request focus, wait for the row to be rendered
-						if (isReadyToRequestFocus) {
+						if (isSelectionReady) {
 							if ($scope.model.myFoundset && $scope.model.myFoundset.viewPort.size && $scope.model.myFoundset.selectedRowIndexes.length ) {								
 								var column = $scope.model.columns[columnindex];
 								var rowIndex = $scope.model.myFoundset.selectedRowIndexes[0];
@@ -4464,7 +4474,13 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 * Scroll to the selected row
 				 */				
 				$scope.api.scrollToSelection = function() {
-					scrollToSelection();
+					if(isSelectionReady) {
+						scrollToSelection();
+						scrollToSelectionWhenSelectionReady = false;
+					}
+					else {
+						scrollToSelectionWhenSelectionReady = true;
+					}
 				}
 
 				// FIXME how to force re-fit when table is shown for the first time
