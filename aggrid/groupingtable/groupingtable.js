@@ -4483,6 +4483,42 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 				}
 
+				/**
+				 * Returns the sort state of the datagrid
+				 * @return {object}			 
+				 * @public
+				 */
+				$scope.api.getSortModel = function() {
+					return gridOptions.api.getSortModel();		
+				}
+				
+				/**
+				 * Sets the sort state of the datagrid
+				 * @param {object} model
+				 * @public
+				 */
+				$scope.api.setSortModel = function(model) {
+					gridOptions.api.setSortModel(model);
+				}
+				
+				/**
+				 * Gets the current state of all the advanced filters of datagrid. Used for saving filter state.
+				 * @return {object}			 
+				 * @public
+				 */
+				$scope.api.getFilterModel = function() {
+					return gridOptions.api.getFilterModel();
+				}
+				
+				/**
+				 * Sets the state of all the advanced filters in datagrid. Provide it with what you get from getFilterModel() to restore filter state.
+				 * @param {object} model 
+				 * @public
+				 */
+				$scope.api.setFilterModel = function(model) {
+					gridOptions.api.setFilterModel(model);
+				}
+
 				// FIXME how to force re-fit when table is shown for the first time
 
 				// bind resize event

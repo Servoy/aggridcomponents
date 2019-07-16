@@ -196,7 +196,22 @@
 			"delayUntilFormLoads": true,
 			"discardPreviouslyQueuedSimilarCalls": true
 		},
-		"scrollToSelection": {}
+		"scrollToSelection": {			
+		},
+		"getSortModel": {
+		    "parameters": [],
+			"returns": "object"
+	    },
+		"setSortModel": {
+		    "parameters": [{"name": "model","type": "object"}]
+	    },
+		"getFilterModel": {
+		    "parameters": [],
+			"returns": "object"
+	    },
+		"setFilterModel": {
+		    "parameters": [{"name": "model","type": "object"}]
+	    }
     },
 	"internalApi" : {
 		"getGroupedFoundsetUUID" : {
