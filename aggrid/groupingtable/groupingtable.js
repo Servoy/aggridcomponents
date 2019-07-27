@@ -917,19 +917,29 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						// TODO clear group when changed
 						//groupManager.clearAll();
 						groupManager.removeFoundsetRefAtLevel(0);
-	
+						
+						var agColumnState = JSON.stringify(gridOptions.columnApi.getColumnState());
+						var columnsToDisplay = []
+						var autoColumnGroupField = gridOptions.autoGroupColumnDef ? gridOptions.autoGroupColumnDef.field : null;
+						
+						for (var index = 0; index < agColumnState.length; index++) {
+							if (!agColumnState[index].hide) {
+							     columnsToDisplay.push(agColumnState[index].colId)
+							}
+						}				
 						// clear all columns
-						for (i = 0; i < $scope.model.columns.length; i++) {
+						for (var i = 0; i < $scope.model.columns.length; i++) {
 							column = $scope.model.columns[i];
-							
+							colId = getColumnID(column, i)
+														
 							if (column.hasOwnProperty('rowGroupIndex')) {
-								column.rowGroupIndex = -1;
-								
-								if (true) { // TODO expose behavior as option
+								column.rowGroupIndex = -1;								
+								// keep visible columns which were available before close group  
+								if (columnsToDisplay.indexOf(colId) !== -1 || (autoColumnGroupField && column.columnDef.field === autoColumnGroupField) || columnsToDisplay.length === 0) {
 									gridOptions.columnApi.setColumnVisible(getColumnID(column, i), true);
 								}
 							}
-						}
+						}						
 						
 						// Clear all expanded/collapsed persist state
 						$scope.model.state.children = {}
