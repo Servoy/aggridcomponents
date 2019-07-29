@@ -58,3 +58,10 @@
 .ag-popup-editor {
 	z-index: 1;
 }
+
+/*  
+* hide scrool bar on the side panel 
+*/ 
+.ag-primary-cols-list-panel { 
+	overflow-x: hidden !important; 
+} 
