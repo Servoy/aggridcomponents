@@ -692,7 +692,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					if(startEditFoundsetIndex > -1 && startEditColumnIndex > -1) {
 						setTimeout(function() {
 							$scope.api.editCellAt(startEditFoundsetIndex, startEditColumnIndex);
-						}, 0);
+						}, 200);
 					}
 
 				    // when the grid is not ready yet set the value to the column index for which has been requested focus
@@ -4424,10 +4424,12 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						if(isSelectionReady) {
 							var column = $scope.model.columns[columnindex];
 							var	colId = column.id ? column.id : getColumnID(column, columnindex);
-							gridOptions.api.startEditingCell({
-								rowIndex: foundsetindex - 1,
-								colKey: colId
-							});
+							setTimeout(function() {
+								gridOptions.api.startEditingCell({
+									rowIndex: foundsetindex - 1,
+									colKey: colId
+								});
+							}, 0);
 
 							// reset the edit cell coordinates
 							startEditFoundsetIndex = -1;
