@@ -853,7 +853,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 				// register listener for selection changed
 				gridOptions.api.addEventListener('selectionChanged', onSelectionChanged);
-
+				
 				// grid handlers
 				var clickTimer;
 				function cellClickHandler(params) {
@@ -918,7 +918,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						//groupManager.clearAll();
 						groupManager.removeFoundsetRefAtLevel(0);
 						
-						var agColumnState = JSON.stringify(gridOptions.columnApi.getColumnState());
+						var agColumnState = gridOptions.columnApi.getColumnState();
 						var columnsToDisplay = []
 						var autoColumnGroupField = gridOptions.autoGroupColumnDef ? gridOptions.autoGroupColumnDef.field : null;
 						
@@ -2446,6 +2446,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						$scope.svyServoyapi.apply('_internalColumnState');
 						if ($scope.model.columnState) {
 							restoreColumnsState();
+							//TODO may be better find other way then force to update state when _internalColumnState changed
+							//also check if restoreColumnsState passed
+							// the problem exist only when called from server sideb $scope.api.restoreColumnState = function(columnState, onError) {.. from onReady  
+							// may be set on model global flag(in spec) and init it inside $scope.api.restoreColumnState
+							storeColumnsState(true)
 						} else {
 							gridOptions.columnApi.resetColumnState();
 						}
@@ -4371,30 +4376,30 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					};
 				}
 
-				function storeColumnsState() {
+				function storeColumnsState(forceToSave) {
 					var agColumnState = gridOptions.columnApi.getColumnState();
-
 					var rowGroupColumns = getRowGroupColumns();
 					var svyRowGroupColumnIds = [];
+					
 					for(var i = 0; i < rowGroupColumns.length; i++) {
 						svyRowGroupColumnIds.push(rowGroupColumns[i].colId);
 					}
-
 					// TODO add filterState once filter is enabled
 					// TODO do we need to add sortingState ?
 					var columnState = {
 						columnState: agColumnState,
 						rowGroupColumnsState: svyRowGroupColumnIds
 					}
-	                var newColumnState = JSON.stringify(columnState);
-	                
-	                if (newColumnState !== $scope.model.columnState) {
+	                var newColumnState = JSON.stringify(columnState);					
+					//TODO column state not updated when we restore state form onReady
+					// with removing this condition or sending forceToSave flag every thing working as expected. Paul advised
+	               if (newColumnState !== $scope.model.columnState || forceToSave) {
 						$scope.model.columnState = newColumnState;
 						$scope.svyServoyapi.apply('columnState');
 						if ($scope.handlers.onColumnStateChanged) {
 							$scope.handlers.onColumnStateChanged($scope.model.columnState);
 						}
-	                }
+	               }
 				}
 	
 				function restoreColumnsState() {
@@ -4472,7 +4477,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 							if(Array.isArray(columnStateJSON.rowGroupColumnsState) && columnStateJSON.rowGroupColumnsState.length > 0) {
 								gridOptions.columnApi.setRowGroupColumns(columnStateJSON.rowGroupColumnsState);
-							}
+							}							
 						}
 					}
 				}
