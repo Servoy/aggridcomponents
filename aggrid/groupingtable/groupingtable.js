@@ -461,6 +461,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							$scope.svyServoyapi.apply('_internalColumnState');
 						}
 						restoreColumnsState();
+						gridOptions.onDisplayedColumnsChanged = function() {
+							sizeHeaderAndColumnsToFit();
+							storeColumnsState();
+						};
 						if($scope.handlers.onReady) {
 							$scope.handlers.onReady();
 						}
@@ -471,13 +475,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							}, 150);
 					},
 					onGridSizeChanged: function() {
-						sizeHeaderAndColumnsToFit();
+						setTimeout(function() {
+							// if not yet destroyed
+							if(gridOptions.onGridSizeChanged) {
+								sizeHeaderAndColumnsToFit();
+							}
+						}, 150);
 					},
-					onDisplayedColumnsChanged: function() {
-						sizeHeaderAndColumnsToFit();
-						storeColumnsState();
-					},
-	                onColumnEverythingChanged: storeColumnsState,	// do we need that ?, when is it actually triggered ?
+//	                onColumnEverythingChanged: storeColumnsState,	// do we need that ?, when is it actually triggered ?
 //	                onFilterChanged: storeColumnsState,			 // TODO enable this once filters are enabled
 //	                onColumnVisible: storeColumnsState,			 covered by onDisplayedColumnsChanged
 //	                onColumnPinned: storeColumnsState,			 covered by onDisplayedColumnsChanged
@@ -4502,6 +4507,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						delete $scope.model[$sabloConstants.modelChangeNotifier];
 
 						// release grid resources
+						delete gridOptions.onGridSizeChanged;
 						gridOptions.api.destroy();
 
 					});
