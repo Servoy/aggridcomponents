@@ -1458,6 +1458,37 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 										}
 									}
 									thisEditor.hasRealValues = hasRealValues;	
+									// make sure initial value has the "realValue" set, so when oncolumndatachange is called
+									// the previous value has the "realValue"
+									if(hasRealValues && params.value && (params.value["realValue"] == undefined)) {
+										var rv = params.value;
+										var rvFound = false;
+										for (var i = 0; i < thisEditor.valuelist.length; i++) {
+											var item = thisEditor.valuelist[i];
+											if (item.displayValue == params.value) {
+												rv = item.realValue;
+												rvFound = true;
+												break;
+											}
+										}
+										// it could be the valuelist does not have all the entries on the client
+										// try to get the entry using a filter call to the server
+										if(!rvFound) {
+											vl = getValuelist(params);
+											vl.filterList(params.value).then(function(valuelistWithInitialValue) {
+												for (var i = 0; i < valuelistWithInitialValue.length; i++) {
+													if (valuelistWithInitialValue[i].displayValue == params.value) {
+														rv = valuelistWithInitialValue[i].realValue;
+														break;
+													}
+												}
+												params.node["data"][params.column["colId"]] = {realValue: rv, displayValue: params.value};		
+											})
+										}
+										else {
+											params.node["data"][params.column["colId"]] = {realValue: rv, displayValue: params.value};
+										}
+									} 
 								});
 							}
 						}
@@ -1736,6 +1767,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 									option.text = value.displayValue;
 									if (v != null && v.toString() === value.displayValue) {
 										option.selected = true;
+										if(value.realValue != undefined && params.value["realValue"] == undefined) {
+											params.node["data"][params.column["colId"]] = {realValue: value.realValue, displayValue: v};
+										}
 									}
 									selectEl.appendChild(option);
 								});
