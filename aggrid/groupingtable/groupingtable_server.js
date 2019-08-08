@@ -263,12 +263,7 @@ const JOIN_TYPE = {
  */
 function addJoin(select, relationName, alias, joinType) {
 	var join = select.joins.add(relationName, alias);
-	
-	//hack to get select as the QBSelect Java class, to access is public Java methods so we can get to the Java representation of the join to set the joinType
-	var qbSelect = new Packages.org.mozilla.javascript.NativeJavaObject($scope, select, new Packages.org.mozilla.javascript.JavaMembers($scope, Packages.com.servoy.j2db.querybuilder.impl.QBSelect))
-	var query = qbSelect.getQuery()
-	var joins = query.getJoins()
-	joins.get(joins.size() - 1).setJoinType(joinType);
+	join.joinType = joinType;
 	
 	return join;
 }
