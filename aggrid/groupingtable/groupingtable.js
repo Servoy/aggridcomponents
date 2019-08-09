@@ -2257,7 +2257,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					var getViewPortData = function(startIndex, endIndex) {
 						var result = [];
 						startIndex = startIndex ? startIndex : 0;
-						endIndex = endIndex ? endIndex : thisInstance.foundset.viewPort.rows.length;
+						endIndex = endIndex && (endIndex < thisInstance.foundset.viewPort.rows.length) ? endIndex : thisInstance.foundset.viewPort.rows.length;
 
 						// index cannot exceed ServerSize
 						startIndex = Math.min(startIndex, thisInstance.foundset.serverSize);
@@ -3466,7 +3466,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							var offset = foundsetManager.foundset.selectedRowIndexes[0] % CHUNK_SIZE
 							var virtualRowCount = foundsetManager.foundset.selectedRowIndexes[0] + (CHUNK_SIZE - offset);
 
-							if(virtualRowCount <= foundsetManager.foundset.serverSize) {
+							if(virtualRowCount > model.rootNode.childrenCache.getVirtualRowCount() &&
+								virtualRowCount <= foundsetManager.foundset.serverSize) {
 								model.rootNode.childrenCache.setVirtualRowCount(virtualRowCount);
 							}
 						}
