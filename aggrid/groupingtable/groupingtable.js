@@ -490,27 +490,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					navigateToNextCell: selectionChangeNavigation,
 
 					sideBar : sideBar,
-					sideBar : {
-						toolPanels: [
-							{
-								id: 'columns',
-								labelDefault: 'Columns',
-								labelKey: 'columns',
-								iconKey: 'columns',
-								toolPanel: 'agColumnsToolPanel',
-								toolPanelParams: {
-									suppressRowGroups: toolPanelConfig ? toolPanelConfig.suppressRowGroups : false,
-									suppressValues: true,
-									suppressPivots: true,
-									suppressPivotMode: true,
-									suppressSideButtons: toolPanelConfig ? toolPanelConfig.suppressSideButtons : false,
-									suppressColumnFilter: toolPanelConfig ? toolPanelConfig.suppressColumnFilter : false,
-									suppressColumnSelectAll: toolPanelConfig ? toolPanelConfig.suppressColumnSelectAll : false,
-									suppressColumnExpandAll: toolPanelConfig ? toolPanelConfig.suppressColumnExpandAll : false //CHECKME
-								}
-							}
-						]
-					},
 					popupParent: gridDiv,
 					onCellEditingStopped : function(event) {
 						// don't allow escape if cell data is invalid
