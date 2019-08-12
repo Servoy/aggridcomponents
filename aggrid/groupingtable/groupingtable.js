@@ -1707,6 +1707,58 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						var theDateTimePicker = $(this.eInput).data('DateTimePicker');
 						theDateTimePicker.format(moment().toMomentFormatString(editFormat));
 						this.eInput.value = formatFilter(params.value, editFormat, 'DATETIME');
+						
+						// set key binds
+						$(this.eInput).keydown(datepickerKeyDown);
+						
+						// key binds handler
+						function datepickerKeyDown(e) {
+							if (e.shiftKey || e.ctrlKey || e.altKey || e.metaKey) {
+								return true;
+							}
+							
+							switch (e.keyCode) {
+							case 89: // y Yesterday
+								var x = $(e.target).data('DateTimePicker');
+								x.date(moment().add(-1, 'days'));
+			                    e.stopPropagation();
+			                       e.preventDefault();
+								break;
+							case 66: // b Beginning ot the month
+								var x = $(e.target).data('DateTimePicker');
+								x.date(moment().startOf('month'));
+			                   	e.stopPropagation();
+			                       e.preventDefault();
+								break;
+							case 69: // e End of the month
+								var x = $(e.target).data('DateTimePicker');
+								x.date(moment().endOf('month'));
+			                    e.stopPropagation();
+			                    e.preventDefault();
+			                    break;
+							case 107: // + Add 1 day
+								var x = $(e.target).data('DateTimePicker');
+								if (x.date()) {
+									x.date(x.date().clone().add(1, 'd'));
+								}
+			                   	e.stopPropagation();
+			                    e.preventDefault();
+								break;
+							case 109: // - Subtract 1 day
+								var x = $(e.target).data('DateTimePicker');
+								if (x.date()) {
+									x.date(x.date().clone().subtract(1, 'd'));
+								}
+		                    	e.stopPropagation();
+		                        e.preventDefault();
+								break;
+							default:
+								break;
+							}
+								
+							return true;
+						};
+						
 					};
 				
 					// gets called once when grid ready to insert the element
