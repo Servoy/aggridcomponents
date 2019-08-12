@@ -311,6 +311,22 @@ svyUUID:"1A331638-9B21-4C9F-A8A2-0C4F25BE992E"
 dataprovider:"orders_to_employees.lastname",
 headerTitle:"Employee",
 svyUUID:"F17CC44A-4591-4AE7-B16C-8B9ABD29079F"
+},
+{
+dataprovider:"orderdate",
+editType:"DATEPICKER",
+headerTitle:"Order Date",
+id:"orderdate",
+svyUUID:"9A1EBFE7-3D80-4968-BBC4-E291902772BF"
+},
+{
+dataprovider:"employeeid",
+editType:"TYPEAHEAD",
+filterType:"TEXT",
+headerTitle:"Employee",
+id:"employee",
+svyUUID:"B61C7A76-27FE-4604-80E3-3739F26C2022",
+valuelist:"0B278E08-D559-4D27-B1F1-0A7DE73C4F9D"
 }
 ],
 location:{
