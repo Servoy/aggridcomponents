@@ -3602,47 +3602,61 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 
 					if (row) {
-						// find first editing cell for the updating row
-						var editCells = gridOptions.api.getEditingCells();
-						var editingColumnId = null;
-						for(var i = 0; i < editCells.length; i++) {
-							if(index == editCells[i].rowIndex) {
-								editingColumnId = editCells[i].column.colId;
-								break;
-							}
-						}
-
 						var node = gridOptions.api.getRowNode(row._svyFoundsetUUID + '_' + row._svyRowId);
 						if(node) {
-							// stop editing to allow setting the new data
-							if(editingColumnId) {
-								gridOptions.api.stopEditing(false);
-							}
-							node.setData(row);
-
-							// refresh cells with styleClassDataprovider
-							var styleClassDPColumns = [];
-							var allDisplayedColumns = gridOptions.columnApi.getAllDisplayedColumns();
-
-							for (i = 0; i < allDisplayedColumns.length; i++) {
-								var column = allDisplayedColumns[i];
-								var columnModel = getColumn(column.colDef.field)
-								if (columnModel && columnModel.styleClassDataprovider) {
-									styleClassDPColumns.push(column);
+							// check if row is really changed
+							var isRowChanged = false;
+							for(var rowItemKey in row) {
+								var currentRowItemValue = node.data[rowItemKey];
+								if(currentRowItemValue && (currentRowItemValue.displayValue != undefined)) {
+									currentRowItemValue = currentRowItemValue.displayValue;
+								}
+								if(row[rowItemKey] !== currentRowItemValue) {
+									isRowChanged = true;
+									break;
 								}
 							}
-							if(styleClassDPColumns.length) {
-								var refreshParam = {
-									rowNodes: [node],
-									columns: styleClassDPColumns,
-									force: true
-								};
-								gridOptions.api.refreshCells(refreshParam);
-							}
+							if(isRowChanged) {
+								// find first editing cell for the updating row
+								var editCells = gridOptions.api.getEditingCells();
+								var editingColumnId = null;
+								for(var i = 0; i < editCells.length; i++) {
+									if(index == editCells[i].rowIndex) {
+										editingColumnId = editCells[i].column.colId;
+										break;
+									}
+								}
 
-							// restart the editing
-							if(editingColumnId) {
-								gridOptions.api.startEditingCell({rowIndex: index, colKey: editingColumnId});
+								// stop editing to allow setting the new data
+								if(editingColumnId) {
+									gridOptions.api.stopEditing(false);
+								}
+								node.setData(row);
+
+								// refresh cells with styleClassDataprovider
+								var styleClassDPColumns = [];
+								var allDisplayedColumns = gridOptions.columnApi.getAllDisplayedColumns();
+
+								for (i = 0; i < allDisplayedColumns.length; i++) {
+									var column = allDisplayedColumns[i];
+									var columnModel = getColumn(column.colDef.field)
+									if (columnModel && columnModel.styleClassDataprovider) {
+										styleClassDPColumns.push(column);
+									}
+								}
+								if(styleClassDPColumns.length) {
+									var refreshParam = {
+										rowNodes: [node],
+										columns: styleClassDPColumns,
+										force: true
+									};
+									gridOptions.api.refreshCells(refreshParam);
+								}
+
+								// restart the editing
+								if(editingColumnId) {
+									gridOptions.api.startEditingCell({rowIndex: index, colKey: editingColumnId});
+								}
 							}
 						}
 						else {
