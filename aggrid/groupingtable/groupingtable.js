@@ -497,7 +497,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					
 					getContextMenuItems: getContextMenuItems,
 					getRowNodeId: function(data) {
-						return data._svyFoundsetUUID + '_' + data._svyRowId;
+						return data._svyFoundsetUUID + '_' + data._svyFoundsetIndex;
 					},
 					// TODO localeText: how to provide localeText to the grid ? can the grid be shipped with i18n ?
 
@@ -2349,6 +2349,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 							r._svyRowId = viewPortRow._svyRowId;
 							r._svyFoundsetUUID = this.foundsetUUID;
+							r._svyFoundsetIndex = this.foundset.viewPort.startIndex + index;
 
 							var columns = columnsModel ? columnsModel : $scope.model.columns;
 
@@ -3489,8 +3490,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								continue;
 							}
 
-							var rowId = foundsetManager.foundset.viewPort.rows[rowIndex]._svyRowId;
-							var node = gridOptions.api.getRowNode(foundsetManager.foundsetUUID + '_' + rowId);
+							var node = gridOptions.api.getRowNode(foundsetManager.foundsetUUID + "_" + foundsetManager.foundset.selectedRowIndexes[i]);
 							if (node) {
 								node.setSelected(true);
 							}
@@ -3602,7 +3602,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 
 					if (row) {
-						var node = gridOptions.api.getRowNode(row._svyFoundsetUUID + '_' + row._svyRowId);
+						var rowFoundsetIndex = foundset.foundset.viewPort.startIndex + index;
+						var node = gridOptions.api.getRowNode(row._svyFoundsetUUID + "_" + rowFoundsetIndex);
 						if(node) {
 							// check if row is really changed
 							var isRowChanged = false;
@@ -3675,20 +3676,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						row = foundsetObj.viewPort.rows[index];
 					}
 					return row;
-				}
-
-				/**
-				 * @deprecated
-				 * return the row in grid with the given id */
-				function getUiGridRow(svyRowId) {
-					if ($scope.gridOptions && $scope.gridOptions.data) {
-						var data = $scope.gridOptions.data;
-						for (var i = 0; i < data.length; i++) {
-							if (data[i]._svyRowId === svyRowId) {
-								return data[i];
-							}
-						}
-					}
 				}
 
 				function getMainMenuItems(params) {
