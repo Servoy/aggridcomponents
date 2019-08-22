@@ -2408,7 +2408,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								setTimeout(function() {
 									if (state.waitfor.loadRecords !== requestId) {
 										// FIXME if this happen reduce parallel async requests to 1
-										$log.error("Load record request id '" + state.waitfor.loadRecords + "' is different from the resolved promise '" + requestId + "'; this should not happen !!!");
+										$log.warn("Load record request id '" + state.waitfor.loadRecords + "' is different from the resolved promise '" + requestId + "'; this should not happen !!!");
 									}		
 									state.waitfor.loadRecords = 0;							
 								}, 0);
