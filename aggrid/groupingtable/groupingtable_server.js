@@ -578,14 +578,20 @@ $scope.api.removeAllColumns = function() {
  * Restore columns state to a previously save one, using getColumnState.
  * If no argument is used, it restores the columns to designe time state.
  * If the columns from columnState does not match with the columns of the component,
- * no restore will be done.
+ * no restore will be done. The optional boolean arguments: columns, filter, sort can
+ * be used to specify what to restore, the columns size/position/visibility (default true),
+ * the filter state (default false), the sort state (default false).
  * 
  * @param {String} columnState
  * @param {Function} onError
+ * @param {Boolean} columns
+ * @param {Boolean} filter
+ * @param {Boolean} sort
  */
-$scope.api.restoreColumnState = function(columnState, onError) {
+$scope.api.restoreColumnState = function(columnState, onError, columns, filter, sort) {
 	$scope.model._internalColumnState = columnState;
 	$scope.model.columnStateOnError = onError;
+	$scope.model.restoreStates = { columns: columns, filter: filter, sort: sort };
 }
 
 /**

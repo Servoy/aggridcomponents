@@ -483,7 +483,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						}, 150);
 					},
 //	                onColumnEverythingChanged: storeColumnsState,	// do we need that ?, when is it actually triggered ?
-//	                onFilterChanged: storeColumnsState,			 // TODO enable this once filters are enabled
+					onFilterChanged: storeColumnsState,
+					onSortChanged: storeColumnsState,
 //	                onColumnVisible: storeColumnsState,			 covered by onDisplayedColumnsChanged
 //	                onColumnPinned: storeColumnsState,			 covered by onDisplayedColumnsChanged
 					onColumnResized: function() {				 // NOT covered by onDisplayedColumnsChanged
@@ -4264,11 +4265,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						svyRowGroupColumnIds.push(rowGroupColumns[i].colId);
 					}
 
-					// TODO add filterState once filter is enabled
-					// TODO do we need to add sortingState ?
+					var filterModel = gridOptions.api.getFilterModel();
+					var sortModel = gridOptions.api.getSortModel();
+
 					var columnState = {
 						columnState: agColumnState,
-						rowGroupColumnsState: svyRowGroupColumnIds
+						rowGroupColumnsState: svyRowGroupColumnIds,
+						filterModel: filterModel,
+						sortModel: sortModel
 					}
 	                var newColumnState = JSON.stringify(columnState);
 	                
@@ -4292,7 +4296,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							$log.error(e);
 						}
 						
-						if($scope.model.columnStateOnError) {
+						var restoreColumns = $scope.model.restoreStates.columns == undefined || $scope.model.restoreStates.columns;
+
+						if(restoreColumns && $scope.model.columnStateOnError) {
 							// can't parse columnState
 							if(columnStateJSON == null || !Array.isArray(columnStateJSON.columnState)) {
 								$window.executeInlineScript(
@@ -4350,12 +4356,20 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						}
 
 						if(columnStateJSON != null) {
-							if(Array.isArray(columnStateJSON.columnState) && columnStateJSON.columnState.length > 0) {
+							if(restoreColumns && Array.isArray(columnStateJSON.columnState) && columnStateJSON.columnState.length > 0) {
 								gridOptions.columnApi.setColumnState(columnStateJSON.columnState);
 							}
 
-							if(Array.isArray(columnStateJSON.rowGroupColumnsState) && columnStateJSON.rowGroupColumnsState.length > 0) {
+							if(restoreColumns && Array.isArray(columnStateJSON.rowGroupColumnsState) && columnStateJSON.rowGroupColumnsState.length > 0) {
 								gridOptions.columnApi.setRowGroupColumns(columnStateJSON.rowGroupColumnsState);
+							}
+
+							if($scope.model.restoreStates.filter && !$.isEmptyObject(columnStateJSON.filterModel)) {
+								gridOptions.api.setFilterModel(columnStateJSON.filterModel);
+							}
+
+							if($scope.model.restoreStates.sort && Array.isArray(columnStateJSON.sortModel) && columnStateJSON.sortModel.length > 0) {
+								gridOptions.api.setSortModel(columnStateJSON.sortModel);
 							}
 						}
 					}

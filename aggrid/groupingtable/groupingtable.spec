@@ -19,6 +19,7 @@
 		"columnState": { "type": "string", "tags": {"scope" : "private"}, "pushToServer": "allow"},
 		"columnStateOnError": { "type": "function", "tags": {"scope" : "private"}},
 		"_internalColumnState": { "type": "string", "tags": {"scope" : "private"}, "pushToServer": "allow"},
+		"restoreStates": { "type": "map", "tags": {"scope" : "private"}},
 		"responsiveHeight": { "type": "int", "default": 300 },
 		"rowHeight" : {"type" : "int", "default": 25, "tags": {"scope": "design"}},
 		"rowStyleClassDataprovider": { "type": "dataprovider", "forFoundset": "myFoundset" },
@@ -142,7 +143,10 @@
 		"restoreColumnState" : {
 			"parameters": [
 				{ "name": "columnState", "type": "string", "optional": true},
-				{ "name": "onError", "type": "function", "optional": true}
+				{ "name": "onError", "type": "function", "optional": true},
+				{ "name": "columns", "type": "boolean", "optional": true},
+				{ "name": "filter", "type": "boolean", "optional": true},
+				{ "name": "sort", "type": "boolean", "optional": true}
 			]
 		},
 		"getColumnsCount": {
