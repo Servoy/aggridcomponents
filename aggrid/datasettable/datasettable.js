@@ -155,6 +155,10 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                         $scope.svyServoyapi.apply('_internalColumnState');
                     }
                     restoreColumnsState();
+                    gridOptions.onDisplayedColumnsChanged = function() {
+                        sizeColumnsToFit();
+                        storeColumnsState();
+                    };
                     if($scope.handlers.onReady) {
                         $scope.handlers.onReady();
                     }
@@ -172,13 +176,14 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                     cellClass: $scope.model.groupStyleClass
                 },
 				onGridSizeChanged: function() {
-					sizeColumnsToFit();
+                    setTimeout(function() {
+                        // if not yet destroyed
+                        if(gridOptions.onGridSizeChanged) {
+                            sizeColumnsToFit();
+                        }
+                    }, 150);
 				},
-				onDisplayedColumnsChanged: function() {
-					sizeColumnsToFit();
-					storeColumnsState();
-				},
-                onColumnEverythingChanged: storeColumnsState,	// do we need that ?, when is it actually triggered ?
+//                onColumnEverythingChanged: storeColumnsState,	// do we need that ?, when is it actually triggered ?
                 onSortChanged: storeColumnsState,
 //                onFilterChanged: storeColumnsState,			 disable filter sets for now
 //                onColumnVisible: storeColumnsState,			 covered by onDisplayedColumnsChanged
