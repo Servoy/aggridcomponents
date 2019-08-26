@@ -1483,11 +1483,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 														break;
 													}
 												}
-												params.node["data"][params.column["colId"]] = {realValue: rv, displayValue: params.value};		
+												params.node["data"][params.column.colDef["field"]] = {realValue: rv, displayValue: params.value};		
 											})
 										}
 										else {
-											params.node["data"][params.column["colId"]] = {realValue: rv, displayValue: params.value};
+											params.node["data"][params.column.colDef["field"]] = {realValue: rv, displayValue: params.value};
 										}
 									} 
 								});
@@ -1613,13 +1613,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						}
 						var realValue = displayValue;
 
-						if (this.valuelist) {
+						var vl = getValuelist(this.params);
+						if (vl) {
 							var hasMatchingDisplayValue = false;
-							for (var i = 0; i < this.valuelist.length; i++) {
+							for (var i = 0; i < vl.length; i++) {
 								// compare trimmed values, typeahead will trim the selected value
-								if ($.trim(displayValue) === $.trim(this.valuelist[i].displayValue)) {
+								if ($.trim(displayValue) === $.trim(vl[i].displayValue)) {
 									hasMatchingDisplayValue = true;
-									realValue = this.valuelist[i].realValue;
+									realValue = vl[i].realValue;
 									break;
 								}
 							}
@@ -1631,10 +1632,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 									if (this.initialValue != null && this.initialValue !== displayValue)
 									{
 										// so invalid thing is typed in the list and we are in real/display values, try to search the real value again to set the display value back.
-										for (var i = 0; i < this.valuelist.length; i++) {
+										for (var i = 0; i < vl.length; i++) {
 											// compare trimmed values, typeahead will trim the selected value
-											if ($.trim(this.initialValue) === $.trim(this.valuelist[i].displayValue)) {
-												realValue = this.valuelist[i].realValue;
+											if ($.trim(this.initialValue) === $.trim(vl[i].displayValue)) {
+												realValue = vl[i].realValue;
 												break;
 											}
 										}
@@ -1821,7 +1822,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 									if (v != null && v.toString() === value.displayValue) {
 										option.selected = true;
 										if(value.realValue != undefined && params.value["realValue"] == undefined) {
-											params.node["data"][params.column["colId"]] = {realValue: value.realValue, displayValue: v};
+											params.node["data"][params.column.colDef["field"]] = {realValue: value.realValue, displayValue: v};
 										}
 									}
 									selectEl.appendChild(option);
