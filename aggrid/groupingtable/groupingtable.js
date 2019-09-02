@@ -1089,6 +1089,12 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					// selection in grouped mode is tracked differently, via the rowSelected event
 					if (isTableGrouped() || $scope.model.disconnectedSelection) {
 						//console.log(JSON.stringify($scope.model.state, function(key, value) {return key === 'parent' ? undefined : value}))
+
+                        // Trigger event on selection change in grouo mode
+                        if ($scope.handlers.onSelectedRowsChanged) {
+                            $scope.handlers.onSelectedRowsChanged();
+                        }
+
 						return
 					}
 

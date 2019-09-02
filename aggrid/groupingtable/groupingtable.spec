@@ -43,6 +43,10 @@
 		"state": { "type": "object", "pushToServer": "allow", "tags": {"scope": "private"}}
 	},
 	"handlers" : {
+    	"onSelectedRowsChanged": {
+			"description": "Called when the selected rows have changed.",
+			"parameters": []
+		},
 		"onCellClick": {
 			"description": "Called when the mouse is clicked on a row/cell (foundset and column indexes are given)\nthe foundsetindex is always -1 when there are grouped rows\nthe record is not an actual JSRecord but an object having the dataprovider values of the clicked record",
 			"parameters": [{
