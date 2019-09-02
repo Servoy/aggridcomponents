@@ -682,8 +682,15 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 *
 				 * */
 				function onSelectionChanged(event) {
+					
 					// Don't trigger foundset selection if table is grouping
 					if (isTableGrouped()) {
+						
+                        // Trigger event on selection change in grouo mode
+                        if ($scope.handlers.onSelectedRowsChanged) {
+                            $scope.handlers.onSelectedRowsChanged();
+                        }
+						
 						return;
 					}
 					
@@ -717,6 +724,12 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						if(foundsetIndexes.length > 0) {
 							foundset.foundset.requestSelectionUpdate(foundsetIndexes).then(
 								function(serverRows){
+									
+				                    // Trigger event on selection change
+				                    if ($scope.handlers.onSelectedRowsChanged) {
+				                        $scope.handlers.onSelectedRowsChanged();
+				                    }
+									
 									//success
 								},
 								function(serverRows){
