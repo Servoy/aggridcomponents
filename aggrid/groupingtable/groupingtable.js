@@ -2328,6 +2328,20 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					$scope.model.myFoundset.addChangeListener(changeListener);
 				});
 				
+				$scope.$watch("model.checkboxSelection", function(newValue, oldValue) {
+					var firstColumn = gridOptions.columnApi.getAllDisplayedColumns()[0];
+					
+					if (!firstColumn) return;
+					
+					if (firstColumn.colId === 'ag-Grid-AutoColumn') {
+						firstColumn.colDef.cellRendererParams.checkbox = true;
+					} else {
+						firstColumn.colDef.checkboxSelection = newValue;
+					}
+					
+					gridOptions.api.redrawRows()
+				});
+				
 				var columnWatches = [];
 				
 				$scope.$watchCollection("model.columns", function(newValue, oldValue) {
@@ -3520,7 +3534,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						
 						gridOptions.rowSelection = multiSelect ? 'multiple' : 'single'
 						//console.log('gridOptions.rowSelection set: ' + gridOptions.rowSelection)
-						gridOptions.api.redrawRows()
+						gridOptions.api.redrawRows();
 					}
 
 					// if viewPort changes and startIndex does not change is the result of a sort or of a loadRecords
