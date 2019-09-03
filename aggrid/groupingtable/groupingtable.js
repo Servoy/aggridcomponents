@@ -958,7 +958,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						//	var hideBecauseFieldSharedWithAutoColumnGroup = wasUngrouped && field && field === autoColumnGroupField;
 							var hideBecauseFieldSharedWithAutoColumnGroup = false
 							
-							if (autoColumnGroupField && column.columnDef.checkboxSelection) {
+							if (autoColumnGroupField && column.columnDef && column.columnDef.checkboxSelection) {
 								hideBecauseFieldSharedWithAutoColumnGroup = wasUngrouped || ($scope.isGroupView && field && field === autoColumnGroupField);
 							}
 							
@@ -3520,7 +3520,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						
 						gridOptions.rowSelection = multiSelect ? 'multiple' : 'single'
 						//console.log('gridOptions.rowSelection set: ' + gridOptions.rowSelection)
-						gridOptions.api.refreshView()
+						gridOptions.api.redrawRows()
 					}
 
 					// if viewPort changes and startIndex does not change is the result of a sort or of a loadRecords
