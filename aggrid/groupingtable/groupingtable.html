@@ -4,8 +4,9 @@
 	  </label>
 </div>
 <div style="height:100%; width:100%; position: relative;">
-	<div style="height: 100%;" class="ag-table" ng-class="model.styleClass"></div>
+	<div style="height: 100%;" class="ag-table" ng-class="[model.styleClass, {'svy-readonly': !model.enabled}]"></div>
 	<span ng-if="isGroupView" class="ag-table-info" ng-class="dirtyCache ? 'ag-table-info-notify' : ''" svy-tooltip="model.tooltipTextRefreshData">
 		<i ng-class="model.iconRefreshData" svy-click="purge()"/>
 	</span>
+	<div ng-if="!model.enabled" class="svy-readonly-overlay" style="position: relative; top: -100%; height: 100%;"></div>
 </div>

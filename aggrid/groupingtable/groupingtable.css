@@ -60,8 +60,15 @@
 }
 
 /*  
-* hide scrool bar on the side panel 
-*/ 
+ * hide scroll bar on the side panel 
+ */ 
 .ag-primary-cols-list-panel { 
 	overflow-x: hidden !important; 
 } 
+
+/*
+ * styling for overlay shown when the component is disabled
+ */
+data-aggrid-groupingtable .svy-readonly-overlay {
+	background-color: rgba(255,255,255, 0.3);
+}
