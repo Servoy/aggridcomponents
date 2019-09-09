@@ -979,7 +979,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								gridOptions.columnApi.setColumnVisible(field, newVisibility); // column visibility
 							}
 						}
-						
+
 						// TODO test this
 						for (i = 0; i < oldGroupedFields.length; i++) {
 							if (oldGroupedFields[i] !== newGroupedFields[i]) {
@@ -1014,6 +1014,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 	//						}
 	//					}
 					}
+					
+					// After change in grouping, all watch function to enable/disable checkboxSelection
+					modelCheckboxSelectionWatch($scope.model.checkboxSelection, !$scope.model.checkboxSelection);
 					
 					$scope.svyServoyapi.apply('state');
 	
@@ -2334,19 +2337,36 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					$scope.model.myFoundset.addChangeListener(changeListener);
 				});
 				
-				$scope.$watch("model.checkboxSelection", function(newValue, oldValue) {
+				/**
+				 * sets the visibility of the checkbox on the first column, based on model.checkboxSelection property
+				 * 
+				 * @param {boolean} newValue
+				 * @param {boolean} oldValue
+				 */
+				function modelCheckboxSelectionWatch(newValue, oldValue) {
+					// watches always fire at least once when registered and when that happens the old and new values are equal.
+					if (newValue === oldValue && newValue === false) {
+						return;
+					}
+					
 					var firstColumn = gridOptions.columnApi.getAllDisplayedColumns()[0];
 					
 					if (!firstColumn) return;
 					
 					if (firstColumn.colId === 'ag-Grid-AutoColumn') {
-						firstColumn.colDef.cellRendererParams.checkbox = true;
+						if (!firstColumn.colDef.cellRendererParams) {
+							firstColumn.colDef.cellRendererParams = {};
+						}
+						
+						firstColumn.colDef.cellRendererParams.checkbox = newValue;
 					} else {
 						firstColumn.colDef.checkboxSelection = newValue;
 					}
 					
 					gridOptions.api.redrawRows()
-				});
+				}
+				
+				$scope.$watch("model.checkboxSelection", modelCheckboxSelectionWatch);
 				
 				var columnWatches = [];
 				
