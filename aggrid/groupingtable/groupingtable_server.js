@@ -663,6 +663,8 @@ $scope.api.getColumnState = function() {
  * Note that edited records, that possibly change in which groups records belong and thus if they ought to be included in the selection or not are NOT taken into account!
  * 
  * @return {JSFoundSet} null if the myfoundset property is not set on the component
+ * 
+ * TODO rename to getSelectionFoundSet or getSelectedRecordsFoundSet
  */
 $scope.api.getSelectedRecordFoundSet = function() {
 	if (!$scope.model.myFoundset) return null;
