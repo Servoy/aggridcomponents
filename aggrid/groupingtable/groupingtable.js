@@ -722,6 +722,16 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							if(node) foundsetIndexes.push(node.rowIndex);				
 						}
 						if(foundsetIndexes.length > 0) {
+							foundsetIndexes.sort(function(a, b){return a - b});
+							// if single select don't send the old selection along with the new one, to the server
+							if(!foundset.foundset.multiSelect && foundsetIndexes.length > 1 &&
+								foundset.foundset.selectedRowIndexes.length > 0) {
+									if(foundset.foundset.selectedRowIndexes[0] == foundsetIndexes[0]) {
+										foundsetIndexes = foundsetIndexes.slice(-1);
+									} else if(foundset.foundset.selectedRowIndexes[0] == foundsetIndexes[foundsetIndexes.length - 1]) {
+										foundsetIndexes = foundsetIndexes.slice(0, 1);
+									}
+							}
 							foundset.foundset.requestSelectionUpdate(foundsetIndexes).then(
 								function(serverRows){
 									
