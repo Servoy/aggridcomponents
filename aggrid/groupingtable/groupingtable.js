@@ -4388,11 +4388,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								gridOptions.columnApi.setRowGroupColumns(columnStateJSON.rowGroupColumnsState);
 							}
 
-							if($scope.model.restoreStates.filter && !$.isEmptyObject(columnStateJSON.filterModel)) {
+							if($scope.model.restoreStates.filter && $.isPlainObject(columnStateJSON.filterModel)) {
 								gridOptions.api.setFilterModel(columnStateJSON.filterModel);
 							}
 
-							if($scope.model.restoreStates.sort && Array.isArray(columnStateJSON.sortModel) && columnStateJSON.sortModel.length > 0) {
+							if($scope.model.restoreStates.sort && Array.isArray(columnStateJSON.sortModel)) {
 								gridOptions.api.setSortModel(columnStateJSON.sortModel);
 							}
 						}
