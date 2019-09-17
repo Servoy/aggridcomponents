@@ -1406,7 +1406,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							&& angular.isDefined(column.valuelist[$sabloConverters.INTERNAL_IMPL]["recordLinked"])) {
 						// _svyRowId: "5.10643;_0"
 						var rowId = row[$foundsetTypeConstants.ROW_ID_COL_KEY];
-						if (rowId.indexOf(";") >= 0) rowId = rowId.substring(0, rowId.indexOf(";") + 1);
 						
 						if (column.valuelist.length == 0 && foundsetRows.length > 0) {
 							// this if is just for backwards compatilility editing comboboxes with valuelists with Servoy < 8.3.3 (there the foundset-linked-in-spec valuelists in custom objects
