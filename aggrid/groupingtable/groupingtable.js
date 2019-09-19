@@ -881,13 +881,15 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					if(oldValue && oldValue.realValue !== undefined) {
 						oldValue = oldValue.realValue;
 					}
+					var oldValueStr = oldValue;
+					if(oldValueStr == null) oldValueStr = "";
 
 					var col = getColumn(params.colDef.field);
-					if(col && col.dataprovider && col.dataprovider.idForFoundset && (newValue != oldValue || invalidCellDataIndex.rowIndex != -1)) {
-						if(newValue != oldValue) {
+					if(col && col.dataprovider && col.dataprovider.idForFoundset && (newValue != oldValueStr || invalidCellDataIndex.rowIndex != -1)) {
+						if(newValue != oldValueStr) {
 							foundsetRef.updateViewportRecord(row._svyRowId, col.dataprovider.idForFoundset, newValue, oldValue);
 						}
-						if($scope.handlers.onColumnDataChange && newValue != oldValue) {
+						if($scope.handlers.onColumnDataChange && newValue != oldValueStr) {
 							var currentEditCells = gridOptions.api.getEditingCells();
 							onColumnDataChangePromise = $scope.handlers.onColumnDataChange(
 								getFoundsetIndexFromEvent(params),
