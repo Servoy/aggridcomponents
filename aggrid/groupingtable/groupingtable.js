@@ -4319,7 +4319,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							$log.error(e);
 						}
 						
-						var restoreColumns = $scope.model.restoreStates.columns == undefined || $scope.model.restoreStates.columns;
+						var restoreColumns = $scope.model.restoreStates == undefined || $scope.model.restoreStates.columns == undefined || $scope.model.restoreStates.columns;
 
 						if(restoreColumns && $scope.model.columnStateOnError) {
 							// can't parse columnState
@@ -4387,11 +4387,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								gridOptions.columnApi.setRowGroupColumns(columnStateJSON.rowGroupColumnsState);
 							}
 
-							if($scope.model.restoreStates.filter && $.isPlainObject(columnStateJSON.filterModel)) {
+							if($scope.model.restoreStates && $scope.model.restoreStates.filter && $.isPlainObject(columnStateJSON.filterModel)) {
 								gridOptions.api.setFilterModel(columnStateJSON.filterModel);
 							}
 
-							if($scope.model.restoreStates.sort && Array.isArray(columnStateJSON.sortModel)) {
+							if($scope.model.restoreStates && $scope.model.restoreStates.sort && Array.isArray(columnStateJSON.sortModel)) {
 								gridOptions.api.setSortModel(columnStateJSON.sortModel);
 							}
 						}
