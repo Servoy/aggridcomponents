@@ -407,7 +407,7 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
         			if (column.autoResize === false) colDef.suppressSizeToFit = !column.autoResize;
                     
         			// sorting
-        			if (column.enableSort === false) colDef.suppressSorting = !column.enableSort;
+        			if (column.enableSort === false) colDef.sortable = column.enableSort;
         			
         			// visibility
                     if (column.visible === false) colDef.hide = true;

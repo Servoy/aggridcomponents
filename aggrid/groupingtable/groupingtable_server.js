@@ -35,7 +35,7 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 		var groupColumnIndex = groupColumns[i];
 
 		// retrieve the grouping column
-		groupDataprovider = $scope.model.columns[groupColumnIndex].dataprovider;
+		groupDataprovider = $scope.model.columns[groupColumnIndex].dataprovider || $scope.model.columns[groupColumnIndex].lazydataprovider;
 		log("Group on groupDataprovider " + groupDataprovider + " at index " + groupColumnIndex, LOG_LEVEL.WARN);
 		//		console.log('group on ' + groupDataprovider);
 
@@ -110,7 +110,7 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 	var columns = [];
 	for (var idx = 0; idx < $scope.model.columns.length; idx++) {
 		columns.push({
-			dataprovider: $scope.model.columns[idx].dataprovider,
+			dataprovider: $scope.model.columns[idx].dataprovider || $scope.model.columns[idx].lazydataprovider,
 			format: $scope.model.columns[idx].format,
 			valuelist: $scope.model.columns[idx].valuelist,
 			id: $scope.model.columns[idx].id,
@@ -411,7 +411,7 @@ function filterFoundset(foundset, sFilterModel) {
 	}
 
 	for (var i = 0; i < $scope.model.columns.length; i++) {
-		var dp = $scope.model.columns[i].dataprovider;
+		var dp = $scope.model.columns[i].dataprovider || $scope.model.columns[i].lazydataprovider;
 		var filter = filterModel[i];
 		if (filter) {
 			var op, value;
@@ -804,7 +804,7 @@ $scope.api.getSelectedRecordFoundSet = function() {
 				const keys = Object.keys(groupState.children);
 				if (!keys.length) return; // Should not happen, but anyway...
 				
-				var groupColumn = groupColumns[level] || (groupColumns[level] = getGroupQBColumn(selectionQuery, groupColumnsDefs[level].dataprovider, JOIN_TYPE.LEFT_OUTER_JOIN));
+				var groupColumn = groupColumns[level] || (groupColumns[level] = getGroupQBColumn(selectionQuery, groupColumnsDefs[level].dataprovider || groupColumnsDefs[level].lazydataprovider, JOIN_TYPE.LEFT_OUTER_JOIN));
 				
 				const selectedChildren = []
 				const childrenCondition = condition.root.or
@@ -864,4 +864,18 @@ $scope.api.getGroupedState = function() {
 	});
 	
 	return JSON.parse(filteredState)
+}
+
+$scope.enableColumn = function(indexes, enabled) {
+	var idx;
+	
+	for (var i = 0; i < indexes.length; i++) {
+		idx = indexes[i];
+		
+		if (enabled) {
+			$scope.model.columns[idx].dataprovider = $scope.model.columns[idx].lazydataprovider;
+		} else {
+			$scope.model.columns[idx].dataprovider = null;
+		}
+	}
 }

@@ -8,6 +8,17 @@
 }
 
 */
+
+/* override the 400px default, which causes double scrollbars */
+data-aggrid-groupingtable .ag-column-panel {
+	min-height: 100%
+}
+
+/* needed after upgrade to ag-grid-enterprise v21.1.1 to make sure the headings on pinned columns will show their bottom border*/
+.ag-pinned-left-header, .ag-pinned-right-header {
+	position: relative;
+}
+
 .ag-table-info {
 	position: absolute;
 	top: 15px;

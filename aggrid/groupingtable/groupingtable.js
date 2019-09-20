@@ -385,10 +385,12 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 					defaultColDef: {
 						width: 0,
-						suppressFilter: true,
+						filter: false, // TODO implement serverside filtering
 						valueGetter: displayValueGetter,
 						valueFormatter: displayValueFormatter,
-						menuTabs: vMenuTabs
+						menuTabs: vMenuTabs,
+						sorting: config.enableSorting,
+						resizable: config.enableColumnResize
 					},
 					columnDefs: columnDefs,
 					getMainMenuItems: getMainMenuItems,
@@ -398,13 +400,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 					suppressContextMenu: false,
 					suppressMovableColumns: !config.enableColumnMove,
-					enableServerSideSorting: config.enableSorting,
-					enableColResize: config.enableColumnResize,
 					suppressAutoSize: true,
 					autoSizePadding: 25,
 					suppressFieldDotNotation: true,
 
-					enableServerSideFilter: true, // TODO implement serverside filtering
 					// suppressMovingInCss: true,
 //					suppressColumnMoveAnimation: true,
 //					suppressAnimationFrame: true,
@@ -618,7 +617,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					} else {
 						isRendered = true;
 					}
-
 				}
 
 				// default selection
@@ -877,7 +875,30 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					var rowGroupCols = event.columns;
 					
 					setColumnVisibility(rowGroupCols)
-				})
+				});
+				
+				gridOptions.api.addEventListener('columnVisible', function (event) {
+					const designCol = getColumn(event.column.colId);
+					
+					if (designCol.lazydataprovider) {
+						$scope.svyServoyapi.callServerSideApi('enableColumn', [[getColumnIndex(event.column.colId)], event.visible])
+							.then(function(retValue) {
+								/* 
+								 * CHECKME can this be be optimized by making it more finegrained?
+								 * 
+								 * tried with the code below, but the servoy side is up to date, but the rows on the AG Grid side aren't
+								 * 
+								 * event.api.refreshCells({
+								 * 	columns: [event.column],
+								 *  force: true
+								 * })
+								 * 
+								 * now using event.api.purgeServerSideCache(); instead
+								 */
+								event.api.purgeServerSideCache();
+							});
+					}
+				});
 	         
 				function setColumnVisibility(rowGroupCols) {
 					var i;
@@ -954,7 +975,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							
 							var newGroupIndex = newGroupedFields.indexOf(field);
 							var isGroupedBy = newGroupIndex !== -1;
-							var wasGroupedBy = column.rowGroupIndex > -1;
+							var wasGroupedBy = typeof column.rowGroupIndex === 'number' ? column.rowGroupIndex > -1 : false;
 						//	var hideBecauseFieldSharedWithAutoColumnGroup = wasUngrouped && field && field === autoColumnGroupField;
 							var hideBecauseFieldSharedWithAutoColumnGroup = false
 							
@@ -975,11 +996,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							
 							column.rowGroupIndex = newGroupIndex; // persist
 							
-							if (true && (wasGroupedBy || isGroupedBy || hideBecauseFieldSharedWithAutoColumnGroup)) { // TODO expose behavior as option
-								gridOptions.columnApi.setColumnVisible(field, newVisibility); // column visibility
+							if (wasGroupedBy || isGroupedBy || hideBecauseFieldSharedWithAutoColumnGroup) { // TODO expose behavior as option
+								gridOptions.columnApi.setColumnVisible(field, newVisibility)
 							}
 						}
-
+						
 						// TODO test this
 						for (i = 0; i < oldGroupedFields.length; i++) {
 							if (oldGroupedFields[i] !== newGroupedFields[i]) {
@@ -1082,7 +1103,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				});
 
 				/**
-				 * Event handler for selection changes. Only used in non-groupng mode
+				 * Event handler for selection changes.
 				 * 
 				 * @private
 				 */
@@ -1093,7 +1114,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					if (isTableGrouped() || $scope.model.disconnectedSelection) {
 						//console.log(JSON.stringify($scope.model.state, function(key, value) {return key === 'parent' ? undefined : value}))
 
-                        // Trigger event on selection change in grouo mode
+                        // Trigger event on selection change in group mode
                         if ($scope.handlers.onSelectedRowsChanged) {
                             $scope.handlers.onSelectedRowsChanged();
                         }
@@ -3827,9 +3848,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					//					contractAll: Contract all groups. Only shown if grouping by at least one column.
 					//					toolPanel: Show the tool panel.
 					var menuItems = [];
-					var items = ['rowGroup', 'rowUnGroup'];
 					params.defaultItems.forEach(function(item) {
-						if (items.indexOf(item) > -1) {
+						if ($scope.model.generalColumnMenuTabOptions[item]) {
 							menuItems.push(item);
 						}
 					});
@@ -3960,6 +3980,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					var colDefs = [];
 					var colDef;
 					var column;
+					var forceLoadIndexes = [];
 					
 					for (var i = 0; $scope.model.columns && i < $scope.model.columns.length; i++) {
 						column = $scope.model.columns[i];
@@ -3999,11 +4020,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						if (column.visible === false) colDef.hide = true;
 						
 	                    // column resizing https://www.ag-grid.com/javascript-grid-resizing/
-	        			if (column.enableResize === false) colDef.suppressResize = !column.enableResize;
+	        			if (column.enableResize === false) colDef.resizable = column.enableResize;
 	        			if (column.autoResize === false) colDef.suppressSizeToFit = !column.autoResize;
 						
 						// column sort
-						if (column.enableSort === false) colDef.suppressSorting = true;
+						if (column.enableSort === false) colDef.sortable = false;
 
 						// define the columnMenuTabs
 //						var colMenuTabs = [];
@@ -4032,9 +4053,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						}
 
 						if (column.filterType) {
-							colDef.suppressFilter = false;
-
-							if(column.filterType == 'TEXT') {
+							if (column.filterType == 'TEXT') {
 								colDef.filter = 'agTextColumnFilter';
 							} else if (column.filterType == 'NUMBER') {
 								colDef.filter = 'agNumberColumnFilter';
@@ -4062,8 +4081,16 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								}
 							}
 						}
+						
+						if (column.lazydataprovider && !column.dataprovider && (!colDef.hide || (typeof colDef.rowGroupIndex === 'number' && colDef.rowGroupIndex > -1))) {
+							forceLoadIndexes.push(i);
+						}
 
 						colDefs.push(colDef);
+					}
+					
+					if (forceLoadIndexes.length) {
+						$scope.svyServoyapi.callServerSideApi('enableColumn', [forceLoadIndexes, true]);
 					}
 
 					// TODO svyRowId should not be visible. I need the id for the selection
@@ -4073,7 +4100,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						suppressToolPanel: true,
 						suppressMenu: true,
 						suppressNavigable: true,
-						suppressResize: true,
+						resizable: false,
 						hide: true
 					});
 
@@ -4083,7 +4110,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						suppressToolPanel: true,
 						suppressMenu: true,
 						suppressNavigable: true,
-						suppressResize: true,
+						resizable: false,
 						hide: true
 					});
 

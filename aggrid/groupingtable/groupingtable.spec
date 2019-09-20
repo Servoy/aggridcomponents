@@ -36,6 +36,7 @@
 		"showColumnsMenuTab": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},
 		"toolPanelConfig": { "type": "toolPanelConfig", "tags": { "scope": "design" } },
 		"iconConfig": { "type": "iconConfig", "tags": { "scope": "design" } },
+		"generalColumnMenuTabOptions": {"type": "generalColumnMenuTabOptions"},
 		"gridOptions": {"type": "map"},
 		"localeText": {"type": "map"},
 		"filterModel": {"type": "string", "tags": {"scope": "private"}},
@@ -291,6 +292,15 @@
 					"type": "string"
 				}
             ]
+		},
+		"enableColumn": {
+			"parameters": [{
+				"name": "indexes",
+				"type": "number[]"
+			}, {
+				"name": "state",
+				"type": "boolean"
+			}]
 		}
 	},
 	"types" : {
@@ -300,6 +310,7 @@
 			"headerStyleClass" : {"type" : "styleclass"},
 			"headerTooltip" : {"type" : "tagstring"},
 			"dataprovider": { "type": "dataprovider", "forFoundset": "myFoundset", "resolveValuelist" : true},
+			"lazydataprovider": { "type": "string"},
 			"styleClass" : {"type" : "styleclass"},
 			"styleClassDataprovider": { "type": "dataprovider", "forFoundset": "myFoundset"},
 			"format" : {"type" : "format",  "for": ["valuelist", "dataprovider"]},
@@ -328,7 +339,7 @@
 			"id": {"type" : "string"},
 			"field": {"type": "string"}
         },
-		 "hashedFoundset" : {
+		"hashedFoundset" : {
             "foundset": "foundset",
             "foundsetUUID": "foundsetRef",
             "uuid" : "string",
@@ -391,6 +402,12 @@
 			"suppressColumnFilter": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},
 			"suppressColumnSelectAll": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},
 			"suppressColumnExpandAll": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}}
+		},
+		"generalColumnMenuTabOptions": {
+			"rowGroup": {"type": "boolean", "default": true},
+			"rowUnGroup": {"type": "boolean", "default": true},
+			"pinSubMenu": {"type": "boolean", "default": false}
+
 		}
 	}
 }
