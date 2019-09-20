@@ -348,9 +348,11 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
 
             $scope.$watchCollection("model.columns", function(newValue, oldValue) {
                 if(gridOptions) {
-                    var columnDefs = getColumnDefs();
-                    gridOptions.api.setColumnDefs(columnDefs);
-                    restoreColumnsState();
+					// need to clear/remove old columns first, else the id for
+					// the new columns will have the counter at the end (ex. "myid_1")
+					// and that will broke our getColumn()
+					gridOptions.api.setColumnDefs([]);
+					gridOptions.api.setColumnDefs(getColumnDefs());
                 }
             });
 
