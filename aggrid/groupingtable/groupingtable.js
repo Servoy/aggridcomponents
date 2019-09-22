@@ -976,11 +976,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							var newGroupIndex = newGroupedFields.indexOf(field);
 							var isGroupedBy = newGroupIndex !== -1;
 							var wasGroupedBy = typeof column.rowGroupIndex === 'number' ? column.rowGroupIndex > -1 : false;
-						//	var hideBecauseFieldSharedWithAutoColumnGroup = wasUngrouped && field && field === autoColumnGroupField;
 							var hideBecauseFieldSharedWithAutoColumnGroup = false
 							
 							if (autoColumnGroupField && column.columnDef && column.columnDef.checkboxSelection) {
-								hideBecauseFieldSharedWithAutoColumnGroup = wasUngrouped || ($scope.isGroupView && field && field === autoColumnGroupField);
+								hideBecauseFieldSharedWithAutoColumnGroup = wasUngrouped || field === autoColumnGroupField;
 							}
 							
 							var newVisibility;
@@ -1037,8 +1036,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 					
 					// After change in grouping, all watch function to enable/disable checkboxSelection
-					modelCheckboxSelectionWatch($scope.model.checkboxSelection, !$scope.model.checkboxSelection);
-					
+					if ($scope.model.checkboxSelection) {
+						modelCheckboxSelectionWatch($scope.model.checkboxSelection, !$scope.model.checkboxSelection);
+					}
+
 					$scope.svyServoyapi.apply('state');
 	
 					// resize the columns
