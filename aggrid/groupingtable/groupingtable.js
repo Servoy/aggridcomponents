@@ -1639,15 +1639,29 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 						var vl = getValuelist(this.params);
 						if (vl) {
-							var hasMatchingDisplayValue = false;
-							for (var i = 0; i < vl.length; i++) {
-								// compare trimmed values, typeahead will trim the selected value
-								if ($.trim(displayValue) === $.trim(vl[i].displayValue)) {
-									hasMatchingDisplayValue = true;
-									realValue = vl[i].realValue;
-									break;
+
+							var findDisplayValue = function(vl, displayValue) {
+								for (var i = 0; i < vl.length; i++) {
+									// compare trimmed values, typeahead will trim the selected value
+									if ($.trim(displayValue) === $.trim(vl[i].displayValue)) {
+										return { hasMatchingDisplayValue: true, realValue: vl[i].realValue };
+									}
 								}
+								return null;
 							}
+
+							var hasMatchingDisplayValue = false;
+							var fDisplayValue = findDisplayValue(vl, displayValue);
+							if(fDisplayValue == null) {
+								// try to find it also on this.valuelist, that is filtered with "" to get all entries
+								vl = this.valuelist;
+								fDisplayValue = findDisplayValue(vl, displayValue);
+							}
+							if(fDisplayValue != null) {
+								hasMatchingDisplayValue = fDisplayValue['hasMatchingDisplayValue'];
+								realValue = fDisplayValue['realValue'];
+							}
+
 							if (!hasMatchingDisplayValue)
 							{
 								if (this.hasRealValues) 
