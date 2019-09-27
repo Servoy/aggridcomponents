@@ -841,6 +841,34 @@ $scope.api.getSelectedRecordFoundSet = function() {
 		if (!appendSelectionWhereClauses($scope.model.state, null, null, 0, selectionQuery.where)) {
 			selectionQuery.where.add(pkColumn.eq(null));
 		}
+		
+		// Make sure the resulting foundset is sorted like on the grid
+		var sortSolumns = [].concat(groupColumns);
+		var descSorts = [];
+		selectionFs.getCurrentSort().split(',').forEach(function(sort) {
+			var parts = sort.split(' ');
+			var qbCol = selectionQuery.getColumn(parts[0]);
+			
+			if (!qbCol) {
+				console.warn('Failed to convert sort column "' + parts[0] + '" to QBColumn');
+				return;
+			}
+			
+			sortSolumns.push(qbCol);
+			
+			if (parts[1] === 'desc') {
+				descSorts.push(qbCol);
+			}
+		});		
+		
+		selectionQuery.sort.clear();
+		sortSolumns.forEach(function(col) {
+			if (descSorts.indexOf(col) !== -1) {
+				selectionQuery.sort.add(col.desc);
+			} else {
+				selectionQuery.sort.add(col);
+			}
+		});
 	} else { // create a duplicate of the root foundset and limit it to only contain the records that are selected in the root foundset
 		const selectedRecords = $scope.model.myFoundset.foundset.getSelectedRecords();
 		
