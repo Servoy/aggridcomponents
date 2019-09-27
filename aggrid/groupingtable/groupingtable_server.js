@@ -1,5 +1,7 @@
 const SERVOY_FIND_SEARCH_CONDITION_NAME = 'SV:S'
 
+const NULL_DISPLAY_VALUE = 'GRID_NULL_DISPLAY_VALUE'
+
 // **************************** Internal API implementation **************************** //
 /**
  * @param {Array<Number>} groupColumns
@@ -676,6 +678,7 @@ $scope.api.getSelectedRecordFoundSet = function() {
 		return null;
 	}
 	
+	const selectionFs = $scope.model.myFoundset.foundset.duplicateFoundSet();
 	/** @type {QBSelect} */
 	const selectionQuery = $scope.model.myFoundset.foundset.getQuery();
 	// Remove filter condition if still applied on the root foundset: query to get selected records based on $scope.model.state will contain the proper restrictions
@@ -789,10 +792,10 @@ $scope.api.getSelectedRecordFoundSet = function() {
 		const groupColumnsDefs = getGroupColumnDefs();
 		const groupColumns = [];		
 		const pkColumn = selectionQuery.columns[pkColumnNames[0]];
-		
-		var hasSelection = false;
 
 		function appendSelectionWhereClauses(groupState, groupColumn, groupKey, level, condition) {
+			var hasSelection = false;
+			
 			// CHECKME is selected ever false? Can't remember...
 			if (groupState.selected) { // selected group: include all children
 				condition.add(groupColumn.eq(groupKey));
@@ -802,7 +805,7 @@ $scope.api.getSelectedRecordFoundSet = function() {
 				hasSelection = true;
 			} else if (groupState.children) { // must be another level group level 
 				const keys = Object.keys(groupState.children);
-				if (!keys.length) return; // Should not happen, but anyway...
+				if (!keys.length) return false; // Should not happen, but anyway...
 				
 				var groupColumn = groupColumns[level] || (groupColumns[level] = getGroupQBColumn(selectionQuery, groupColumnsDefs[level].dataprovider || groupColumnsDefs[level].lazydataprovider, JOIN_TYPE.LEFT_OUTER_JOIN));
 				
@@ -816,10 +819,13 @@ $scope.api.getSelectedRecordFoundSet = function() {
 					var childCondition = condition.root.and
 					childrenCondition.add(childCondition)
 					
-					if (child.selected) { // Optimize for case where children are only selected groups: use isin([]) instead of nested OR's
+					if (child.selected && key !== NULL_DISPLAY_VALUE) { // Optimize for case where children are only selected groups: use isin([]) instead of nested OR's
 						selectedChildren.push(key)
 					} else {
-						appendSelectionWhereClauses(groupState.children[key], groupColumn, key, level + 1, childCondition);
+						if (appendSelectionWhereClauses(groupState.children[key], groupColumn, key, level + 1, childCondition)) {
+							childCondition.add(key === NULL_DISPLAY_VALUE ? groupColumn.isNull : groupColumn.eq(key));
+							hasSelection = true;
+						}
 					}
 				}
 				
@@ -828,12 +834,12 @@ $scope.api.getSelectedRecordFoundSet = function() {
 					hasSelection = true;
 				}
 			}
+			
+			return hasSelection;
 		}
 		
-		appendSelectionWhereClauses($scope.model.state, null, null, 0, selectionQuery.where);
-		
-		if (!hasSelection) {
-			selectionQuery.where.add(pkColumn.eq(null))
+		if (!appendSelectionWhereClauses($scope.model.state, null, null, 0, selectionQuery.where)) {
+			selectionQuery.where.add(pkColumn.eq(null));
 		}
 	} else { // create a duplicate of the root foundset and limit it to only contain the records that are selected in the root foundset
 		const selectedRecords = $scope.model.myFoundset.foundset.getSelectedRecords();
@@ -850,8 +856,7 @@ $scope.api.getSelectedRecordFoundSet = function() {
 			selectionQuery.where.add('selectedRecords', selectionQuery.columns[pkColumnNames[0]].isin(pks))
 		}
 	}
-	
-	const selectionFs = $scope.model.myFoundset.foundset.duplicateFoundSet();
+
 	selectionFs.loadRecords(selectionQuery)
 	
 	return selectionFs;

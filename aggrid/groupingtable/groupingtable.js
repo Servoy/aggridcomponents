@@ -681,6 +681,12 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					var groupState = $scope.model.state;
 					var groupKeys = Array.isArray(nodeOrKeys) ? nodeOrKeys : getGroupPath(nodeOrKeys);
 					
+					groupKeys.forEach(function(entry, index) {
+						if (entry === NULL_DISPLAY_VALUE) {
+							groupKeys[index] = 'GRID_NULL_DISPLAY_VALUE';
+						}
+					});
+					
 					for (var index = 0; groupState && index < groupKeys.length; index++) {
 						if (groupState.children && groupState.children.hasOwnProperty(groupKeys[index])) {
 							groupState = groupState.children[groupKeys[index]];
@@ -822,7 +828,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						if (node.isSelected()) {
 							groupState.pks.push(pk);
 						} else {
-							groupState.pks.splice(groupState.pks.indexOf(pk), 1)
+							groupState.pks.splice(groupState.pks.indexOf(pk), 1);
+							if (!groupState.pks.length) {
+								delete groupState.selected;
+							}
 						}
 					}
 					$scope.svyServoyapi.apply('state');
