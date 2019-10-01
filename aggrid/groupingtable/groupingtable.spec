@@ -275,7 +275,7 @@
 	"types" : {
 		"column" : {
 			"footerText" : {"type" : "tagstring"},
-			"headerTitle": {"type" : "tagstring"},
+			"headerTitle": {"type" : "titlestring", "for": "dataprovider"},
 			"headerStyleClass" : {"type" : "styleclass"},
 			"headerTooltip" : {"type" : "tagstring"},
 			"dataprovider": { "type": "dataprovider", "forFoundset": "myFoundset", "resolveValuelist" : true},
