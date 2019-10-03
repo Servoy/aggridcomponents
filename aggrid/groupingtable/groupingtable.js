@@ -3949,10 +3949,20 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							colDef.filterParams = { applyButton: true, clearButton: true, newRowsAction: 'keep', suppressAndOrCondition: true, caseSensitive: false };
 						}
 
-						if(column.columnDef) {
-							for (var property in column.columnDef) {
-								if (column.columnDef.hasOwnProperty(property)) {
-									colDef[property] = column.columnDef[property];
+						var columnOptions;
+						if($injector.has('ngDataGrid')) {
+							var groupingtableDefaultConfig = $services.getServiceScope('ngDataGrid').model;
+							if(groupingtableDefaultConfig.columnOptions) {
+								columnOptions = groupingtableDefaultConfig.columnOptions;
+							}
+						}
+
+						columnOptions = mergeConfig(columnOptions, column.columnDef);
+
+						if(columnOptions) {
+							for (var property in columnOptions) {
+								if (columnOptions.hasOwnProperty(property)) {
+									colDef[property] = columnOptions[property];
 								}
 							}
 						}
