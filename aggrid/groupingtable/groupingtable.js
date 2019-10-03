@@ -3956,6 +3956,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						}
 
 						var columnOptions = {};
+
 						if($injector.has('ngDataGrid')) {
 							var groupingtableDefaultConfig = $services.getServiceScope('ngDataGrid').model;
 							if(groupingtableDefaultConfig.columnOptions) {

@@ -453,6 +453,7 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                     }
 
                     var columnOptions = {};
+
                     if($injector.has('ngPowerGrid')) {
                         var datasettableDefaultConfig = $services.getServiceScope('ngPowerGrid').model;
                         if(datasettableDefaultConfig.columnOptions) {
