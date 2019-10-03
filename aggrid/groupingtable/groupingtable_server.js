@@ -423,14 +423,19 @@ function filterFoundset(foundset, sFilterModel) {
 				}
 			}
 			else if(filter["filterType"] == "date") {
-				value = new Date(filter["dateFrom"]);
+				value = filter["dateFrom"];
 				switch(filter["type"]) {
-					case "equals":
-						op = "eq";
-						break;
 					case "notEqual":
 						useNot = true;
-						op = "eq";
+					case "equals":
+						op = "between";
+						var dateFromSplit = value.split("-");
+						var dateFromD = new Date(dateFromSplit[0], dateFromSplit[1] - 1, dateFromSplit[2]);
+						var dateToD = new Date(dateFromD.getTime());
+						dateToD.setDate(dateToD.getDate() + 1);
+						value = new Array();
+						value.push(dateFromD);
+						value.push(dateToD);
 						break;
 					case "greaterThan":
 						op = "gt";
