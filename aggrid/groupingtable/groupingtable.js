@@ -454,13 +454,15 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					onGridReady: function() {
 						$log.debug("gridReady");
 						isGridReady = true;
-						if($scope.model._internalColumnState !== "_empty") {
-							$scope.model.columnState = $scope.model._internalColumnState;
-							// need to clear it, so the watch can be used, if columnState changes, and we want to apply the same _internalColumnState again
-							$scope.model._internalColumnState = "_empty";
-							$scope.svyServoyapi.apply('_internalColumnState');
+						if(isRendered) {
+							if($scope.model._internalColumnState !== "_empty") {
+								$scope.model.columnState = $scope.model._internalColumnState;
+								// need to clear it, so the watch can be used, if columnState changes, and we want to apply the same _internalColumnState again
+								$scope.model._internalColumnState = "_empty";
+								$scope.svyServoyapi.apply('_internalColumnState');
+							}
+							restoreColumnsState();
 						}
-						restoreColumnsState();
 						gridOptions.onDisplayedColumnsChanged = function() {
 							sizeHeaderAndColumnsToFit();
 							storeColumnsState();
@@ -1333,12 +1335,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					return undefined;				
 				}
 
-				/**
+				/**`
 				 * Resize header and all columns so they can fit the horizontal space
 				 *  */
 				function sizeHeaderAndColumnsToFit() {
-					gridOptions.api.sizeColumnsToFit();
-					sizeHeader();
+					if($scope.model.visible) {
+						gridOptions.api.sizeColumnsToFit();
+						sizeHeader();
+					}
 				}
 
 				/**
@@ -2212,48 +2216,50 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				var columnWatches = [];
 				$scope.$watchCollection("model.columns", function(newValue, oldValue) {
 					$log.debug('columns changed');
-					for(var i = 0; i < columnWatches.length; i++) {
-						columnWatches[i]();
-					}
-					columnWatches.length = 0;
-					var columnKeysToWatch = [
-						"headerTitle",
-						"headerStyleClass",
-						"headerTooltip",
-						"styleClass",
-						"visible",
-						"width",
-						"minWidth",
-						"maxWidth",
-						"enableRowGroup",
-						"enableSort",
-						"enableResize",
-						"enableToolPanel",
-						"autoResize",
-						"editType",
-						"id"
-					];
-					for(var i = 0; i < $scope.model.columns.length; i++) {
-						for( var j = 0; j < columnKeysToWatch.length; j++) {
-							var columnWatch = $scope.$watch("model.columns[" + i + "]['" + columnKeysToWatch[j] + "']",
-							function(newValue, oldValue) {
-								if(newValue != oldValue) {
-									$log.debug('column property changed');
-									updateColumnDefs();
-								}
-							});
-							columnWatches.push(columnWatch);
+					if(newValue) {
+						for(var i = 0; i < columnWatches.length; i++) {
+							columnWatches[i]();
 						}
-					}
-					// watch the column header title
-					for (var i = 0; i < $scope.model.columns.length; i++) {
-						watchColumnHeaderTitle(i);
-						watchColumnFooterText(i);
-					}
-				
+						columnWatches.length = 0;
+						var columnKeysToWatch = [
+							"headerTitle",
+							"headerStyleClass",
+							"headerTooltip",
+							"styleClass",
+							"visible",
+							"width",
+							"minWidth",
+							"maxWidth",
+							"enableRowGroup",
+							"enableSort",
+							"enableResize",
+							"enableToolPanel",
+							"autoResize",
+							"editType",
+							"id"
+						];
+						for(var i = 0; i < $scope.model.columns.length; i++) {
+							for( var j = 0; j < columnKeysToWatch.length; j++) {
+								var columnWatch = $scope.$watch("model.columns[" + i + "]['" + columnKeysToWatch[j] + "']",
+								function(newValue, oldValue) {
+									if(newValue != oldValue) {
+										$log.debug('column property changed');
+										updateColumnDefs();
+									}
+								});
+								columnWatches.push(columnWatch);
+							}
+						}
+						// watch the column header title
+						for (var i = 0; i < $scope.model.columns.length; i++) {
+							watchColumnHeaderTitle(i);
+							watchColumnFooterText(i);
+						}
 					
-					if(newValue != oldValue) {
-						updateColumnDefs();
+						
+						if(newValue != oldValue) {
+							updateColumnDefs();
+						}
 					}
 				});
 				
@@ -4306,32 +4312,34 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				}
 
 				function storeColumnsState() {
-					var agColumnState = gridOptions.columnApi.getColumnState();
+					if(isRendered) {
+						var agColumnState = gridOptions.columnApi.getColumnState();
 
-					var rowGroupColumns = getRowGroupColumns();
-					var svyRowGroupColumnIds = [];
-					for(var i = 0; i < rowGroupColumns.length; i++) {
-						svyRowGroupColumnIds.push(rowGroupColumns[i].colId);
-					}
-
-					var filterModel = gridOptions.api.getFilterModel();
-					var sortModel = gridOptions.api.getSortModel();
-
-					var columnState = {
-						columnState: agColumnState,
-						rowGroupColumnsState: svyRowGroupColumnIds,
-						filterModel: filterModel,
-						sortModel: sortModel
-					}
-	                var newColumnState = JSON.stringify(columnState);
-	                
-	                if (newColumnState !== $scope.model.columnState) {
-						$scope.model.columnState = newColumnState;
-						$scope.svyServoyapi.apply('columnState');
-						if ($scope.handlers.onColumnStateChanged) {
-							$scope.handlers.onColumnStateChanged($scope.model.columnState);
+						var rowGroupColumns = getRowGroupColumns();
+						var svyRowGroupColumnIds = [];
+						for(var i = 0; i < rowGroupColumns.length; i++) {
+							svyRowGroupColumnIds.push(rowGroupColumns[i].colId);
 						}
-	                }
+
+						var filterModel = gridOptions.api.getFilterModel();
+						var sortModel = gridOptions.api.getSortModel();
+
+						var columnState = {
+							columnState: agColumnState,
+							rowGroupColumnsState: svyRowGroupColumnIds,
+							filterModel: filterModel,
+							sortModel: sortModel
+						}
+						var newColumnState = JSON.stringify(columnState);
+						
+						if (newColumnState !== $scope.model.columnState) {
+							$scope.model.columnState = newColumnState;
+							$scope.svyServoyapi.apply('columnState');
+							if ($scope.handlers.onColumnStateChanged) {
+								$scope.handlers.onColumnStateChanged($scope.model.columnState);
+							}
+						}
+					}
 				}
 	
 				function restoreColumnsState() {
