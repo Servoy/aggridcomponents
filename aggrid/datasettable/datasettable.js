@@ -92,6 +92,10 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                 ]};
 			}
 
+            $scope.showEditorHint = function() {
+                return (!$scope.model.columns || $scope.model.columns.length == 0) && $scope.svyServoyapi.isInDesigner();
+            }
+
             var isGridReady = false;
 
             // AG grid definition
@@ -148,13 +152,15 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                 onGridReady: function() {
                     $log.debug("gridReady");
                     isGridReady = true;
-                    if($scope.model._internalColumnState !== "_empty") {
-                        $scope.model.columnState = $scope.model._internalColumnState;
-                        // need to clear it, so the watch can be used, if columnState changes, and we want to apply the same _internalColumnState again
-                        $scope.model._internalColumnState = "_empty";
-                        $scope.svyServoyapi.apply('_internalColumnState');
+                    if($scope.model.visible) {
+                        if($scope.model._internalColumnState !== "_empty") {
+                            $scope.model.columnState = $scope.model._internalColumnState;
+                            // need to clear it, so the watch can be used, if columnState changes, and we want to apply the same _internalColumnState again
+                            $scope.model._internalColumnState = "_empty";
+                            $scope.svyServoyapi.apply('_internalColumnState');
+                        }
+                        restoreColumnsState();
                     }
-                    restoreColumnsState();
                     gridOptions.onDisplayedColumnsChanged = function() {
                         sizeColumnsToFit();
                         storeColumnsState();
@@ -276,7 +282,7 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
 
             // init the grid. If is in designer render a mocked grid
             if ($scope.svyServoyapi.isInDesigner()) {
-                
+                $element.addClass("design-mode");
                 var designGridOptions = {
                     rowModelType: 'clientSide',
                     columnDefs: columnDefs,
@@ -518,7 +524,9 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
             }
 
             function sizeColumnsToFit() {
-                gridOptions.api.sizeColumnsToFit();
+                if($scope.model.visible) {
+                    gridOptions.api.sizeColumnsToFit();
+                }
             }
 
             function getIconElement(iconStyleClass) {
@@ -717,22 +725,24 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
 			}
 
             function storeColumnsState() {
-                var columnState = {
-                    columnState: gridOptions.columnApi.getColumnState(),
-                    rowGroupColumnsState: gridOptions.columnApi.getColumnGroupState(),
-                    isToolPanelShowing: gridOptions.api.isToolPanelShowing(),
-					isSideBarVisible: gridOptions.api.isSideBarVisible(),
-					// filterState: gridOptions.api.getFilterModel(), TODO persist column states
-					sortingState: gridOptions.api.getSortModel()
-                }
-                var newColumnState = JSON.stringify(columnState);
-                
-                if (newColumnState !== $scope.model.columnState) {
-                    $scope.model.columnState = newColumnState;
-	                $scope.svyServoyapi.apply('columnState');
-	                if ($scope.handlers.onColumnStateChanged) {
-	                    $scope.handlers.onColumnStateChanged($scope.model.columnState);
-	                }
+                if($scope.model.visible) {
+                    var columnState = {
+                        columnState: gridOptions.columnApi.getColumnState(),
+                        rowGroupColumnsState: gridOptions.columnApi.getColumnGroupState(),
+                        isToolPanelShowing: gridOptions.api.isToolPanelShowing(),
+                        isSideBarVisible: gridOptions.api.isSideBarVisible(),
+                        // filterState: gridOptions.api.getFilterModel(), TODO persist column states
+                        sortingState: gridOptions.api.getSortModel()
+                    }
+                    var newColumnState = JSON.stringify(columnState);
+                    
+                    if (newColumnState !== $scope.model.columnState) {
+                        $scope.model.columnState = newColumnState;
+                        $scope.svyServoyapi.apply('columnState');
+                        if ($scope.handlers.onColumnStateChanged) {
+                            $scope.handlers.onColumnStateChanged($scope.model.columnState);
+                        }
+                    }
                 }
             }
 
@@ -786,10 +796,6 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                     }
                 }
                 return label;
-            }
-
-            $scope.showEditorHint = function() {
-                return (!$scope.model.columns || $scope.model.columns.length == 0) && $scope.svyServoyapi.isInDesigner();
             }
 
             /**
