@@ -3955,7 +3955,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							colDef.filterParams = { applyButton: true, clearButton: true, newRowsAction: 'keep', suppressAndOrCondition: true, caseSensitive: false };
 						}
 
-						var columnOptions;
+						var columnOptions = {};
 						if($injector.has('ngDataGrid')) {
 							var groupingtableDefaultConfig = $services.getServiceScope('ngDataGrid').model;
 							if(groupingtableDefaultConfig.columnOptions) {
