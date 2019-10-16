@@ -163,6 +163,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					console.log(gridOptions.api.getCacheBlockState());
 				}
 
+				$scope.showEditorHint = function() {
+					return (!$scope.model.columns || $scope.model.columns.length == 0) && $scope.svyServoyapi.isInDesigner();
+				}
+
 				/* Test Root Foundset Cache */
 				function test_validateCache() {
 					var cacheBlocks = gridOptions.api.getCacheBlockState();
@@ -614,7 +618,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 				// init the grid. If is in designer render a mocked grid
 				if ($scope.svyServoyapi.isInDesigner()) {
-
+					$element.addClass("design-mode");
 					var designGridOptions = {
 						rowModelType: 'clientSide',
 						columnDefs: columnDefs,
@@ -4441,10 +4445,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 *
 				 ************************************************************************************************************************************
 				 ***********************************************************************************************************************************/
-
-				$scope.showEditorHint = function() {
-					return (!$scope.model.columns || $scope.model.columns.length == 0) && $scope.svyServoyapi.isInDesigner();
-				}
 
 				function isResponsive() {
 					// var parent = $element.parent();

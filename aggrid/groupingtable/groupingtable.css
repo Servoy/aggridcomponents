@@ -58,3 +58,7 @@
 .ag-popup-editor {
 	z-index: 1;
 }
+
+.design-mode {
+	display: block;
+}
