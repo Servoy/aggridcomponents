@@ -452,7 +452,7 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                         colDef.filterParams = { applyButton: true, clearButton: true, newRowsAction: 'keep', suppressAndOrCondition: true, caseSensitive: false };
                     }
 
-                    var columnOptions;
+                    var columnOptions = {};
                     if($injector.has('ngPowerGrid')) {
                         var datasettableDefaultConfig = $services.getServiceScope('ngPowerGrid').model;
                         if(datasettableDefaultConfig.columnOptions) {
