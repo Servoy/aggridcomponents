@@ -401,10 +401,12 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 					defaultColDef: {
 						width: 0,
-						suppressFilter: true,
+						filter: false,
 						valueGetter: displayValueGetter,
 						valueFormatter: displayValueFormatter,
-						menuTabs: vMenuTabs
+						menuTabs: vMenuTabs,
+						sortable: config.enableSorting,
+						resizable: config.enableColumnResize
 					},
 					columnDefs: columnDefs,
 					getMainMenuItems: getMainMenuItems,
@@ -414,13 +416,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 					suppressContextMenu: false,
 					suppressMovableColumns: !config.enableColumnMove,
-					enableServerSideSorting: config.enableSorting,
-					enableColResize: config.enableColumnResize,
 					suppressAutoSize: true,
 					autoSizePadding: 25,
 					suppressFieldDotNotation: true,
 
-					enableServerSideFilter: true, // TODO implement serverside filtering
 					// suppressMovingInCss: true,
 					suppressColumnMoveAnimation: true,
 					suppressAnimationFrame: true,
@@ -1068,8 +1067,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				}
 
 				function keySelectionChangeNavigation(params) {
-					var previousCell = params.previousCellDef;
-					var suggestedNextCell = params.nextCellDef;
+					var previousCell = params.previousCellPosition;
+					var suggestedNextCell = params.nextCellPosition;
 				 
 					var KEY_UP = 38;
 					var KEY_DOWN = 40;
@@ -1078,7 +1077,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 
 					switch (params.key) {
 						case KEY_DOWN:
-							previousCell = params.previousCellDef;
 							// set selected cell on current cell + 1
 							gridOptions.api.forEachNode( function(node) {
 								if (previousCell.rowIndex + 1 === node.rowIndex) {
@@ -1087,7 +1085,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							});
 							return suggestedNextCell;
 						case KEY_UP:
-							previousCell = params.previousCellDef;
 							// set selected cell on current cell - 1
 							gridOptions.api.forEachNode( function(node) {
 								if (previousCell.rowIndex - 1 === node.rowIndex) {
@@ -3909,7 +3906,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						if (column.visible === false) colDef.hide = true;
 						
 	                    // column resizing https://www.ag-grid.com/javascript-grid-resizing/
-	        			if (column.enableResize === false) colDef.suppressResize = !column.enableResize;
+	        			if (column.enableResize === false) colDef.resizable = false;
 	        			if (column.autoResize === false) colDef.suppressSizeToFit = !column.autoResize;
 						
 						// column sort
@@ -3988,7 +3985,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						suppressToolPanel: true,
 						suppressMenu: true,
 						suppressNavigable: true,
-						suppressResize: true,
+						resizable: false,
 						hide: true
 					});
 
@@ -3998,7 +3995,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						suppressToolPanel: true,
 						suppressMenu: true,
 						suppressNavigable: true,
-						suppressResize: true,
+						resizable: false,
 						hide: true
 					});
 
@@ -5192,5 +5189,5 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 		};
 	}]).run(function() {
 		// this is not part of the open source license, can only be used in combination of the Servoy NG Grids components
-		agGrid.LicenseManager.setLicenseKey("Servoy_B.V._Servoy_7Devs_1OEM_22_August_2019__MTU2NjQyODQwMDAwMA==6c490d5c7f432e256493c8ca91624202");
+		agGrid.LicenseManager.setLicenseKey("Servoy_B.V_Servoy_7Devs_200Deployment_11_October_2020__MTYwMjM3MDgwMDAwMA==26d908e26f73b44683ba7a5dfdd00755");
 });

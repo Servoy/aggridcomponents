@@ -106,11 +106,13 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
 
                 defaultColDef: {
                     width: 0,
-                    suppressFilter: true,
+                    filter: false,
 //                    valueFormatter: displayValueFormatter,
                     menuTabs: vMenuTabs,
 			        headerCheckboxSelection: false, //$scope.model.multiSelect === true ? isFirstColumn : false,	// FIXME triggers a long loop of onRowSelection event when a new selection is made.
-			        checkboxSelection: $scope.model.multiSelect === true ? isFirstColumn : false
+                    checkboxSelection: $scope.model.multiSelect === true ? isFirstColumn : false,
+                    sortable: config.enableSorting,
+                    resizable: config.enableColumnResize
                 },
                 columnDefs: columnDefs,
                 getMainMenuItems: getMainMenuItems,
@@ -122,7 +124,6 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
 				
                 suppressContextMenu: false,
                 suppressMovableColumns: false, // TODO persist column order changes
-                enableColResize: config.enableColumnResize,
                 suppressAutoSize: true,
                 autoSizePadding: 25,
                 suppressFieldDotNotation: true,
@@ -174,7 +175,6 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                     }, 150);
                 },
                 getContextMenuItems: getContextMenuItems,
-                enableSorting: config.enableSorting,
                 autoGroupColumnDef: {
                     cellRenderer: DatasetTableGroupCellRenderer,
                     cellRendererParams : { suppressCount: false},
@@ -208,7 +208,7 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
 
             // check if we have filters
             for(var i = 0; gridOptions.sideBar && gridOptions.sideBar.toolPanels && i < columnDefs.length; i++) {
-                if(columnDefs[i].suppressFilter === false) {
+                if(columnDefs[i].filter) {
                     gridOptions.sideBar.toolPanels.push({
                         id: 'filters',
                         labelDefault: 'Filters',
@@ -443,7 +443,7 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                     }                    
 
                     if (column.filterType) {
-                        colDef.suppressFilter = false;
+                        colDef.filter = true;
 
                         if(column.filterType == 'TEXT') {
                             colDef.filter = 'agTextColumnFilter';
@@ -866,5 +866,5 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
     };
 }]).run(function() {
     // this is not part of the open source license, can only be used in combination of the Servoy NG Grids components
-    agGrid.LicenseManager.setLicenseKey("Servoy_B.V._Servoy_7Devs_1OEM_22_August_2019__MTU2NjQyODQwMDAwMA==6c490d5c7f432e256493c8ca91624202");
+    agGrid.LicenseManager.setLicenseKey("Servoy_B.V_Servoy_7Devs_200Deployment_11_October_2020__MTYwMjM3MDgwMDAwMA==26d908e26f73b44683ba7a5dfdd00755");
 });
