@@ -3667,7 +3667,20 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 									break;
 								}
 							}
-							if(isRowChanged) {
+
+							// find the columns with styleClassDataprovider
+							var styleClassDPColumns = [];
+							var allDisplayedColumns = gridOptions.columnApi.getAllDisplayedColumns();
+
+							for (i = 0; i < allDisplayedColumns.length; i++) {
+								var column = allDisplayedColumns[i];
+								var columnModel = getColumn(column.colDef.field)
+								if (columnModel && columnModel.styleClassDataprovider) {
+									styleClassDPColumns.push(column);
+								}
+							}
+
+							if(isRowChanged || styleClassDPColumns.length) {
 								// find first editing cell for the updating row
 								var editCells = gridOptions.api.getEditingCells();
 								var editingColumnId = null;
@@ -3682,19 +3695,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								if(editingColumnId) {
 									gridOptions.api.stopEditing(false);
 								}
-								node.setData(row);
 
-								// refresh cells with styleClassDataprovider
-								var styleClassDPColumns = [];
-								var allDisplayedColumns = gridOptions.columnApi.getAllDisplayedColumns();
-
-								for (i = 0; i < allDisplayedColumns.length; i++) {
-									var column = allDisplayedColumns[i];
-									var columnModel = getColumn(column.colDef.field)
-									if (columnModel && columnModel.styleClassDataprovider) {
-										styleClassDPColumns.push(column);
-									}
+								if(isRowChanged) {
+									node.setData(row);
 								}
+
 								if(styleClassDPColumns.length) {
 									var refreshParam = {
 										rowNodes: [node],
