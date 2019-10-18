@@ -608,3 +608,26 @@ $scope.api.restoreColumnState = function(columnState, onError, columns, filter, 
 $scope.api.getColumnState = function() {
 	return $scope.model.columnState;
 }
+
+/**
+ * Set the table read-only state. If no columnids is used, all columns read-only state is set,
+ * otherwise only for the columns specified.
+ *
+ * @param {Boolean} readOnly read-only state
+ * @param {Array<String>} columnids array of column ids to make ready-only
+ */
+$scope.api.setReadOnly = function(readOnly, columnids) {
+
+	if(!columnids) {
+		$scope.model.readOnly = readOnly;
+		$scope.model.readOnlyColumnIds = null;
+	}
+	else {
+		if(!$scope.model.readOnlyColumnIds) {
+			$scope.model.readOnlyColumnIds = {}
+		}
+		for(var i = 0; i < columnids.length; i++) {
+			$scope.model.readOnlyColumnIds[columnids[i]] = readOnly;
+		}
+	}
+}

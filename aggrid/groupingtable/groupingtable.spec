@@ -37,7 +37,9 @@
 		"iconConfig": { "type": "iconConfig", "tags": { "scope": "design" } },
 		"gridOptions": {"type": "map"},
 		"localeText": {"type": "map"},
-		"filterModel": {"type": "string", "tags": {"scope": "private"}}
+		"filterModel": {"type": "string", "tags": {"scope": "private"}},
+		"readOnly": {"type": "boolean", "default": false, "tags": {"scope" : "private"}},
+		"readOnlyColumnIds": {"type": "object", "tags": {"scope" : "private"}}
 	},
 	"handlers" : {
     	"onSelectedRowsChanged": {
@@ -204,7 +206,13 @@
 			"delayUntilFormLoads": true,
 			"discardPreviouslyQueuedSimilarCalls": true
 		},
-		"scrollToSelection": {}
+		"scrollToSelection": {},
+		"setReadOnly": {
+			"parameters": [
+				{ "name": "readonly", "type": "boolean"},
+				{ "name": "columnids", "type": "string[]", optional: true}
+			]
+		}
     },
 	"internalApi" : {
 		"getGroupedFoundsetUUID" : {

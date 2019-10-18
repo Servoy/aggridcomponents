@@ -3759,6 +3759,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 * Callback used by ag-grid colDef.editable
 				 */
 				function isColumnEditable(args) {
+
+					// if read-only and no r-o columns
+					if($scope.model.readOnly && !$scope.model.readOnlyColumnIds) return false;
+
 					var rowGroupCols = getRowGroupColumns();
 					for (var i = 0; i < rowGroupCols.length; i++) {
 						if (args.colDef.field == rowGroupCols[i].colDef.field) {
@@ -3782,7 +3786,12 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						}
 					}
 
-					return isColumnEditable;
+					// if editable check the r-o state from the runtime map
+					if(isColumnEditable && $scope.model.readOnlyColumnIds && args.colDef.colId && $scope.model.readOnlyColumnIds[args.colDef.colId] != undefined) {
+						return !$scope.model.readOnlyColumnIds[args.colDef.colId];
+					}
+
+					return isColumnEditable && !$scope.model.readOnly;
 				}
 				
 				function getFooterData() {
