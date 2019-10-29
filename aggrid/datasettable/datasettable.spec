@@ -225,7 +225,8 @@
 			"formatType": {"type": "string", "values": ["TEXT", "NUMBER", "DATETIME"], "default": "TEXT"},
 			"filterType": {"type": "string", "values": [{"NONE":null}, {"TEXT":"TEXT"}, {"NUMBER":"NUMBER"}, {"DATE":"DATE"}]},
 			"id": {"type" : "string", "tags": {"showInOutlineView": true }},
-			"columnDef": {"type" : "map"}
+			"columnDef": {"type" : "map"},
+			"showAs": { "type": "string", "values": [{"text":null}, {"html":"html"}, {"sanitizedHtml":"sanitizedHtml"}] }
 		},
         "iconConfig" : {
 			"iconMenu": { "type": "styleclass", "tags": {"scope": "design"}},

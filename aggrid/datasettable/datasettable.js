@@ -1,5 +1,5 @@
-angular.module('aggridDatasettable', ['servoy']).directive('aggridDatasettable', ['$sabloConstants', '$log', '$q', '$filter', '$formatterUtils', '$injector', '$services',
-function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $services) {
+angular.module('aggridDatasettable', ['servoy']).directive('aggridDatasettable', ['$sabloConstants', '$log', '$q', '$filter', '$formatterUtils', '$injector', '$services', '$sanitize',
+function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $services, $sanitize) {
     return {
         restrict: 'E',
         scope: {
@@ -377,6 +377,28 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                 }
             });
 
+            function getDefaultCellRenderer(column) {
+                return function(params) {
+                    var value = params.value;
+                    var valueFormatted = params.valueFormatted != null ? params.valueFormatted : value;
+                    
+                    var returnValueFormatted = false;
+                    if(column != null && column.showAs == 'html') {
+                        value =  value && value.displayValue != undefined ? value.displayValue : value;
+                    } else if(column != null && column.showAs == 'sanitizedHtml') {
+                        value = $sanitize(value && value.displayValue != undefined ? value.displayValue : value)
+                    } else if (value && value.contentType && value.contentType.indexOf('image/') == 0 && value.url) {
+                        value = '<img class="ag-table-image-cell" src="' + value.url + '">';
+                    } else {
+                        returnValueFormatted = true;
+                    }
+                
+                    if(value instanceof Date) returnValueFormatted = true;
+
+                    return returnValueFormatted ? document.createTextNode(valueFormatted) : value;
+                };
+            }
+
             function getColumnDefs() {
                 
                 //create the column definitions from the specified columns in designer
@@ -440,7 +462,10 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
 
                     if(column.cellRendererFunc) {
                         colDef.cellRenderer = createColumnCallbackFunctionFromString(column.cellRendererFunc);
-                    }                    
+                    }
+                    else {
+                        colDef.cellRenderer = getDefaultCellRenderer(column);
+                    }
 
                     if (column.filterType) {
                         colDef.filter = true;
