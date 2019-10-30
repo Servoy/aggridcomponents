@@ -210,7 +210,7 @@
 		"setReadOnly": {
 			"parameters": [
 				{ "name": "readonly", "type": "boolean"},
-				{ "name": "columnids", "type": "string[]", optional: true}
+				{ "name": "columnids", "type": "string[]", "optional": true}
 			]
 		}
     },
