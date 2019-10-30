@@ -3784,8 +3784,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 
 					// if editable check the r-o state from the runtime map
-					if(isColumnEditable && $scope.model.readOnlyColumnIds && args.colDef.colId && $scope.model.readOnlyColumnIds[args.colDef.colId] != undefined) {
-						return !$scope.model.readOnlyColumnIds[args.colDef.colId];
+					if(isColumnEditable && $scope.model.readOnlyColumnIds && args.colDef.colId && $scope.model.readOnlyColumnIds['_' + args.colDef.colId] != undefined) {
+						return !$scope.model.readOnlyColumnIds['_' + args.colDef.colId];
 					}
 
 					return isColumnEditable && !$scope.model.readOnly;

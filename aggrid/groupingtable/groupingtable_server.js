@@ -627,7 +627,7 @@ $scope.api.setReadOnly = function(readOnly, columnids) {
 			$scope.model.readOnlyColumnIds = {}
 		}
 		for(var i = 0; i < columnids.length; i++) {
-			$scope.model.readOnlyColumnIds[columnids[i]] = readOnly;
+			$scope.model.readOnlyColumnIds['_' + columnids[i]] = readOnly;
 		}
 	}
 }
