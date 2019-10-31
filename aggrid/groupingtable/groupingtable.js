@@ -3778,7 +3778,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					else {
 						var foundsetManager = getFoundsetManagerByFoundsetUUID(args.data._svyFoundsetUUID);
 						var index = foundsetManager.getRowIndex(args.data) - foundsetManager.foundset.viewPort.startIndex;
-						if (index >= 0) {
+						if (index >= 0 && foundsetManager.foundset.viewPort.rows[index][args.colDef.field + "_isEditableDataprovider"] != undefined) {
 							isColumnEditable = foundsetManager.foundset.viewPort.rows[index][args.colDef.field + "_isEditableDataprovider"];
 						}
 					}
