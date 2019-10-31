@@ -1309,10 +1309,13 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					if (value && value.displayValue != undefined) {
 						value = value.displayValue;
 					}
-					var column = getColumn(params.column.colId);
+					// skip format for pinned rows (footer), they are always text
+					if(!params.node.rowPinned) {
+						var column = getColumn(params.column.colId);
 
-					if (column && column.format) {
-						value = formatFilter(value, column.format.display, column.format.type, column.format);
+						if (column && column.format ) {
+							value = formatFilter(value, column.format.display, column.format.type, column.format);
+						}
 					}
 
 					if (value == null && params.value == NULL_VALUE) {
@@ -3848,7 +3851,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						if(value instanceof Date) returnValueFormatted = true;
 
 						var styleClassProvider = null;
-						if(!isGroupColumn) {
+						// skip styleClassProvider for pinned rows (footer)
+						if(!params.node.rowPinned && !isGroupColumn) {
 							if (!isTableGrouped()) {
 								var column = getColumn(params.colDef.field);
 								if (column && column.styleClassDataprovider) {
