@@ -103,6 +103,18 @@
 				"optional": true
 			}]
 		},
+		"onFooterClick": {
+			"description": "Called when the mouse is clicked on a footer cell",
+			"parameters": [{
+				"name": "columnindex",
+				"type": "int",
+				"optional": true
+			}, {
+				"name": "event",
+				"type": "JSEvent",
+				"optional": true
+			}]
+		},		
 		"onColumnStateChanged": {
 			"description": "Called when the columns state is changed",
 			"parameters": [
@@ -284,6 +296,7 @@
 		"column" : {
 			"footerText" : {"type" : "tagstring"},
 			"headerTitle": {"type" : "titlestring", "for": "dataprovider"},
+			"footerStyleClass" : {"type" : "styleclass"},
 			"headerStyleClass" : {"type" : "styleclass"},
 			"headerTooltip" : {"type" : "tagstring"},
 			"dataprovider": { "type": "dataprovider", "forFoundset": "myFoundset", "resolveValuelist" : true},
