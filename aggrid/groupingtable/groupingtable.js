@@ -656,20 +656,28 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				// grid handlers
 				var clickTimer;
 				function cellClickHandler(params) {
-					if($scope.handlers.onCellDoubleClick) {
-						if(clickTimer) {
-							clearTimeout(clickTimer);
-							clickTimer = null;
-						}
-						else {
-							clickTimer = setTimeout(function() {
-								clickTimer = null;
-								onCellClicked(params);
-							}, 250);
+					if(params.node.rowPinned) {
+						if (params.node.rowPinned == "bottom" && $scope.handlers.onFooterClick) {
+							var columnIndex = getColumnIndex(params.column.colId);
+							$scope.handlers.onFooterClick(columnIndex, params.event);
 						}
 					}
 					else {
-						onCellClicked(params);
+						if($scope.handlers.onCellDoubleClick) {
+							if(clickTimer) {
+								clearTimeout(clickTimer);
+								clickTimer = null;
+							}
+							else {
+								clickTimer = setTimeout(function() {
+									clickTimer = null;
+									onCellClicked(params);
+								}, 250);
+							}
+						}
+						else {
+							onCellClicked(params);
+						}
 					}
 				}
 				gridOptions.api.addEventListener('cellClicked', cellClickHandler);
@@ -963,7 +971,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 * */
 				function onCellDoubleClicked(params) {
 					$log.debug(params);
-					if ($scope.handlers.onCellDoubleClick) {
+					if ($scope.handlers.onCellDoubleClick && !params.node.rowPinned) {
 						//						var row = params.data;
 						//						var foundsetManager = getFoundsetManagerByFoundsetUUID(row._svyFoundsetUUID);
 						//						if (!foundsetManager) foundsetManager = foundset;
@@ -1016,7 +1024,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 * */
 				function onCellContextMenu(params) {
 					$log.debug(params);
-					if ($scope.handlers.onCellRightClick) {
+					if ($scope.handlers.onCellRightClick && !params.node.rowPinned) {
 						//						var row = params.data;
 						//						var foundsetManager = getFoundsetManagerByFoundsetUUID(row._svyFoundsetUUID);
 						//						if (!foundsetManager) foundsetManager = foundset;
@@ -3763,6 +3771,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 */
 				function isColumnEditable(args) {
 
+					// skip pinned (footer) nodes
+					if(args.node.rowPinned) return false;
+
 					// if read-only and no r-o columns
 					if($scope.model.readOnly && !$scope.model.readOnlyColumnIds) return false;
 
@@ -3854,23 +3865,26 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						if(value instanceof Date) returnValueFormatted = true;
 
 						var styleClassProvider = null;
-						// skip styleClassProvider for pinned rows (footer)
-						if(!params.node.rowPinned && !isGroupColumn) {
-							if (!isTableGrouped()) {
-								var column = getColumn(params.colDef.field);
-								if (column && column.styleClassDataprovider) {
-									var index = params.rowIndex - foundset.foundset.viewPort.startIndex;
-									styleClassProvider = column.styleClassDataprovider[index];
-								}
-							} else if (params.data && params.data._svyFoundsetUUID) {
-									var foundsetManager = getFoundsetManagerByFoundsetUUID(params.data._svyFoundsetUUID);
-									var index = foundsetManager.getRowIndex(params.data) - foundsetManager.foundset.viewPort.startIndex;
-									if (index >= 0) {
-										styleClassProvider = foundsetManager.foundset.viewPort.rows[index][params.colDef.field + "_styleClassDataprovider"];
-									} else {
-										$log.warn('cannot render styleClassDataprovider for row at index ' + index)
-										$log.warn(params.data);
+						if(!isGroupColumn) {
+							if(!params.node.rowPinned) {
+								if (!isTableGrouped()) {
+									var column = getColumn(params.colDef.field);
+									if (column && column.styleClassDataprovider) {
+										var index = params.rowIndex - foundset.foundset.viewPort.startIndex;
+										styleClassProvider = column.styleClassDataprovider[index];
 									}
+								} else if (params.data && params.data._svyFoundsetUUID) {
+										var foundsetManager = getFoundsetManagerByFoundsetUUID(params.data._svyFoundsetUUID);
+										var index = foundsetManager.getRowIndex(params.data) - foundsetManager.foundset.viewPort.startIndex;
+										if (index >= 0) {
+											styleClassProvider = foundsetManager.foundset.viewPort.rows[index][params.colDef.field + "_styleClassDataprovider"];
+										} else {
+											$log.warn('cannot render styleClassDataprovider for row at index ' + index)
+											$log.warn(params.data);
+										}
+								}
+							} else if(col.footerStyleClass && params.node.rowPinned == "bottom") { // footer
+								styleClassProvider = col.footerStyleClass;
 							}
 						}
 							
