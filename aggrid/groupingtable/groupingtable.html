@@ -6,6 +6,6 @@
 <div style="height:100%; width:100%; position: relative;" ng-show="model.visible">
 	<div style="height: 100%;" class="ag-table" ng-class="model.styleClass"></div>
 	<span ng-if="isGroupView" class="ag-table-info" ng-class="dirtyCache ? 'ag-table-info-notify' : ''" svy-tooltip="model.tooltipTextRefreshData">
-		<i ng-class="model.iconRefreshData" svy-click="purge()"/>
+		<i ng-class="getIconRefreshData()" svy-click="purge()"/>
 	</span>
 </div>

@@ -167,6 +167,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					return (!$scope.model.columns || $scope.model.columns.length == 0) && $scope.svyServoyapi.isInDesigner();
 				}
 
+				$scope.getIconRefreshData = function() {
+					return $scope.model.iconConfig && $scope.model.iconConfig.iconRefreshData ?
+						$scope.model.iconConfig.iconRefreshData : "glyphicon glyphicon-refresh";
+				}
+
 				/* Test Root Foundset Cache */
 				function test_validateCache() {
 					var cacheBlocks = gridOptions.api.getCacheBlockState();
@@ -576,12 +581,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				var icons = new Object();
 
 				// set the icons
-				if (iconConfig == null) {
+				if ($.isEmptyObject(iconConfig)) {
 					// set the default icons
 					iconConfig = {
 						iconGroupExpanded: 'glyphicon glyphicon-minus ag-icon',
-						iconGroupContracted: 'glyphicon glyphicon-plus ag-icon',
-						iconRefreshData: 'glyphicon glyphicon-refresh'
+						iconGroupContracted: 'glyphicon glyphicon-plus ag-icon'
 					};
 				}
 
@@ -589,9 +593,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 	            if (iconConfig) {
 	                var icons = new Object();
 	                
-	                for (var iconName in iconConfig) {
-	                	if (iconName == "iconRefreshData") continue;
-	                	
+	                for (var iconName in iconConfig) {                	
 	                	var aggridIcon = iconName.slice(4);
 	                	aggridIcon = aggridIcon[0].toLowerCase() + aggridIcon.slice(1);
 	                	icons[aggridIcon] = getIconElement(iconConfig[iconName]);
