@@ -1152,6 +1152,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						if($scope.isGroupView) {
 							// clear filter
 							gridOptions.api.setFilterModel(null);
+							gridOptions.api.deselectAll();
 						}
 						$scope.isGroupView = false;
 						state.rootGroupSort = null;
@@ -1172,6 +1173,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						if(!$scope.isGroupView) {
 							// clear filter
 							gridOptions.api.setFilterModel(null);
+							gridOptions.api.deselectAll();
 						}
 						$scope.isGroupView = true;
 
