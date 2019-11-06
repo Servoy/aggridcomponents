@@ -726,9 +726,15 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
 
             function storeColumnsState() {
                 if($scope.model.visible) {
+                    var rowGroupColumns = gridOptions.columnApi.getRowGroupColumns();
+                    var svyRowGroupColumnIds = [];
+                    for(var i = 0; i < rowGroupColumns.length; i++) {
+                        svyRowGroupColumnIds.push(rowGroupColumns[i].colId);
+                    }
+
                     var columnState = {
                         columnState: gridOptions.columnApi.getColumnState(),
-                        rowGroupColumnsState: gridOptions.columnApi.getColumnGroupState(),
+                        rowGroupColumnsState: svyRowGroupColumnIds,
                         isToolPanelShowing: gridOptions.api.isToolPanelShowing(),
                         isSideBarVisible: gridOptions.api.isSideBarVisible(),
                         // filterState: gridOptions.api.getFilterModel(), TODO persist column states
