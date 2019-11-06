@@ -783,7 +783,7 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                         var column = gridOptions.columnApi.getColumn(agg);
                         var columnText = column.aggFunc + '(' + column.colDef.headerName + ')';
                         var value = params.node.aggData[agg];
-                        if(column.aggFunc != 'count') {
+                        if(column.aggFunc != 'count' && column.colDef.valueFormatter) {
                             value = column.colDef.valueFormatter(value.value != undefined ? value : {'value': value });
                         }
                         if(needsSeparator) {
