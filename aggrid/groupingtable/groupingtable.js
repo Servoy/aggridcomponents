@@ -3771,6 +3771,31 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				}
 
 				/**
+				 * Callback used by ag-grid colDef.tooltip
+				 */
+				function getTooltip(args) {
+					var tooltip = "";
+					// skip pinned (footer) nodes
+					if(!args.node.rowPinned) {
+						if (!isTableGrouped()) {
+							var column = getColumn(args.colDef.field);
+							if (column && column.tooltip) {
+								var index = args.node.rowIndex - foundset.foundset.viewPort.startIndex;
+								tooltip = column.tooltip[index];
+							}
+						}
+						else {
+							var foundsetManager = getFoundsetManagerByFoundsetUUID(args.data._svyFoundsetUUID);
+							var index = foundsetManager.getRowIndex(args.data) - foundsetManager.foundset.viewPort.startIndex;
+							if (index >= 0 && foundsetManager.foundset.viewPort.rows[index][args.colDef.field + "_tooltip"] != undefined) {
+								tooltip = foundsetManager.foundset.viewPort.rows[index][args.colDef.field + "_tooltip"];
+							}
+						}
+					}
+					return tooltip;
+				}
+
+				/**
 				 * Callback used by ag-grid colDef.editable
 				 */
 				function isColumnEditable(args) {
@@ -3993,6 +4018,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							}
 							
 							colDef.filterParams = { applyButton: true, clearButton: true, newRowsAction: 'keep', suppressAndOrCondition: true, caseSensitive: false };
+						}
+
+						if(true) {
+							colDef.tooltip = getTooltip;
 						}
 
 						var columnOptions = {};

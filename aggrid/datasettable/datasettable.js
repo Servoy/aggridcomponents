@@ -390,7 +390,9 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                     //create a column definition based on the properties defined at design time
                     colDef = {
                         headerName: "" + (column["headerTitle"] ? column["headerTitle"] : "") + "",
-                        field: column["dataprovider"]
+                        headerTooltip: column["headerTooltip"] ? column["headerTooltip"] : "",
+                        field: column["dataprovider"],
+                        tooltipField: column["tooltip"] ? column["tooltip"] : ""
                     };
 
                     // set id if defined

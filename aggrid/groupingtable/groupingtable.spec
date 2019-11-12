@@ -300,6 +300,7 @@
 			"headerStyleClass" : {"type" : "styleclass"},
 			"headerTooltip" : {"type" : "tagstring"},
 			"dataprovider": { "type": "dataprovider", "forFoundset": "myFoundset", "resolveValuelist" : true},
+			"tooltip": { "type": "dataprovider", "forFoundset": "myFoundset"},
 			"styleClass" : {"type" : "styleclass"},
 			"styleClassDataprovider": { "type": "dataprovider", "forFoundset": "myFoundset"},
 			"format" : {"type" : "format",  "for": ["valuelist", "dataprovider"]},
