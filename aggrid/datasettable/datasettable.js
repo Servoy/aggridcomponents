@@ -18,6 +18,7 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
             var iconConfig = null;
             var userGridOptions = null;
             var localeText = null;
+            var mainMenuItemsConfig = null;
             if($injector.has('ngPowerGrid')) {
                 var datasettableDefaultConfig = $services.getServiceScope('ngPowerGrid').model;
                 if(datasettableDefaultConfig.toolPanelConfig) {
@@ -32,6 +33,9 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                 if(datasettableDefaultConfig.localeText) {
                     localeText = datasettableDefaultConfig.localeText;
                 }
+                if(datasettableDefaultConfig.mainMenuItemsConfig) {
+                    mainMenuItemsConfig = datasettableDefaultConfig.mainMenuItemsConfig;
+                }                
             }
 
             var config = $scope.model;
@@ -61,6 +65,7 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
             iconConfig = mergeConfig(iconConfig, config.iconConfig);
             userGridOptions = mergeConfig(userGridOptions, config.gridOptions);
             localeText = mergeConfig(localeText, config.localeText);
+            mainMenuItemsConfig = mergeConfig(mainMenuItemsConfig, config.mainMenuItemsConfig);
             
 			var vMenuTabs = ['generalMenuTab','filterMenuTab'];
 			
@@ -572,8 +577,17 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                 //					expandAll: Expand all groups. Only shown if grouping by at least one column.
                 //					contractAll: Contract all groups. Only shown if grouping by at least one column.
                 //					toolPanel: Show the tool panel.
+                var items;
+                if(mainMenuItemsConfig && !$.isEmptyObject(mainMenuItemsConfig)) {
+                    items = [];
+                    for (var key in mainMenuItemsConfig) {
+                        if(mainMenuItemsConfig[key]) items.push(key);
+                    }
+                }
+                else {
+                    items = ['rowGroup', 'rowUnGroup'];
+                }
                 var menuItems = [];
-                var items = ['rowGroup', 'rowUnGroup', 'toolPanel']; // TODO enable here the menu options
                 params.defaultItems.forEach(function(item) {
                     if (items.indexOf(item) > -1) {
                         menuItems.push(item);

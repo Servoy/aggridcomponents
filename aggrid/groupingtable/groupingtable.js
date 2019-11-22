@@ -321,6 +321,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				var iconConfig = null;
 				var userGridOptions = null
 				var localeText = null;
+				var mainMenuItemsConfig = null;
 				if($injector.has('ngDataGrid')) {
 					var groupingtableDefaultConfig = $services.getServiceScope('ngDataGrid').model;
 					if(groupingtableDefaultConfig.toolPanelConfig) {
@@ -334,6 +335,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 					if(groupingtableDefaultConfig.localeText) {
 						localeText = groupingtableDefaultConfig.localeText;
+					}
+					if(groupingtableDefaultConfig.mainMenuItemsConfig) {
+						mainMenuItemsConfig = groupingtableDefaultConfig.mainMenuItemsConfig;
 					}
 				}
 
@@ -367,6 +371,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				iconConfig = mergeConfig(iconConfig, config.iconConfig);
 				userGridOptions = mergeConfig(userGridOptions, config.gridOptions);
 				localeText = mergeConfig(localeText, config.localeText);
+				mainMenuItemsConfig = mergeConfig(mainMenuItemsConfig, config.mainMenuItemsConfig);
 
 				var vMenuTabs = ['generalMenuTab', 'filterMenuTab'];
 				if(config.showColumnsMenuTab) vMenuTabs.push('columnsMenuTab');
@@ -3757,8 +3762,17 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					//					expandAll: Expand all groups. Only shown if grouping by at least one column.
 					//					contractAll: Contract all groups. Only shown if grouping by at least one column.
 					//					toolPanel: Show the tool panel.
+					var items;
+					if(mainMenuItemsConfig && !$.isEmptyObject(mainMenuItemsConfig)) {
+						items = [];
+						for (var key in mainMenuItemsConfig) {
+							if(mainMenuItemsConfig[key]) items.push(key);
+						}
+					}
+					else {
+						items = ['rowGroup', 'rowUnGroup'];
+					}
 					var menuItems = [];
-					var items = ['rowGroup', 'rowUnGroup'];
 					params.defaultItems.forEach(function(item) {
 						if (items.indexOf(item) > -1) {
 							menuItems.push(item);
