@@ -4,26 +4,24 @@ const NULL_DISPLAY_VALUE = 'GRID_NULL_DISPLAY_VALUE'
 
 // **************************** Internal API implementation **************************** //
 /**
- * @param {Array<Number>} groupColumns
+ * Creates a new foundset based on the provided parameters and stores it in $scope.model.hashedFoundsets
+ * 
+ * @param {Array<number>} groupColumns
  * @param {Array} groupKeys
  * @param {Array} idForFoundsets
- * @param {String} [sort]
- *
- * */
+ * @param {string=} sort
+ * @param {object=} sFilterModel
+ * @param {boolean=} hasRowStyleClassDataprovider
+ */
 $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets, sort, sFilterModel, hasRowStyleClassDataprovider) {
 	log('START SERVER SIDE ------------------------------------------ ', LOG_LEVEL.WARN);
 
-	// root is the parent
-	var parentFoundset = $scope.model.myFoundset.foundset;
-
-	// I need the full column/key mapping
-	/** @type {QBSelect} */
-	var query = parentFoundset.getQuery();
-	
-	//	console.log(query);
-
 	var groupColumn;
 	var groupDataprovider;
+	var groupColumnIndex;
+	var groupKey;
+	var i;
+	var fs;
 
 	// TODO it cannot be empty !?!
 	if (!groupColumns) groupColumns = [];
@@ -32,56 +30,64 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 		console.error("There are no idForFoundset to map to")
 	}
 
+	// All foundsets are derived from the root foundset
+	var rootFoundset = $scope.model.myFoundset.foundset;
+
+	/** @type {QBSelect} */
+	var query = rootFoundset.getQuery();
+	
+	// Apply group filtering to the query
 	log("There are '" + groupColumns.length + "' groupColumns", LOG_LEVEL.WARN);
-	for (var i = 0; i < groupColumns.length; i++) {
-		var groupColumnIndex = groupColumns[i];
+	for (i = 0; i < groupColumns.length; i++) {
+		groupColumnIndex = groupColumns[i];
 
 		// retrieve the grouping column
 		groupDataprovider = $scope.model.columns[groupColumnIndex].dataprovider || $scope.model.columns[groupColumnIndex].lazydataprovider;
 		log("Group on groupDataprovider " + groupDataprovider + " at index " + groupColumnIndex, LOG_LEVEL.WARN);
-		//		console.log('group on ' + groupDataprovider);
 
 		groupColumn = getGroupQBColumn(query, groupDataprovider, QBJoin.LEFT_OUTER_JOIN);
 
 		// where clause on the group column
 		if (i < groupKeys.length) {
-			var groupKey = groupKeys[i];
+			groupKey = groupKeys[i];
 			log('The node is a sub-group of groupKey ' + groupKey, LOG_LEVEL.WARN);
 			query.where.add(groupColumn.eq(groupKey));
 		}
-
 	}
 
-	var childFoundset;
-	if (groupColumns.length > groupKeys.length) {
+	// instantiate either a group or leaf foundset
+	if (groupColumns.length > groupKeys.length) { // group foundset
 		query.result.clear();
 		query.result.add(groupColumn, groupDataprovider);
-		query.groupBy.add(groupColumn); // CHECKME with multilevel groups upper parent groups might return grouprows that don't have child groupd rows. Happens at least when using inner joins for non-exiting related data. Example "'T Veld". Causes the grid to stop rendering
+
+		query.groupBy.add(groupColumn);
+		
 		query.sort.clear();
+		query.sort.add(sort === 'desc' ? groupColumn.desc : groupColumn.asc);
 
-		if (sort === 'desc') {
-			query.sort.add(groupColumn.desc);
-		} else {
-			query.sort.add(groupColumn.asc);
+		// CHECKME doesn't the group foundset need filtering?
+		fs = servoyApi.getViewFoundSet("", query);
+	} else { // leaf foundset
+		fs = rootFoundset.duplicateFoundSet();
+		
+		if (sFilterModel) {
+			filterFoundset(fs, sFilterModel);
 		}
-
-		childFoundset = servoyApi.getViewFoundSet("", query);
-	} else { // is not a new group, will be a leaf !
-		childFoundset = parentFoundset.duplicateFoundSet();
-		if (sFilterModel) filterFoundset(childFoundset, sFilterModel);
-		childFoundset.loadRecords(query);
+		
+		// CHECKME doesn't the leaf foundset need sorting?
+		fs.loadRecords(query);
 	}
 
+	log("There are " + $scope.model.columns.length + " columns and " + idForFoundsets.length + " idForFoundsets", LOG_LEVEL.WARN);
+	
 	// push dataproviders to the clientside foundset
 	var dps = {};
-	// FIXME this creates an issue
-	log("There are " + $scope.model.columns.length + " columns and " + idForFoundsets.length + " idForFoundsets", LOG_LEVEL.WARN);
-	for (var idx = 0; idx < $scope.model.columns.length; idx++) {
-		var column = $scope.model.columns[idx];
+	for (i = 0; i < $scope.model.columns.length; i++) {
+		var column = $scope.model.columns[i];
 		// the dataprovider name e.g. orderid
 		// var dpId = column.dataprovider;
 		// the idForFoundset(exists only client-side, therefore i need to retrieve it from the client)
-		var idForFoundset = idForFoundsets[idx];
+		var idForFoundset = idForFoundsets[i];
 		// Servoy resolves the real dataprovider name into the dataprovider 'field'
 		// dps[idForFoundset] = dpId;
 		// TODO it could be the hashmap of groupkeys/groupcolumns ?
@@ -95,20 +101,11 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 			dps[idForFoundset + "_isEditableDataprovider"] = column.isEditableDataprovider;
 		}
 	}
-	try {
-		// TODO implement rowStyleClassDataprovider
-		if (hasRowStyleClassDataprovider === true) {
-			dps["__rowStyleClassDataprovider"] = $scope.model.rowStyleClassDataprovider;
-		}
-		//		if ($scope.model.rowStyleClassDataprovider) {
-		//			dps["__rowStyleClassDataprovider"] = $scope.model.rowStyleClassDataprovider;
-		//		}
-	} catch (e) {
-		console.warn(e);
+
+	if (hasRowStyleClassDataprovider === true) {
+		dps["__rowStyleClassDataprovider"] = $scope.model.rowStyleClassDataprovider;
 	}
 
-	// CHECKME this seems a basic copy of limited fields from $scope.model.columns that gets stored on each grouped FS
-	// 	If just a plain copy, why not always reference $scope.model.columns clientside and remove .columns from hashedFoundsets?
 	var columns = [];
 	for (var idx = 0; idx < $scope.model.columns.length; idx++) {
 		columns.push({
@@ -120,23 +117,22 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 		});
 	}
 
-	// TODO perhaps R&D can improve this
-	// send the column mapping; clientside i don't have the dataprovider id name and server side i don't have the idForFoundset.
+	// CHECKME perhaps R&D can improve this: sending the column mapping cause clientside doesnt have the dataprovider id name and server side doesnt have the idForFoundset
 	$scope.model.hashedFoundsets.push({
 		foundset: {
-			foundset: childFoundset,
+			foundset: fs,
 			dataproviders: dps,
 			sendSelectionViewportInitially: false,
 			initialPreferredViewPortSize: 15
 		},
-		foundsetUUID: childFoundset,
+		foundsetUUID: fs,
 		columns: columns
 	}); // send it to client as a foundset property with a UUID
 
 	log('Group foundset retrieved' + $scope.model.hashedFoundsets[$scope.model.hashedFoundsets.length - 1], LOG_LEVEL.WARN);
 	log('END SERVER SIDE QUERY --------------------------------------', LOG_LEVEL.WARN);
 
-	return childFoundset; // return the UUID that points to this foundset (return type will make it UUID)
+	return fs; // return the UUID that points to this foundset (return type defined in the spec will make it UUID)
 };
 
 $scope.filterMyFoundset = function(sFilterModel) {
@@ -670,7 +666,7 @@ $scope.api.getSelectedRecordFoundSet = function() {
 		console.warn('NG Grouping Grid doesn\'t support multi-column PKs');
 		return null;
 	}
-	
+
 	const selectionFs = $scope.model.myFoundset.foundset.duplicateFoundSet();
 	/** @type {QBSelect} */
 	const selectionQuery = $scope.model.myFoundset.foundset.getQuery();
