@@ -3060,7 +3060,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								$log.warn("No group criteria, this should not happen");
 							}
 						} else if (rowGroupCols.length > 1) { // is not the last group
-							var key = groupKeys.length ? groupKeys[0] : null;
+							var key = groupKeys.length ? groupKeys[0] : undefined;
 
 							if (!colTree) {
 								$log.warn("No colTree, this should not happen")
@@ -3069,7 +3069,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 							var subTree = colTree;
 
-							if (key !== null) {
+							if (key !== undefined) {
 								var keyTree = colTree.nodes[key];
 
 								// create the key tree node if does not exist
