@@ -3509,16 +3509,17 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 
 					// remove the hashedFoundsets
-					$scope.svyServoyapi.callServerSideApi("removeGroupedFoundsetUUID", [foundsetHash]).then(function(removed) {
-						if (removed) {
-							delete state.foundsetManagers[foundsetHash];
-						} else {
-							$log.warn("could not delete hashed foundset " + foundsetHash);
-						}
-					}).catch(function(e) {
-						$log.error(e);
-					});
-
+					$scope.svyServoyapi.callServerSideApi("removeGroupedFoundsetUUID", [foundsetHash])
+						.then(function(removed) {
+							if (removed) {
+								delete state.foundsetManagers[foundsetHash];
+							} else {
+								$log.warn("could not delete hashed foundset " + foundsetHash);
+							}
+						})
+						.catch(function(e) {
+							$log.error(e);
+						});
 				}
 
 				// **************************** Global Table Methods **************************** //
