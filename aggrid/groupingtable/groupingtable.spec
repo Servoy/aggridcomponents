@@ -39,7 +39,8 @@
 		"localeText": {"type": "map"},
 		"filterModel": {"type": "string", "tags": {"scope": "private"}},
 		"readOnly": {"type": "boolean", "default": false, "tags": {"scope" : "private"}},
-		"readOnlyColumnIds": {"type": "object", "tags": {"scope" : "private"}}
+		"readOnlyColumnIds": {"type": "object", "tags": {"scope" : "private"} },
+		"mainMenuItemsConfig": { "type": "mainMenuItemsConfig", "tags": { "scope": "design" } }
 	},
 	"handlers" : {
     	"onSelectedRowsChanged": {
@@ -391,6 +392,17 @@
 			"suppressColumnFilter": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},
 			"suppressColumnSelectAll": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},
 			"suppressColumnExpandAll": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}}
+		},
+		"mainMenuItemsConfig" : {
+			"pinSubMenu": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},
+			"valueAggSubMenu": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},
+			"autoSizeThis": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},
+			"autoSizeAll": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},
+			"rowGroup": {"type": "boolean", "default" : true, "tags" : {"scope": "design"}},
+			"rowUnGroup": {"type": "boolean", "default" : true, "tags" : {"scope": "design"}},
+			"resetColumns": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},
+			"expandAll": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},
+			"contractAll": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}}
 		}
 	}
 }
