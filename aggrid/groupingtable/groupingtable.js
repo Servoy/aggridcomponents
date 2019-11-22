@@ -1,7 +1,7 @@
 angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('aggridGroupingtable', ['$sabloApplication', '$sabloConstants', '$log', '$q', '$foundsetTypeConstants', '$filter', '$compile', '$formatterUtils', '$sabloConverters', '$injector', '$services', "$sanitize", '$window', "$applicationService",
 	function($sabloApplication, $sabloConstants, $log, $q, $foundsetTypeConstants, $filter, $compile, $formatterUtils, $sabloConverters, $injector, $services, $sanitize, $window, $applicationService) {
 		// Constants: can't use const keyword, not supported in IE 9 & 10
-		var ROOT_FOUNDSET_ID = 'root'; // TODO should just use Servoy's assigned id's, but since GrouoManager is instantiated even when there's no foundset: maybe instantiate a new GroupManager once myfoundset is set, passing it's value as argument?
+		var ROOT_FOUNDSET_ID = 'root'; // TODO should just use Servoy's assigned id's, but since GroupManager is instantiated even when there's no foundset: maybe instantiate a new GroupManager once myfoundset is set, passing it's value as argument?
 		var NULL_DISPLAY_VALUE = {
 			displayValue: '',
 			realValue: null
@@ -2043,19 +2043,21 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					for (var i = 0; i < groupKeys.length; i++) {
 						if (groupKeys[i] === NULL_DISPLAY_VALUE) {
 							groupKeys[i] = null;	// reset to real null, so we use the right value for grouping
-						}
-						else {
+						} else {
 							var vl = getValuelistEx(params.parentNode.data, rowGroupCols[i]['id'], false);
-							if(vl) {
+							
+							if (vl) {
 								filterPromises.push(vl.filterList(groupKeys[i]));
 								var idx = i;
-								filterPromises[filterPromises.length - 1].then(function(valuelistValues) {
-									if(valuelistValues && valuelistValues.length) {
-										if(valuelistValues[0] && valuelistValues[0].realValue != undefined) {
-											groupKeys[idx] = valuelistValues[0].realValue;
+								
+								filterPromises[filterPromises.length - 1]
+									.then(function(valuelistValues) {
+										if (valuelistValues && valuelistValues.length) {
+											if(valuelistValues[0] && valuelistValues[0].realValue != undefined) {
+												groupKeys[idx] = valuelistValues[0].realValue;
+											}
 										}
-									}
-								});
+									});
 							}
 						}
 					}
@@ -2282,7 +2284,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						if (request.startRow < startIndex || (request.endRow > endIndex && foundsetManager.getLastRowIndex() === -1)) {
 
 							var errorTimeout = setTimeout(function() {
-									$log.error('Could not load records for foundset ' + foundsetManager.foundsetUUID + ' Start ' + request.startRow + ' End ' + request.endRow);
+									$log.error('Load of records for foundset ' + foundsetManager.foundsetUUID + ' is taking longer than 10 seconds. Start ' + request.startRow + ' End ' + request.endRow);
 								}, 10000); // TODO set timeout
 
 							var requestViewPortStartIndex;
@@ -2297,27 +2299,28 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							var size = request.endRow - request.startRow;
 
 							$log.debug('Load async ' + requestViewPortStartIndex + ' - ' + requestViewPortEndIndex + ' with size ' + size);
-							var promise = foundsetManager.loadExtraRecordsAsync(requestViewPortStartIndex, size, false);
-							promise.then(function() {
-
-								// load complete
-								if (errorTimeout) {
-									clearTimeout(errorTimeout);
-								}
-
-								// get the index of the last row
-								var lastRowIndex = foundsetManager.getLastRowIndex();
-
-								// update viewPortStatIndex
-								viewPortStartIndex = request.startRow - foundsetManager.foundset.viewPort.startIndex;
-								viewPortEndIndex = request.endRow - foundsetManager.foundset.viewPort.startIndex;
-
-								$log.debug('Get View Port ' + viewPortStartIndex + ' - ' + viewPortEndIndex + ' on ' + foundsetManager.foundset.viewPort.startIndex + ' with size ' + foundsetManager.foundset.viewPort.size);
-
-								result = foundsetManager.getViewPortData(viewPortStartIndex, viewPortEndIndex);
-								callback(result, lastRowIndex);
-
-							}).catch(getFoundsetRefError);
+							foundsetManager
+								.loadExtraRecordsAsync(requestViewPortStartIndex, size, false)
+								.then(function() {
+									// load complete
+									if (errorTimeout) {
+										clearTimeout(errorTimeout);
+									}
+	
+									// get the index of the last row
+									var lastRowIndex = foundsetManager.getLastRowIndex();
+	
+									// update viewPortStatIndex
+									viewPortStartIndex = request.startRow - foundsetManager.foundset.viewPort.startIndex;
+									viewPortEndIndex = request.endRow - foundsetManager.foundset.viewPort.startIndex;
+	
+									$log.debug('Get View Port ' + viewPortStartIndex + ' - ' + viewPortEndIndex + ' on ' + foundsetManager.foundset.viewPort.startIndex + ' with size ' + foundsetManager.foundset.viewPort.size);
+	
+									result = foundsetManager.getViewPortData(viewPortStartIndex, viewPortEndIndex);
+									callback(result, lastRowIndex);
+	
+								})
+								.catch(getFoundsetRefError);
 						} else {
 							callback(foundsetManager.getViewPortData(viewPortStartIndex, viewPortEndIndex), foundsetManager.getLastRowIndex());
 						}
@@ -2996,14 +2999,13 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					 * @param {Boolean} [create]
 					 *
 					 * @return {GroupNode}
-					 *
-					 * */
+					 */
 					function getTreeNode(tree, rowGroupCols, groupKeys, create) {
 
 						var result = null;
 
 						if (rowGroupCols.length > groupKeys.length + 1) {
-							//							$log.warn('discard row groups ' + (rowGroupCols.length - groupKeys.length));
+							// $log.warn('discard row groups ' + (rowGroupCols.length - groupKeys.length));
 							rowGroupCols = rowGroupCols.slice(0, groupKeys.length + 1);
 						}
 
@@ -3045,7 +3047,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						}
 
 						if (rowGroupCols.length === 1) { // the last group
-
 							if (groupKeys.length === 0) { // is a leaf child
 								result = colTree;
 							} else if (groupKeys.length === 1) { // is a leaf child
@@ -3067,7 +3068,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							} else { // no group key criteria
 								$log.warn("No group criteria, this should not happen");
 							}
-
 						} else if (rowGroupCols.length > 1) { // is not the last group
 							var key = groupKeys.length ? groupKeys[0] : null;
 
@@ -3217,13 +3217,16 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 					// **************************** public methods **************************** //
 					/**
-					 * Returns the foundset with the given grouping criteria is already exists in cache
+					 * Returns the UUID of the foundset for the given grouping criteria
+					 * 
+					 * Does NOT load a new Foundset form the server if no FoundSet is already cached for the given criteria
+					 *
+					 * This can be used for synchronous grid callbacks that need to fetch stuff from the already loaded & cached foundsets
 					 *
 					 * @public
 					 *
 					 * @param {Array} rowGroupCols
 					 * @param {Array} groupKeys
-					 * @param {String} [sort] desc or asc. Default asc
 					 *
 					 * @return {String} returns the UUID of the foundset if exists in cache
 					 */
@@ -3232,7 +3235,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 
 					/**
-					 * Returns the foundset with the given grouping criteria
+					 * Returns the UUID of the foundset for the given grouping criteria
+					 * 
+					 * Fetches a new Foundset from the server if there's no cached Foundset yet for the given criteria
 					 *
 					 * @public
 					 *
@@ -3243,8 +3248,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					 * @return {PromiseType} returns a promise
 					 */
 					this.getFoundsetRef = function(rowGroupCols, groupKeys, sort) {
-
-						// create a promise
 						/** @type {PromiseType} */
 						var resultPromise = $q.defer();
 
@@ -3261,11 +3264,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						rowGroupCols = rowGroupCols.slice(0, groupKeys.length + 1);
 
 						// possibilities
-
 						// is a root group CustomerID
-
 						// is a second level group CustomerID, ShipCity
-
 						// is a third level group CustomerID, ShipCity, ShipCountry
 
 						// recursevely load hashFoundset. this is done so the whole tree is generated without holes in the structure. Do i actually need to get a foundset for it ? Probably no, can i simulate it ?
@@ -3276,7 +3276,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						getRowColumnHashFoundset(0);
 
 						function getRowColumnHashFoundset(index) {
-
 							var groupCols = rowGroupCols.slice(0, index + 1);
 							var keys = groupKeys.slice(0, index + 1);
 
@@ -3286,7 +3285,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							// get a foundset for each grouped level, resolve promise when got to the last level
 
 							// TODO loop over columns
-							var columnId = groupCols[groupCols.length - 1].field; //
+							var columnId = groupCols[groupCols.length - 1].field;
 							columnIndex = getColumnIndex(columnId);
 
 							// get the foundset Reference
@@ -3601,15 +3600,15 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 						if (isTableGrouped()) {
 							// Foundset state is changed server side, shall refresh all groups to match new query criteria
-							var promise = groupManager.updateFoundsetRefs(getRowGroupColumns());
-							promise.then(function() {
-								$log.debug('refreshing datasource with success');
-								refreshDatasource();
-							});
-							promise.catch(function(e) {
-								$log.error(e);
-								initRootFoundset();
-							});
+							groupManager.updateFoundsetRefs(getRowGroupColumns())
+								.then(function() {
+									$log.debug('refreshing datasource with success');
+									refreshDatasource();
+								})
+								.catch(function(e) {
+									$log.error(e);
+									initRootFoundset();
+								});
 						} else {
 							refreshDatasource();
 						}
