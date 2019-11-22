@@ -3261,8 +3261,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 						// recursevely load hashFoundset. this is done so the whole tree is generated without holes in the structure. Do i actually need to get a foundset for it ? Probably no, can i simulate it ?
 
-						var groupLevels = rowGroupCols.length;
-
 						// recursively create groups starting from index 0
 						getRowColumnHashFoundset(0);
 
@@ -3302,7 +3300,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 									groupColumnIndexes.push(columnIndex);
 								}
 
-								if (index === groupLevels - 1) { // if is the last level, ask for the foundset hash
+								if (index === rowGroupCols.length - 1) { // if is the last level, ask for the foundset hash
 									getNewFoundSetFromServer(groupColumnIndexes, keys, sort)
 										.then(function(foundsetUUID) {
 											$log.debug('Get hashed foundset success ' + foundsetUUID);
@@ -3499,22 +3497,28 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				/**
 				 * remove the given foundset hash from the model hashmap.
 				 * User to clear the memory
+				 * 
 				 * @public
-				 *  */
-				function removeFoundSetByFoundsetUUID(foundsetHash) {
+				 */
+				function removeFoundSetByFoundsetUUID(foundsetUUID) {
 
-					if (foundsetHash === ROOT_FOUNDSET_ID) {
+					if (foundsetUUID === ROOT_FOUNDSET_ID) {
 						$log.error('Trying to remove root foundset');
 						return false;
 					}
 
 					// remove the hashedFoundsets
-					$scope.svyServoyapi.callServerSideApi("removeGroupedFoundsetUUID", [foundsetHash])
+					$scope.svyServoyapi.callServerSideApi("removeGroupedFoundsetUUID", [foundsetUUID])
 						.then(function(removed) {
-							if (removed) {
-								delete state.foundsetManagers[foundsetHash];
-							} else {
-								$log.warn("could not delete hashed foundset " + foundsetHash);
+							switch (removed) {
+								case true:
+									delete state.foundsetManagers[foundsetUUID];
+									break;
+								case false:
+									$log.warn("could not delete hashed foundset " + foundsetUUID);
+									break;
+								case null:
+									// This happens for example when the form the grid is on isn't showing anymore
 							}
 						})
 						.catch(function(e) {
@@ -4184,6 +4188,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						// having groupKeys and rowGroupCols i can get the foundset.
 
 						var foundsetUUID = groupManager.getCachedFoundSetUUID(rowGroupCols, groupKeys)
+						
 						// got the hash, problem is that is async.
 						var foundsetManager = getFoundsetManagerByFoundsetUUID(foundsetUUID);
 						if (foundsetManager && foundsetManager.foundset.viewPort.rows[0]['__rowStyleClassDataprovider']) {
