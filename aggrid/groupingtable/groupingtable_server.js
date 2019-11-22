@@ -19,7 +19,7 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 	// I need the full column/key mapping
 	/** @type {QBSelect} */
 	var query = parentFoundset.getQuery();
-
+	
 	//	console.log(query);
 
 	var groupColumn;
@@ -41,7 +41,7 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 		log("Group on groupDataprovider " + groupDataprovider + " at index " + groupColumnIndex, LOG_LEVEL.WARN);
 		//		console.log('group on ' + groupDataprovider);
 
-		groupColumn = getGroupQBColumn(query, groupDataprovider, JOIN_TYPE.LEFT_OUTER_JOIN);
+		groupColumn = getGroupQBColumn(query, groupDataprovider, QBJoin.LEFT_OUTER_JOIN);
 
 		// where clause on the group column
 		if (i < groupKeys.length) {
@@ -248,18 +248,11 @@ function getJoin(query, alias) {
 	return null;
 }
 
-const JOIN_TYPE = {
-	INNER_JOIN: 0,
-	LEFT_OUTER_JOIN: 1,
-	RIGHT_OUTER_JOIN: 2,
-	FULL_JOIN: 3
-}
-
 /**
  * @param {QBSelect} select
  * @param {string} relationName
  * @param {string} alias
- * @param {number} joinType
+ * @param {number} joinType see QBJoin for constants
  * 
  * @return {QBJoin}
  */
@@ -807,7 +800,7 @@ $scope.api.getSelectedRecordFoundSet = function() {
 				const keys = Object.keys(groupState.children);
 				if (!keys.length) return false; // Should not happen, but anyway...
 				
-				var groupColumn = groupColumns[level] || (groupColumns[level] = getGroupQBColumn(selectionQuery, groupColumnsDefs[level].dataprovider || groupColumnsDefs[level].lazydataprovider, JOIN_TYPE.LEFT_OUTER_JOIN));
+				var groupColumn = groupColumns[level] || (groupColumns[level] = getGroupQBColumn(selectionQuery, groupColumnsDefs[level].dataprovider || groupColumnsDefs[level].lazydataprovider, QBJoin.LEFT_OUTER_JOIN));
 				
 				const selectedChildren = []
 				const childrenCondition = condition.root.or
