@@ -2804,6 +2804,15 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 					// **************************** public methods **************************** //
 					/**
+					 * @public 
+					 * 
+					 * @return {GroupNode}
+					 */
+					this.getTreeNode = function(rowGroupCols, groupKeys) {
+						return getTreeNode(rootGroupNode, rowGroupCols, groupKeys);
+					}
+					
+					/**
 					 * @public
 					 */
 					this.getCachedFoundSetUUID = function(rowGroupCols, groupKeys) {
@@ -2813,10 +2822,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 					/**
 					 * @public
+					 * 
+					 * @return {GroupNode}
 					 */
 					this.setCachedFoundset = function(rowGroupCols, groupKeys, foundsetUUID) {
 						var tree = getTreeNode(rootGroupNode, rowGroupCols, groupKeys, true);
 						tree.foundsetUUID = foundsetUUID;
+						
+						return tree;
 					}
 
 					/**
@@ -3234,95 +3247,76 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					 *
 					 * @param {Array} rowGroupCols
 					 * @param {Array} groupKeys
-					 * @param {String} [sort] desc or asc. Default asc
+					 * @param {string} [sort] desc or asc. Default asc
 					 *
 					 * @return {PromiseType} returns a promise
 					 */
 					this.getFoundSetUUID = function(rowGroupCols, groupKeys, sort) {
-						/** @type {PromiseType} */
-						var resultPromise = $q.defer();
-
-						// return the root foundset if no grouping criteria
-						if (rowGroupCols.length === 0 && groupKeys.length === 0) { // no group return root foundset
-							resultPromise.resolve(ROOT_FOUNDSET_ID);
-							return resultPromise.promise;
-						}
-
-						var idx; // the index of the group dept
-						var columnIndex; // the index of the grouped column
-
-						// ignore rowGroupColumns which are still collapsed (don't have a matchig key)
-						rowGroupCols = rowGroupCols.slice(0, groupKeys.length + 1);
-
-						// possibilities
-						// is a root group CustomerID
-						// is a second level group CustomerID, ShipCity
-						// is a third level group CustomerID, ShipCity, ShipCountry
-
-						// recursevely load hashFoundset. this is done so the whole tree is generated without holes in the structure. Do i actually need to get a foundset for it ? Probably no, can i simulate it ?
-
-						// recursively create groups starting from index 0
-						getRowColumnHashFoundset(0);
-
 						function getRowColumnHashFoundset(index) {
+							function continueOrResolve(foundsetUUID) {
+								if (index === rowGroupCols.length - 1) { // resolve when last rowColumn foundset has been loaded
+									resultPromise.resolve(foundsetUUID);
+								} else {
+									getRowColumnHashFoundset(index + 1); // load the foundset for the next group
+								}
+							}
+							
 							var groupCols = rowGroupCols.slice(0, index + 1);
-							var keys = groupKeys.slice(0, index + 1);
-
+							// to prevent proper retrieval of already cached foundsets, only continue with the relevant keys for the current index
+							var keys = rowGroupCols.length === groupKeys.length && index === rowGroupCols.length - 1 ? groupKeys : groupKeys.slice(0, index);
+							
 							$log.debug(groupCols);
 							$log.debug(keys);
 
-							// get a foundset for each grouped level, resolve promise when got to the last level
-
-							// TODO loop over columns
-							var columnId = groupCols[groupCols.length - 1].field;
-							columnIndex = getColumnIndex(columnId);
-
-							// get the foundset Reference
-							var foundsetHash = hashTree.getCachedFoundSetUUID(groupCols, keys);
-							if (foundsetHash) { // the foundsetReference is already cached
-								if (index === rowGroupCols.length - 1) { // resolve when last rowColumn foundset has been loaded
-									resultPromise.resolve(foundsetHash);
-								} else {
-									// FIXME do i need to get multiple hashed foundsets ? probably not
-									getRowColumnHashFoundset(index + 1); // load the foundset for the next group
-								}
-
-							} else { // need to get a new foundset reference
-								// create the subtree
-
-								// FIXME i will miss information about the root columns. I need an array of matching column, not an index. e.g. [ALFKI, Italy, Roma]
-
+							// get cached GroupNode, if exists
+							var node = hashTree.getTreeNode(groupCols, keys);
+							
+							if (node && node.foundsetUUID) { // the foundset is already cached
+								continueOrResolve(node.foundsetUUID)
+							} else if (node && node.promise) { // the foundset is in the process of being cached
+								node.promise.then(continueOrResolve)
+							} else { // the foundset not yet cached, so request a new one from the server
 								// get the index of each grouped column
 								var groupColumnIndexes = [];
+								
 								for (var idx = 0; idx < groupCols.length; idx++) {
 									var columnId = rowGroupCols[idx].field;
 									columnIndex = getColumnIndex(columnId);
 									groupColumnIndexes.push(columnIndex);
 								}
 
-								if (index === rowGroupCols.length - 1) { // if is the last level, ask for the foundset hash
-									getNewFoundSetFromServer(groupColumnIndexes, keys, sort)
-										.then(function(foundsetUUID) {
-											$log.debug('Get hashed foundset success ' + foundsetUUID);
+								var node = hashTree.setCachedFoundset(groupCols, keys, null);
+								node.promise = getNewFoundSetFromServer(groupColumnIndexes, keys, sort);
+								
+								node.promise
+									.then(function(foundsetUUID) {
+										$log.debug('Get hashed foundset success ' + foundsetUUID);
 
-											// cache the foundsetRef
-											hashTree.setCachedFoundset(groupCols, keys, foundsetUUID);
+										// cache the foundsetRef
+										node.foundsetUUID = foundsetUUID
 
-											if (index === rowGroupCols.length - 1) { // resolve when last rowColumn foundset has been loaded
-												resultPromise.resolve(foundsetUUID);
-											} else {
-												getRowColumnHashFoundset(index + 1); // load the foundset for the next group
-											}
-										})
-										.catch(function(error) {
-											resultPromise.reject(error);
-										});
-								} else { // set null inner foundset
-									hashTree.setCachedFoundset(groupCols, keys, null);
-									getRowColumnHashFoundset(index + 1);
-								}
+										continueOrResolve(foundsetUUID)
+									})
+									.catch(function(error) {
+										resultPromise.reject(error);
+									});
 							}
 						}
+						
+						/** @type {PromiseType} */
+						var resultPromise = $q.defer();
+
+						// return the root foundset if no grouping criteria
+						if (!rowGroupCols.length && !groupKeys.length) { // no group return root foundset
+							resultPromise.resolve(ROOT_FOUNDSET_ID);
+							return resultPromise.promise;
+						}
+
+						// ignore rowGroupColumns which are still collapsed (don't have a matchig key)
+						rowGroupCols = rowGroupCols.slice(0, groupKeys.length + 1);
+
+						// Starting from the root foundset recursively get all foundsets for the current path, loading new foundsets from the server if required foundsets aren't yet cached
+						getRowColumnHashFoundset(0);
 
 						return resultPromise.promise;
 					}
