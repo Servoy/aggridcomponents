@@ -796,7 +796,7 @@ $scope.api.getSelectedRecordFoundSet = function() {
 				const keys = Object.keys(groupState.children);
 				if (!keys.length) return false; // Should not happen, but anyway...
 				
-				var groupColumn = groupColumns[level] || (groupColumns[level] = getGroupQBColumn(selectionQuery, groupColumnsDefs[level].dataprovider || groupColumnsDefs[level].lazydataprovider, QBJoin.LEFT_OUTER_JOIN));
+				var nextGroupColumn = groupColumns[level] || (groupColumns[level] = getGroupQBColumn(selectionQuery, groupColumnsDefs[level].dataprovider || groupColumnsDefs[level].lazydataprovider, QBJoin.LEFT_OUTER_JOIN));
 				
 				const selectedChildren = []
 				const childrenCondition = condition.root.or
@@ -811,15 +811,15 @@ $scope.api.getSelectedRecordFoundSet = function() {
 					if (child.selected && key !== NULL_DISPLAY_VALUE) { // Optimize for case where children are only selected groups: use isin([]) instead of nested OR's
 						selectedChildren.push(key)
 					} else {
-						if (appendSelectionWhereClauses(groupState.children[key], groupColumn, key, level + 1, childCondition)) {
-							childCondition.add(key === NULL_DISPLAY_VALUE ? groupColumn.isNull : groupColumn.eq(key));
+						if (appendSelectionWhereClauses(groupState.children[key], nextGroupColumn, key, level + 1, childCondition)) {
+							childCondition.add(key === NULL_DISPLAY_VALUE ? nextGroupColumn.isNull : nextGroupColumn.eq(key));
 							hasSelection = true;
 						}
 					}
 				}
 				
 				if (selectedChildren.length) {
-					childrenCondition.add(groupColumn.isin(selectedChildren));
+					childrenCondition.add(nextGroupColumn.isin(selectedChildren));
 					hasSelection = true;
 				}
 			}

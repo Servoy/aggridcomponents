@@ -28,7 +28,7 @@
 		"enableColumnResize": { "type": "boolean", "default": true, "tags": {"scope": "design"}},
 		"enableColumnMove": { "type": "boolean", "default": true, "tags": {"scope": "design"}},
 		"enableSorting": { "type": "boolean", "default": true, "tags": {"scope": "design"}},
-		"groupUseEntireRow" : {"type": "boolean", "default" : true, "tags" : {"scope": "design"}},
+		"groupUseEntireRow": {"type": "boolean", "default" : true, "tags" : {"scope": "design"}},
 		"tooltipTextRefreshData" : { "type": "tagstring", "default" : "Refresh for latest data !" },
 		"visible": "visible",
 		"hashedFoundsets": { "type": "hashedFoundset[]", "default": [], "tags": {"scope": "private"}, "pushToServer": "shallow"},
@@ -342,7 +342,6 @@
 		"hashedFoundset" : {
             "foundset": "foundset",
             "foundsetUUID": "foundsetRef",
-            "uuid" : "string",
 			"columns": { "type": "groupedColumn[]" }
         },
         "gridConfig" : {
