@@ -1,5 +1,5 @@
-angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('aggridGroupingtable', ['$sabloApplication', '$sabloConstants', '$log', '$q', '$foundsetTypeConstants', '$filter', '$compile', '$formatterUtils', '$sabloConverters', '$injector', '$services', "$sanitize", '$window', "$applicationService",
-	function($sabloApplication, $sabloConstants, $log, $q, $foundsetTypeConstants, $filter, $compile, $formatterUtils, $sabloConverters, $injector, $services, $sanitize, $window, $applicationService) {
+angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('aggridGroupingtable', ['$sabloApplication', '$sabloConstants', '$log', '$q', '$foundsetTypeConstants', '$filter', '$compile', '$formatterUtils', '$sabloConverters', '$injector', '$services', "$sanitize", '$window', "$applicationService", "$formService", "$windowService",
+	function($sabloApplication, $sabloConstants, $log, $q, $foundsetTypeConstants, $filter, $compile, $formatterUtils, $sabloConverters, $injector, $services, $sanitize, $window, $applicationService, $formService, $windowService) {
 		return {
 			restrict: 'E',
 			scope: {
@@ -1929,6 +1929,70 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					};
 
 					return SelectEditor;
+				}
+
+				function getFormEditor() {
+					function FormEditor() {}
+
+					FormEditor.prototype.init = function(params) {
+						this.params = params;
+
+						$scope.model._internalFormEditorValue = params.value;
+						if($scope.handlers.onColumnFormEditStarted) {
+							$scope.handlers.onColumnFormEditStarted(
+								getFoundsetIndexFromEvent(params), getColumnIndex(params.column.colId), params.value);
+						}
+
+						this.eGui = document.createElement("div");
+
+						var column = getColumn(params.column.colId);
+
+						$scope.ngEditFormUrl = null;
+						$scope.svyServoyapi.formWillShow(column.editForm).then(function successCallback() {
+							$scope.ngEditFormUrl = $windowService.getFormUrl(column.editForm);
+						}, function errorCallback(e) {
+							console.log(e);
+						});
+
+						$scope.getNGEditFormUrl = function() {
+							return $scope.ngEditFormUrl;
+						};
+
+						$scope.loadSize = function() {
+							$sabloApplication.getFormState(column.editForm).then(function(formState){
+								var css = {};
+								css["width"] = formState.properties.designSize.width + "px";
+								css["height"] = formState.properties.designSize.height + "px";
+								$('#ngformeditor').css(css);
+							})
+						};
+
+						this.eGui.innerHTML = '<div id=\'ngformeditor\' svyform="' + column.editForm + '" ng-include="getNGEditFormUrl()" onload="loadSize()"></div>';
+						$compile(this.eGui)($scope);
+					};
+
+					FormEditor.prototype.getGui = function() {
+						return this.eGui;
+					};
+
+					FormEditor.prototype.afterGuiAttached = function () {
+						gridOptions.api.setFocusedCell(this.params.node.rowIndex, this.params.column.colId);
+					};
+
+					FormEditor.prototype.isPopup = function() {
+						return true;
+					};
+
+					FormEditor.prototype.getValue = function() {
+						return $scope.model._internalFormEditorValue;
+					};
+
+					FormEditor.prototype.destroy = function() {
+						var column = getColumn(this.params.column.colId);
+						$scope.svyServoyapi.hideForm(column.editForm);						
+					};
+
+					return FormEditor;
 				}
 
 				/**************************************************************************************************
@@ -4009,6 +4073,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							else if(column.editType == 'COMBOBOX') {
 								colDef.cellEditor = getSelectEditor();
 							}
+							else if(column.editType == 'FORM') {
+								colDef.cellEditor = getFormEditor();
+							}
 
 							colDef.onCellValueChanged = function(params) {
 								updateFoundsetRecord(params);
@@ -4723,6 +4790,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					else {
 						scrollToSelectionWhenSelectionReady = true;
 					}
+				}
+
+				/**
+				 * If a cell is editing, it stops the editing
+				 * @param cancel 'true' to cancel the editing (ie don't accept changes)
+				 */
+				$scope.api.stopCellEditing = function(cancel) {
+					gridOptions.api.stopEditing(cancel);
 				}
 
 				// FIXME how to force re-fit when table is shown for the first time

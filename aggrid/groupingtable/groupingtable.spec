@@ -40,7 +40,8 @@
 		"filterModel": {"type": "string", "tags": {"scope": "private"}},
 		"readOnly": {"type": "boolean", "default": false, "tags": {"scope" : "private"}},
 		"readOnlyColumnIds": {"type": "object", "tags": {"scope" : "private"} },
-		"mainMenuItemsConfig": { "type": "mainMenuItemsConfig", "tags": { "scope": "design" } }
+		"mainMenuItemsConfig": { "type": "mainMenuItemsConfig", "tags": { "scope": "design" } },
+		"_internalFormEditorValue": { "type": "object", "tags": {"scope" : "private"}, "pushToServer": "allow"}
 	},
 	"handlers" : {
     	"onSelectedRowsChanged": {
@@ -147,7 +148,23 @@
 		},
 		"onReady": {
 			"description": "Called when the table is ready to be shown"
-		}
+		},
+		"onColumnFormEditStarted": {
+			"description": "Called when the column's form editor is started",
+			"parameters": [{
+				"name": "foundsetindex",
+				"type": "int",
+				"optional": true
+			}, {
+				"name": "columnindex",
+				"type": "int",
+				"optional": true
+			}, {
+				"name": "value",
+				"type": "object",
+				"optional": true
+			}]
+		}	
 	}, 
 	"api" : {
 		"notifyDataChange" : {
@@ -224,6 +241,16 @@
 			"parameters": [
 				{ "name": "readonly", "type": "boolean"},
 				{ "name": "columnids", "type": "string[]", "optional": true}
+			]
+		},
+		"setFormEditorValue": {
+			"parameters": [
+				{ "name": "value", "type": "object"}
+			]
+		},
+		"stopCellEditing": {
+			"parameters": [
+				{ "name": "cancel", "type": "boolean", "optional": true}
 			]
 		}
     },
@@ -317,7 +344,8 @@
 			"autoResize" : {"type": "boolean", "default" : true},
 			"rowGroupIndex":  {"type": "int", "default": -1},
 			"isEditableDataprovider": { "type": "dataprovider", "forFoundset": "myFoundset"},
-			"editType": {"type": "string", "values": [{"NONE":null}, {"TEXTFIELD":"TEXTFIELD"}, {"DATEPICKER":"DATEPICKER"}, {"COMBOBOX":"COMBOBOX"}, {"TYPEAHEAD":"TYPEAHEAD"}]},
+			"editType": {"type": "string", "values": [{"NONE":null}, {"TEXTFIELD":"TEXTFIELD"}, {"DATEPICKER":"DATEPICKER"}, {"COMBOBOX":"COMBOBOX"}, {"TYPEAHEAD":"TYPEAHEAD"}, {"FORM":"FORM"}]},
+			"editForm": {"type": "form"},
 			"filterType": {"type": "string", "values": [{"NONE":null}, {"TEXT":"TEXT"}, {"NUMBER":"NUMBER"}, {"DATE":"DATE"}]},
 			"id": {"type" : "string", "tags": {"showInOutlineView": true }},
 			"columnDef": {"type" : "map"},

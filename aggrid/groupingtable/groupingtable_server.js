@@ -635,3 +635,12 @@ $scope.api.setReadOnly = function(readOnly, columnids) {
 		}
 	}
 }
+
+/**
+ * Set the currently opened form editor value
+ *
+ * @param {Object} value form editor value
+ */
+$scope.api.setFormEditorValue = function(value) {
+	$scope.model._internalFormEditorValue = value;
+}
