@@ -16,10 +16,18 @@ const NULL_DISPLAY_VALUE = 'GRID_NULL_DISPLAY_VALUE'
 $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets, sort, sFilterModel, hasRowStyleClassDataprovider) {
 	log('START SERVER SIDE ------------------------------------------ ', LOG_LEVEL.WARN);
 
+	var rootFoundset = $scope.model.myFoundset.foundset; // All foundsets are derived from the root foundset
+	/** @type {QBSelect} */
+	var query = rootFoundset.getQuery();
+	var extraDataproviders = {};
+	var columns = [];
+
 	var groupColumn;
 	var groupDataprovider;
 	var groupColumnIndex;
 	var groupKey;
+	var format;
+	var column;
 	var i;
 	var fs;
 
@@ -30,12 +38,6 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 		console.error("There are no idForFoundset to map to")
 	}
 
-	// All foundsets are derived from the root foundset
-	var rootFoundset = $scope.model.myFoundset.foundset;
-
-	/** @type {QBSelect} */
-	var query = rootFoundset.getQuery();
-	
 	// Apply group filtering to the query
 	log("There are '" + groupColumns.length + "' groupColumns", LOG_LEVEL.WARN);
 	for (i = 0; i < groupColumns.length; i++) {
@@ -56,7 +58,7 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 	}
 
 	// instantiate either a group or leaf foundset
-	if (groupColumns.length > groupKeys.length) { // group foundset
+	if (groupColumns.length > groupKeys.length) { // create a ViewFoundSet with all distinct values for the group
 		query.result.clear();
 		query.result.add(groupColumn, groupDataprovider);
 
@@ -67,7 +69,7 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 
 		// CHECKME doesn't the group foundset need filtering?
 		fs = servoyApi.getViewFoundSet("", query);
-	} else { // leaf foundset
+	} else { // create a FoundSet for the actual records (leafs/leafNodes)
 		fs = rootFoundset.duplicateFoundSet();
 		
 		if (sFilterModel) {
@@ -81,39 +83,39 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 	log("There are " + $scope.model.columns.length + " columns and " + idForFoundsets.length + " idForFoundsets", LOG_LEVEL.WARN);
 	
 	// push dataproviders to the clientside foundset
-	var dps = {};
 	for (i = 0; i < $scope.model.columns.length; i++) {
-		var column = $scope.model.columns[i];
+		column = $scope.model.columns[i];
 		// the dataprovider name e.g. orderid
 		// var dpId = column.dataprovider;
 		// the idForFoundset(exists only client-side, therefore i need to retrieve it from the client)
 		var idForFoundset = idForFoundsets[i];
 		// Servoy resolves the real dataprovider name into the dataprovider 'field'
-		// dps[idForFoundset] = dpId;
+		// extraDataproviders[idForFoundset] = dpId;
 		// TODO it could be the hashmap of groupkeys/groupcolumns ?
-		// dps._svyFoundsetUUID = null;
+		// extraDataproviders._svyFoundsetUUID = null;
 
 		if (column.hasOwnProperty("styleClassDataprovider")) {
-			dps[idForFoundset + "_styleClassDataprovider"] = column.styleClassDataprovider;
+			extraDataproviders[idForFoundset + "_styleClassDataprovider"] = column.styleClassDataprovider;
 		}
 
 		if (column.hasOwnProperty("isEditableDataprovider")) {
-			dps[idForFoundset + "_isEditableDataprovider"] = column.isEditableDataprovider;
+			extraDataproviders[idForFoundset + "_isEditableDataprovider"] = column.isEditableDataprovider;
 		}
 	}
 
 	if (hasRowStyleClassDataprovider === true) {
-		dps["__rowStyleClassDataprovider"] = $scope.model.rowStyleClassDataprovider;
+		extraDataproviders["__rowStyleClassDataprovider"] = $scope.model.rowStyleClassDataprovider;
 	}
 
-	var columns = [];
-	for (var idx = 0; idx < $scope.model.columns.length; idx++) {
+	for (i = 0; i < $scope.model.columns.length; i++) {
+	`	column = $scope.model.columns[i];
+		
 		columns.push({
-			dataprovider: $scope.model.columns[idx].dataprovider || $scope.model.columns[idx].lazydataprovider,
-			format: $scope.model.columns[idx].format,
-			valuelist: $scope.model.columns[idx].valuelist,
-			id: $scope.model.columns[idx].id,
-			columnDef: $scope.model.columns[idx].columnDef
+			dataprovider: column.dataprovider || column.lazydataprovider,
+			format: column.format,
+			valuelist: column.valuelist,
+			id: column.id,
+			columnDef: column.columnDef
 		});
 	}
 
@@ -121,7 +123,7 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 	$scope.model.hashedFoundsets.push({
 		foundset: {
 			foundset: fs,
-			dataproviders: dps,
+			dataproviders: extraDataproviders,
 			sendSelectionViewportInitially: false,
 			initialPreferredViewPortSize: 15
 		},
@@ -221,6 +223,20 @@ function getDataProviderColumn(dataProvider) {
  */
 function isRelatedDataprovider(dataProvider) {
 	return dataProvider.split(".").length > 1;
+}
+
+function getPKColumnName() {
+	if (!$scope.model.myFoundset) return null;
+	
+	// Using foundset.getOmittedPKs() as a workaround for not having the ability to retrieve the names of the PK columns: the returned JSDataSet has its columnNames set to the PK column(s)
+	const pkColumnNames = $scope.model.myFoundset.foundset.getOmittedPKs().getColumnNames();
+	
+	if (pkColumnNames.length !== 1) { // Not supporting multi-column PKs (yet)
+		console.warn('NG Grouping Grid doesn\'t support multi-column PKs');
+		return null;
+	}
+	
+	return pkColumnNames[0]
 }
 
 /**
@@ -660,12 +676,7 @@ $scope.api.getColumnState = function() {
 $scope.api.getSelectedRecordFoundSet = function() {
 	if (!$scope.model.myFoundset) return null;
 	
-	// Using foundset.getOmittedPKs() as a workaround for not having the ability to retrieve the names of the PK columns: the returned JSDataSet has its columnNames set to the PK column(s)
-	const pkColumnNames = $scope.model.myFoundset.foundset.getOmittedPKs().getColumnNames();
-	if (pkColumnNames.length !== 1) { // Not supporting multi-column PKs (yet)
-		console.warn('NG Grouping Grid doesn\'t support multi-column PKs');
-		return null;
-	}
+	const pkColumnName = getPKColumnName();
 
 	const selectionFs = $scope.model.myFoundset.foundset.duplicateFoundSet();
 	/** @type {QBSelect} */
@@ -780,7 +791,7 @@ $scope.api.getSelectedRecordFoundSet = function() {
 
 		const groupColumnsDefs = getGroupColumnDefs();
 		const groupColumns = [];		
-		const pkColumn = selectionQuery.columns[pkColumnNames[0]];
+		const pkColumn = selectionQuery.columns[pkColumnName];
 
 		function appendSelectionWhereClauses(groupState, groupColumn, groupKey, level, condition) {
 			var hasSelection = false;
@@ -862,7 +873,7 @@ $scope.api.getSelectedRecordFoundSet = function() {
 		const selectedRecords = $scope.model.myFoundset.foundset.getSelectedRecords();
 		
 		if (!selectedRecords.length) {
-			selectionQuery.where.add('selectedRecords', selectionQuery.columns[pkColumnNames[0]].isNull)
+			selectionQuery.where.add('selectedRecords', selectionQuery.columns[pkColumnName].isNull)
 		} else {
 			const pks = [];
 
@@ -870,7 +881,7 @@ $scope.api.getSelectedRecordFoundSet = function() {
 				pks.push(selectedRecords[i].getPKs()[0])
 			}
 
-			selectionQuery.where.add('selectedRecords', selectionQuery.columns[pkColumnNames[0]].isin(pks))
+			selectionQuery.where.add('selectedRecords', selectionQuery.columns[pkColumnName].isin(pks))
 		}
 	}
 
