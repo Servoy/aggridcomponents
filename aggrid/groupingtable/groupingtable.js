@@ -123,14 +123,13 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 				/**
 				 * @typedef {{
-				 * endRow:Number,
-				 * filterModel:Object,
-				 * groupKeys:Array<String>,
-				 * rowGroupCols:Array<RowGroupColType>,
-				 * sortModel:Array<SortModelType>,
-				 * startRow: Number,
-				 * valueCols: Array
-				 * }}
+				 *	endRow: number,
+				 *	filterModel: Object,
+				 *	groupKeys: Array<string>,
+				 *	rowGroupCols: Array<RowGroupColType>,
+				 *	sortModel: Array<SortModelType>,
+				 *	startRow: number,
+				 *	valueCols: Array
 				 * @SuppressWarnings(unused)
 				 */
 				var AgDataRequestType;
@@ -287,7 +286,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 				var gridDiv = $element.find('.ag-table')[0];
 				var columnDefs = getColumnDefs();
-				var sortModelDefault = getSortModel();
+				var sortModelDefault = getRootFoundSetSortModel();
 
 				$log.debug(columnDefs);
 				$log.debug(sortModelDefault);
@@ -349,33 +348,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				var vMenuTabs = ['generalMenuTab', 'filterMenuTab'];
 				if (config.showColumnsMenuTab) vMenuTabs.push('columnsMenuTab');
 				
-				var sideBar;
-				if (toolPanelConfig && toolPanelConfig.suppressSideButtons === true) {
-					sideBar = false;
-				} else {
-					sideBar = {
-							toolPanels: [
-							{
-								id: 'columns',
-								labelDefault: 'Columns',
-								labelKey: 'columns',
-								iconKey: 'columns',
-								toolPanel: 'agColumnsToolPanel',
-								toolPanelParams: {
-									suppressRowGroups: toolPanelConfig ? toolPanelConfig.suppressRowGroups : false,
-									suppressValues: true,
-									suppressPivots: true,
-									suppressPivotMode: true,
-									suppressSideButtons: toolPanelConfig ? toolPanelConfig.suppressSideButtons : false,
-									suppressColumnFilter: toolPanelConfig ? toolPanelConfig.suppressColumnFilter : false,
-									suppressColumnSelectAll: toolPanelConfig ? toolPanelConfig.suppressColumnSelectAll : false,
-									suppressColumnExpandAll: toolPanelConfig ? toolPanelConfig.suppressColumnExpandAll : false
-								}
-							}
-						]
-					}
-				}
-
 				var isGridReady = false;
 
 				var gridOptions = {
@@ -488,7 +460,27 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 					navigateToNextCell: selectionChangeNavigation,
 
-					sideBar : sideBar,
+					sideBar: toolPanelConfig && toolPanelConfig.suppressSideButtons === true ? false : {
+						toolPanels: [
+							{
+								id: 'columns',
+								labelDefault: 'Columns',
+								labelKey: 'columns',
+								iconKey: 'columns',
+								toolPanel: 'agColumnsToolPanel',
+								toolPanelParams: {
+									suppressRowGroups: toolPanelConfig ? toolPanelConfig.suppressRowGroups : false,
+									suppressValues: true,
+									suppressPivots: true,
+									suppressPivotMode: true,
+									suppressSideButtons: toolPanelConfig ? toolPanelConfig.suppressSideButtons : false,
+									suppressColumnFilter: toolPanelConfig ? toolPanelConfig.suppressColumnFilter : false,
+									suppressColumnSelectAll: toolPanelConfig ? toolPanelConfig.suppressColumnSelectAll : false,
+									suppressColumnExpandAll: toolPanelConfig ? toolPanelConfig.suppressColumnExpandAll : false
+								}
+							}
+						]
+					},
 					popupParent: gridDiv,
 					onCellEditingStopped : function(event) {
 						// don't allow escape if cell data is invalid
@@ -2020,8 +2012,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 * 
 				 * @see https://www.ag-grid.com/javascript-grid-server-side-model/
 				 */
-				function FoundsetDatasource(foundsetServer) {
-					this.foundsetServer = foundsetServer;
+				function FoundSetDatasource() {
+					this.server = new FoundSetServer();
 				}
 
 				/**
@@ -2031,10 +2023,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 * 
 				 * After getData returns the rows, getRows passes them to the AG Grid and then does post processing, to handle selection, group expand/collapse etc
 				 */
-				FoundsetDatasource.prototype.getRows = function(params) {
-					$log.debug('FoundsetDatasource.getRows: params = ', params);
+				FoundSetDatasource.prototype.getRows = function(params) {
+					$log.debug('FoundSetDatasource.getRows: params = ', params);
 
-					var thisFoundsetDatasource = this;
+					var dataSource = this;
 					var rowGroupCols = params.request.rowGroupCols; // the row group cols, ie the cols that the user has dragged into the 'group by' zone, eg 'Country' and 'Customerid'
 					var groupKeys = params.request.groupKeys; // the keys we are looking at. will be empty if looking at top level (either no groups, or looking at top level groups). eg ['United States','2002']
 					var valueListLookupPromises = [];
@@ -2065,7 +2057,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 					// Once all valueListLookupPromises are resolved, call getData to actually get the data for the requested rows
 					$q.all(valueListLookupPromises).then(function() {
-						thisFoundsetDatasource.foundsetServer.getData(params.request, groupKeys,
+						dataSource.server.getData(params.request, groupKeys,
 							function successCallback(resultForGrid, lastRow) {
 								var model = gridOptions.api.getModel();
 								
@@ -2141,7 +2133,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					});
 				};
 
-				function FoundsetServer() {}
+				function FoundSetServer() {}
 
 				/**
 				 * looks for an existing Foundset and otherwise gets a new Foundset
@@ -2154,7 +2146,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 * @param {Array} groupKeys
 				 * @param {Function} callback callback(data, isLastRow)
 				 */
-				FoundsetServer.prototype.getData = function(request, groupKeys, callback) {
+				FoundSetServer.prototype.getData = function(request, groupKeys, callback) {
 					$log.debug(request);
 
 					var rowGroupCols = request.rowGroupCols; // the row group cols, i.e. the cols that the user has dragged into the 'group by' zone, eg 'Country' and 'Customerid'
@@ -2341,14 +2333,12 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				function initRootFoundset() {
 					foundset = new FoundSetManager($scope.model.myFoundset, ROOT_FOUNDSET_ID);
 
-					var foundsetServer = new FoundsetServer([]);
-					var datasource = new FoundsetDatasource(foundsetServer);
+					var datasource = new FoundSetDatasource();
 					gridOptions.api.setServerSideDatasource(datasource);
 				}
 
 				function refreshDatasource() {
-					var foundsetServer = new FoundsetServer([]);
-					var datasource = new FoundsetDatasource(foundsetServer);
+					var datasource = new FoundSetDatasource();
 					gridOptions.api.setServerSideDatasource(datasource);
 				}
 
@@ -2683,7 +2673,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							return;
 						}
 
-						// gridOptions.api.purgeEnterpriseCache();
 						if (change[$foundsetTypeConstants.NOTIFY_SELECTED_ROW_INDEXES_CHANGED]) { // CHECKME is the foundste selection model used at all?
 							selectedRowIndexesChanged(thisInstance);
 						}
@@ -2892,7 +2881,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							}
 						});
 						
-						if ($scope.model.hashedFoundsets.length) {
+						if (rootGroupNode.nodes.length) {
 							$log.error("Clear All was not successful, please debug");
 						}
 					}
@@ -3554,7 +3543,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						// TODO check with R&D, sortColumns is updated only after the viewPort is update or there could be a concurrency race. When i would know when sort is completed ?
 						if (newSort && oldSort && newSort != oldSort) {
 							$log.debug('myFoundset sort changed ' + newSort);
-							gridOptions.api.setSortModel(getSortModel());
+							gridOptions.api.setSortModel(getRootFoundSetSortModel());
 							gridOptions.api.purgeServerSideCache();
 						} else if (newSort == oldSort && !newSort && !oldSort) {
 							$log.warn("this should not be happening");
@@ -3926,21 +3915,17 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						if (value instanceof Date) returnValueFormatted = true;
 
 						var styleClass = null;
-						if (!isGroupColumn) {
-							// CHECKME this code seems a bit of a duplicate with .getRowClass()
+						// CHECKME this code seems a bit of a duplicate with .getRowClass()
+						if (!isGroupColumn && col && col.styleClassDataprovider) {
 							if (!isTableGrouped()) {
-								var column = getColumn(params.colDef.field);
-
-								if (column && column.styleClassDataprovider) {
-									var index = params.rowIndex - foundset.foundset.viewPort.startIndex;
-									styleClass = column.styleClassDataprovider[index];
-								}
+								var index = params.rowIndex - foundset.foundset.viewPort.startIndex;
+								styleClass = col.styleClassDataprovider[index];
 							} else if (params.data && params.data._svyFoundsetUUID) { // params.data might be empty for group rows whoms children have been deleted since the group rows query was fired
 								var foundsetManager = getFoundsetManagerByFoundsetUUID(params.data._svyFoundsetUUID);
 								var index = foundsetManager.getRowIndex(params.data) - foundsetManager.foundset.viewPort.startIndex;
 								
-								if (index >= 0) {
-									styleClass = foundsetManager.foundset.viewPort.rows[index][params.colDef.field + "_styleClassDataprovider"];
+								if (index !== -1) {
+									styleClass = foundsetManager.foundset.viewPort.rows[index][colId + "_styleClassDataprovider"];
 								} else {
 									$log.warn('cannot render styleClassDataprovider for row at index ' + index)
 									$log.warn(params.data);
@@ -4211,11 +4196,13 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 *
 				 * @return {SortModelType}
 				 */
-				function getSortModel() {
+				function getRootFoundSetSortModel() {
 					var sortModel = [];
 					var sortColumns = foundset.getSortColumns();
+					
 					if (sortColumns) {
 						sortColumns = sortColumns.split(",");
+						
 						for (var i = 0; i < sortColumns.length; i++) {
 							// TODO parse sortColumns into default sort string
 							/** @type {String} */
@@ -4224,13 +4211,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							var sortDirection;
 							if (!sortColumn) {
 								continue;
-							} else if (sortColumn.substr(sortColumn.length - 5, 5) === " desc") {
-								var idForFoundset = sortColumn.substring(0, sortColumn.length - 5);
-								sortDirection = "desc";
-							} else if (sortColumn.substr(sortColumn.length - 4, 4) === " asc") {
-								idForFoundset = sortColumn.substring(0, sortColumn.length - 4),
-								sortDirection = "asc";
-							}
+							} 
+							
+							var parts = sortColumn.split(' ')
+							idForFoundset = parts[0];
+							sortDirection = parts[1];
 							
 							// add it into the sort model
 							if (idForFoundset && sortDirection) {
@@ -4245,6 +4230,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							}
 						}
 					}
+					
 					return sortModel;
 				}
 
@@ -4353,8 +4339,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 * @return {Array<String>}
 				 */
 				function getColIDs(idsForFoundset) {
-					
 					var result = [];
+					
 					if (!idsForFoundset) {
 						return [];
 					}

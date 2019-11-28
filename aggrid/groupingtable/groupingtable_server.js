@@ -19,6 +19,7 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 	var rootFoundset = $scope.model.myFoundset.foundset; // All foundsets are derived from the root foundset
 	/** @type {QBSelect} */
 	var query = rootFoundset.getQuery();
+	var pkColumnName = getPKColumnName();
 	var extraDataproviders = {};
 	var columns = [];
 
@@ -26,7 +27,6 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 	var groupDataprovider;
 	var groupColumnIndex;
 	var groupKey;
-	var format;
 	var column;
 	var i;
 	var fs;
@@ -108,7 +108,7 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 	}
 
 	for (i = 0; i < $scope.model.columns.length; i++) {
-	`	column = $scope.model.columns[i];
+		column = $scope.model.columns[i];
 		
 		columns.push({
 			dataprovider: column.dataprovider || column.lazydataprovider,
