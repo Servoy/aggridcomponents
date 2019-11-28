@@ -1130,16 +1130,17 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						}
 						
 						if (foundsetIndexes.length > 0) {
-							foundset.foundset.requestSelectionUpdate(foundsetIndexes).then(
-								function (serverRows) {}, // success
-								function (serverRows) { // canceled
-									if (typeof serverRows === 'string'){
-										return;
+							foundset.foundset.requestSelectionUpdate(foundsetIndexes)
+								.then(
+									function (serverRows) {}, // success
+									function (serverRows) { // canceled
+										if (typeof serverRows === 'string'){
+											return;
+										}
+										//reject
+										selectedRowIndexesChanged();
 									}
-									//reject
-									selectedRowIndexesChanged();
-								}
-							);
+								);
 							return;
 						}
 					} else { // handle last node deselection, which AG Grid allows through rowDeselection
@@ -1195,16 +1196,16 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						var columnIndex = getColumnIndex(params.column.colId);
 						var recordPromise = getFoundsetRecord(params);
 
-						recordPromise.then(function(record) {
-
-							// FIXME with R&D, doesn't translate the record when grouped (because not from root foundset cache).
-							// How to retrieve the record ? Via Mapping or via PK ?
-							$scope.handlers.onCellClick(foundsetIndex, columnIndex, record, params.event);
-						}).catch(function(e) {
-							$log.error(e);
-							$scope.handlers.onCellClick(foundsetIndex, columnIndex, null, params.event);
-						});
-
+						recordPromise.
+							then(function(record) {
+								// FIXME with R&D, doesn't translate the record when grouped (because not from root foundset cache).
+								// How to retrieve the record ? Via Mapping or via PK ?
+								$scope.handlers.onCellClick(foundsetIndex, columnIndex, record, params.event);
+							})
+							.catch(function(e) {
+								$log.error(e);
+								$scope.handlers.onCellClick(foundsetIndex, columnIndex, null, params.event);
+							});
 					}
 				}
 
@@ -1244,14 +1245,15 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						//						promiseResult.resolve(record);
 					}
 					//else {
-					$scope.svyServoyapi.callServerSideApi("getFoundsetRecord",
-						[foundsetUUID, row._svyRowId]).then(function(record) {
-						$log.debug(record);
-						promiseResult.resolve(record);
-					}).catch(function(e) {
-						$log.error(e);
-						promiseResult.resolve(null);
-					});
+					$scope.svyServoyapi.callServerSideApi("getFoundsetRecord", [foundsetUUID, row._svyRowId])
+						.then(function(record) {
+							$log.debug(record);
+							promiseResult.resolve(record);
+						})
+						.catch(function(e) {
+							$log.error(e);
+							promiseResult.resolve(null);
+						});
 					//}
 					return promiseResult.promise;
 				}
@@ -1292,54 +1294,56 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								oldValue,
 								newValue
 							);
-							onColumnDataChangePromise.then(function(r) {
-								if (r == false) {
-									// if old value was reset, clear invalid state
-									var currentValue = gridOptions.api.getValue(colId, params.node);
-									if (currentValue && currentValue.realValue !== undefined) {
-										currentValue = currentValue.realValue;
-									}
-									if (oldValue === currentValue) {
+							onColumnDataChangePromise
+								.then(function(r) {
+									if (r == false) {
+										// if old value was reset, clear invalid state
+										var currentValue = gridOptions.api.getValue(colId, params.node);
+										if (currentValue && currentValue.realValue !== undefined) {
+											currentValue = currentValue.realValue;
+										}
+										if (oldValue === currentValue) {
+											invalidCellDataIndex.rowIndex = -1;
+											invalidCellDataIndex.colKey = '';
+										} else {
+											invalidCellDataIndex.rowIndex = rowIndex;
+											invalidCellDataIndex.colKey = colId;
+										}
+										var editCells = gridOptions.api.getEditingCells();
+										if (!editCells.length || (editCells[0].rowIndex != rowIndex || editCells[0].column.colId != colId)) {
+											gridOptions.api.stopEditing();
+											gridOptions.api.startEditingCell({
+												rowIndex: rowIndex,
+												colKey: colId
+											});
+											setTimeout(function() {
+												// CHECKME can probably be done through the rowId instead of a loop?
+												gridOptions.api.forEachNode( function(node) {
+													if (node.rowIndex === rowIndex) {
+														node.setSelected(true, true);
+													}
+												});
+											}, 0);
+										}
+									} else {
 										invalidCellDataIndex.rowIndex = -1;
 										invalidCellDataIndex.colKey = '';
-									} else {
-										invalidCellDataIndex.rowIndex = rowIndex;
-										invalidCellDataIndex.colKey = colId;
-									}
-									var editCells = gridOptions.api.getEditingCells();
-									if (!editCells.length || (editCells[0].rowIndex != rowIndex || editCells[0].column.colId != colId)) {
-										gridOptions.api.stopEditing();
-										gridOptions.api.startEditingCell({
-											rowIndex: rowIndex,
-											colKey: colId
-										});
-										setTimeout(function() {
-											// CHECKME can probably be done through the rowId instead of a loop?
-											gridOptions.api.forEachNode( function(node) {
-												if (node.rowIndex === rowIndex) {
-													node.setSelected(true, true);
-												}
+										var editCells = gridOptions.api.getEditingCells();
+										if (editCells.length == 0 && currentEditCells.length != 0) {
+											gridOptions.api.startEditingCell({
+												rowIndex: currentEditCells[0].rowIndex,
+												colKey: currentEditCells[0].column.colId
 											});
-										}, 0);
+										}
 									}
-								} else {
+									onColumnDataChangePromise = null;
+								})
+								.catch(function(e) {
+									$log.error(e);
 									invalidCellDataIndex.rowIndex = -1;
 									invalidCellDataIndex.colKey = '';
-									var editCells = gridOptions.api.getEditingCells();
-									if (editCells.length == 0 && currentEditCells.length != 0) {
-										gridOptions.api.startEditingCell({
-											rowIndex: currentEditCells[0].rowIndex,
-											colKey: currentEditCells[0].column.colId
-										});
-									}
-								}
-								onColumnDataChangePromise = null;
-							}).catch(function(e) {
-								$log.error(e);
-								invalidCellDataIndex.rowIndex = -1;
-								invalidCellDataIndex.colKey = '';
-								onColumnDataChangePromise = null;
-							});
+									onColumnDataChangePromise = null;
+								});
 						}
 					}
 				}
@@ -1384,16 +1388,16 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						var columnIndex = getColumnIndex(params.column.colId);
 						var recordPromise = getFoundsetRecord(params);
 
-						recordPromise.then(function(record) {
-
-							// FIXME with R&D, doesn't translate the record when grouped (because not from root foundset cache).
-							// How to retrieve the record ? Via Mapping or via PK ?
-							$scope.handlers.onCellDoubleClick(foundsetIndex, columnIndex, record, params.event);
-						}).catch(function(e) {
-							$log.error(e);
-							$scope.handlers.onCellDoubleClick(foundsetIndex, columnIndex, null, params.event);
-						});
-
+						recordPromise
+							.then(function(record) {
+								// FIXME with R&D, doesn't translate the record when grouped (because not from root foundset cache).
+								// How to retrieve the record ? Via Mapping or via PK ?
+								$scope.handlers.onCellDoubleClick(foundsetIndex, columnIndex, record, params.event);
+							})
+							.catch(function(e) {
+								$log.error(e);
+								$scope.handlers.onCellDoubleClick(foundsetIndex, columnIndex, null, params.event);
+							});
 					}
 				}
 
@@ -1434,16 +1438,16 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						var columnIndex = getColumnIndex(params.column.colId);
 						var recordPromise = getFoundsetRecord(params);
 
-						recordPromise.then(function(record) {
-
-							// FIXME with R&D, doesn't translate the record when grouped (because not from root foundset cache).
-							// How to retrieve the record ? Via Mapping or via PK ?
-							$scope.handlers.onCellRightClick(foundsetIndex, columnIndex, record, params.event);
-						}).catch(function(e) {
-							$log.error(e);
-							$scope.handlers.onCellRightClick(foundsetIndex, columnIndex, null, params.event);
-						});
-
+						recordPromise
+							.then(function(record) {
+								// FIXME with R&D, doesn't translate the record when grouped (because not from root foundset cache).
+								// How to retrieve the record ? Via Mapping or via PK ?
+								$scope.handlers.onCellRightClick(foundsetIndex, columnIndex, record, params.event);
+							})
+							.catch(function(e) {
+								$log.error(e);
+								$scope.handlers.onCellRightClick(foundsetIndex, columnIndex, null, params.event);
+							});
 					}
 				}
 				
@@ -1670,18 +1674,19 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							if (vl) {
 								var valuelistValuesPromise = vl.filterList("");
 								var thisEditor = this;
-								valuelistValuesPromise.then(function(valuelistValues) {
-									thisEditor.valuelist = valuelistValues;
-									var hasRealValues = false;
-									for (var i = 0; i < thisEditor.valuelist.length; i++) {
-										var item = thisEditor.valuelist[i];
-										if (item.realValue != item.displayValue) {
-											hasRealValues = true;
-											break;
+								valuelistValuesPromise
+									.then(function(valuelistValues) {
+										thisEditor.valuelist = valuelistValues;
+										var hasRealValues = false;
+										for (var i = 0; i < thisEditor.valuelist.length; i++) {
+											var item = thisEditor.valuelist[i];
+											if (item.realValue != item.displayValue) {
+												hasRealValues = true;
+												break;
+											}
 										}
-									}
-									thisEditor.hasRealValues = hasRealValues;	
-								});
+										thisEditor.hasRealValues = hasRealValues;	
+									});
 							}
 						}
 
@@ -1955,17 +1960,18 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							if (v && v.displayValue != undefined) {
 								v = v.displayValue;
 							}
-							valuelistValuesPromise.then(function(valuelistValues) {
-								valuelistValues.forEach(function (value) {
-									var option = document.createElement('option');
-									option.value = value.realValue == null ? '_SERVOY_NULL' : value.realValue;
-									option.text = value.displayValue;
-									if (v != null && v.toString() === value.displayValue) {
-										option.selected = true;
-									}
-									selectEl.appendChild(option);
-								});
-
+							valuelistValuesPromise
+								.then(function(valuelistValues) {
+									valuelistValues.forEach(function (value) {
+										var option = document.createElement('option');
+										option.value = value.realValue == null ? '_SERVOY_NULL' : value.realValue;
+										option.text = value.displayValue;
+										
+										if (v != null && v.toString() === value.displayValue) {
+											option.selected = true;
+										}
+										selectEl.appendChild(option);
+									});
 							});
 						}
 
@@ -2056,81 +2062,84 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 
 					// Once all valueListLookupPromises are resolved, call getData to actually get the data for the requested rows
-					$q.all(valueListLookupPromises).then(function() {
-						dataSource.server.getData(params.request, groupKeys,
-							function successCallback(resultForGrid, lastRow) {
-								var model = gridOptions.api.getModel();
-								
-								// CHECKME if resultForGrid.length == 0 and the fetch is for group children, maybe refresh the group row's foundset, as apparently there's a group w/o children?
-								//		   should be implemented only after making sure the joins based on related dataproviders are added using the proper outer join, otherwise resultForGrid.length == 0 might be a false negative
-								//		   and should make sure that the refresh doesn't cause expanded or selection state to get lost
-								params.successCallback(resultForGrid, lastRow); // passing back the requested rows to AG Grid, by calling the successCallback they provided in the getRows call
-
-								selectedRowIndexesChanged();
-								
-								// special handling when in group mode to mimic AG Grid features that aren't enabled when using the serverside rowmodel
-								if ($scope.isGroupView) {
-									var groupState = getGroupPersistState(groupKeys);
+					$q
+						.all(valueListLookupPromises)
+						.then(function() {
+							dataSource.server.getData(params.request, groupKeys,
+								function successCallback(resultForGrid, lastRow) {
+									var model = gridOptions.api.getModel();
 									
-									// TODO move code below to GroupManager
+									// CHECKME if resultForGrid.length == 0 and the fetch is for group children, maybe refresh the group row's foundset, as apparently there's a group w/o children?
+									//		   should be implemented only after making sure the joins based on related dataproviders are added using the proper outer join, otherwise resultForGrid.length == 0 might be a false negative
+									//		   and should make sure that the refresh doesn't cause expanded or selection state to get lost
+									params.successCallback(resultForGrid, lastRow); // passing back the requested rows to AG Grid, by calling the successCallback they provided in the getRows call
+	
+									selectedRowIndexesChanged();
 									
-									// Expanded/collapsed state handling
-									expandCollapse: if (typeof gridOptions.groupDefaultExpanded === 'number' && params.request.rowGroupCols.length && (gridOptions.groupDefaultExpanded === -1 || gridOptions.groupDefaultExpanded > groupKeys.length)) { // emulate groupDefaultExpanded setting
-										for (var index = 0; index < resultForGrid.length; index++) {
-											var node = model.getRowNode(resultForGrid[index]._svyFoundsetUUID + '_' + resultForGrid[index]._svyRowId)
-											node.setExpanded(true);
-										}
-									} else if (groupKeys.length < params.request.rowGroupCols.length && groupState && groupState.children) { // Apply desired expanded state
-										var nodeValuesToExpand = Object.keys(groupState.children).reduce(function(accumulator, currentValue) {
-											if (groupState.children[currentValue].expanded === true) {
-												accumulator.push(currentValue);
-											}
-											return accumulator
-										}, [])
+									// special handling when in group mode to mimic AG Grid features that aren't enabled when using the serverside rowmodel
+									if ($scope.isGroupView) {
+										var groupState = getGroupPersistState(groupKeys);
 										
-										if (nodeValuesToExpand.length) {
-											var field = params.request.rowGroupCols[groupKeys.length].field
+										// TODO move code below to GroupManager
+										
+										// Expanded/collapsed state handling
+										expandCollapse: if (typeof gridOptions.groupDefaultExpanded === 'number' && params.request.rowGroupCols.length && (gridOptions.groupDefaultExpanded === -1 || gridOptions.groupDefaultExpanded > groupKeys.length)) { // emulate groupDefaultExpanded setting
+											for (var index = 0; index < resultForGrid.length; index++) {
+												var node = model.getRowNode(resultForGrid[index]._svyFoundsetUUID + '_' + resultForGrid[index]._svyRowId)
+												node.setExpanded(true);
+											}
+										} else if (groupKeys.length < params.request.rowGroupCols.length && groupState && groupState.children) { // Apply desired expanded state
+											var nodeValuesToExpand = Object.keys(groupState.children).reduce(function(accumulator, currentValue) {
+												if (groupState.children[currentValue].expanded === true) {
+													accumulator.push(currentValue);
+												}
+												return accumulator
+											}, [])
 											
-											for (var index = 0; nodeValuesToExpand.length && index < resultForGrid.length; index++) { // CHECKME Maybe use a binary search impl. instead of sequential looping? see https://stackoverflow.com/questions/10264239/fastest-way-to-determine-if-an-element-is-in-a-sorted-array
-												var nodeToExpandIndex = nodeValuesToExpand.indexOf(resultForGrid[index][field]);
+											if (nodeValuesToExpand.length) {
+												var field = params.request.rowGroupCols[groupKeys.length].field
 												
-												if (nodeToExpandIndex !== -1) {
-													var node = model.getRowNode(resultForGrid[index]._svyFoundsetUUID + '_' + resultForGrid[index]._svyRowId)
+												for (var index = 0; nodeValuesToExpand.length && index < resultForGrid.length; index++) { // CHECKME Maybe use a binary search impl. instead of sequential looping? see https://stackoverflow.com/questions/10264239/fastest-way-to-determine-if-an-element-is-in-a-sorted-array
+													var nodeToExpandIndex = nodeValuesToExpand.indexOf(resultForGrid[index][field]);
 													
-													if (!node) continue; // On browser refresh its sometimes null?!?!? Need to investigate it, but just ignoring it for now. Maybe some thing is happening twice, because in the end the grid renders properly...
-													
-													node.setExpanded(true);
-													
-													nodeValuesToExpand.splice(nodeToExpandIndex, 1);
+													if (nodeToExpandIndex !== -1) {
+														var node = model.getRowNode(resultForGrid[index]._svyFoundsetUUID + '_' + resultForGrid[index]._svyRowId)
+														
+														if (!node) continue; // On browser refresh its sometimes null?!?!? Need to investigate it, but just ignoring it for now. Maybe some thing is happening twice, because in the end the grid renders properly...
+														
+														node.setExpanded(true);
+														
+														nodeValuesToExpand.splice(nodeToExpandIndex, 1);
+													}
 												}
 											}
 										}
 									}
-								}
 
-								//TODO the selection restore code below probably should be done conditionally on the root foundset based on the selection handling is disconnected from the servoy foundset selection model								
-								// restore selection
-								var parentSelected = params.parentNode.group && params.parentNode.selected;
-								
-								// TODO combine the loop through resultForGrid here with the one(s) for expanded state and optimize early break if all expands and selections are done already
-								for (var i = 0; i < resultForGrid.length; i++) {
-									var row = resultForGrid[i];
-									var node = model.getRowNode(row._svyFoundsetUUID + '_' + row._svyRowId)
+									//TODO the selection restore code below probably should be done conditionally on the root foundset based on the selection handling is disconnected from the servoy foundset selection model								
+									// restore selection
+									var parentSelected = params.parentNode.group && params.parentNode.selected;
 
-									if (!node) continue; // somehow its sometimes null....
-									
-									var desiredSelectionState = parentSelected || getDesiredNodeSelectedState(node);
-									
-									//if (node.selected !== selectedState) { // can happen already has the proper selection state when collapsing previously collapsed nodes with selected children
-										node.selectThisNode(desiredSelectionState); // CHECKME should it check whether the node is selectable?
-										// TODO clear pks in relevant groupState
-										// CHECKME maybe check if the child keys stored in groupState still exist and if not delete?
-									//}
-								}
-							});
-					}, function(reason) {
-						$log.error('Can not get realValues for groupKeys ' + reason);
-					});
+									// TODO combine the loop through resultForGrid here with the one(s) for expanded state and optimize early break if all expands and selections are done already
+									for (var i = 0; i < resultForGrid.length; i++) {
+										var row = resultForGrid[i];
+										var node = model.getRowNode(row._svyFoundsetUUID + '_' + row._svyRowId)
+
+										if (!node) continue; // somehow its sometimes null....
+
+										var desiredSelectionState = parentSelected || getDesiredNodeSelectedState(node);
+
+										//if (node.selected !== selectedState) { // can happen already has the proper selection state when collapsing previously collapsed nodes with selected children
+											node.selectThisNode(desiredSelectionState); // CHECKME should it check whether the node is selectable?
+											// TODO clear pks in relevant groupState
+											// CHECKME maybe check if the child keys stored in groupState still exist and if not delete?
+										//}
+									}
+								});
+						})
+						.catch(function(reason) {
+							$log.error('Can not get realValues for groupKeys ' + reason);
+						});
 				};
 
 				function FoundSetServer() {}
@@ -2225,7 +2234,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						allPromises.push(groupManager.getFoundSetUUID(rowGroupCols, groupKeys));
 					}
 
-					$q.all(allPromises)
+					$q
+						.all(allPromises)
 						.then(function (args) {
 							var foundsetUUID = args[args.length - 1];
 
@@ -2243,16 +2253,18 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								$log.debug('CHANGE SORT REQUEST');
 								foundsetSortModel = getFoundsetSortModel(sortModel)
 								sortPromise = foundsetRefManager.sort(foundsetSortModel.sortColumns);
-								sortPromise.then(function() {
-									getDataFromFoundset(foundsetRefManager);
-									
-									// give time to the foundset change listener to know it was a client side requested sort
-									setTimeout(function() {
-										sortPromise = null;
-									}, 0);
-								}).catch(function(e) {
-									sortPromise = null
-								});
+								sortPromise
+									.then(function() {
+										getDataFromFoundset(foundsetRefManager);
+										
+										// give time to the foundset change listener to know it was a client side requested sort
+										setTimeout(function() {
+											sortPromise = null;
+										}, 0);
+									})
+									.catch(function(e) {
+										sortPromise = null
+									});
 							} else {
 								getDataFromFoundset(foundsetRefManager);
 							}
@@ -4209,6 +4221,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							var sortColumn = sortColumns[i];
 							var idForFoundset;
 							var sortDirection;
+							
 							if (!sortColumn) {
 								continue;
 							} 
