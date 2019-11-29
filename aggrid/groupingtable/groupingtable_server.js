@@ -83,39 +83,22 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 	}
 
 	log("There are " + $scope.model.columns.length + " columns and " + idForFoundsets.length + " idForFoundsets", LOG_LEVEL.WARN);
-	
+
 	// push dataproviders to the clientside foundset
 	for (i = 0; i < $scope.model.columns.length; i++) {
 		column = $scope.model.columns[i];
-		// the dataprovider name e.g. orderid
-		// var dpId = column.dataprovider;
-		// the idForFoundset(exists only client-side, therefore i need to retrieve it from the client)
+
 		var idForFoundset = idForFoundsets[i];
-		// Servoy resolves the real dataprovider name into the dataprovider 'field'
-		// extraDataproviders[idForFoundset] = dpId;
-		// TODO it could be the hashmap of groupkeys/groupcolumns ?
-		// extraDataproviders._svyFoundsetUUID = null;
 
 		if (column.hasOwnProperty("styleClassDataprovider")) {
 			extraDataproviders[idForFoundset + "_styleClassDataprovider"] = column.styleClassDataprovider;
 		}
 
-		if (column.hasOwnProperty("isEditableDataprovider")) {
-			extraDataproviders[idForFoundset + "_isEditableDataprovider"] = column.isEditableDataprovider;
-		}
-	}
-
-	if (hasRowStyleClassDataprovider === true) {
-		extraDataproviders["__rowStyleClassDataprovider"] = $scope.model.rowStyleClassDataprovider;
-	}
-
-	for (i = 0; i < $scope.model.columns.length; i++) {
 		if (isGroupFoundSet && groupColumns.indexOf(i) === -1) { // In case of Group foundsets, only include the relevant (group) columns
 			continue
 		}
-		
-		column = $scope.model.columns[i];
-		
+
+		// TODO only the dataproviders that are realy required, eveything else is always the same between all foundsets
 		columns.push({
 			dataprovider: column.dataprovider || column.lazydataprovider,
 			format: column.format,
@@ -123,6 +106,14 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 			id: column.id,
 			columnDef: column.columnDef
 		});
+
+		if (!isGroupFoundSet && column.hasOwnProperty("isEditableDataprovider")) {
+			extraDataproviders[idForFoundset + "_isEditableDataprovider"] = column.isEditableDataprovider;
+		}
+	}
+	
+	if (hasRowStyleClassDataprovider === true) {
+		extraDataproviders["__rowStyleClassDataprovider"] = $scope.model.rowStyleClassDataprovider;
 	}
 
 	// CHECKME perhaps R&D can improve this: sending the column mapping cause clientside doesnt have the dataprovider id name and server side doesnt have the idForFoundset
