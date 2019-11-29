@@ -18,6 +18,26 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				svyServoyapi: '='
 			},
 			controller: function($scope, $element, $attrs) {
+				/**
+				 * Helper function similar to $scope.apply(...), but for model properties that aren't tied to a dataprovider
+				 * 
+				 * When using $scope.apply(...) for sure properties, an INFO entry is written in the server log:
+				 * 'apply called on a property that is not bound to a dataprovider: .....'
+				 * 
+				 * @param {string} propertyName
+				 */
+				function applyModelProperty(propertyName) {
+					const args = {
+						formname: $scope.$parent.formname,
+						beanname: $attrs.name,
+						changes: {}
+					}
+					
+					args.changes[propertyName] = $scope.model[propertyName]
+					
+					$sabloApplication.callService('formService', 'dataPush', args, true)
+				}
+			
 				/* 
 				 * TODO Column properties not matching dataset component
 				 * 
@@ -259,7 +279,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						pks: []
 					};
 					
-					$scope.svyServoyapi.apply('state');
+					applyModelProperty('state')
 				//}
 				
 				// used in HTML template to toggle sync button
@@ -417,7 +437,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							$scope.model.columnState = $scope.model._internalColumnState;
 							// need to clear it, so the watch can be used, if columnState changes, and we want to apply the same _internalColumnState again
 							$scope.model._internalColumnState = "_empty";
-							$scope.svyServoyapi.apply('_internalColumnState');
+							applyModelProperty('_internalColumnState')
 						}
 						restoreColumnsState();
 						if ($scope.handlers.onReady) {
@@ -821,7 +841,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							}
 						}
 					}
-					$scope.svyServoyapi.apply('state');
+					applyModelProperty('state')
 				});
 
 				// register listener for selection changed
@@ -1036,7 +1056,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						modelCheckboxSelectionWatch($scope.model.checkboxSelection, !$scope.model.checkboxSelection);
 					}
 
-					$scope.svyServoyapi.apply('state');
+					applyModelProperty('state')
 	
 					// resize the columns
 					setTimeout(function() {
@@ -1084,7 +1104,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						}
 					}
 				
-					$scope.svyServoyapi.apply('state');
+					applyModelProperty('state')
 					
 					// CHECKME this is old code that was already commented out. What to do with it? Ideally, the fs is removed after a delay and when the total # of fs's reaches a threshold
 //					// TODO remove foundset from memory when a group is closed
@@ -2502,7 +2522,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						$scope.model.columnState = newValue;
 						// need to clear it, so the watch can be used, if columnState changes, and we want to apply the same _internalColumnState again
 						$scope.model._internalColumnState = "_empty";
-						$scope.svyServoyapi.apply('_internalColumnState');
+						applyModelProperty('_internalColumnState')
+						
 						if ($scope.model.columnState) {
 							restoreColumnsState();
 							//TODO may be better find other way then force to update state when _internalColumnState changed
@@ -4424,7 +4445,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					// with removing this condition or sending forceToSave flag every thing working as expected. Paul advised
 	               if (newColumnState !== $scope.model.columnState || forceToSave) {
 						$scope.model.columnState = newColumnState;
-						$scope.svyServoyapi.apply('columnState');
+						applyModelProperty('columnState')
+						
 						if ($scope.handlers.onColumnStateChanged) {
 							$scope.handlers.onColumnStateChanged($scope.model.columnState);
 						}
