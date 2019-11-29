@@ -23,6 +23,7 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 	var extraDataproviders = {};
 	var columns = [];
 
+	var isGroupFoundSet
 	var groupColumn;
 	var groupDataprovider;
 	var groupColumnIndex;
@@ -37,6 +38,7 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 	if (!idForFoundsets) {
 		console.error("There are no idForFoundset to map to")
 	}
+	isGroupFoundSet = groupColumns.length > groupKeys.length
 
 	// Apply group filtering to the query
 	log("There are '" + groupColumns.length + "' groupColumns", LOG_LEVEL.WARN);
@@ -58,7 +60,7 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 	}
 
 	// instantiate either a group or leaf foundset
-	if (groupColumns.length > groupKeys.length) { // create a ViewFoundSet with all distinct values for the group
+	if (isGroupFoundSet) { // create a ViewFoundSet with all distinct values for the group
 		query.result.clear();
 		query.result.add(groupColumn, groupDataprovider);
 
@@ -108,6 +110,10 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 	}
 
 	for (i = 0; i < $scope.model.columns.length; i++) {
+		if (isGroupFoundSet && groupColumns.indexOf(i) === -1) { // In case of Group foundsets, only include the relevant (group) columns
+			continue
+		}
+		
 		column = $scope.model.columns[i];
 		
 		columns.push({
