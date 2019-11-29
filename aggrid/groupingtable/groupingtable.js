@@ -499,7 +499,12 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					},
 //	                onColumnEverythingChanged: storeColumnsState,	// do we need that ?, when is it actually triggered ?
 					onFilterChanged: storeColumnsState,
-					onSortChanged: storeColumnsState,
+					onSortChanged: function() {
+						storeColumnsState();
+						if(isTableGrouped()) {
+							gridOptions.api.purgeServerSideCache();
+						}
+					},
 //	                onColumnVisible: storeColumnsState,			 covered by onDisplayedColumnsChanged
 //	                onColumnPinned: storeColumnsState,			 covered by onDisplayedColumnsChanged
 					onColumnResized: function() {				 // NOT covered by onDisplayedColumnsChanged
@@ -2113,7 +2118,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						sortModel = [{ colId: rowGroupCols[0].field, sort: sortModel[0].sort }];
 						if(!state.rootGroupSort  || state.rootGroupSort.colId != sortModel[0].colId || state.rootGroupSort.sort != sortModel[0].sort) {
 							sortRootGroup = true;
-							state.rootGroupSort = sortModel[0];
 						}
 					}
 					var foundsetSortModel = getFoundsetSortModel(sortModel);
@@ -2161,6 +2165,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						if (sortString === "") {
 							// TODO restore a default sort order when sort is removed
 							// $log.warn(" Use the default foundset sort.. which is ? ");
+						}
+
+						if(sortRootGroup) {
+							state.rootGroupSort = sortModel[0];
 						}
 
 						// if not sorting on a group column
