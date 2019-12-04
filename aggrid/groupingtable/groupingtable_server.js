@@ -10,7 +10,7 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 
 	// root is the parent
 	var parentFoundset = $scope.model.myFoundset.foundset;
-
+	
 	// I need the full column/key mapping
 	/** @type {QBSelect} */
 	var query = parentFoundset.getQuery();
@@ -18,6 +18,7 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 	//	console.log(query);
 
 	var groupColumn;
+	var groupColumnType;
 	var groupDataprovider;
 
 	// TODO it cannot be empty !?!
@@ -44,6 +45,7 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 
 			log('The groupDataprovider is a join on ' + columnName, LOG_LEVEL.WARN);
 
+			/** @type {QBJoin} */
 			var join = query;
 
 			for (var j = 0; j < relationNames.length; j++) {
@@ -62,17 +64,23 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 				}
 				join.joinType = QBJoin.LEFT_OUTER_JOIN;
 			}
-
+			
 			groupColumn = join.getColumn(columnName);
 		} else {
 			groupColumn = query.getColumn(groupDataprovider);
 		}
+		groupColumnType = groupColumn.getTypeAsString();
 
 		// where clause on the group column
 		if (i < groupKeys.length) {
 			var groupKey = groupKeys[i];
 			log('The node is a sub-group of groupKey ' + groupKey, LOG_LEVEL.WARN);
-			query.where.add(groupColumn.eq(groupKey));
+			if(groupColumnType == 'DATETIME') {
+				query.where.add(groupColumn.cast('date').eq(groupKey));
+			}
+			else {
+				query.where.add(groupColumn.eq(groupKey));	
+			}
 		}
 
 	}
@@ -80,8 +88,14 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 	var childFoundset;
 	if (groupColumns.length > groupKeys.length) {
 		query.result.clear();
-		query.result.add(groupColumn, groupDataprovider);
-		query.groupBy.add(groupColumn);
+		if(groupColumnType == 'DATETIME') {
+			query.result.add(groupColumn.cast('date'), groupDataprovider);
+			query.groupBy.add(groupColumn.cast('date'));
+		}
+		else {
+			query.result.add(groupColumn, groupDataprovider);
+			query.groupBy.add(groupColumn);	
+		}
 		query.sort.clear();
 
 		if (sort === 'desc') {
