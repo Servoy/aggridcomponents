@@ -503,6 +503,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					onSortChanged: function() {
 						storeColumnsState();
 						if(isTableGrouped()) {
+							groupManager.removeFoundsetRefAtLevel(0);
 							gridOptions.api.purgeServerSideCache();
 						}
 					},
@@ -3355,8 +3356,17 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						}
 
 						var hasRowStyleClassDataprovider = $scope.model.rowStyleClassDataprovider ? true : false;
+
+						var sortColumn;
+						var sortColumnDirection;
+						var sortModel = gridOptions.api.getSortModel();
+						if(sortModel && sortModel[0]) {
+							sortColumn = getColumnIndex(sortModel[0].colId);
+							sortColumnDirection = sortModel[0].sort;
+						}
+
 						childFoundsetPromise = $scope.svyServoyapi.callServerSideApi("getGroupedFoundsetUUID",
-							[groupColumns, groupKeys, idForFoundsets, sort, $scope.model.filterModel, hasRowStyleClassDataprovider]);
+							[groupColumns, groupKeys, idForFoundsets, sort, $scope.model.filterModel, hasRowStyleClassDataprovider, sortColumn, sortColumnDirection]);
 
 						childFoundsetPromise.then(function(childFoundsetUUID) {
 								$log.debug(childFoundsetUUID);

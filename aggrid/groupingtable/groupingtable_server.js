@@ -5,7 +5,8 @@
  * @param {String} [sort]
  *
  * */
-$scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets, sort, sFilterModel, hasRowStyleClassDataprovider) {
+$scope.getGroupedFoundsetUUID = function(
+	groupColumns, groupKeys, idForFoundsets, sort, sFilterModel, hasRowStyleClassDataprovider, sortColumn, sortColumnDirection) {
 	log('START SERVER SIDE ------------------------------------------ ', LOG_LEVEL.WARN);
 
 	// root is the parent
@@ -36,45 +37,27 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 		log("Group on groupDataprovider " + groupDataprovider + " at index " + groupColumnIndex, LOG_LEVEL.WARN);
 		//		console.log('group on ' + groupDataprovider);
 
-		if (isRelatedDataprovider(groupDataprovider)) {
-			// should search for all the relations (can be multiple level)
-
-			var relationNames = getDataProviderRelations(groupDataprovider);
-			var columnName = getDataProviderColumn(groupDataprovider);
-
-			log('The groupDataprovider is a join on ' + columnName, LOG_LEVEL.WARN);
-
-			var join = query;
-
-			for (var j = 0; j < relationNames.length; j++) {
-				var relationName = relationNames[j];
-				log('Adding a join on relationName ' + relationName, LOG_LEVEL.WARN);
-
-				// use unique name for multiple level relations
-				var relationPath = relationNames.slice(0, j + 1).join("____");
-				//				console.log(relationPath)
-				// check if already has a relation
-				var existingJoin = getJoin(join, relationPath);
-				if (existingJoin) {
-					join = existingJoin;
-				} else {
-					join = join.joins.add(relationName, relationPath);
-				}
-				join.joinType = QBJoin.LEFT_OUTER_JOIN;
-			}
-
-			groupColumn = join.getColumn(columnName);
-		} else {
-			groupColumn = query.getColumn(groupDataprovider);
-		}
+		groupColumn = getQBColumnForDataprovider(query, groupDataprovider);
 
 		// where clause on the group column
 		if (i < groupKeys.length) {
 			var groupKey = groupKeys[i];
 			log('The node is a sub-group of groupKey ' + groupKey, LOG_LEVEL.WARN);
 			query.where.add(groupColumn.eq(groupKey));
-		}
 
+			if(sortColumn != undefined && sortColumn > -1) {
+				var sortDataprovider = $scope.model.columns[sortColumn].dataprovider;
+				var sortColumn = getQBColumnForDataprovider(query, sortDataprovider);
+
+				query.sort.clear();
+				if(sortColumnDirection === 'desc') {
+					query.sort.add(sortColumn.desc);
+				}
+				else {
+					query.sort.add(sortColumn.asc);
+				}
+			}
+		}
 	}
 
 	var childFoundset;
@@ -240,6 +223,43 @@ function getQuery(foundset) {
  * */
 function cloneQuery(query) {
 	return query;
+}
+
+function getQBColumnForDataprovider(qbQuery, dataprovider) {
+	var qbColumn;
+	if (isRelatedDataprovider(dataprovider)) {
+		// should search for all the relations (can be multiple level)
+
+		var relationNames = getDataProviderRelations(dataprovider);
+		var columnName = getDataProviderColumn(dataprovider);
+
+		log('The dataprovider is a join on ' + columnName, LOG_LEVEL.WARN);
+
+		var join = qbQuery;
+
+		for (var j = 0; j < relationNames.length; j++) {
+			var relationName = relationNames[j];
+			log('Adding a join on relationName ' + relationName, LOG_LEVEL.WARN);
+
+			// use unique name for multiple level relations
+			var relationPath = relationNames.slice(0, j + 1).join("____");
+			//				console.log(relationPath)
+			// check if already has a relation
+			var existingJoin = getJoin(join, relationPath);
+			if (existingJoin) {
+				join = existingJoin;
+			} else {
+				join = join.joins.add(relationName, relationPath);
+			}
+			join.joinType = QBJoin.LEFT_OUTER_JOIN;
+		}
+
+		qbColumn = join.getColumn(columnName);
+	} else {
+		qbColumn = qbQuery.getColumn(dataprovider);
+	}
+
+	return qbColumn;
 }
 
 /**
