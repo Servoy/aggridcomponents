@@ -512,6 +512,19 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						sizeHeader();
 						storeColumnsState();
 					},
+					onColumnVisible: function(event) {
+						// workaround for ag-grid issue, when unchecking/checking all columns
+						// visibility in the side panel, columns with colDef.hide = true are also made visible
+						if(event.visible && event.columns && event.columns.length) {
+							var hiddenColumns = [];
+							for(var i = 0; i < event.columns.length; i++) {
+								if(event.columns[i].colDef.hide) {
+									hiddenColumns.push(event.columns[i]);
+								}
+							}
+							gridOptions.columnApi.setColumnsVisible(hiddenColumns, false)
+						}
+					},
 //	                onColumnRowGroupChanged: storeColumnsState,	 covered by onDisplayedColumnsChanged
 //	                onColumnValueChanged: storeColumnsState,
 //	                onColumnMoved: storeColumnsState,              covered by onDisplayedColumnsChanged
@@ -554,7 +567,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								});
 							}
 						}
-					}
+					},
+					enableBrowserTooltips: true
 				};
 				
 				// check if we have filters
@@ -4033,7 +4047,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						colDef = {
 							headerName: column.headerTitle ? column.headerTitle : "",
 							field: field,
-							headerTooltip: column.headerTooltip ? column.headerTooltip : "",
+							headerTooltip: column.headerTooltip ? column.headerTooltip : null,
 							cellRenderer: cellRenderer
 						};
 
@@ -4067,7 +4081,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 	        			if (column.autoResize === false) colDef.suppressSizeToFit = !column.autoResize;
 						
 						// column sort
-						if (column.enableSort === false) colDef.suppressSorting = true;
+						if (column.enableSort === false) colDef.sortable = false;
 
 						// define the columnMenuTabs
 //						var colMenuTabs = [];
@@ -4117,7 +4131,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						}
 
 						if(true) {
-							colDef.tooltip = getTooltip;
+							colDef.tooltipValueGetter = getTooltip;
 						}
 
 						var columnOptions = {};

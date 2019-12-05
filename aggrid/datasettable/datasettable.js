@@ -208,7 +208,8 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                 navigateToNextCell: selectionChangeNavigation,
                 
                 sideBar : sideBar,
-                popupParent: gridDiv
+                popupParent: gridDiv,
+                enableBrowserTooltips: true
             };
 
             // check if we have filters
@@ -417,9 +418,9 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                     //create a column definition based on the properties defined at design time
                     colDef = {
                         headerName: "" + (column["headerTitle"] ? column["headerTitle"] : "") + "",
-                        headerTooltip: column["headerTooltip"] ? column["headerTooltip"] : "",
+                        headerTooltip: column["headerTooltip"] ? column["headerTooltip"] : null,
                         field: column["dataprovider"],
-                        tooltipField: column["tooltip"] ? column["tooltip"] : ""
+                        tooltipField: column["tooltip"] ? column["tooltip"] : null
                     };
 
                     // set id if defined
@@ -450,7 +451,7 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                     if (column.minWidth || column.minWidth === 0) colDef.minWidth = column.minWidth;
 
                     // column resizing https://www.ag-grid.com/javascript-grid-resizing/
-        			if (column.enableResize === false) colDef.suppressResize = !column.enableResize;
+        			if (column.enableResize === false) colDef.resizable = column.enableResize;
         			if (column.autoResize === false) colDef.suppressSizeToFit = !column.autoResize;
                     
         			// sorting
