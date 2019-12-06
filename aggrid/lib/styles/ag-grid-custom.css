@@ -17,8 +17,9 @@
 }
 
 .ag-icon {
-	font-size: 12px;
-	padding: 4px;
+	font-size: 12px !important;
+    padding: 4px;
+    color: black !important;
 }
 
 /* No cell borders */
