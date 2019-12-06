@@ -306,6 +306,7 @@ function getGroupQBColumn(query, groupDataprovider, joinType) {
 		//				console.log(relationPath)
 		// check if already has a relation
 		var existingJoin = getJoin(join, relationPath);
+		
 		if (existingJoin) {
 			join = existingJoin;
 		} else {
@@ -896,7 +897,7 @@ $scope.api.getGroupedState = function() {
 	return JSON.parse(filteredState)
 }
 
-$scope.enableColumn = function(indexes, enabled) {
+$scope.loadDataForColumn = function(indexes, enabled) {
 	var idx;
 	
 	for (var i = 0; i < indexes.length; i++) {
