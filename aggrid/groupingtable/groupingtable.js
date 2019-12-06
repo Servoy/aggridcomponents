@@ -402,6 +402,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					rowDeselection: true,
 					suppressCellSelection: true, // TODO implement focus lost/gained
 					enableRangeSelection: false,
+					processCellForClipboard: function(params) {
+						return params.value == NULL_DISPLAY_VALUE ? null : params.value;
+					},
 
 					stopEditingWhenGridLosesFocus: true,
 					singleClickEdit: false,
@@ -1571,7 +1574,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						var value = params.data[field];
 
 						if (value == null) {
-							// TODO this null object breaks empty value serialization in the range select functionality
 							value = NULL_DISPLAY_VALUE; // need to use an object for null, else grouping won't work in ag grid
 						}
 						return value;
