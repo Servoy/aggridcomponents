@@ -143,6 +143,10 @@
 				"name": "newvalue",
 				"type": "object",
 				"optional": true
+			}, {
+				"name": "event",
+				"type": "JSEvent",
+				"optional": true
 			}],
 			"returns": "boolean"
 		},

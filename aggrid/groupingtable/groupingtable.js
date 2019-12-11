@@ -935,7 +935,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								getFoundsetIndexFromEvent(params),
 								getColumnIndex(params.column.colId),
 								oldValue,
-								newValue
+								newValue,
+								createJSEvent()
 							);
 							onColumnDataChangePromise.then(function(r) {
 								if(r == false) {
