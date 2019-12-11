@@ -31,6 +31,7 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 	var column;
 	var i;
 	var fs;
+	var joinType;
 
 	// TODO it cannot be empty !?!
 	if (!groupColumns) groupColumns = [];
