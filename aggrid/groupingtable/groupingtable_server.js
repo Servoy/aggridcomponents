@@ -49,7 +49,10 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 		groupDataprovider = $scope.model.columns[groupColumnIndex].dataprovider || $scope.model.columns[groupColumnIndex].lazydataprovider;
 		log("Group on groupDataprovider " + groupDataprovider + " at index " + groupColumnIndex, LOG_LEVEL.WARN);
 
-		groupColumn = getGroupQBColumn(query, groupDataprovider, QBJoin.LEFT_OUTER_JOIN);
+		// Optimize joinType: INNER_JOIN by default, LEFT_OUTER_JOIN only when the groupKey value is null or when it's the last group/leaf
+		joinType = groupKeys[i] === null || groupKeys.length === i ? QBJoin.LEFT_OUTER_JOIN : QBJoin.INNER_JOIN;
+		
+		groupColumn = getGroupQBColumn(query, groupDataprovider, joinType);
 
 		// where clause on the group column
 		if (i < groupKeys.length) {
