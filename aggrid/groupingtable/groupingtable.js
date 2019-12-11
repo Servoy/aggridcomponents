@@ -2,10 +2,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 	function($sabloApplication, $sabloConstants, $log, $q, $foundsetTypeConstants, $filter, $compile, $formatterUtils, $sabloConverters, $injector, $services, $sanitize, $window, $applicationService) {
 		// Constants: can't use const keyword, not supported in IE 9 & 10
 		var ROOT_FOUNDSET_ID = 'root'; // TODO should just use Servoy's assigned id's, but since GroupManager is instantiated even when there's no foundset: maybe instantiate a new GroupManager once myfoundset is set, passing it's value as argument?
-		var NULL_DISPLAY_VALUE = {
+		var NULL_DISPLAY_VALUE = Object.freeze({
 			displayValue: '',
 			realValue: null
-		};
+		});
 		var CHUNK_SIZE = 50;
 		var CACHED_CHUNK_BLOCKS = 2;
 		
@@ -21,7 +21,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				/**
 				 * Helper function similar to $scope.apply(...), but for model properties that aren't tied to a dataprovider
 				 * 
-				 * When using $scope.apply(...) for sure properties, an INFO entry is written in the server log:
+				 * When using $scope.apply(...) for such properties, an INFO entry is written in the server log:
 				 * 'apply called on a property that is not bound to a dataprovider: .....'
 				 * 
 				 * @param {string} propertyName
@@ -434,19 +434,23 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					onGridReady: function() {
 						$log.debug("gridReady");
 						isGridReady = true;
+
 						if ($scope.model._internalColumnState !== "_empty") {
 							$scope.model.columnState = $scope.model._internalColumnState;
 							// need to clear it, so the watch can be used, if columnState changes, and we want to apply the same _internalColumnState again
 							$scope.model._internalColumnState = "_empty";
 							applyModelProperty('_internalColumnState')
 						}
+
 						restoreColumnsState();
+
+						// Call the serverside onReady callback
 						if ($scope.handlers.onReady) {
 							$scope.handlers.onReady();
 						}
-						
+
 						setColumnVisibility(getRowGroupColumns())
-						
+
 						// without timeout the column don't fit automatically
 						setTimeout(function() {
 							sizeHeaderAndColumnsToFit();
@@ -887,16 +891,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				gridOptions.api.addEventListener('columnRowGroupChanged', function (event) {
 					$log.debug(event);
 					
-					var rowGroupCols = event.columns;
-					
-					setColumnVisibility(rowGroupCols)
+					setColumnVisibility(event.columns)
 				});
 				
 				gridOptions.api.addEventListener('columnVisible', function (event) {
 					var designCol = getDesignColumn(event.column.colId);
 					
 					if (designCol.lazydataprovider) {
-						$scope.svyServoyapi.callServerSideApi('loadDataForColumn', [[getColumnIndex(event.column.colId)], event.visible])
+						$scope.svyServoyapi.callServerSideApi('loadDataForColumns', [[getColumnIndex(event.column.colId)], event.visible])
 							.then(function(retValue) {
 								/* 
 								 * CHECKME can this be be optimized by making it more finegrained?
@@ -976,9 +978,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							//		   Haven't tested it, but most likely any changes in filtering is not synces between the two either...
 						}
 						$scope.isGroupView = true;
-	
+
 						// persist new grouping and optionally make previously grouped columns visible again
-						var oldGroupedFields = []
+						var oldGroupedFields = [];
 						var newGroupedFields = rowGroupCols.map(function(col) { // get an array of the field values of the new grouped columns
 							return col.colDef.field;
 						});
@@ -987,48 +989,48 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						for (i = 0; i < $scope.model.columns.length; i++) {
 							column = $scope.model.columns[i];
 							field = getColumnFieldValue(column, i);
-							
+
 							var newGroupIndex = newGroupedFields.indexOf(field);
 							var isGroupedBy = newGroupIndex !== -1;
 							var wasGroupedBy = typeof column.rowGroupIndex === 'number' ? column.rowGroupIndex > -1 : false;
 							var hideBecauseFieldSharedWithAutoColumnGroup = false
-							
+
 							if (autoColumnGroupField && column.columnDef && column.columnDef.checkboxSelection) {
 								hideBecauseFieldSharedWithAutoColumnGroup = wasUngrouped || field === autoColumnGroupField;
 							}
-							
+
 							var newVisibility;
-							
+
 							if (wasGroupedBy) {
 								oldGroupedFields[column.rowGroupIndex] = field;
 								newVisibility = true;
 							}
-							
+
 							if (isGroupedBy || hideBecauseFieldSharedWithAutoColumnGroup) {
 								newVisibility = false;
 							}
-							
+
 							column.rowGroupIndex = newGroupIndex; // persist
-							
+
 							if (wasGroupedBy || isGroupedBy || hideBecauseFieldSharedWithAutoColumnGroup) { // TODO expose behavior as option
 								gridOptions.columnApi.setColumnVisible(field, newVisibility)
 							}
 						}
-						
+
 						// TODO test this
 						for (i = 0; i < oldGroupedFields.length; i++) {
 							if (oldGroupedFields[i] !== newGroupedFields[i]) {
 								groupManager.removeGroupsAtLevel(i); // clean up obsolete foundsets
-								
+
 								// TODO clean up collapse/expand persist state from the right level downwards
-								
+
 	//							$scope.model.state = {
 	//								children: {}
 	//							}
 								break;
 							}
 						}
-	
+
 	//					// CHECKME does this logic properly clear foundsets when just changing the order of grouping?
 	//					// clear HashTreeCache if column group state changed
 	//					for (i = 0; state.grouped.columns && i < state.grouped.columns.length; i++) {
@@ -1049,19 +1051,19 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 	//						}
 	//					}
 					}
-					
+
 					// After change in grouping, all watch function to enable/disable checkboxSelection
 					if ($scope.model.checkboxSelection) {
 						modelCheckboxSelectionWatch($scope.model.checkboxSelection, !$scope.model.checkboxSelection);
 					}
 
-					applyModelProperty('state')
+					applyModelProperty('state');
 	
 					// resize the columns
 					setTimeout(function() {
 						sizeHeaderAndColumnsToFit();
 					}, 50);
-					
+
 					// scroll to the selected row when switching from Group to plain view.  // CHECKME seems to not only do it when switching to plain view
 					// without timeout the column don't fit automatically
 					setTimeout(function() {
@@ -2239,8 +2241,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					var sortModel = request.sortModel;
 					var sortRootGroup = false;
 
-					var result;
-
 					// if clicking sort on the grouping column
 					if (rowGroupCols.length > 0 &&
 						sortModel[0] &&
@@ -2370,7 +2370,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 	
 									$log.debug('Get View Port ' + viewPortStartIndex + ' - ' + viewPortEndIndex + ' on ' + foundsetManager.foundset.viewPort.startIndex + ' with size ' + foundsetManager.foundset.viewPort.size);
 
-									result = foundsetManager.getViewPortData(viewPortStartIndex, viewPortEndIndex);
+									var result = foundsetManager.getViewPortData(viewPortStartIndex, viewPortEndIndex);
 									callback(result, lastRowIndex);
 	
 								})
@@ -4093,7 +4093,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 					
 					if (forceLoadIndexes.length) {
-						$scope.svyServoyapi.callServerSideApi('loadDataForColumn', [forceLoadIndexes, true]);
+						$scope.svyServoyapi.callServerSideApi('loadDataForColumns', [forceLoadIndexes, true]);
 					}
 
 					// TODO svyRowId should not be visible. I need the id for the selection
@@ -4856,18 +4856,17 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 				// **************************** Lifecycle handling **************************** //
 				var destroyListenerUnreg = $scope.$on('$destroy', function() {
-						// clear all foundsets
-						groupManager.removeFoundsetRefAtLevel(0);
-						$scope.model.myFoundset.removeChangeListener(changeListener);
+					// clear all foundsets
+					groupManager.removeGroupsAtLevel(0);
+					$scope.model.myFoundset.removeChangeListener(changeListener);
 
-						// remove model change notifier
-						destroyListenerUnreg();
-						delete $scope.model[$sabloConstants.modelChangeNotifier];
+					// remove model change notifier
+					destroyListenerUnreg();
+					delete $scope.model[$sabloConstants.modelChangeNotifier];
 
-						// release grid resources
-						gridOptions.api.destroy();
-
-					});
+					// release grid resources
+					gridOptions.api.destroy();
+				});
 			},
 			templateUrl: 'aggrid/groupingtable/groupingtable.html'
 		};

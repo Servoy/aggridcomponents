@@ -677,7 +677,7 @@ $scope.api.getColumnState = function() {
  */
 $scope.api.getSelectedRecordFoundSet = function() {
 	if (!$scope.model.myFoundset) return null;
-	
+
 	const pkColumnName = getPKColumnName();
 
 	const selectionFs = $scope.model.myFoundset.foundset.duplicateFoundSet();
@@ -687,7 +687,7 @@ $scope.api.getSelectedRecordFoundSet = function() {
 	// without removing the condition, the filter will be applied on the entire selection
 	// TODO make configurable, might depends on Servoy 2019.03 to do properly (allow selecting predefined values (for Servoy constants) or custom conditionNames (like 'pgnSearch' in our case))
 	selectionQuery.where.remove(SERVOY_FIND_SEARCH_CONDITION_NAME);
-	
+
 	if (true /*&& isGrouped*/) { // build a query that takes into grouping and including all records for the group if the group was selected
 		/*
 		const state = {
@@ -797,7 +797,7 @@ $scope.api.getSelectedRecordFoundSet = function() {
 
 		function appendSelectionWhereClauses(groupState, groupColumn, groupKey, level, condition) {
 			var hasSelection = false;
-			
+
 			// CHECKME is selected ever false? Can't remember...
 			if (groupState.selected) { // selected group: include all children
 				condition.add(groupColumn.eq(groupKey));
@@ -808,19 +808,19 @@ $scope.api.getSelectedRecordFoundSet = function() {
 			} else if (groupState.children) { // must be another level group level 
 				const keys = Object.keys(groupState.children);
 				if (!keys.length) return false; // Should not happen, but anyway...
-				
+
 				var nextGroupColumn = groupColumns[level] || (groupColumns[level] = getGroupQBColumn(selectionQuery, groupColumnsDefs[level].dataprovider || groupColumnsDefs[level].lazydataprovider, QBJoin.LEFT_OUTER_JOIN));
-				
+
 				const selectedChildren = []
 				const childrenCondition = condition.root.or
 				condition.add(childrenCondition)
-				
+
 				for (var i = 0; i < keys.length; i++) {
 					var key = keys[i];
 					var child = groupState.children[key];
 					var childCondition = condition.root.and
 					childrenCondition.add(childCondition)
-					
+
 					if (child.selected && key !== NULL_DISPLAY_VALUE) { // Optimize for case where children are only selected groups: use isin([]) instead of nested OR's
 						selectedChildren.push(key)
 					} else {
@@ -830,39 +830,39 @@ $scope.api.getSelectedRecordFoundSet = function() {
 						}
 					}
 				}
-				
+
 				if (selectedChildren.length) {
 					childrenCondition.add(nextGroupColumn.isin(selectedChildren));
 					hasSelection = true;
 				}
 			}
-			
+
 			return hasSelection;
 		}
-		
+
 		if (!appendSelectionWhereClauses($scope.model.state, null, null, 0, selectionQuery.where)) {
 			selectionQuery.where.add(pkColumn.eq(null));
 		}
-		
+
 		// Make sure the resulting foundset is sorted like on the grid
 		var sortSolumns = [].concat(groupColumns);
 		var descSorts = [];
 		selectionFs.getCurrentSort().split(',').forEach(function(sort) {
 			var parts = sort.split(' ');
 			var qbCol = selectionQuery.getColumn(parts[0]);
-			
+
 			if (!qbCol) {
 				console.warn('Failed to convert sort column "' + parts[0] + '" to QBColumn');
 				return;
 			}
-			
+
 			sortSolumns.push(qbCol);
 			
 			if (parts[1] === 'desc') {
 				descSorts.push(qbCol);
 			}
 		});		
-		
+
 		selectionQuery.sort.clear();
 		sortSolumns.forEach(function(col) {
 			if (descSorts.indexOf(col) !== -1) {
@@ -873,7 +873,7 @@ $scope.api.getSelectedRecordFoundSet = function() {
 		});
 	} else { // create a duplicate of the root foundset and limit it to only contain the records that are selected in the root foundset
 		const selectedRecords = $scope.model.myFoundset.foundset.getSelectedRecords();
-		
+
 		if (!selectedRecords.length) {
 			selectionQuery.where.add('selectedRecords', selectionQuery.columns[pkColumnName].isNull)
 		} else {
@@ -888,7 +888,7 @@ $scope.api.getSelectedRecordFoundSet = function() {
 	}
 
 	selectionFs.loadRecords(selectionQuery)
-	
+
 	return selectionFs;
 }
 
@@ -901,7 +901,7 @@ $scope.api.getGroupedState = function() {
 	return JSON.parse(filteredState)
 }
 
-$scope.loadDataForColumn = function(indexes, enabled) {
+$scope.loadDataForColumns = function(indexes, enabled) {
 	var idx;
 	
 	for (var i = 0; i < indexes.length; i++) {
