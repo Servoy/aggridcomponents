@@ -209,7 +209,10 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                 
                 sideBar : sideBar,
                 popupParent: gridDiv,
-                enableBrowserTooltips: true
+                enableBrowserTooltips: true,
+                onToolPanelVisibleChanged : function(event) {
+                    sizeColumnsToFit();
+                }
             };
 
             // check if we have filters

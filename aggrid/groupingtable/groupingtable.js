@@ -576,7 +576,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							}
 						}
 					},
-					enableBrowserTooltips: true
+					enableBrowserTooltips: true,
+					onToolPanelVisibleChanged : function(event) {
+						sizeHeaderAndColumnsToFit();
+					}
 				};
 				
 				// check if we have filters
