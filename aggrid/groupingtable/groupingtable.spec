@@ -41,7 +41,8 @@
 		"readOnly": {"type": "boolean", "default": false, "tags": {"scope" : "private"}},
 		"readOnlyColumnIds": {"type": "object", "tags": {"scope" : "private"} },
 		"mainMenuItemsConfig": { "type": "mainMenuItemsConfig", "tags": { "scope": "design" } },
-		"_internalFormEditorValue": { "type": "object", "tags": {"scope" : "private"}, "pushToServer": "allow"}
+		"_internalFormEditorValue": { "type": "object", "tags": {"scope" : "private"}, "pushToServer": "allow"},
+		"arrowsUpDownMoveWhenEditing": {"type": "string", "values": [{"DEFAULT": null}, {"NONE":"NONE"}, {"NEXTCELL":"NEXTCELL"}, {"NEXTEDITABLECELL":"NEXTEDITABLECELL"}]},
 	},
 	"handlers" : {
     	"onSelectedRowsChanged": {

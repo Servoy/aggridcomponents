@@ -322,6 +322,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				var userGridOptions = null
 				var localeText = null;
 				var mainMenuItemsConfig = null;
+				var arrowsUpDownMoveWhenEditing = null;
 				if($injector.has('ngDataGrid')) {
 					var groupingtableDefaultConfig = $services.getServiceScope('ngDataGrid').model;
 					if(groupingtableDefaultConfig.toolPanelConfig) {
@@ -338,6 +339,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 					if(groupingtableDefaultConfig.mainMenuItemsConfig) {
 						mainMenuItemsConfig = groupingtableDefaultConfig.mainMenuItemsConfig;
+					}
+					if(groupingtableDefaultConfig.arrowsUpDownMoveWhenEditing) {
+						arrowsUpDownMoveWhenEditing = groupingtableDefaultConfig.arrowsUpDownMoveWhenEditing;
 					}
 				}
 
@@ -372,6 +376,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				userGridOptions = mergeConfig(userGridOptions, config.gridOptions);
 				localeText = mergeConfig(localeText, config.localeText);
 				mainMenuItemsConfig = mergeConfig(mainMenuItemsConfig, config.mainMenuItemsConfig);
+
+				if(config.arrowsUpDownMoveWhenEditing) {
+					arrowsUpDownMoveWhenEditing = config.arrowsUpDownMoveWhenEditing;
+				}
 
 				var vMenuTabs = ['generalMenuTab', 'filterMenuTab'];
 				if(config.showColumnsMenuTab) vMenuTabs.push('columnsMenuTab');
@@ -1587,43 +1595,59 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						this.initialDisplayValue = v;
 
 						var thisEditor = this;
-						this.keyDownListener = function (event) {
-							var isNavigationLeftRightKey = event.keyCode === 37 || event.keyCode === 39;
-							var isNavigationUpDownEntertKey = event.keyCode === 38 || event.keyCode === 40 || event.keyCode === 13;
 
-							if (isNavigationLeftRightKey || isNavigationUpDownEntertKey) {
+						if(arrowsUpDownMoveWhenEditing && arrowsUpDownMoveWhenEditing != 'NONE') {
+							this.keyDownListener = function (event) {
+								var isNavigationLeftRightKey = event.keyCode === 37 || event.keyCode === 39;
+								var isNavigationUpDownEntertKey = event.keyCode === 38 || event.keyCode === 40 || event.keyCode === 13;
 
-								if(isNavigationUpDownEntertKey && (thisEditor.editType == 'TEXTFIELD')) {
-									var newRowIndex = -1;
-									if( event.keyCode == 38) { // UP
-										newRowIndex = thisEditor.params.rowIndex - 1;
-									}
-									else if (event.keyCode == 13 || event.keyCode == 40) { // ENTER/DOWN
-										newRowIndex = thisEditor.params.rowIndex + 1;
-										if( newRowIndex >= gridOptions.api.getModel().getRowCount()) {
-											newRowIndex = -1;
-										}
-									}
-									gridOptions.api.stopEditing();
-									if (newRowIndex > -1) {
+								if (isNavigationLeftRightKey || isNavigationUpDownEntertKey) {
 
-										gridOptions.api.forEachNode( function(node) {
-											if (node.rowIndex === newRowIndex) {
-												node.setSelected(true, true);
+									if(isNavigationUpDownEntertKey && (thisEditor.editType == 'TEXTFIELD')) {
+										var newEditingNode = null;
+										var columnToCheck = thisEditor.params.column;
+										var mustBeEditable = arrowsUpDownMoveWhenEditing == 'NEXTEDITABLECELL'
+										if( event.keyCode == 38) { // UP
+											if(thisEditor.params.rowIndex > 0) {
+												gridOptions.api.forEachNode( function(node) {
+													if (node.rowIndex <= (thisEditor.params.rowIndex - 1) &&
+														(!mustBeEditable || columnToCheck.isCellEditable(node))) {
+														newEditingNode = node;
+													}
+												});	
 											}
-										});
+										}
+										else if (event.keyCode == 13 || event.keyCode == 40) { // ENTER/DOWN
+											if( thisEditor.params.rowIndex < gridOptions.api.getModel().getRowCount() - 1) {
+												gridOptions.api.forEachNode( function(node) {
+													if (node.rowIndex >= (thisEditor.params.rowIndex + 1) &&
+														!newEditingNode && (!mustBeEditable || columnToCheck.isCellEditable(node))) {
+														newEditingNode = node;
+													}
+												});	
+											}
+										}
+										gridOptions.api.stopEditing();
+										if (newEditingNode) {
+											newEditingNode.setSelected(true, true);
 
-										gridOptions.api.startEditingCell({
-											rowIndex: newRowIndex,
-											colKey: thisEditor.params.column.colId
-										});
+											if(columnToCheck.isCellEditable(newEditingNode)) {
+												gridOptions.api.startEditingCell({
+													rowIndex: newEditingNode.rowIndex,
+													colKey: columnToCheck.colId
+												});
+											}
+											else {
+												gridOptions.api.setFocusedCell(newEditingNode.rowIndex, columnToCheck.colId);
+											}
+										}
+										event.preventDefault();
 									}
-									event.preventDefault();
+									event.stopPropagation();
 								}
-								event.stopPropagation();
-							}
-						};
-						this.eInput.addEventListener('keydown', this.keyDownListener);
+							};
+							this.eInput.addEventListener('keydown', this.keyDownListener);
+						}
 
 						this.keyPressListener = function (event) {
 							var isNavigationLeftRightKey = event.keyCode === 37 || event.keyCode === 39;
