@@ -1148,7 +1148,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				}
 
 				function tabSelectionChangeNavigation(params) {
-					var suggestedNextCell = params.nextCellDef;
+					var suggestedNextCell = params.nextCellPosition;
 
 					if(suggestedNextCell) {
 						var suggestedNextCellSelected = false;
