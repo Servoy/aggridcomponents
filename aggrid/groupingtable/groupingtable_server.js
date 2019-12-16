@@ -12,8 +12,9 @@ const NULL_DISPLAY_VALUE = 'GRID_NULL_DISPLAY_VALUE'
  * @param {string=} sort
  * @param {object=} sFilterModel
  * @param {boolean=} hasRowStyleClassDataprovider
+ * @params {Array<string> visibleColumns
  */
-$scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets, sort, sFilterModel, hasRowStyleClassDataprovider) {
+$scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets, sort, sFilterModel, hasRowStyleClassDataprovider, visibleColumns) {
 	log('START SERVER SIDE ------------------------------------------ ', LOG_LEVEL.WARN);
 
 	var rootFoundset = $scope.model.myFoundset.foundset; // All foundsets are derived from the root foundset
@@ -94,17 +95,19 @@ $scope.getGroupedFoundsetUUID = function(groupColumns, groupKeys, idForFoundsets
 
 		var idForFoundset = idForFoundsets[i];
 
-		if (column.hasOwnProperty("styleClassDataprovider")) {
-			extraDataproviders[idForFoundset + "_styleClassDataprovider"] = column.styleClassDataprovider;
-		}
-
+		// ignore non-visible columns: no need to load their data
 		if (isGroupFoundSet && groupColumns.indexOf(i) === -1) { // In case of Group foundsets, only include the relevant (group) columns
 			continue
 		}
 
-		// TODO only the dataproviders that are realy required, eveything else is always the same between all foundsets
+		if (column.hasOwnProperty("styleClassDataprovider")) {
+			extraDataproviders[idForFoundset + "_styleClassDataprovider"] = column.styleClassDataprovider;
+		}
+
+		// TODO only the (lazy)dataprovider (and valuelist?) properties are realy required, everything else is always the same between all foundsets
 		columns.push({
-			dataprovider: column.dataprovider || column.lazydataprovider,
+			dataprovider: !isGroupFoundSet && visibleColumns.indexOf(idForFoundset) === -1 && column.lazydataprovider ? null : column.dataprovider || column.lazydataprovider,
+			lazydataprovider: column.lazydataprovider,
 			format: column.format,
 			valuelist: column.valuelist,
 			id: column.id,
@@ -902,15 +905,30 @@ $scope.api.getGroupedState = function() {
 }
 
 $scope.loadDataForColumns = function(indexes, enabled) {
-	var idx;
+	// get the columns setup array for all leaf FoundSets stored in $scope.model.hashedFoundsets
+	var columnsSetupToUpdate = $scope.model.hashedFoundsets.filter(function(fs) {
+		return fs.columns.length === $scope.model.columns.length;
+	}).map(function(fs) {
+		return fs.columns;
+	});
+
+	var columnIdx;
+	var i;
 	
-	for (var i = 0; i < indexes.length; i++) {
-		idx = indexes[i];
+	if (!columnsSetupToUpdate.length) { // if there are no leaf FoundSets, then update the root FoundSet
+		columnsSetupToUpdate.push($scope.model.columns);
+	}
+
+	for (i = 0; i < indexes.length; i++) {
+		columnIdx = indexes[i];
 		
-		if (enabled) {
-			$scope.model.columns[idx].dataprovider = $scope.model.columns[idx].lazydataprovider;
-		} else {
-			$scope.model.columns[idx].dataprovider = null;
+		if (!$scope.model.columns[columnIdx].lazydataprovider) {
+			log('Received request to load data for column and index ' + columnIdx + ', but column not configured with a lazydataprovider:' + JSON.stringify($scope.model.columns[columnIdx], null, '\t'), LOG_LEVEL.WARN);
+			continue;
 		}
+		
+		columnsSetupToUpdate.forEach(function(columnsSetup) {
+			columnsSetup[columnIdx].dataprovider = enabled ? columnsSetup[columnIdx].lazydataprovider: null;
+		})
 	}
 }

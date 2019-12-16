@@ -15,7 +15,7 @@
 	"model":
 	{
 		"myFoundset": {"type": "foundset", "default" : {"foundsetSelector":""}, "pushToServer" : "allow" ,"initialPreferredViewPortSize": 50, "sendSelectionViewportInitially": true },
-		"columns": { "type": "column[]", "default": [], "droppable" : true, "pushToServer": "shallow"},
+		"columns": { "type": "column[]", "default": [], "droppable" : true, "pushToServer": "reject"},
 		"columnState": { "type": "string", "tags": {"scope" : "private"}, "pushToServer": "allow"},
 		"columnStateOnError": { "type": "function", "tags": {"scope" : "private"}},
 		"checkboxSelection": {"type": "boolean", "default" : false},
@@ -333,6 +333,7 @@
 		},
 		"groupedColumn" : {
             "dataprovider": { "type": "dataprovider", "forFoundset": "foundset", "resolveValuelist": true },
+            "lazydataprovider": { "type": "string" },
             "format" : { "type": "format",  "for": [ "valuelist", "dataprovider" ]},
 			"valuelist": { "type": "valuelist", "for": "dataprovider", "forFoundset": "foundset" },
 			"id": {"type" : "string"},

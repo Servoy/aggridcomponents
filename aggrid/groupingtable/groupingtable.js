@@ -8,6 +8,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 		});
 		var CHUNK_SIZE = 50;
 		var CACHED_CHUNK_BLOCKS = 2;
+		var MD5 = new agGrid.MD5(); // need ability to generate idForFoundset MD5 hashes if only the lazydataprovider property is set on a colum
 		
 		return {
 			restrict: 'E',
@@ -37,7 +38,15 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					
 					$sabloApplication.callService('formService', 'dataPush', args, true)
 				}
-
+				
+				// hack: clear all hashed foundsets left over from previous show of form containing the grid, as they aren't reused atm
+				//       and the $scope.$on('$destroy', function() { ... logic fails to clean them up,
+				//       because by the time the $destroy event occurs, the UI is already hidden, thus the call to the server to remove foundsets fail
+				//       See https://support.servoy.com/browse/SVY-13804 for a FR to have a better solution
+				$scope.model.hashedFoundsets.forEach(function(foundset, idx) {
+					removeFoundSetByFoundsetUUID(foundset.foundsetUUID)
+				})
+				
 				/* 
 				 * TODO Column properties not matching dataset component
 				 * 
@@ -162,13 +171,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 */
 				$scope.purge = function() {
 					// an hard refresh is necessary to show the groups
-					if (isTableGrouped()) {
+					if ($scope.isGroupView) {
 						groupManager.removeGroupsAtLevel(0);
 					}
 					
-					// reset root foundset
-					foundset.foundset = $scope.model.myFoundset;
-
 					gridOptions.api.purgeServerSideCache();
 					
 					$scope.dirtyCache = false;
@@ -262,8 +268,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					foundsetManagers: { },
 					/** valuelists stored per field */
 					valuelists: { }, // NOT USED?
-					/** Store the latest rowGroupCols */
-					rowGroupCols: [],
+					/** 
+					 * Store the colIds of the current group columns
+					 */
+					rowGroupColIds: [],
 					/** Stor the latest groupKeys*/
 					groupKeys: [], // NOT USED?
 					/** Sort state of the root group */
@@ -284,9 +292,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				
 				// used in HTML template to toggle sync button
 				$scope.isGroupView = false;
-			
-				// set to true when root foundset is loaded
-				var isRootFoundsetLoaded = false;
 
 				// set to true when is rendered
 				var isRendered = undefined;
@@ -296,10 +301,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 				// formatFilter function
 				var formatFilter = $filter("formatFilter");
-
-				// CHECKME shouldn't this code go through initRootFoundset? What if $scope.model.myFoundset is null?
-				// init the root foundset manager
-				var foundset = new FoundSetManager($scope.model.myFoundset, ROOT_FOUNDSET_ID);
 				
 				// the group manager
 				var groupManager = new GroupManager(); // Should maybe be instantiated only when myfoundset gets set, passing myfoundset as rootNode
@@ -449,7 +450,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							$scope.handlers.onReady();
 						}
 
-						setColumnVisibility(getRowGroupColumns())
+						onGroupingChange(gridOptions.columnApi.getRowGroupColumns());
 
 						// without timeout the column don't fit automatically
 						setTimeout(function() {
@@ -611,6 +612,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 				}
 
+				var foundset;
+
 				// if in designer render a mocked grid
 				if ($scope.svyServoyapi.isInDesigner()) {
 					var designGridOptions = {
@@ -630,12 +633,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 				// rerender next time model.visible will be true
 				isRendered = $scope.model.visible
-
-				// default selection
-				selectedRowIndexesChanged();
-
-				// default sort order
-				gridOptions.api.setSortModel(getRootFoundSetSortModel());
 
 				/**
 				 * Programatically sets the selected state of all direct direct children of the provided group row node
@@ -810,7 +807,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				gridOptions.api.addEventListener('rowSelected', function (event) {
 					//console.log('rowSelected', event)
 					
-					if (!isTableGrouped() && !$scope.model.disconnectedSelection) return // if the table is not grouped, there's not selection state bubbling/cascading to be taken care of
+					if (!$scope.isGroupView && !$scope.model.disconnectedSelection) return // if the table is not grouped, there's not selection state bubbling/cascading to be taken care of
 					
 					var node = event.node;
 					
@@ -829,7 +826,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						} else {
 							delete groupState.selected;
 						}
-					} else if (!isTableGrouped() || (groupState.parent && groupState.parent.selected !== node.isSelected())) {
+					} else if (!$scope.isGroupView || (groupState.parent && groupState.parent.selected !== node.isSelected())) {
 						// FIXME groupState ends up with nodes containing both selected: true and a pks array with values, should instead be either/or, bot both
 						if (!groupState.pks) {
 							groupState.pks = [];
@@ -891,81 +888,104 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				gridOptions.api.addEventListener('columnRowGroupChanged', function (event) {
 					$log.debug(event);
 					
-					setColumnVisibility(event.columns)
+					onGroupingChange(event.columns)
 				});
 				
 				gridOptions.api.addEventListener('columnVisible', function (event) {
-					var designCol = getDesignColumn(event.column.colId);
+					var colIdx = newGetColumnIndex(event.column);
 					
-					if (designCol.lazydataprovider) {
-						$scope.svyServoyapi.callServerSideApi('loadDataForColumns', [[getColumnIndex(event.column.colId)], event.visible])
+					var designCol;
+					
+					// CHECKME can this happen in other places as well where we use newGetColumnIndex(event.column)? If so, encapsulate into function
+					if (colIdx === -1 && event.column.colDef.field) { // a virtual column, like an auto group column. Try to find designColumn with the same field value
+						colIdx = getColumnIndexByField(event.column.colDef.field)
+					}
+					
+					designCol = $scope.model.columns[colIdx];
+
+					if (designCol && designCol.lazydataprovider && event.visible !== !!designCol.dataprovider) {
+						$scope.svyServoyapi.callServerSideApi('loadDataForColumns', [[colIdx], event.visible])
 							.then(function(retValue) {
-								/* 
-								 * CHECKME can this be be optimized by making it more finegrained?
-								 * 
-								 * tried with the code below, but the servoy side is up to date, but the rows on the AG Grid side aren't
-								 * 
-								 * event.api.refreshCells({
-								 * 	columns: [event.column],
-								 *  force: true
-								 * })
-								 * 
-								 * now using event.api.purgeServerSideCache(); instead
+								/*
+								 * Force AG Grid to drop its internal cache and request new data
+								 * as the data it'll request are already cached in the browser, it shouldn't hit the server at all
 								 */
 								event.api.purgeServerSideCache();
 							});
 					}
 				});
 	         
-				function setColumnVisibility(rowGroupCols) {
+				/**
+				 * Event handler for when the grouping changes
+				 * 
+				 * Takes care of things like:
+				 * - loading data for newly made visible columns (if using lazydataprovider)
+				 * - toggling the visibility of the column whos dataprovider is also used dataprovider for the autoGroupColumn
+				 * - setting the $scope.isGroupView accordingly
+				 * - removing no longer needed foundsets for groups & leafs
+				 */
+				function onGroupingChange(rowGroupCols) {
+					var wasUngrouped = false;
+					var forceLoadIndexes = [];
+					var colIdsToMakeVisible = [];
+					var autoColumnGroupField = gridOptions.autoGroupColumnDef ? gridOptions.autoGroupColumnDef.field : null;
+					var allColumns = gridOptions.columnApi.getAllColumns()
+
 					var i;
-					var column;
-					var field;
+					var designColumn;
+					var colId;
 	
 					if (!rowGroupCols.length) { // Grid not grouped anymore
-						if ($scope.isGroupView) { // grid was grouped before
+						if ($scope.isGroupView) { // but was grouped before
 							// clear filter
-							gridOptions.api.setFilterModel(null);
-						}
-						$scope.isGroupView = false;
-						state.rootGroupSort = null;
-	
-						// Remove all obsolete group foundsets
-						groupManager.removeGroupsAtLevel(0);
-						
-						var agColumnState = gridOptions.columnApi.getColumnState();
-						var columnsToDisplay = []
-						var autoColumnGroupField = gridOptions.autoGroupColumnDef ? gridOptions.autoGroupColumnDef.field : null;
-						
-						for (i = 0; i < agColumnState.length; i++) {
-							if (!agColumnState[i].hide) {
-							     columnsToDisplay.push(agColumnState[i].colId)
-							}
+							gridOptions.api.setFilterModel(null); // WHY?
+
+							$scope.isGroupView = false;
+
+							// Remove all obsolete group foundsets
+							groupManager.removeGroupsAtLevel(0);
+
+							// clear list of colIds on which previously grouped
+							state.rowGroupColIds.length = 0
+							
+							// Clear all expanded/collapsed persist state
+							$scope.model.state.children = {}
+						} else { // grid wasn't grouped before, so must be initial show
+							wasUngrouped = true;
 						}
 
-						// clear all columns
+						state.rootGroupSort = null; // CHECKME move into IF clause above? Not exactly sure what this is doing anyway...
+
+						// Making sure the proper columns have visibility and data is loaded for all visible columns
 						for (i = 0; i < $scope.model.columns.length; i++) {
-							column = $scope.model.columns[i];
-										
-							if (column.hasOwnProperty('rowGroupIndex')) {
-								column.rowGroupIndex = -1;
-								colId = getColumnFieldValue(column, i)
+							designColumn = $scope.model.columns[i];
+							colId = allColumns[i].colId;
 
-								// keep visible columns which were available before close group
-								if (columnsToDisplay.indexOf(colId) !== -1 || (autoColumnGroupField && column.columnDef.field === autoColumnGroupField) || columnsToDisplay.length === 0) {
-									gridOptions.columnApi.setColumnVisible(colId, true);
-								}
+							// if a field was used for the autoGroupColumnDef, make sure a column using the same field is made visible again after ungroup
+							if (autoColumnGroupField && designColumn.columnDef && designColumn.columnDef.field === autoColumnGroupField) {
+								colIdsToMakeVisible.push(colId);
+							}
+
+							// Force data load for columns with lazydataproviders
+							if (allColumns[i].visible && !designColumn.dataprovider && designColumn.lazydataprovider) {
+								forceLoadIndexes.push(i);
 							}
 						}
-						
-						// Clear all expanded/collapsed persist state
-						$scope.model.state.children = {}
+
+						// make sure the data for all (to be) visible columns is loaded, if not already loaded
+						if (forceLoadIndexes.length) {
+							$scope.svyServoyapi.callServerSideApi('loadDataForColumns', [forceLoadIndexes, true]);
+						}
+
+						// make hidden columns visible
+						colIdsToMakeVisible.forEach(function(colId) {
+							gridOptions.columnApi.setColumnVisible(colId, true);
+						});
 					} else {
-						var wasUngrouped = false;
-						
 						if (!$scope.isGroupView) { // grid wasn't grouped before, but is now
 							// clear filter
 							gridOptions.api.setFilterModel(null);
+							
 							wasUngrouped = true;
 							
 							// CHECKME should the selection on the root foundset not be cleared, as that one isn't being used now anymore
@@ -977,32 +997,29 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							//		   if you remove the groups and thus end up in non-group mode, the old selection is still in place
 							//		   Haven't tested it, but most likely any changes in filtering is not synces between the two either...
 						}
+						
 						$scope.isGroupView = true;
 
-						// persist new grouping and optionally make previously grouped columns visible again
-						var oldGroupedFields = [];
-						var newGroupedFields = rowGroupCols.map(function(col) { // get an array of the field values of the new grouped columns
-							return col.colDef.field;
+						var oldGroupedColIds = state.rowGroupColIds;
+						state.rowGroupColIds = rowGroupCols.map(function(col) { // save the colIds of the current group columns
+							return col.colId;
 						});
-						var autoColumnGroupField = gridOptions.autoGroupColumnDef ? gridOptions.autoGroupColumnDef.field : null;
 						
 						for (i = 0; i < $scope.model.columns.length; i++) {
-							column = $scope.model.columns[i];
-							field = getColumnFieldValue(column, i);
+							designColumn = $scope.model.columns[i];
+							colId = allColumns[i].colId;
 
-							var newGroupIndex = newGroupedFields.indexOf(field);
-							var isGroupedBy = newGroupIndex !== -1;
-							var wasGroupedBy = typeof column.rowGroupIndex === 'number' ? column.rowGroupIndex > -1 : false;
+							var isGroupedBy = state.rowGroupColIds.indexOf(colId) !== -1;
+							var wasGroupedBy = oldGroupedColIds.indexOf(colId) !== -1;
 							var hideBecauseFieldSharedWithAutoColumnGroup = false
-
-							if (autoColumnGroupField && column.columnDef && column.columnDef.checkboxSelection) {
-								hideBecauseFieldSharedWithAutoColumnGroup = wasUngrouped || field === autoColumnGroupField;
-							}
 
 							var newVisibility;
 
+							if (autoColumnGroupField && designColumn.columnDef) {
+								hideBecauseFieldSharedWithAutoColumnGroup = designColumn.columnDef.field === autoColumnGroupField && wasUngrouped;
+							}
+
 							if (wasGroupedBy) {
-								oldGroupedFields[column.rowGroupIndex] = field;
 								newVisibility = true;
 							}
 
@@ -1010,46 +1027,20 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								newVisibility = false;
 							}
 
-							column.rowGroupIndex = newGroupIndex; // persist
-
 							if (wasGroupedBy || isGroupedBy || hideBecauseFieldSharedWithAutoColumnGroup) { // TODO expose behavior as option
-								gridOptions.columnApi.setColumnVisible(field, newVisibility)
+								gridOptions.columnApi.setColumnVisible(colId, newVisibility)
 							}
 						}
 
-						// TODO test this
-						for (i = 0; i < oldGroupedFields.length; i++) {
-							if (oldGroupedFields[i] !== newGroupedFields[i]) {
+						// Compare old and new grouping and remove all cached groups (and children) for the level where a difference is found
+						for (i = 0; i < oldGroupedColIds.length; i++) {
+							if (oldGroupedColIds[i] !== state.rowGroupColIds[i]) { 
 								groupManager.removeGroupsAtLevel(i); // clean up obsolete foundsets
 
 								// TODO clean up collapse/expand persist state from the right level downwards
-
-	//							$scope.model.state = {
-	//								children: {}
-	//							}
 								break;
 							}
 						}
-
-	//					// CHECKME does this logic properly clear foundsets when just changing the order of grouping?
-	//					// clear HashTreeCache if column group state changed
-	//					for (i = 0; state.grouped.columns && i < state.grouped.columns.length; i++) {
-	//						// if the column has been removed or order of columns has been changed
-	//						if (i >= event.columns.length || state.grouped.columns[i] != event.columns[i].colId) {
-	//							//	if (i === 0) {
-	//							// FIXME does it breaks it, why does it happen ? concurrency issue ?
-	//							//	groupManager.removeGroupsAtLevel(0);
-	//							// FIXME this is a workadound, i don't why does it fail when i change a root level (same issue of sort and expand/collapse)
-	//							//		groupManager.removeGroupsAtLevel(0);
-	//							//	} else {
-	//							// Clear Column X and all it's child
-	//							// NOTE: level are at deep 2 (1 column + 1 key)
-	//							var level = Math.max(0, (i * 2) - 1);
-	//							groupManager.removeGroupsAtLevel(level);
-	//							//	}
-	//							break;
-	//						}
-	//					}
 					}
 
 					// After change in grouping, all watch function to enable/disable checkboxSelection
@@ -1129,7 +1120,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					//console.log('selectionChanged', event, gridOptions.api.getSelectedNodes());
 					
 					// selection in grouped mode is tracked differently, via the rowSelected event
-					if (isTableGrouped() || $scope.model.disconnectedSelection) {
+					if ($scope.isGroupView || $scope.model.disconnectedSelection) {
 						//console.log(JSON.stringify($scope.model.state, function(key, value) {return key === 'parent' ? undefined : value}))
 
                         // Trigger event on selection change in group mode
@@ -1192,7 +1183,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						//						var foundsetRef = foundsetManager.foundset;
 						//
 						//						var foundsetIndex;
-						//						if (isTableGrouped()) {
+						//						if ($scope.isGroupView) {
 						//							// TODO search for grouped record in grouped foundset (may not work because of caching issues);
 						//							$log.warn('select grouped record not supported yet');
 						//							foundsetIndex = foundsetManager.getRowIndex(row);
@@ -1200,7 +1191,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						//							foundsetIndex = params.node.rowIndex;
 						//						}
 						//
-						//						var columnIndex = getColumnIndex(params.colDef.field);
+						//						var columnIndex = newGetColumnIndex(params.column);
 						//						var record;
 						//						if (foundsetIndex > -1) {
 						//							// FIXME cannot resolve the record when grouped, how can i rebuild the record ?
@@ -1214,7 +1205,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						//						}
 
 						var foundsetIndex = getFoundsetIndexFromEvent(params);
-						var columnIndex = getColumnIndex(params.column.colId);
+						var columnIndex = newGetColumnIndex(params.column);
 						var recordPromise = getFoundsetRecord(params);
 
 						recordPromise.
@@ -1235,7 +1226,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 */
 				function getFoundsetIndexFromEvent(params) {
 					var foundsetIndex;
-					if (isTableGrouped()) {
+					if ($scope.isGroupView) {
 						$log.warn('select grouped record not supported yet');
 						foundsetIndex = -1;
 						// TODO use serverside API getRecordIndex
@@ -1309,11 +1300,18 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						oldValue = oldValue.realValue;
 					}
 
-					var col = getDesignColumn(params.colDef.field);
-					
-					if (col && col.dataprovider && col.dataprovider.idForFoundset && (newValue != oldValue || invalidCellDataIndex.rowIndex != -1)) {
+					// TODO move this out and see where else it should be used
+					function getField(column) {
+						var field = column.colDef.field;
+
+						return field.indexOf(':') === -1 ? field : field.split(':')[0]
+					}
+
+					var field = getField(params.column);
+
+					if (field && (newValue != oldValue || invalidCellDataIndex.rowIndex != -1)) {
 						if (newValue != oldValue) {
-							foundsetRef.updateViewportRecord(row._svyRowId, col.dataprovider.idForFoundset, newValue, oldValue);
+							foundsetRef.updateViewportRecord(row._svyRowId, field, newValue, oldValue);
 						}
 						
 						if ($scope.handlers.onColumnDataChange && newValue != oldValue) {
@@ -1321,7 +1319,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							
 							onColumnDataChangePromise = $scope.handlers.onColumnDataChange(
 								getFoundsetIndexFromEvent(params),
-								getColumnIndex(params.column.colId),
+								newGetColumnIndex(params.column),
 								oldValue,
 								newValue
 							);
@@ -1370,7 +1368,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 										if (editCells.length == 0 && currentEditCells.length != 0) {
 											gridOptions.api.startEditingCell({
 												rowIndex: currentEditCells[0].rowIndex,
-												colKey: currentEditCells[0].column.colId
+												colKey: currentEditCells[0].column
 											});
 										}
 									}
@@ -1399,7 +1397,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						//						if (!foundsetManager) foundsetManager = foundset;
 						//						var foundsetRef = foundsetManager.foundset;
 						//						var foundsetIndex;
-						//						if (isTableGrouped()) {
+						//						if ($scope.isGroupView) {
 						//							// TODO search for grouped record in grouped foundset (may not work because of caching issues);
 						//							$log.warn('select grouped record not supported yet');
 						//							foundsetIndex = foundsetManager.getRowIndex(row);
@@ -1407,7 +1405,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						//							foundsetIndex = params.node.rowIndex;
 						//						}
 						//
-						//						var columnIndex = getColumnIndex(params.colDef.field);
+						//						var columnIndex = newGetColumnIndex(params.column);
 						//						var record;
 						//						if (foundsetIndex > -1) {
 						//							// FIXME cannot resolve the record when grouped, how can i rebuild the record ?
@@ -1423,7 +1421,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						//						$scope.handlers.onCellDoubleClick(foundsetIndex, columnIndex, record, params.event);
 
 						var foundsetIndex = getFoundsetIndexFromEvent(params);
-						var columnIndex = getColumnIndex(params.column.colId);
+						var columnIndex = newGetColumnIndex(params.column);
 						var recordPromise = getFoundsetRecord(params);
 
 						recordPromise
@@ -1452,7 +1450,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						//						if (!foundsetManager) foundsetManager = foundset;
 						//						var foundsetRef = foundsetManager.foundset;
 						//						var foundsetIndex;
-						//						if (isTableGrouped()) {
+						//						if ($scope.isGroupView) {
 						//							// TODO search for grouped record in grouped foundset (may not work because of caching issues);
 						//							$log.warn('select grouped record not supported yet');
 						//							foundsetIndex = foundsetManager.getRowIndex(row);
@@ -1460,7 +1458,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						//							foundsetIndex = params.node.rowIndex;
 						//						}
 						//
-						//						var columnIndex = getColumnIndex(params.colDef.field);
+						//						var columnIndex = newGetColumnIndex(params.column);
 						//						var record;
 						//						if (foundsetIndex > -1) {
 						//							record = foundsetRef.viewPort.rows[foundsetIndex - foundsetRef.viewPort.startIndex];
@@ -1473,7 +1471,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						//						$scope.handlers.onCellRightClick(foundsetIndex, columnIndex, record, params.event);
 
 						var foundsetIndex = getFoundsetIndexFromEvent(params);
-						var columnIndex = getColumnIndex(params.column.colId);
+						var columnIndex = newGetColumnIndex(params.column);
 						var recordPromise = getFoundsetRecord(params);
 
 						recordPromise
@@ -1556,7 +1554,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						value = value.displayValue;
 					}
 
-					column = getDesignColumn(params.column.colId);
+					column = $scope.model.columns[newGetColumnIndex(params.column)];
 
 					if (column && column.format) {
 						value = formatFilter(value, column.format.display, column.format.type, column.format);
@@ -1568,17 +1566,18 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 					return value;
 				}
-				
+
+				/**
+				 * Callback used by AG Grid to ask for the actual data
+				 * 
+				 * AG Grid doesn't care about how we expose each bit of data for a row in the result returned from the .getRows(...) implementation
+				 * it uses this function to get the correct value
+				 */
 				function displayValueGetter(params) {
-					var field = params.colDef.field;
+					if (params.colDef.field && params.data) {
+						var value = params.data[params.colDef.field];
 
-					if (field && params.data) {
-						var value = params.data[field];
-
-						if (value == null) {
-							value = NULL_DISPLAY_VALUE; // need to use an object for null, else grouping won't work in ag grid
-						}
-						return value;
+						return value == null ? NULL_DISPLAY_VALUE : value; // need to use an object for null values else grouping won't work in ag grid
 					}
 
 					return undefined;				
@@ -1623,18 +1622,39 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				}
 
 				function getValuelistEx(row, colId, asCodeString) {
+					var foundsetManager = getFoundsetManagerByFoundsetUUID(row._svyFoundsetUUID);
+					
 					var column;
 					var foundsetRows;
 
-					var foundsetManager = getFoundsetManagerByFoundsetUUID(row._svyFoundsetUUID);
 					// if not root, it should use the column/foundsetRows from the hashed map
 					if (foundsetManager.isRoot) {
-						column = getDesignColumn(colId);
+						column = $scope.model.columns[newGetColumnIndex(colId)];
 						foundsetRows = $scope.model.myFoundset.viewPort.rows;
-					} else if ($scope.model.hashedFoundsets) {
+					} else {
 						for (var i = 0; i < $scope.model.hashedFoundsets.length; i++) {
 							if ($scope.model.hashedFoundsets[i].foundsetUUID == foundsetManager.foundsetUUID) {
-								column = getDesignColumn(colId, $scope.model.hashedFoundsets[i].columns);
+								if ($scope.model.hashedFoundsets[i].length === $scope.model.columnState.length) { // leaf foundsets
+									column = $scope.model.hashedFoundsets[i].columns[newGetColumnIndex(colId)];
+								} else { // group foundset
+									/*
+									 * Jumping through some hoops to get the correct column:
+									 * 
+									 * For Group columns we only send over the columns that are relevant for the group foundset
+									 * hence, we cannot match based on index
+									 * instead, we find the design column based on the colId
+									 * and then compare the generated field value for the design column with the columns defined for the group foundset
+									 */
+									var targetField = getFieldValueForColumn(newGetColumnIndex(colId))
+									
+									for (var j = 0; j < $scope.model.hashedFoundsets[i].columns.length; j++) {
+										if (getFieldValueForColumn(j, $scope.model.hashedFoundsets[i].columns) === targetField) { // FIXME the : + idx appended will be wrong...
+											column = $scope.model.hashedFoundsets[i].columns[j];
+											break;
+										}
+									}	
+								}
+								
 								foundsetRows = foundsetManager.foundset.viewPort.rows;
 								break;
 							}
@@ -1650,9 +1670,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					if (column.valuelist && column.valuelist[$sabloConverters.INTERNAL_IMPL]
 							&& angular.isDefined(column.valuelist[$sabloConverters.INTERNAL_IMPL]["recordLinked"])) {
 						// _svyRowId: "5.10643;_0"
-						var rowId = row[$foundsetTypeConstants.ROW_ID_COL_KEY];
-
-						if (rowId.indexOf(";") >= 0) rowId = rowId.substring(0, rowId.indexOf(";") + 1);
+						var rowId = row[$foundsetTypeConstants.ROW_ID_COL_KEY].split(';')[0]
 						
 						if (column.valuelist.length == 0 && foundsetRows.length > 0) {
 							// this if is just for backwards compatibility editing comboboxes with valuelists with Servoy < 8.3.3 (there the foundset-linked-in-spec valuelists in custom objects
@@ -1662,7 +1680,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							// was length 0; this whole if can be removed once groupingtable's package will require Servoy >= 8.3.3
 							
 							// fall back to what was done previously - use root valuelist and foundset to resolve stuff (which will probably work except for related valuelists)
-							column = getDesignColumn(colId);
+							column = $scope.model.columns[newGetColumnIndex(colId)];
 							foundsetRows = $scope.model.myFoundset.viewPort.rows;
 						}
 						
@@ -1699,16 +1717,17 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						this.eInput = document.createElement('input');
 						this.eInput.className = "ag-cell-edit-input";
 
-						var column = getDesignColumn(params.column.colId);
+						var colIdx = newGetColumnIndex(params.column);
+						var column = $scope.model.columns[colIdx];
+						
 						if (this.editType == 'TYPEAHEAD') {
 							this.eInput.className = "ag-table-typeahed-editor-input";
 							if (params.column.actualWidth) {
 								this.eInput.style.width = params.column.actualWidth + 'px';
 							}
-							var columnIndex = getColumnIndex(params.column.colId);
 							
 							var getVLAsCode = getValuelist(params, true);
-							this.eInput.setAttribute("uib-typeahead", "value.displayValue | formatFilter:model.columns[" + columnIndex + "].format.display:model.columns[" + columnIndex + "].format.type for value in " + (getVLAsCode == null ? "null" : "model.columns[" + columnIndex + "]" + getVLAsCode + ".filterList($viewValue)"));
+							this.eInput.setAttribute("uib-typeahead", "value.displayValue | formatFilter:model.columns[" + colIdx + "].format.display:model.columns[" + colIdx + "].format.type for value in " + (getVLAsCode == null ? "null" : "model.columns[" + colIdx + "]" + getVLAsCode + ".filterList($viewValue)"));
 							this.eInput.setAttribute("typeahead-wait-ms", "300");
 							this.eInput.setAttribute("typeahead-min-length", "0");
 							this.eInput.setAttribute("typeahead-append-to-body", "true");
@@ -1790,7 +1809,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 										gridOptions.api.startEditingCell({
 											rowIndex: newRowIndex,
-											colKey: thisEditor.params.column.colId
+											colKey: thisEditor.params.column
 										});
 									}
 									event.preventDefault();
@@ -1948,7 +1967,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						$(this.eInput).datetimepicker(options);
 
 						var editFormat = 'MM/dd/yyyy hh:mm a';
-						var column = getDesignColumn(params.column.colId);
+						var column = $scopes.model.columns[newGetColumnIndex(params.column)]
 						if (column && column.format && column.format.edit) {
 							editFormat = column.format.edit;
 						}
@@ -1995,6 +2014,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					SelectEditor.prototype.init = function(params) {
 						this.params = params;
 						var vl = getValuelist(params);
+						
 						if (vl) {
 							var row = params.node.data;
 							var foundsetManager = getFoundsetManagerByFoundsetUUID(row._svyFoundsetUUID);
@@ -2004,6 +2024,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							var valuelistValuesPromise = vl.filterList("");
 							var selectEl = this.eSelect;
 							var v = params.value;
+							
 							if (v && v.displayValue != undefined) {
 								v = v.displayValue;
 							}
@@ -2214,11 +2235,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					
 					// create filter model with column indexes that we can send to the server
 					// CHECKME not sure why this logic is here, why not use to 'filterChanged' event on the grid to handle changes? It does fires before getRows gets called
-					for (var c in filterModel) {
-						var columnIndex = getColumnIndex(c);
+					for (var field in filterModel) { // filterModel exposes the current filters by field value, so not colId!!
+						var columnIndex = getColumnIndexByField(field); // PB
 						
 						if (columnIndex != -1) {
-							updatedFilterModel[columnIndex] = filterModel[c];
+							updatedFilterModel[columnIndex] = filterModel[field];
 						}
 					}
 					sUpdatedFilterModel = JSON.stringify(updatedFilterModel);
@@ -2389,39 +2410,59 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				function initRootFoundset() {
 					foundset = new FoundSetManager($scope.model.myFoundset, ROOT_FOUNDSET_ID);
 
-					var datasource = new FoundSetDatasource();
-					gridOptions.api.setServerSideDatasource(datasource);
-				}
+					// default selection
+					selectedRowIndexesChanged();
 
-				function refreshDatasource() {
-					var datasource = new FoundSetDatasource();
-					gridOptions.api.setServerSideDatasource(datasource);
+					// default sort order
+					gridOptions.api.setSortModel(getRootFoundSetSortModel());
+
+//					gridOptions.api.purgeServerSideCache();
+
+//					$scope.dirtyCache = false;
 				}
 
 				// **************************** Watches **************************** //
 				$scope.$watch("model.myFoundset", function(newValue, oldValue) {
 					$log.debug('myFoundset root changed');
+					
+					// Don't do something like the line below: Angular always calls a watch once after registering it 
+					//    in the case that the grid is reshown (in a dialog for example), oldValue might equal newValue
+					//    but the logic below still needs to execute
+					//if (newValue === oldValue) return;
 
-					if (isTableGrouped()) {
-						$scope.purge();
+					if (oldValue) {
+						oldValue.removeChangeListener(changeListener);
 					}
 					
-					var isChangedToEmpty = newValue && oldValue && newValue.serverSize == 0 && oldValue.serverSize > 0;
-					
-					if ($scope.model.myFoundset.viewPort.size > 0 || isChangedToEmpty) {
-						// browser refresh
-						isRootFoundsetLoaded = true;
-						initRootFoundset();
-					} else {
-						// newly set foundset
-						isRootFoundsetLoaded = false;
-					}
-					
-					// TODO ASK R&D should i remove and add the previous listener ?
-					$scope.model.myFoundset.removeChangeListener(changeListener);
 					$scope.model.myFoundset.addChangeListener(changeListener);
+					
+// CHALLENGE initRoot triggers AG Grid to start fetching stuff due to setting sortModel,
+//   but purge below will again. How to prevent?
+//   Cannot make it conditional if oldValue === newValue, because that happens when initializing the component on consequtive shows
+
+//					if (oldValue !== newValue || !foundset) {
+//						initRootFoundset();
+//						
+//						if ($scope.isGroupView) { // CHECKME maybe only do this when the grid has already been rendered? But wouldn't $scope.isGroupView return false already in such case?
+//							//$scope.purge();
+//						}
+//					}
+
+					if (foundset) {
+						// TODO raise a bug for this
+						// This happens when teh grid is shown consequtive times in the same dialog
+						if (oldValue !== newValue && oldValue.foundsetId === newValue.foundsetId) {
+							foundset.foundset = newValue
+						} else if ($scope.isGroupView) { // CHECKME maybe only do this when the grid has already been rendered? But wouldn't $scope.isGroupView return false already in such case?
+							groupManager.removeGroupsAtLevel(0);
+						}
+					}
+					
+					initRootFoundset();
 				});
 				
+				gridOptions.api.setServerSideDatasource(new FoundSetDatasource());
+
 				/**
 				 * sets the visibility of the checkbox on the first column, based on model.checkboxSelection property
 				 * 
@@ -2465,11 +2506,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					if (!newValue) return;
 					
 					var columnKeysToWatch = [
-						"headerTitle",
 						"headerStyleClass",
 						"headerTooltip",
 						"styleClass",
-						"visible",
 						"width",
 						"minWidth",
 						"maxWidth",
@@ -2493,10 +2532,12 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							});
 							columnWatches.push(columnWatch);
 						}
-					}
-
-					// watch the column header title
-					for (var i = 0; i < $scope.model.columns.length; i++) {
+						
+						// watch visibility
+						watchColumnVisible(i)
+						
+						// CHECKME the watches for tileHeader and footerText aren't added to columnWatches. Is that correct?
+						// watch titleHeader
 						watchColumnHeaderTitle(i);
 						watchColumnFooterText(i);
 					}
@@ -2505,29 +2546,37 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						updateColumnDefs();
 					}
 				});
-				
+
+				function watchColumnVisible(i) {
+					columnWatches.push($scope.$watch("model.columns[" + i + "].visible", function(newValue, oldValue) {
+						if (typeof newValue !== 'boolean') {
+							return;
+						}
+						
+						var column = gridOptions.columnApi.getAllColumns()[i];
+						
+						if (column && column.hide === newValue) {
+							gridOptions.columnApi.setColumnVisible(column, newValue);
+						}
+					}));
+				}
+
 				/**
 				 * @private 
 				 */
 				function watchColumnHeaderTitle(index) {
-					var columnWatch = $scope.$watch("model.columns[" + index + "]['headerTitle']",
-						function(newValue, oldValue) {
-							if (newValue != oldValue) {
-								$log.debug('header title column property changed');
-								
-								// column id is either the id of the column
-								var column = $scope.model.columns[index];
-								var colId = column.id;
-								if (!colId) {	// or column is retrieved by getColumnFieldValue !?
-									colId = getColumnFieldValue(column, index);
-								}
-								
-								if (!colId) {
-									$log.warn("cannot update header title for column at position index " + index);
-									return;
-								}
-								updateColumnHeaderTitle(colId, newValue);
+					$scope.$watch("model.columns[" + i + "].headerTitle", function(newValue, oldValue) {
+						if (newValue != oldValue) {
+							$log.debug('header title column property changed');
+							
+							var col = gridOptions.columnApi.getAllColumns()[i];
+							if (!col) {
+								$log.warn("cannot update header title for column at position index " + i);
+								return;
 							}
+							
+							updateColumnHeaderTitle(col, newValue);
+						}
 					});
 				}
 				
@@ -2573,6 +2622,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 */
 				function FoundSetManager(foundsetRef, foundsetUUID) {
 					var thisInstance = this;
+					var awaitingSortChangeBlocker;
 
 					// properties
 					this.foundset = foundsetRef;
@@ -2631,11 +2681,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 							// push each dataprovider
 							for (var i = 0; i < columns.length; i++) {
-								var column = columns[i];
-								var field = getColumnFieldValue(column, i);
-								var value = column.dataprovider ? column.dataprovider[index] : null;
-
-								row[field] = value;
+								if (Array.isArray(columns[i].dataprovider)) {
+									row[getFieldValueForColumn(i, columns)] = columns[i].dataprovider[index];
+								}
 							}
 							
 							return row;
@@ -2725,12 +2773,16 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					var foundsetListener = function(change) {
 						$log.debug('child foundset changed listener ' + thisInstance.foundset);
 
-						if (change[$foundsetTypeConstants.NOTIFY_SORT_COLUMNS_CHANGED]) {
-							var newSort = change[$foundsetTypeConstants.NOTIFY_SORT_COLUMNS_CHANGED].newValue;
-							var oldSort = change[$foundsetTypeConstants.NOTIFY_SORT_COLUMNS_CHANGED].oldValue;
+						// CHECKME arent sorts (or any change basically) on these FSes always triggered from the client?
+						if (awaitingSortChangeBlocker || change[$foundsetTypeConstants.NOTIFY_SORT_COLUMNS_CHANGED]) {
+							if (change[$foundsetTypeConstants.NOTIFY_SORT_COLUMNS_CHANGED]) {
+								if (awaitingSortChangeBlocker) { // FIXME just put in this IF to prevent it erroring out if awaitingSortChangeBlocker is null. No idea what that does though...
+									awaitingSortChangeBlocker.resolve(); // FIXME awaitingSortChangeBlocker might be null!!!
+								}
+								
+								$log.debug('Change Group Sort Model ' + change[$foundsetTypeConstants.NOTIFY_SORT_COLUMNS_CHANGED].newValue);
+							}
 
-							// sort changed
-							$log.debug("Change Group Sort Model " + newSort);
 							return;
 						}
 
@@ -3311,7 +3363,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								var groupColumnIndexes = [];
 								
 								for (var idx = 0; idx < groupCols.length; idx++) {
-									groupColumnIndexes.push(getColumnIndex(rowGroupCols[idx].field));
+									groupColumnIndexes.push(newGetColumnIndex(rowGroupCols[idx]));
 								}
 
 								var node = hashTree.setCachedFoundset(groupCols, keys, null);
@@ -3414,21 +3466,25 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					 */
 					function getNewFoundSetFromServer(groupColumns, groupKeys, sort) {
 						var resultDeferred = $q.defer();
-						var idForFoundsets = [];
+						var idsForFoundset = [];
+						var visibleColumns = groupColumns.length === groupKeys.length ? gridOptions.columnApi.getAllDisplayedColumns() : []; // For leaf foundsets the server needs to know for which columns to set the dataprovider property if a lazydataprovider property is provided
 						var args = [
 							groupColumns,
 							groupKeys,
-							idForFoundsets,
+							idsForFoundset,
 							sort,
 							$scope.model.filterModel,
-							$scope.model.rowStyleClassDataprovider ? true : false
+							$scope.model.rowStyleClassDataprovider ? true : false,
+							visibleColumns.map(function(column) {
+								return column.colDef.field;
+							}),
 						];
 
 						var i;
 
 						// TODO store it in cache. Requires to be updated each time column array Changes
 						for (i = 0; i < $scope.model.columns.length; i++) {
-							idForFoundsets.push(getColumnFieldValue($scope.model.columns[i], i));
+							idsForFoundset.push(getFieldValueForColumn(i));
 						}
 
 						$scope.svyServoyapi.callServerSideApi("getGroupedFoundsetUUID", args)
@@ -3518,7 +3574,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				function removeFoundSetByFoundsetUUID(foundsetUUID) {
 					if (foundsetUUID === ROOT_FOUNDSET_ID) {
 						$log.error('Trying to remove root foundset');
-						return false;
 					}
 
 					// remove the hashedFoundsets
@@ -3545,14 +3600,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				function changeListener(change) {
 					$log.debug("Root change listener is called " + state.waitfor.loadRecords);
 					$log.debug(change);
-
-					if (!isRootFoundsetLoaded) {
-						if (change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROWS_COMPLETELY_CHANGED]) {
-							isRootFoundsetLoaded = true;
-							initRootFoundset();
-						}
-						return;
-					}
 
 					if (sortPromise) {
 						$log.debug('sort has been requested clientside, no need to update the changeListener');
@@ -3596,19 +3643,19 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						$log.debug(idRandom + ' - 2. Change foundset serverside');
 						$log.debug("Foundset changed serverside ");
 
-						if (isTableGrouped()) {
+						// CHECKME what if not grouped? Shouldn't a refresh happen in that case?
+						if ($scope.isGroupView) {
 							// Foundset state is changed server side, shall refresh all groups to match new query criteria
-							groupManager.updateFoundsetRefs(getRowGroupColumns())
-								.then(function() {
+
+							//groupManager.updateFoundsetRefs(gridOptions.columnApi.getRowGroupColumns())
+							//	.then(function() {
 									$log.debug('refreshing datasource with success');
-									refreshDatasource();
-								})
-								.catch(function(e) {
-									$log.error(e);
-									initRootFoundset();
-								});
-						} else {
-							refreshDatasource();
+									gridOptions.api.purgeServerSideCache();
+							//	})
+							//	.catch(function(e) {
+							//		$log.error(e);
+							//		initRootFoundset();
+							//	});
 						}
 						return;
 					} else {
@@ -3642,7 +3689,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					$log.debug(' - 2.1 Request selection changes');
 
 					// Disable selection when table is grouped
-					if (isTableGrouped() || $scope.model.disconnectedSelection) {
+					if ($scope.isGroupView || $scope.model.disconnectedSelection) {
 						return;
 					}
 
@@ -3683,7 +3730,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 				function scrollToSelection(foundsetManager) {
 					// don't do anything if table is grouped.
-					if (isTableGrouped()) {
+					if ($scope.isGroupView) {
 						return;
 					}
 					
@@ -3707,23 +3754,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				}
 
 				/**
-				 * Returns true if table is grouping
-				 * @return {Boolean}
-				 */
-				function isTableGrouped() {
-					var rowGroupCols = getRowGroupColumns();
-					return rowGroupCols && rowGroupCols.length > 0;
-				}
-
-				/**
-				 * Returns table's rowGroupColumns
-				 * @return {Boolean}
-				 */
-				function getRowGroupColumns() {
-					return gridOptions.columnApi.getRowGroupColumns();
-				}
-
-				/**
 				 * Update the uiGrid row with given viewPort index
 				 * @param {Array<{startIndex: Number, endIndex: Number, type: Number}>} rowUpdates
 				 *
@@ -3733,7 +3763,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					var needPurge = false;
 
 					// Don't update automatically if the row are grouped
-					if (isTableGrouped()) {
+					if ($scope.isGroupView) {
 						// register update
 						$scope.dirtyCache = true;
 						return needPurge;
@@ -3770,20 +3800,17 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 * @param {Object} [foundsetObj]
 				 */
 				function updateRow(index, foundsetObj) {
-					var row;
-					if (!foundsetObj) {
-						row = foundset.getViewPortRow(index);
-					} else {
-						row = getClientViewPortRow(foundsetObj, index); // TODO get it from viewportObj
-					}
+					// FIXME this function is never called with a value for the foundsetObj param. 
+					var row = !foundsetObj ? foundset.getViewPortRow(index) : getClientViewPortRow(foundsetObj, index);
 
 					if (row) {
 						// find first editing cell for the updating row
 						var editCells = gridOptions.api.getEditingCells();
-						var editingColumnId = null;
+						var editingColumn;
+						
 						for (var i = 0; i < editCells.length; i++) {
 							if (index == editCells[i].rowIndex) {
-								editingColumnId = editCells[i].column.colId;
+								editingColumn = editCells[i].column;
 								break;
 							}
 						}
@@ -3791,7 +3818,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						var node = gridOptions.api.getRowNode(row._svyFoundsetUUID + '_' + row._svyRowId);
 						if (node) {
 							// stop editing to allow setting the new data
-							if (editingColumnId) {
+							if (editingColumn) {
 								gridOptions.api.stopEditing(false);
 							}
 							node.setData(row);
@@ -3802,25 +3829,24 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 							for (i = 0; i < allDisplayedColumns.length; i++) {
 								var column = allDisplayedColumns[i];
-								var columnModel = getDesignColumn(column.colDef.field)
+								
+								var designColumn = $scope.model.columns[newGetColumnIndex(column)];
 
-								if (columnModel && columnModel.styleClassDataprovider) {
+								if (designColumn && designColumn.styleClassDataprovider) {
 									styleClassDPColumns.push(column);
 								}
 							}
 							if (styleClassDPColumns.length) {
-								var refreshParam = {
+								gridOptions.api.refreshCells({
 									rowNodes: [node],
 									columns: styleClassDPColumns,
 									force: true
-								};
-
-								gridOptions.api.refreshCells(refreshParam);
+								});
 							}
 
 							// restart the editing
-							if (editingColumnId) {
-								gridOptions.api.startEditingCell({rowIndex: index, colKey: editingColumnId});
+							if (editingColumn) {
+								gridOptions.api.startEditingCell({rowIndex: index, colKey: editingColumn});
 							}
 						} else {
 							$log.warn("could not find row at index " + index);	
@@ -3832,11 +3858,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 				/** return the row of the given foundsetObj at given index */
 				function getClientViewPortRow(foundsetObj, index) {
-					var row;
-					if (foundsetObj.viewPort.rows) {
-						row = foundsetObj.viewPort.rows[index];
-					}
-					return row;
+					return foundsetObj.viewPort.rows ? foundsetObj.viewPort.rows[index] : undefined;
 				}
 
 				function getMainMenuItems(params) { // TODO make configurable
@@ -3863,26 +3885,34 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				/**
 				 * Callback used by ag-grid colDef.editable
 				 */
-				function isColumnEditable(args) {
-					var rowGroupCols = getRowGroupColumns();
+				function isColumnEditable(params) {
+					var rowGroupCols = gridOptions.columnApi.getRowGroupColumns();
+					
+					// CHECKME this seems to prevent editing, because if would change the group the row belongs to
+					//		could potentially be supported though
 					for (var i = 0; i < rowGroupCols.length; i++) {
-						if (args.colDef.field == rowGroupCols[i].colDef.field) {
+						// CHECKME think this needs to strip the ':" + idx part before compare, otherwise the field is still editable, but through a different column on the same dataprovider
+						if (params.colDef.field == rowGroupCols[i].colDef.field) {
 							return false;	// don't allow editing columns used for grouping
 						}
 					}
 
-					var isColumnEditable = true;
-					if (!isTableGrouped()) {
-						var column = getDesignColumn(args.colDef.field);
-						if (column && column.isEditableDataprovider) {
-							var index = args.node.rowIndex - foundset.foundset.viewPort.startIndex;
-							isColumnEditable = column.isEditableDataprovider[index];
+					var isColumnEditable = true; // CHECKME think this should be false by default
+					
+					if (!$scope.isGroupView) {
+						var colIdx = newGetColumnIndex(params.column);
+						var designColumn = $scope.model.columns[colIdx];
+						
+						if (designColumn && designColumn.isEditableDataprovider) {
+							var rowIndex = params.node.rowIndex - foundset.foundset.viewPort.startIndex;
+							isColumnEditable = designColumn.isEditableDataprovider[rowIndex];
 						}
 					} else {
-						var foundsetManager = getFoundsetManagerByFoundsetUUID(args.data._svyFoundsetUUID);
-						var index = foundsetManager.getRowIndex(args.data) - foundsetManager.foundset.viewPort.startIndex;
-						if (index >= 0) {
-							isColumnEditable = foundsetManager.foundset.viewPort.rows[index][args.colDef.field + "_isEditableDataprovider"];
+						var foundsetManager = getFoundsetManagerByFoundsetUUID(params.data._svyFoundsetUUID);
+						var rowIndex = foundsetManager.getRowIndex(params.data) - foundsetManager.foundset.viewPort.startIndex;
+						
+						if (rowIndex >= 0) {
+							isColumnEditable = foundsetManager.foundset.viewPort.rows[rowIndex][params.colDef.field + "_isEditableDataprovider"]; // CHECKME probable need to strip the : + idx part here
 						}
 					}
 
@@ -3892,13 +3922,20 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				function getFooterData() {
 					var result = [];
 					var hasFooterData = false;
-					var resultData = {}
-					for (var i = 0; $scope.model.columns && i < $scope.model.columns.length; i++) {
-						var column = $scope.model.columns[i];
+					var resultData = {};
+					
+					var i;
+					var column;
+					var colId
+					
+					for (i = 0; $scope.model.columns && i < $scope.model.columns.length; i++) {
+						column = $scope.model.columns[i];
+						
 						if (column.footerText) {
-							var	colId = getColumnFieldValue(column, i);
-							if (colId) {
-								resultData[colId] = column.footerText;
+							col = gridOptions.columnApi.getAllColumns()[i];
+							
+							if (col) {
+								resultData[col.colId] = column.footerText;
 								hasFooterData = true;
 							}
 						}
@@ -3918,27 +3955,17 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 */
 				function getColumnDefs() {	
 					var cellRenderer = function(params) {
-						var isGroupColumn = false;
-						var colId;
-						var styleClass;
-
-						if (params.colDef.field == undefined) {
-							isGroupColumn = true;
-
-							if (params.colDef.colId.indexOf("ag-Grid-AutoColumn-") === 0) {
-								colId = params.colDef.colId.substring("ag-Grid-AutoColumn-".length);
-							}
-						} else {
-							colId = params.colDef.field;
-						}
-
-						var col = colId ? getDesignColumn(colId) : null;
+						var isGroupColumn = params.column.colId.indexOf(agGrid.Constants.GROUP_AUTO_COLUMN_ID) === 0;
+						var colId = params.column.colId;
 						var value = params.value;
 						var returnValueFormatted = false;
+						var col = $scope.model.columns[newGetColumnIndex(params.column)];
 						
-						if (col != null && col.showAs == 'html') {
+						var styleClass;
+
+						if (col && col.showAs == 'html') {
 							value =  value && value.displayValue != undefined ? value.displayValue : value;
-						} else if (col != null && col.showAs == 'sanitizedHtml') {
+						} else if (col && col.showAs == 'sanitizedHtml') {
 							value = $sanitize(value && value.displayValue != undefined ? value.displayValue : value)
 						} else if (value && value.contentType && value.contentType.indexOf('image/') == 0 && value.url) {
 							value = '<img class="ag-table-image-cell" src="' + value.url + '">';
@@ -3950,18 +3977,32 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 						// CHECKME this code seems a bit of a duplicate with .getRowClass()
 						if (!isGroupColumn && col && col.styleClassDataprovider) {
-							if (!isTableGrouped()) {
+							if (!$scope.isGroupView) {
 								var index = params.rowIndex - foundset.foundset.viewPort.startIndex;
 								styleClass = col.styleClassDataprovider[index];
-							} else if (params.data && params.data._svyFoundsetUUID) { // params.data might be empty for group rows whoms children have been deleted since the group rows query was fired
+							} else if (params.data && params.data._svyFoundsetUUID) { // params.data might be empty for group rows whos children have been deleted since the group rows query was fired
+								/*
+								 * it can happen that the AGGrid is trying to render data, while hashed foundset is already removed
+								 * 
+								 * For example when the user clicks the grid header to sort and then quickly scrolls down
+								 * or due to an incoming COMPLETE_VIEWPORT_CHANGED
+								 * 
+								 * FIXME see if hashedFoundSets could only be removed after the new fs is made available and AG Grid is told to purge its cache?
+								 * CHECKME maybe need to use purgeServerSideCache(route), see https://www.ag-grid.com/javascript-grid-server-side-model-grouping/#purging-groups
+								 */
 								var foundsetManager = getFoundsetManagerByFoundsetUUID(params.data._svyFoundsetUUID);
-								var index = foundsetManager.getRowIndex(params.data) - foundsetManager.foundset.viewPort.startIndex;
 								
-								if (index !== -1) {
-									styleClass = foundsetManager.foundset.viewPort.rows[index][colId + "_styleClassDataprovider"];
+								if (!foundsetManager) { 
+									$log.debug('Foundset with id ' + params.data._svyFoundsetUUID + ' doesnt exist (anymore)')
 								} else {
-									$log.warn('cannot render styleClassDataprovider for row at index ' + index)
-									$log.warn(params.data);
+									var index = foundsetManager.getRowIndex(params.data) - foundsetManager.foundset.viewPort.startIndex;
+									
+									if (index !== -1) {
+										styleClass = foundsetManager.foundset.viewPort.rows[index][colId + "_styleClassDataprovider"];
+									} else {
+										$log.warn('cannot render styleClassDataprovider for row at index ' + index)
+										$log.warn(params.data);
+									}
 								}
 							}
 						}
@@ -3979,6 +4020,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					//create the column definitions from the specified columns in designer
 					var colDefs = [];
 					var forceLoadIndexes = [];
+					$scope.isGroupView = false
 
 					var colDef;
 					var column;
@@ -3988,28 +4030,23 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 						// create a column definition based on the properties defined at design time
 						colDef = {
-							headerName: column.headerTitle ? column.headerTitle : "",
-							field: getColumnFieldValue(column, i),
-							headerTooltip: column.headerTooltip ? column.headerTooltip : "",
+							headerName: column.headerTitle || '',
+							field: getFieldValueForColumn(i), // Maybe track user-provided duplicates and log warnings?
+							headerTooltip: column.headerTooltip || '',
 							cellRenderer: cellRenderer
 						};
 
-						if (column.id) {
-							colDef.colId = column.id;
-						}
+						colDef.colId = column.id; // Maybe track user-provided duplicates and log warnings?
 
 						// styleClass
 						colDef.headerClass = 'ag-table-header' + (column.headerStyleClass ? ' ' + column.headerStyleClass : '');
-						if (column.styleClassDataprovider) {
-							colDef.cellClass = getCellClass;
-						} else {
-							colDef.cellClass = 'ag-table-cell' + (column.styleClass ? ' ' + column.styleClass : '');
-						}
+						colDef.cellClass = 'ag-table-cell' + (column.styleClass ? ' ' + column.styleClass : '');
 
 						// column grouping
 						colDef.enableRowGroup = column.enableRowGroup;
 						if (column.rowGroupIndex >= 0) {
 							colDef.rowGroupIndex = column.rowGroupIndex;
+							$scope.isGroupView = true
 						}
 
 						if (column.width || column.width === 0) colDef.width = column.width;
@@ -4085,14 +4122,20 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							}
 						}
 						
-						if (column.lazydataprovider && !column.dataprovider && (!colDef.hide || (typeof colDef.rowGroupIndex === 'number' && colDef.rowGroupIndex > -1))) {
+						// Track for which columns the data needs to be forced to load. 
+						// 		As this code runs inside the loop in which this code runs determines whether the grid is grouped,
+						//		the checking whether to skip force-loading the data if the grid is grouped happens outside of the loop
+						if (column.lazydataprovider && !column.dataprovider && !colDef.hide) {
 							forceLoadIndexes.push(i);
 						}
 
 						colDefs.push(colDef);
 					}
 					
-					if (forceLoadIndexes.length) {
+					// make sure data is loaded for the visible columns IF not in grouping mode
+					//   no data needs to be loaded into the root foundset if in grouping mode, cause the foundset/data wouldn't be used
+					//   especially related data can carry a significant performance overhead, so we'd want to avoid loading that data
+					if (!$scope.isGroupView && forceLoadIndexes.length) {
 						$scope.svyServoyapi.callServerSideApi('loadDataForColumns', [forceLoadIndexes, true]);
 					}
 
@@ -4128,18 +4171,13 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 					gridOptions.api.setColumnDefs(getColumnDefs());
 					// selColumnDefs should redraw the grid, but it stopped doing so from v19.1.2
-					$scope.purge();	
+					// CHECKME had this commented out before
+					//$scope.purge();	
 				}
 				
-				function updateColumnHeaderTitle(id, text) {					
-					// get a reference to the column
-					var col = gridOptions.columnApi.getColumn(id);
-
-					// obtain the column definition from the column
-					var colDef = col.getColDef();
-
-					// update the header name
-					colDef.headerName = text;
+				function updateColumnHeaderTitle(col, text) {					
+					// update the header name on the column definition
+					col.getColDef().headerName = text;
 
 					// the column is now updated. to reflect the header change, get the grid refresh the header
 					gridOptions.api.refreshHeader();
@@ -4167,7 +4205,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 
 					// TODO can i get rowStyleClassDataprovider from grouped foundset ?
-					if (!isTableGrouped()) {
+					if (!$scope.isGroupView) {
 						var index = rowIndex - foundset.foundset.viewPort.startIndex;
 						// TODO get proper foundset
 						rowStyleClass = $scope.model.rowStyleClassDataprovider[index];
@@ -4217,15 +4255,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					return rowStyleClass;
 				}
 
-				function getCellClass(params) {
-					var column = getDesignColumn(params.colDef.field);
-
-					var cellClass = 'ag-table-cell';
-					if (column.styleClass) cellClass += ' ' + column.styleClass;
-
-					return cellClass;
-				}
-
+				// TODO move closer to convertToFoundSetSortModel
 				/**
 				 * Returns the sort model for the root foundset
 				 *
@@ -4235,21 +4265,23 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					var sortModel = [];
 					var sortColumns = foundset.getSortColumns();
 					
+					var sortColumn;
+					var dataproviderIdForFoundset;
+					var sortDirection;
+					var parts;
+					
 					if (sortColumns) {
 						sortColumns = sortColumns.split(",");
 						
 						for (var i = 0; i < sortColumns.length; i++) {
-							// TODO parse sortColumns into default sort string
-							/** @type {String} */
-							var sortColumn = sortColumns[i];
-							var dataproviderIdForFoundset;
-							var sortDirection;
+							sortColumn = sortColumns[i];
+							
 							
 							if (!sortColumn) {
 								continue;
 							} 
 							
-							var parts = sortColumn.split(' ')
+							parts = sortColumn.split(' ')
 							dataproviderIdForFoundset = parts[0];
 							sortDirection = parts[1];
 							
@@ -4271,20 +4303,63 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				}
 
 				/**
-				 * Returns the column identifier
+				 * The field value can be optionally set on a designColumn through the columnDef object. 
 				 * 
+				 * This is needed for example when wanting to display the value of a certain column as value in an auto group column on leaf rows.
+				 * 
+				 * The field value is also the property by which the AG Grid gets values from the the row objects we provide them (see displayValueGetter and getViewPortRow)
+				 * 
+				 * The getColumnDefs function, which transforms the designcolumns ($scope.model.columns) into columDefs suitable for the AG Grid,
+				 * uses this function to always set a field value, either the optionally provided value or a value derived from the (lazy)dataprovider property
+				 */
+				function getFieldValueForColumn(colIdx, columns) {
+					var column = (columns || $scope.model.columns)[colIdx]
+
+					if (column) {
+						/*
+						 * "':' + colIdx" gets appended to get unique values, if multiple columns share the same dataprovider, but have different data, because one might have a ValueList
+						 * 		Fixes SVY-12553: duplicate dataproviders, one with ValueList attached
+						 * 
+						 * When the developer set column.columnDef.field manually, we do not append "':' + colIdx", because that would invalidate 
+						 */
+						if (column.columnDef && column.columnDef.field) { // allow devs to specify the field through columnDef, as some AG Grid features require passing the field identifier, like the displaying leaf data on autoGroupColumn
+							return column.columnDef.field;
+						} else if (column.dataprovider) {
+							return column.dataprovider.idForFoundset// + ':' + colIdx;
+						} else if (column.lazydataprovider) {
+							return MD5.md5(column.lazydataprovider)// + ':' + colIdx;
+						}
+					}
+					
+					return null;
+				}
+
+				/**
+				 * Returns the 'field' value for an AG Grid column based on the design column object from $scope.model.columns
+				 * 
+				 * The 'field' property on the colDef on the AG Grid side is set ALWAYS using this function
+				 * 
+				 * Note that the colId property of an AG Grid column inherits the value of its 'field' property IF the colId is not explicitly set
+				 * Within this component the colId on the AG Grid column is set to the id property of the design column, if specified
+				 * 
+				 * Hence the colId and field value on an AG Grid column might not be the same!!!
+				 *
 				 * @private
 				 * 
-				 * @param {Object} column
-				 * @param {number} designColumnIndex
+				 * @param {number} designColumnIndex the index of the column within $scope.model.columns
+				 * @param {Array=} columns non-root design columns array
 				 *
 				 * @return {string}
 				 */
-				function getColumnFieldValue(column, designColumnIndex) {
+				function getColumnFieldValue(designColumnIndex, columns) {
+					var column = (columns || $scope.model.columns)[designColumnIndex]
+
 					if (column.columnDef && column.columnDef.field) { // allow devs to specify the field through columnDef, as some AG Grid features require passing the field identifier, like the displaying leaf data on autoGroupColumn
 						return column.columnDef.field;
 					} else if (column.dataprovider) {
-						return column.dataprovider.idForFoundset + ':' + designColumnIndex; // Appending ':' + designColumnIndex fixes SVY-12553: duplicate dataproviders, one with ValueList attached
+						return column.dataprovider.idForFoundset //+ ':' + designColumnIndex; // Appending ':' + designColumnIndex fixes SVY-12553: duplicate dataproviders, one with ValueList attached
+					} else if (column.lazydataprovider) {
+						return MD5.md5(column.lazydataprovider) //+ ':' + designColumnIndex;
 					}
 					
 					return "col_" + designColumnIndex;
@@ -4297,73 +4372,92 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 * 
 				 * @return {Object}
 				 */
-				function getDesignColumn(field, columnsModel) {
-					var fieldToCompare = field;
-					var fieldIdx = 0;
-					
-					// TODO better logic
-					if (field.indexOf('col_') > 0) { // has index
-						var fieldParts = field.split('_');
-						
-						if ('col' !== fieldParts[0] && !isNaN(fieldParts[1])) { // CHECKME 'col' !== looks wrong, shouldn't it be ===?
-							fieldToCompare = fieldParts[0];
-							fieldIdx = parseInt(fieldParts[1]);
-						}
-					}
-					
-					if (!columnsModel && state.columns[field]) { // check if is already cached
-						return state.columns[field];
-					} else {
-						var columns = columnsModel ? columnsModel : $scope.model.columns;
-						
-						for (var i = 0; i < columns.length; i++) {
-							var column = columns[i];
-							
-							if (column.id === fieldToCompare || getColumnID(column, i) === fieldToCompare) {
-								if (fieldIdx < 1) {
-									// cache it in hashmap for quick retrieval
-									if (!columnsModel) state.columns[field] = column;
-									
-									return column;
-								}
-								fieldIdx--;
-							}
-						}
-					}
-				}
-
+//				function getDesignColumn(colId, columns) {
+//					if (!columns && state.columns[colId]) { // check if is already cached
+//						return state.columns[colId];
+//					}
+//
+//					var column = (columns || $scope.model.columns)[getColumnIndex(colId, columns)]
+//
+//					// cache it in hashmap for quick retrieval
+//					if (column && !columns) {
+//						state.columns[colId] = column;
+//					}
+//
+//					return column;
+//				}
+				
 				/**
 				 * Returns the column with the given fieldName
 				 * @param {String} field
 				 * @return {Number}
 				 */
-				function getColumnIndex(field) {
-					var fieldToCompare = field;
-					var fieldIdx = 0;
-					
-					// TODO better logic
-					if (field.indexOf('col_') > 0) { // has index
-						var fieldParts = field.split('_');
-						
-						if ('col' !== fieldParts[0] && !isNaN(fieldParts[1])) {
-							fieldToCompare = fieldParts[0];
-							fieldIdx = parseInt(fieldParts[1]);
-						}
+				function newGetColumnIndex(identifier) {
+					var col;
+
+					if (typeof identifier === 'string') {
+						col = gridOptions.columnApi.getColumn(identifier);
+					} else if (identifier instanceof agGrid.Column) {
+						col = identifier;
+					} else if (identifier && identifier.id) { // Inside getRows/getData, AG Grid doesn't pass full aggrid.Column instances, but plain, stringifyable JavaScript Value Object, see ColumnVO on https://www.ag-grid.com/javascript-grid-server-side-model/ 
+						col = gridOptions.columnApi.getColumn(identifier.id);
 					}
+
+					return col ? gridOptions.columnApi.getAllColumns().indexOf(col) : -1;
+				}
+				
+				function getColumnIndexByField(field) {
+					var columns = gridOptions.columnApi.getAllColumns();
 					
-					var columns = $scope.model.columns;
 					for (var i = 0; i < columns.length; i++) {
-						var column = columns[i];
-						
-						if (column.id === fieldToCompare || getColumnID(column, i) === fieldToCompare) {
-							if (fieldIdx < 1) {
-								return i;
-							}
-							fieldIdx--;
+						if (columns[i].field === field) {
+							return i
 						}
 					}
+					
 					return -1;
 				}
+				
+
+				/**
+				 * Returns the index of the design column for the provided AG Grid colId
+				 *
+				 * @param {string} colId
+				 * @param {Array=} columns columns for non-root foundset Default: $scope.model.columns. Relevant only when needing access to the dataprovider or valueList of the column
+				 * 
+				 * @return {number}
+				 */
+//				function getColumnIndex(colId, columns) {
+//					var idToCompare = colId;
+//					var columnIdx = 0;
+//					var cols = columns || $scope.model.columns;
+//					
+//					var idParts;
+//					var i;
+//					var column;
+//					
+//					// TODO better logic
+//					if (colId.indexOf('col_') > 0) { // has index // CHECKME shouldn't it be === 0?
+//						idParts = colId.split('_');
+//						
+//						if ('col' !== idParts[0] && !isNaN(idParts[1])) { // CHECKME strange logic, shouldn't it be 'col'===?
+//							idToCompare = idParts[0];
+//							idIdx = parseInt(idParts[1]);
+//						}
+//					}
+//					
+//					for (var i = 0; i < cols.length; i++) {
+//						column = cols[i];
+//						
+//						if (column.id === idToCompare || getColumnFieldValue(i, cols) === idToCompare) {
+//							if (columnIdx < 1) {
+//								return i;
+//							}
+//							columnIdx--;
+//						}
+//					}
+//					return -1;
+//				}
 						
 				/**
 				 * Returns the AG Grid colId values for all design columns that have a dataprovider with the provided dataproviderIdForFoundset
@@ -4391,7 +4485,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						
 						if (column.dataprovider && column.dataprovider.idForFoundset === dataproviderIdForFoundset) {
 							// colId on the AG Grid side is set to column.id if provided, otherwise defaults to the .field property, which is always set to getColumnFieldValue(i)
-							result.push(column.id || getColumnFieldValue(column, i))
+							result.push(column.id || getColumnFieldValue(i))
 						}
 					}
 					return result;
@@ -4420,7 +4514,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 						for (i = 0; i < agSortModel.length; i++) {
 							sortModelCol = agSortModel[i];
-							column = getDesignColumn(sortModelCol.colId);
+							column = $scope.model.columns[newGetColumnIndex(sortModelCol.colId)];
 
 							if (!column) {
 								continue
@@ -4430,10 +4524,13 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								sortString += ',';
 							}
 							
-							sortString += column.dataprovider.idForFoundset + ' ' + sortModelCol.sort + '';
+							// generating our own MD5 has of the lazydataprovider: cause the dataprovider property is not set, the idForFoundset value isn't available
+							var idForFoundset = column.dataprovider ? column.dataprovider.idForFoundset : MD5.md5(column.lazydataprovider);
 							
+							sortString += idForFoundset + ' ' + sortModelCol.sort + '';
+
 							sortColumns.push({
-								name: column.dataprovider.idForFoundset,
+								name: idForFoundset,
 								direction: sortModelCol.sort
 							});
 						}
@@ -4449,7 +4546,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 				function storeColumnsState(forceToSave) {
 					var agColumnState = gridOptions.columnApi.getColumnState();
-					var rowGroupColumns = getRowGroupColumns();
+					var rowGroupColumns = gridOptions.columnApi.getRowGroupColumns();
 					var svyRowGroupColumnIds = [];
 					
 					for (var i = 0; i < rowGroupColumns.length; i++) {
@@ -4529,7 +4626,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							
 							for (var j = 0; j < $scope.model.columns.length; j++) {
 								if (($scope.model.columns[j].id && fieldToCompare == $scope.model.columns[j].id) ||
-								($scope.model.columns[j].dataprovider && fieldToCompare == getColumnFieldValue($scope.model.columns[j], j))) {
+								($scope.model.columns[j].dataprovider && fieldToCompare == getColumnFieldValue(j))) { // PB
 										if (fieldIdx < 1) {
 											columnExist = true;
 											break;
@@ -4680,7 +4777,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					//		so the rest of the expansion needs to happen through $scope.state.expanded
 					//		so how to return whether it was succesfull or not? It's async... guess we cannot
 					//							
-					var groupedColumns = getRowGroupColumns();
+					var groupedColumns = gridOptions.columnApi.getRowGroupColumns();
 					var BREAK = 'breakLoop'
 					
 					if (!groupedColumns.length) {
@@ -4721,7 +4818,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					//		setting -1 for defaultGRoupLevel is misusing that setting
 					//		and the whole thing is async offcourse
 					
-					if (getRowGroupColumns().length) {
+					if (gridOptions.columnApi.getRowGroupColumns().length) {
 						// gridOptions.api.expandAll() doesn't work with ServerSide RowModel
 						
 						gridOptions.api.forEachNode(function(node) {
@@ -4737,7 +4834,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				};
 				
 				$scope.api.collapseGroup = function(groupKeys, collapseChildren) {
-					if (getRowGroupColumns().length) {
+					if (gridOptions.columnApi.getRowGroupColumns().length) {
 						
 					}
 				
@@ -4745,7 +4842,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				};
 
 				$scope.api.collapseAll = function() {
-					if (getRowGroupColumns().length) {
+					if (gridOptions.columnApi.getRowGroupColumns().length) {
 						// gridOptions.api.collapseAll() doesn't work with ServerSide RowModel
 						
 						// CHECKME does iterating forward and closing nodes work?
@@ -4789,11 +4886,15 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 */
 				$scope.api.getGroupedSelection = function() {
 					var groupedSelection = null;
-					if (isTableGrouped()) {
+					
+					if ($scope.isGroupView) {
 						groupedSelection = [];
+						
 						var selectedNodes = gridOptions.api.getSelectedNodes();
+						
 						for (var i = 0; i < selectedNodes.length; i++) {
 							var node = selectedNodes[i];
+							
 							if (node) {
 								groupedSelection.push({ foundsetId: node.data._svyFoundsetUUID, _svyRowId: node.data._svyRowId });
 							}
@@ -4839,17 +4940,16 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 * @param columnindex column index in the model of the editing cell (0-based)
 				 */
 				$scope.api.editCellAt = function(foundsetindex, columnindex) {
-					if (isTableGrouped()) {
+					if ($scope.isGroupView) {
 						$log.warn('editCellAt API is not supported in grouped mode');
 					} else if (foundsetindex < 1) {
 						$log.warn('editCellAt API, invalid foundsetindex:' + foundsetindex);
 					} else if (columnindex < 0 || columnindex > $scope.model.columns.length - 1) {
 						$log.warn('editCellAt API, invalid columnindex:' + columnindex);
 					} else {
-						var	colId = getColumnFieldValue($scope.model.columns[columnindex], columnindex);
 						gridOptions.api.startEditingCell({
 							rowIndex: foundsetindex - 1,
-							colKey: colId
+							colKey: gridOptions.columnApi.getAllColumns()[columnIndex]
 						});
 					}
 				}
