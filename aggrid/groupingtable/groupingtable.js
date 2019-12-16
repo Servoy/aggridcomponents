@@ -961,6 +961,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							designColumn = $scope.model.columns[i];
 							colId = allColumns[i].colId;
 
+							if (column.hasOwnProperty('rowGroupIndex')) {
+								column.rowGroupIndex = -1;
+							}
+
 							// if a field was used for the autoGroupColumnDef, make sure a column using the same field is made visible again after ungroup
 							if (autoColumnGroupField && designColumn.columnDef && designColumn.columnDef.field === autoColumnGroupField) {
 								colIdsToMakeVisible.push(colId);
@@ -1012,8 +1016,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							var isGroupedBy = state.rowGroupColIds.indexOf(colId) !== -1;
 							var wasGroupedBy = oldGroupedColIds.indexOf(colId) !== -1;
 							var hideBecauseFieldSharedWithAutoColumnGroup = false
+							var newGroupIndex = state.rowGroupColIds.indexOf(colId);
 
 							var newVisibility;
+							
+							designColumn.rowGroupIndex = newGroupIndex; // persist
 
 							if (autoColumnGroupField && designColumn.columnDef) {
 								hideBecauseFieldSharedWithAutoColumnGroup = designColumn.columnDef.field === autoColumnGroupField && wasUngrouped;

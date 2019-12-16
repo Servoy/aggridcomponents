@@ -15,7 +15,7 @@
 	"model":
 	{
 		"myFoundset": {"type": "foundset", "default" : {"foundsetSelector":""}, "pushToServer" : "allow" ,"initialPreferredViewPortSize": 50, "sendSelectionViewportInitially": true },
-		"columns": { "type": "column[]", "default": [], "droppable" : true, "pushToServer": "reject"},
+		"columns": { "type": "column[]", "default": [], "droppable" : true, "pushToServer": "shallow"},
 		"columnState": { "type": "string", "tags": {"scope" : "private"}, "pushToServer": "allow"},
 		"columnStateOnError": { "type": "function", "tags": {"scope" : "private"}},
 		"checkboxSelection": {"type": "boolean", "default" : false},

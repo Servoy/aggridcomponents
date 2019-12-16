@@ -821,6 +821,12 @@ $scope.api.getSelectedRecordFoundSet = function() {
 				for (var i = 0; i < keys.length; i++) {
 					var key = keys[i];
 					var child = groupState.children[key];
+					
+					// Hack for issue in Servoy where it seems you cannot access integer keys like "206. Looks like the Object isn't a real JavaScript object
+					if (!child) {
+						child = JSON.parse(JSON.stringify(groupState.children))[key];
+					}
+					
 					var childCondition = condition.root.and
 					childrenCondition.add(childCondition)
 
