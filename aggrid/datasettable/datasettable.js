@@ -368,8 +368,47 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
 					// and that will broke our getColumn()
 					gridOptions.api.setColumnDefs([]);
 					gridOptions.api.setColumnDefs(getColumnDefs());
+                    for (var i = 0; i < $scope.model.columns.length; i++) {
+                        watchColumnHeaderTitle(i);
+                    }
                 }
             });
+
+			function watchColumnHeaderTitle(index) {
+			    var columnWatch = $scope.$watch("model.columns[" + index + "]['headerTitle']",
+				function(newValue, oldValue) {
+					if(newValue != oldValue) {
+                        $log.debug('header title column property changed');
+                        
+						var column = $scope.model.columns[index];
+						var colId = column.id;
+						if (!colId) {
+							colId = getColumnID(column, index);
+						}
+								
+						if (!colId) {
+							$log.warn("cannot update header title for column at position index " + index);
+							return;
+						}
+						updateColumnHeaderTitle(colId, newValue);
+				    }
+				});
+            }
+                
+			function getColumnID(column, idx) {					
+				if (column.dataprovider) {
+					return column.dataprovider.idForFoundset + ':' + idx;
+				} else {
+					return "col_" + idx;
+				}
+            }
+                
+            function updateColumnHeaderTitle(id, text) {			
+				var col = gridOptions.columnApi.getColumn(id);
+				var colDef = col.getColDef();
+				colDef.headerName = text;
+				gridOptions.api.refreshHeader();
+			}
 
             $scope.$watch("model._internalColumnState", function(newValue, oldValue) {
                 if(isGridReady && (newValue !== "_empty")) {
