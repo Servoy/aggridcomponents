@@ -388,7 +388,7 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
 
             function getDefaultCellRenderer(column) {
                 return function(params) {
-                    var value = params.value;
+                    var value = params.value === undefined ? "" : params.value;
                     var valueFormatted = params.valueFormatted != null ? params.valueFormatted : value;
                     
                     var returnValueFormatted = false;
