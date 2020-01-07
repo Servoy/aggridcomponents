@@ -526,7 +526,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						if(event.visible && event.columns && event.columns.length) {
 							var hiddenColumns = [];
 							for(var i = 0; i < event.columns.length; i++) {
-								if(event.columns[i].colDef.hide) {
+								// always hide Ghost columns such as _svyRowId and _svyFoundsetUUID
+								if(event.columns[i].colDef.hide && (event.columns[i].colDef.suppressToolPanel || event.columns[i].colDef.suppressColumnsToolPanel) && event.columns[i].colDef.suppressMenu) {
 									hiddenColumns.push(event.columns[i]);
 								}
 							}
