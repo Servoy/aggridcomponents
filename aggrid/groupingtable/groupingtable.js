@@ -3555,14 +3555,16 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						// sort changed
 						$log.debug("Change Sort Model " + newSort);
 	
-						/** TODO check with R&D, sortColumns is updated only after the viewPort is update or there could be a concurrency race. When i would know when sort is completed ? */
-						if (newSort != oldSort) {
-							$log.debug('myFoundset sort changed ' + newSort);
-							gridOptions.api.setSortModel(getSortModel());
-							gridOptions.api.purgeServerSideCache();
-							isSelectionReady = false;
-						} else if (newSort == oldSort && !newSort && !oldSort) {
-							$log.warn("this should not be happening");
+						if(newSort) {
+							/** TODO check with R&D, sortColumns is updated only after the viewPort is update or there could be a concurrency race. When i would know when sort is completed ? */
+							if (newSort != oldSort) {
+								$log.debug('myFoundset sort changed ' + newSort);
+								gridOptions.api.setSortModel(getSortModel());
+								gridOptions.api.purgeServerSideCache();
+								isSelectionReady = false;
+							} else if (newSort == oldSort && !newSort && !oldSort) {
+								$log.warn("this should not be happening");
+							}
 						}
 						// do nothing else after a sort ?
 						// sort should skip purge
