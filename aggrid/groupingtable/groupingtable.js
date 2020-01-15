@@ -2181,6 +2181,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							foundsetSortModel = getFoundsetSortModel(sortModel)
 							sortPromise = foundsetRefManager.sort(foundsetSortModel.sortColumns);
 							sortPromise.then(function() {
+								gridOptions.api.setSortModel(getSortModel());
 								getDataFromFoundset(foundsetRefManager);
 								// give time to the foundset change listener to know it was a client side requested sort
 								setTimeout(function() {
@@ -3539,32 +3540,29 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						return;
 					}
 
-					if (sortPromise) {
-						$log.debug('sort has been requested clientside, no need to update the changeListener');
-						return;
-					}
-
 					// Floor
 					var idRandom = Math.floor(1000 * Math.random());
 
 					if (change[$foundsetTypeConstants.NOTIFY_SORT_COLUMNS_CHANGED]) {
 						$log.debug(idRandom + ' - 1. Sort');
+						if (sortPromise) {
+							$log.debug('sort has been requested clientside, no need to update the changeListener');
+							return;
+						}
 						var newSort = change[$foundsetTypeConstants.NOTIFY_SORT_COLUMNS_CHANGED].newValue;
 						var oldSort = change[$foundsetTypeConstants.NOTIFY_SORT_COLUMNS_CHANGED].oldValue;
 
 						// sort changed
 						$log.debug("Change Sort Model " + newSort);
 	
-						if(newSort) {
-							/** TODO check with R&D, sortColumns is updated only after the viewPort is update or there could be a concurrency race. When i would know when sort is completed ? */
-							if (newSort != oldSort) {
-								$log.debug('myFoundset sort changed ' + newSort);
-								gridOptions.api.setSortModel(getSortModel());
-								gridOptions.api.purgeServerSideCache();
-								isSelectionReady = false;
-							} else if (newSort == oldSort && !newSort && !oldSort) {
-								$log.warn("this should not be happening");
-							}
+						/** TODO check with R&D, sortColumns is updated only after the viewPort is update or there could be a concurrency race. When i would know when sort is completed ? */
+						if (newSort != oldSort) {
+							$log.debug('myFoundset sort changed ' + newSort);
+							gridOptions.api.setSortModel(getSortModel());
+							gridOptions.api.purgeServerSideCache();
+							isSelectionReady = false;
+						} else if (newSort == oldSort && !newSort && !oldSort) {
+							$log.warn("this should not be happening");
 						}
 						// do nothing else after a sort ?
 						// sort should skip purge
