@@ -513,6 +513,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							groupManager.removeFoundsetRefAtLevel(0);
 							gridOptions.api.purgeServerSideCache();
 						}
+						if($scope.handlers.onSort) {
+							var sortModel = gridOptions.api.getSortModel();
+							if(sortModel && sortModel[0]) {
+								var sortColumn = getColumnIndex(sortModel[0].colId);
+								var sortColumnDirection = sortModel[0].sort;
+								$scope.handlers.onSort(sortColumn, sortColumnDirection);
+							}
+						}
 					},
 //	                onColumnVisible: storeColumnsState,			 covered by onDisplayedColumnsChanged
 //	                onColumnPinned: storeColumnsState,			 covered by onDisplayedColumnsChanged
@@ -2218,7 +2226,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						var currentGridSort = getFoundsetSortModel(gridOptions.api.getSortModel());
 						var foundsetSort = foundsetRefManager.getSortColumns();
 						// if not sorting on a group column
-						if (rowGroupCols.length === groupKeys.length && sortString && sortString != foundsetSort
+						if (!$scope.handlers.onSort && rowGroupCols.length === groupKeys.length && sortString && sortString != foundsetSort
 							&& currentGridSort.sortString != foundsetSort) { // if is a group column and sort string is different
 							$log.debug('CHANGE SORT REQUEST');
 							foundsetSortModel = getFoundsetSortModel(sortModel)
@@ -3603,7 +3611,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						/** TODO check with R&D, sortColumns is updated only after the viewPort is update or there could be a concurrency race. When i would know when sort is completed ? */
 						if (newSort != oldSort) {
 							$log.debug('myFoundset sort changed ' + newSort);
-							gridOptions.api.setSortModel(getSortModel());
+							// could be already set when clicking sort on header and there is an onsort handler, so skip reseting it, to avoid a new onsort call
+							if((JSON.stringify(gridOptions.api.getSortModel()) != JSON.stringify(getSortModel()))) {
+								gridOptions.api.setSortModel(getSortModel());
+							}
 							gridOptions.api.purgeServerSideCache();
 							isSelectionReady = false;
 						} else if (newSort == oldSort && !newSort && !oldSort) {

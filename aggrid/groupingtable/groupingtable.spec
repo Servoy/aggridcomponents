@@ -169,7 +169,19 @@
 				"type": "object",
 				"optional": true
 			}]
-		}	
+		},
+		"onSort": {
+			"description": "Called when sort has changed",
+			"parameters": [{
+				"name": "columnindex",
+				"type": "int",
+				"optional": true
+			}, {
+				"name": "sort",
+				"type": "string",
+				"optional": true
+			}]
+		}
 	}, 
 	"api" : {
 		"notifyDataChange" : {
