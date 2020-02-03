@@ -149,7 +149,7 @@
 				"type": "JSEvent",
 				"optional": true
 			}],
-			"returns": "boolean"
+			"returns": {"type": "boolean", "default": true}
 		},
 		"onReady": {
 			"description": "Called when the table is ready to be shown"

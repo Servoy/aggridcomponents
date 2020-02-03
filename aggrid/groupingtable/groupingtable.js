@@ -1719,53 +1719,57 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						}
 						var realValue = displayValue;
 
-						var vl = getValuelist(this.params);
-						if (vl) {
+						if(this.editType == 'TYPEAHEAD') {
+							var vl = getValuelist(this.params);
+							if (vl) {
 
-							var findDisplayValue = function(vl, displayValue) {
-								for (var i = 0; i < vl.length; i++) {
-									// compare trimmed values, typeahead will trim the selected value
-									if ($.trim(displayValue) === $.trim(vl[i].displayValue)) {
-										return { hasMatchingDisplayValue: true, realValue: vl[i].realValue };
-									}
-								}
-								return null;
-							}
-
-							var hasMatchingDisplayValue = false;
-							var fDisplayValue = findDisplayValue(vl, displayValue);
-							if(fDisplayValue == null) {
-								// try to find it also on this.valuelist, that is filtered with "" to get all entries
-								vl = this.valuelist;
-								fDisplayValue = findDisplayValue(vl, displayValue);
-							}
-							if(fDisplayValue != null) {
-								hasMatchingDisplayValue = fDisplayValue['hasMatchingDisplayValue'];
-								realValue = fDisplayValue['realValue'];
-							}
-
-							if (!hasMatchingDisplayValue)
-							{
-								if (this.hasRealValues) 
-								{
-									// if we still have old value do not set it to null or try to  get it from the list.
-									if (this.initialValue != null && this.initialValue !== displayValue)
-									{
-										// so invalid thing is typed in the list and we are in real/display values, try to search the real value again to set the display value back.
+								var findDisplayValue = function(vl, displayValue) {
+									if(vl) {
 										for (var i = 0; i < vl.length; i++) {
 											// compare trimmed values, typeahead will trim the selected value
-											if ($.trim(this.initialValue) === $.trim(vl[i].displayValue)) {
-												realValue = vl[i].realValue;
-												break;
+											if ($.trim(displayValue) === $.trim(vl[i].displayValue)) {
+												return { hasMatchingDisplayValue: true, realValue: vl[i].realValue };
 											}
 										}
-									}	
-									// if the dataproviderid was null and we are in real|display then reset the value to ""
-									else if(this.initialValue == null) {
-										displayValue = realValue = "";
 									}
+									return null;
 								}
-							}	
+
+								var hasMatchingDisplayValue = false;
+								var fDisplayValue = findDisplayValue(vl, displayValue);
+								if(fDisplayValue == null) {
+									// try to find it also on this.valuelist, that is filtered with "" to get all entries
+									vl = this.valuelist;
+									fDisplayValue = findDisplayValue(vl, displayValue);
+								}
+								if(fDisplayValue != null) {
+									hasMatchingDisplayValue = fDisplayValue['hasMatchingDisplayValue'];
+									realValue = fDisplayValue['realValue'];
+								}
+
+								if (!hasMatchingDisplayValue)
+								{
+									if (this.hasRealValues) 
+									{
+										// if we still have old value do not set it to null or try to  get it from the list.
+										if (this.initialValue != null && this.initialValue !== displayValue)
+										{
+											// so invalid thing is typed in the list and we are in real/display values, try to search the real value again to set the display value back.
+											for (var i = 0; i < vl.length; i++) {
+												// compare trimmed values, typeahead will trim the selected value
+												if ($.trim(this.initialValue) === $.trim(vl[i].displayValue)) {
+													realValue = vl[i].realValue;
+													break;
+												}
+											}
+										}	
+										// if the dataproviderid was null and we are in real|display then reset the value to ""
+										else if(this.initialValue == null) {
+											displayValue = realValue = "";
+										}
+									}
+								}	
+							}
 						}
 
 						return {displayValue: displayValue, realValue: realValue};
