@@ -744,7 +744,19 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 * @private
 				 *
 				 * */
+				var onSelectionChangedTimeout = null;
+				var requestSelectionPromises = new Array();
 				function onSelectionChanged(event) {
+					if(onSelectionChangedTimeout) {
+						clearTimeout(onSelectionChangedTimeout);
+					}
+					onSelectionChangedTimeout = setTimeout(function() {
+						onSelectionChangedTimeout = null;
+						onSelectionChangedEx();
+					}, 250);
+				}
+
+				function onSelectionChangedEx() {
 					
 					// Don't trigger foundset selection if table is grouping
 					if (isTableGrouped()) {
@@ -795,9 +807,13 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 										foundsetIndexes = foundsetIndexes.slice(0, 1);
 									}
 							}
-							foundset.foundset.requestSelectionUpdate(foundsetIndexes).then(
+							var requestSelectionPromise = foundset.foundset.requestSelectionUpdate(foundsetIndexes);
+							requestSelectionPromises.push(requestSelectionPromise);
+							requestSelectionPromise.then(
 								function(serverRows){
-									
+									if(requestSelectionPromises.shift() != requestSelectionPromise) {
+										$log.error('requestSelectionPromises out of sync');
+									}
 				                    // Trigger event on selection change
 				                    if ($scope.handlers.onSelectedRowsChanged) {
 				                        $scope.handlers.onSelectedRowsChanged();
@@ -806,6 +822,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 									//success
 								},
 								function(serverRows){
+									if(requestSelectionPromises.shift() != requestSelectionPromise) {
+										$log.error('requestSelectionPromises out of sync');
+									}
 									//canceled 
 									if (typeof serverRows === 'string'){
 										return;
@@ -3666,7 +3685,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 
 					// gridOptions.api.purgeEnterpriseCache();
-					if (change[$foundsetTypeConstants.NOTIFY_SELECTED_ROW_INDEXES_CHANGED]) {
+					if (change[$foundsetTypeConstants.NOTIFY_SELECTED_ROW_INDEXES_CHANGED] && !requestSelectionPromises.length) {
 						$log.debug(idRandom + ' - 3. Request selection changed');
 						selectedRowIndexesChanged();
 					}
@@ -3682,17 +3701,15 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						return;
 					}
 
-					// clear selection
-					var selectedNodes = gridOptions.api.getSelectedNodes();
-					for (var i = 0; i < selectedNodes.length; i++) {
-						selectedNodes[i].setSelected(false);
-					}
+					// old selection
+					var oldSelectedNodes = gridOptions.api.getSelectedNodes();
 
 					// CHANGE Seleciton
 					if (!foundsetManager) {
 						foundsetManager = foundset;
 					}
 
+					var selectedNodes = new Array();
 					for(var i = 0; i < foundsetManager.foundset.selectedRowIndexes.length; i++) {
 
 						var rowIndex = foundsetManager.foundset.selectedRowIndexes[i] - foundsetManager.foundset.viewPort.startIndex;
@@ -3707,10 +3724,22 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 							var node = gridOptions.api.getRowNode(foundsetManager.foundsetUUID + "_" + foundsetManager.foundset.selectedRowIndexes[i]);
 							if (node) {
-								node.setSelected(true);
+								selectedNodes.push(node);
 							}
 						} else {
 							// TODO selected record is not in viewPort: how to render it ?
+						}
+					}
+
+					for (var i = 0; i < oldSelectedNodes.length; i++) {
+						if(selectedNodes.indexOf(oldSelectedNodes[i]) == -1) {
+							oldSelectedNodes[i].setSelected(false);
+						}
+					}
+
+					for (var i = 0; i < selectedNodes.length; i++) {
+						if(oldSelectedNodes.indexOf(selectedNodes[i]) == -1) {
+							selectedNodes[i].setSelected(true);
 						}
 					}
 				}
