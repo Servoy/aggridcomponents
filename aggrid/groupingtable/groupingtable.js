@@ -722,7 +722,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							}
 						}
 						else {
-							onCellClicked(params);
+							// Added setTimeOut to enable onColumnDataChangeEvent to go first
+							setTimeout(function() {
+								onCellClicked(params);
+							}, 250);
 						}
 					}
 				}
