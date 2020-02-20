@@ -4785,6 +4785,39 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 ***********************************************************************************************************************************/
 
 				/**
+				 * Return the column index for the given column id.
+				 * Can be used in combination with getColumnState to retrieve the column index for the column state with colId in the columnState object.
+				 * 
+				 * @param {String} colId
+				 * 
+				 * @return {Number}
+				 * @example <pre>
+				 * // get the state
+				 * var state = elements.table.getColumnState();
+				 * // parse the state of each column
+				 * var columnsState = JSON.parse(state).columnState;
+				 *
+				 * for (var index = 0; index < columnsState.length; index++) {
+				 * 
+				 *   // skip column hidden by the user
+				 *   if (!columnsState[index].hide) {
+				 * 
+				 * 	  // get the column using the colId of the columnState
+				 * 	  var columnIndex = elements.table.getColumnIndex(columnsState[index].colId);
+				 * 		if (columnIndex > -1) {
+				 * 		  var column = elements.table.getColumn(columnIndex);
+				 * 		  // do something with column				
+				 * 		}
+				 * 	}
+				 * }
+				 * </pre>
+				 * @public
+				 * */
+				$scope.api.getColumnIndex = function(colId) {
+					return getColumnIndex(colId);
+				}
+				
+				/**
 				 * Notify the component about a data change. Makes the component aware of a data change that requires a refresh data.
 				 * Call this method when you are aware of a relevant data change in the foundset which may affect data grouping (e.g. group node created or removed).
 				 * The component will alert the user of the data change and will suggest the user to perform a refresh.

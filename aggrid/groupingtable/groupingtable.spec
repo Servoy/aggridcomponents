@@ -212,6 +212,13 @@
 			}],
 	        "returns": "column"
 	    },
+	    "getColumnIndex" : {
+			"parameters": [{
+				"name": "colId",
+				"type": "string"
+			}],
+			"returns": "int"
+		},
 	    "newColumn": {
 		    "parameters": [{
 		      	"name": "dataprovider",
