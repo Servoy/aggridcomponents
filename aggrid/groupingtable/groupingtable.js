@@ -621,18 +621,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					gridOptions.getRowClass = getRowClass;
 				}
 
-				// https://www.ag-grid.com/javascript-grid-icons/#gsc.tab=0
-				var icons = new Object();
-
-				// set the icons
-				if ($.isEmptyObject(iconConfig)) {
-					// set the default icons
-					iconConfig = {
-						iconGroupExpanded: 'glyphicon glyphicon-minus ag-icon',
-						iconGroupContracted: 'glyphicon glyphicon-plus ag-icon'
-					};
-				}
-
 				// set all custom icons
 	            if (iconConfig) {
 	                var icons = new Object();

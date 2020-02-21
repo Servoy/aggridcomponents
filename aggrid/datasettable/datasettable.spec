@@ -239,8 +239,8 @@
 			"iconSortDescending": { "type": "styleclass", "tags": {"scope": "design"}},
 			"iconSortUnSort": { "type": "styleclass", "tags": {"scope": "design"}},
 			
-			"iconGroupExpanded": { "type": "styleclass", "default" : "glyphicon glyphicon-minus ag-icon", "tags": {"scope": "design"}},
-			"iconGroupContracted": { "type": "styleclass", "default" : "glyphicon glyphicon-plus ag-icon", "tags": {"scope": "design"}},
+			"iconGroupExpanded": { "type": "styleclass", "tags": {"scope": "design"}},
+			"iconGroupContracted": { "type": "styleclass", "tags": {"scope": "design"}},
 			"iconColumnGroupOpened": { "type": "styleclass", "tags": {"scope": "design"}},
 			"iconColumnGroupClosed": { "type": "styleclass", "tags": {"scope": "design"}},
 			"iconColumnSelectOpen": { "type": "styleclass", "tags": {"scope": "design"}},
