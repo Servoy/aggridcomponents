@@ -2344,6 +2344,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					var datasource = new FoundsetDatasource(foundsetServer);
 					gridOptions.api.setServerSideDatasource(datasource);
 					isSelectionReady = false;
+					scrollToSelectionWhenSelectionReady = true;
 				}
 
 				/**************************************************************************************************
@@ -3631,6 +3632,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							}
 							gridOptions.api.purgeServerSideCache();
 							isSelectionReady = false;
+							scrollToSelectionWhenSelectionReady = true;
 						} else if (newSort == oldSort && !newSort && !oldSort) {
 							$log.warn("this should not be happening");
 						}
