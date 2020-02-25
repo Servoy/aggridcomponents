@@ -984,7 +984,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 										invalidCellDataIndex.colKey = colId;
 									}
 									var editCells = gridOptions.api.getEditingCells();
-									if(!editCells.length || (editCells[0].rowIndex != rowIndex || editCells[0].column.colId != colId)) {
+									if(isSelectionReady && (!editCells.length || (editCells[0].rowIndex != rowIndex || editCells[0].column.colId != colId))) {
 										gridOptions.api.stopEditing();
 										gridOptions.api.startEditingCell({
 											rowIndex: rowIndex,
@@ -1003,7 +1003,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 									invalidCellDataIndex.rowIndex = -1;
 									invalidCellDataIndex.colKey = '';
 									var editCells = gridOptions.api.getEditingCells();
-									if(editCells.length == 0 && currentEditCells.length != 0) {
+									if(isSelectionReady && editCells.length == 0 && currentEditCells.length != 0) {
 										gridOptions.api.startEditingCell({
 											rowIndex: currentEditCells[0].rowIndex,
 											colKey: currentEditCells[0].column.colId
