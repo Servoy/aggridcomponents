@@ -143,6 +143,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					gridOptions.api.purgeServerSideCache();
 					$scope.dirtyCache = false;
 					isSelectionReady = false;
+					scrollToSelectionWhenSelectionReady = true;
 					// $log.warn('purge cache');
 
 					// TODO expand previously expanded rows
@@ -3752,9 +3753,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							var offset = foundsetManager.foundset.selectedRowIndexes[0] % CHUNK_SIZE
 							var virtualRowCount = foundsetManager.foundset.selectedRowIndexes[0] + (CHUNK_SIZE - offset);
 
-							if(virtualRowCount > model.rootNode.childrenCache.getVirtualRowCount() &&
-								virtualRowCount <= foundsetManager.foundset.serverSize) {
-								model.rootNode.childrenCache.setVirtualRowCount(virtualRowCount);
+							if(virtualRowCount > model.rootNode.childrenCache.getVirtualRowCount()) {
+								var newVirtualRowCount = Math.min(virtualRowCount, foundsetManager.foundset.serverSize);
+								var maxRowFound = newVirtualRowCount == foundsetManager.foundset.serverSize;
+								model.rootNode.childrenCache.setVirtualRowCount(newVirtualRowCount, maxRowFound);
 							}
 						}
 						gridOptions.api.ensureIndexVisible(foundsetManager.foundset.selectedRowIndexes[0]);
