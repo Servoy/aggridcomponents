@@ -130,7 +130,18 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 * */
 				var AgDataRequestType;
 
-				$scope.purge = function(count) {
+				$scope.purge = function() {
+					if(onSelectionChangedTimeout) {
+						setTimeout(function() {
+							purgeImpl();
+						}, 250);
+					}
+					else {
+						purgeImpl();
+					}
+				}
+
+				function purgeImpl() {
 					//console.log(gridOptions.api.getInfinitePageState())
 
 					// an hard refresh is necessary to show the groups
@@ -139,6 +150,12 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 					// reset root foundset
 					foundset.foundset = $scope.model.myFoundset;
+
+					var currentEditCells = gridOptions.api.getEditingCells();
+					if(currentEditCells.length != 0) {
+						startEditFoundsetIndex = currentEditCells[0].rowIndex + 1;
+						startEditColumnIndex = getColumnIndex(currentEditCells[0].column.colId);
+					}
 
 					gridOptions.api.purgeServerSideCache();
 					$scope.dirtyCache = false;
@@ -3799,8 +3816,12 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						return needPurge;
 					}
 					
-					for (var i = 0; i < rowUpdates.length; i++) {
-						var rowUpdate = rowUpdates[i];
+					var rowUpdatesSorted = rowUpdates.sort(function(a, b) {
+						return b.type - a.type;
+					});
+
+					for (var i = 0; i < rowUpdatesSorted.length; i++) {
+						var rowUpdate = rowUpdatesSorted[i];
 						switch (rowUpdate.type) {
 						case $foundsetTypeConstants.ROWS_CHANGED:
 							for (var j = rowUpdate.startIndex; j <= rowUpdate.endIndex; j++) {
@@ -3814,6 +3835,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						default:
 							break;
 						}
+						if(needPurge) break;
 						// TODO can update single rows ?
 					}
 
