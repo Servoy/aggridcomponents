@@ -1855,8 +1855,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 						var editFormat = 'MM/dd/yyyy hh:mm a';
 						var column = getColumn(params.column.colId);
-						if(column && column.format && column.format.edit) {
-							editFormat = column.format.edit;
+						if(column && column.format) {
+							editFormat = column.format.edit ? column.format.edit : column.format.display;
 						}
 						var theDateTimePicker = $(this.eInput).data('DateTimePicker');
 						theDateTimePicker.format(moment().toMomentFormatString(editFormat));
