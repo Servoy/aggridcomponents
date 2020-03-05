@@ -314,6 +314,31 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 				// foundset sort promise
 				var sortPromise;
+				var sortHandlerPromises = new Array();
+				var sortHandlerTimeout;
+				function onSortHandler() {
+					var sortModel = gridOptions.api.getSortModel();
+					if(sortModel && sortModel[0]) {
+						var sortColumn = getColumnIndex(sortModel[0].colId);
+						var sortColumnDirection = sortModel[0].sort;
+						var sortHandlerPromise = $scope.handlers.onSort(sortColumn, sortColumnDirection);
+						sortHandlerPromises.push(sortHandlerPromise);
+						sortHandlerPromise.then(
+							function(){
+								// success
+								if(sortHandlerPromises.shift() != sortHandlerPromise) {
+									$log.error('sortHandlerPromises out of sync');
+								}
+							},
+							function(){
+								// fail
+								if(sortHandlerPromises.shift() != sortHandlerPromise) {
+									$log.error('sortHandlerPromises out of sync');
+								}
+							}
+						);
+					}
+				}
 
 				// formatFilter function
 				var formatFilter = $filter("formatFilter");
@@ -532,12 +557,13 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							gridOptions.api.purgeServerSideCache();
 						}
 						if($scope.handlers.onSort) {
-							var sortModel = gridOptions.api.getSortModel();
-							if(sortModel && sortModel[0]) {
-								var sortColumn = getColumnIndex(sortModel[0].colId);
-								var sortColumnDirection = sortModel[0].sort;
-								$scope.handlers.onSort(sortColumn, sortColumnDirection);
+							if(sortHandlerTimeout) {
+								clearTimeout(sortHandlerTimeout);
 							}
+							sortHandlerTimeout = setTimeout(function() {
+								sortHandlerTimeout = null;
+								onSortHandler();
+							}, 250);
 						}
 					},
 //	                onColumnVisible: storeColumnsState,			 covered by onDisplayedColumnsChanged
@@ -2129,7 +2155,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 
 					var thisFoundsetDatasource = this;
-					$q.all(filterPromises).then(function() {
+					var allPromisses = sortHandlerPromises.concat(filterPromises);
+					$q.all(allPromisses).then(function() {
 						thisFoundsetDatasource.foundsetServer.getData(params.request, groupKeys,
 							function successCallback(resultForGrid, lastRow) {
 								params.successCallback(resultForGrid, lastRow);
@@ -3646,7 +3673,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						if (newSort != oldSort) {
 							$log.debug('myFoundset sort changed ' + newSort);
 							// could be already set when clicking sort on header and there is an onsort handler, so skip reseting it, to avoid a new onsort call
-							if((JSON.stringify(gridOptions.api.getSortModel()) != JSON.stringify(getSortModel()))) {
+							if(sortHandlerPromises.length == 0) {
 								gridOptions.api.setSortModel(getSortModel());
 							}
 							gridOptions.api.purgeServerSideCache();
