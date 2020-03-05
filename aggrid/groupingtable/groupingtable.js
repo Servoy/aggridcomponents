@@ -1928,6 +1928,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 					// returns the new value after editing
 					Datepicker.prototype.getValue = function() {
+						$(this.eInput).change();
 						var theDateTimePicker = $(this.eInput).data('DateTimePicker');
 						var selectedDate = theDateTimePicker.date();
 						return selectedDate ? selectedDate.toDate() : null;
