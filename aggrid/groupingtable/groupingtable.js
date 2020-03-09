@@ -2304,7 +2304,17 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 						} else {
 							// set the grid sorting if foundset sort changed from the grid initialization (like doing foundset sort on form's onShow)
+							var needSort = false;
 							if(!isSelectionReady && isSortChanged) {
+								var newSortModel = getSortModel();
+								for(var i = 0; i < newSortModel.length; i++) {
+									if(gridOptions.columnApi.getColumn(newSortModel[i].colId).getColDef().sortable) {
+										needSort = true;
+										break;
+									}
+								}
+							}
+							if(needSort) {
 								gridOptions.api.setSortModel(getSortModel());
 								gridOptions.api.purgeServerSideCache();
 							}
