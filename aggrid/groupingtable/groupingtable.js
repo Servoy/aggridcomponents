@@ -2285,9 +2285,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 						var currentGridSort = getFoundsetSortModel(gridOptions.api.getSortModel());
 						var foundsetSort = foundsetRefManager.getSortColumns();
+						var isSortChanged = !$scope.handlers.onSort && rowGroupCols.length === groupKeys.length && sortString != foundsetSort
+						&& currentGridSort.sortString != foundsetSort;
 						// send sort request if header is clicked; skip if is is not from UI (isSelectionReady == false) or if it from a sort handler or a group column sort
-						if (isSelectionReady && !$scope.handlers.onSort && rowGroupCols.length === groupKeys.length && sortString != foundsetSort
-							&& currentGridSort.sortString != foundsetSort) { // if is a group column and sort string is different
+						if (isSelectionReady && isSortChanged) { // if is a group column and sort string is different
 							$log.debug('CHANGE SORT REQUEST');
 							foundsetSortModel = getFoundsetSortModel(sortModel)
 							sortPromise = foundsetRefManager.sort(foundsetSortModel.sortColumns);
@@ -2302,7 +2303,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							});
 
 						} else {
-							getDataFromFoundset(foundsetRefManager);
+							// set the grid sorting if foundset sort changed from the grid initialization (like doing foundset sort on form's onShow)
+							if(!isSelectionReady && isSortChanged) {
+								gridOptions.api.setSortModel(getSortModel());
+								gridOptions.api.purgeServerSideCache();
+							}
+							else {
+								getDataFromFoundset(foundsetRefManager);
+							}
 						}
 					}
 
