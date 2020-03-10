@@ -1071,6 +1071,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 * @private
 				 * */
 				function onCellDoubleClicked(params) {
+					setTimeout(function() {
+						onCellDoubleClickedEx(params);
+					}, 250);
+				}
+				function onCellDoubleClickedEx(params) {
 					$log.debug(params);
 					if ($scope.handlers.onCellDoubleClick && !params.node.rowPinned) {
 						//						var row = params.data;
