@@ -2289,21 +2289,20 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						&& currentGridSort.sortString != foundsetSort;
 
 						if(isSortChanged) {
+							$log.debug('CHANGE SORT REQUEST');
 							var isColumnSortable = false;
-							if(!isSelectionReady && isSortChanged) {
-								var newSortModel = getSortModel();
-								for(var i = 0; i < newSortModel.length; i++) {
-									if(gridOptions.columnApi.getColumn(newSortModel[i].colId).getColDef().sortable) {
-										isColumnSortable = true;
-										break;
-									}
+							// check sort columns in both the reques and model, because it is disable in the grid, it will be only in the model
+							var sortColumns = sortModel.concat(getSortModel());
+							for(var i = 0; i < sortColumns.length; i++) {
+								if(gridOptions.columnApi.getColumn(sortColumns[i].colId).getColDef().sortable) {
+									isColumnSortable = true;
+									break;
 								}
 							}
 
 							if(isColumnSortable) {
 								// send sort request if header is clicked; skip if is is not from UI (isSelectionReady == false) or if it from a sort handler or a group column sort
 								if(isSelectionReady) {
-									$log.debug('CHANGE SORT REQUEST');
 									foundsetSortModel = getFoundsetSortModel(sortModel)
 									sortPromise = foundsetRefManager.sort(foundsetSortModel.sortColumns);
 									sortPromise.then(function() {
@@ -2320,7 +2319,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								else {
 									gridOptions.api.setSortModel(getSortModel());
 									gridOptions.api.purgeServerSideCache();
-	
 								}
 							}
 							else {
