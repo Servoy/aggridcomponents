@@ -804,10 +804,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					// set to true once the grid is ready and selection is set
 				    isSelectionReady = true;
 				
-					if(scrollToSelectionWhenSelectionReady) {
-						$scope.api.scrollToSelection();
-					}
-
 					// rows are rendered, if there was an editCell request, now it is the time to apply it
 					if(startEditFoundsetIndex > -1 && startEditColumnIndex > -1) {
 						setTimeout(function() {
@@ -846,6 +842,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 									if(requestSelectionPromises.shift() != requestSelectionPromise) {
 										$log.error('requestSelectionPromises out of sync');
 									}
+									if(scrollToSelectionWhenSelectionReady) {
+										$scope.api.scrollToSelection();
+									}
 				                    // Trigger event on selection change
 				                    if ($scope.handlers.onSelectedRowsChanged) {
 				                        $scope.handlers.onSelectedRowsChanged();
@@ -863,6 +862,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 									}
 									//reject
 									selectedRowIndexesChanged();
+									if(scrollToSelectionWhenSelectionReady) {
+										$scope.api.scrollToSelection();
+									}
 								}
 							);
 							return;
@@ -871,6 +873,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 					$log.debug("table must always have a selected record");
 					selectedRowIndexesChanged();
+					if(scrollToSelectionWhenSelectionReady) {
+						$scope.api.scrollToSelection();
+					}
 
 				}
 				/**
@@ -999,11 +1004,13 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					if(oldValueStr == null) oldValueStr = "";
 
 					var col = getColumn(params.colDef.field);
-					if(col && col.dataprovider && col.dataprovider.idForFoundset && (newValue !== oldValueStr || invalidCellDataIndex.rowIndex != -1)) {
-						if(newValue !== oldValueStr) {
+					// ignore types in compare only for non null values ("200"/200 are equals, but ""/0 is not)
+					var isValueChanged = newValue != oldValueStr || (!newValue && newValue !== oldValueStr);
+					if(col && col.dataprovider && col.dataprovider.idForFoundset && (isValueChanged || invalidCellDataIndex.rowIndex != -1)) {
+						if(isValueChanged) {
 							foundsetRef.updateViewportRecord(row._svyRowId, col.dataprovider.idForFoundset, newValue, oldValue);
 						}
-						if($scope.handlers.onColumnDataChange && (newValue !== oldValueStr)) {
+						if($scope.handlers.onColumnDataChange && isValueChanged) {
 							var currentEditCells = gridOptions.api.getEditingCells();
 							onColumnDataChangePromise = $scope.handlers.onColumnDataChange(
 								getFoundsetIndexFromEvent(params),
