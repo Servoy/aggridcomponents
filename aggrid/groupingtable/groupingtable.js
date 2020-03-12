@@ -350,6 +350,15 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 				var gridDiv = $element.find('.ag-table')[0];
 				var columnDefs = getColumnDefs();
+				var maxBlocksInCache = CACHED_CHUNK_BLOCKS;
+				// if there is 'autoHeight' = true in any column, infinite cache needs to be disabled (ag grid lib requirement)
+				for(var i = 0; i < columnDefs.length; i++) {
+					if(columnDefs[i]['autoHeight']) {
+						maxBlocksInCache = -1;
+						break;
+					}
+				}
+
 				var sortModelDefault = getSortModel();
 
 				$log.debug(columnDefs);
@@ -513,7 +522,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					maxConcurrentDatasourceRequests: 2,
 					cacheBlockSize: CHUNK_SIZE,
 					infiniteInitialRowCount: CHUNK_SIZE, // TODO should be the foundset default (also for grouping ?)
-					maxBlocksInCache: CACHED_CHUNK_BLOCKS,
+					maxBlocksInCache: maxBlocksInCache,
 					purgeClosedRowNodes: true,
 					onGridReady: function() {
 						$log.debug("gridReady");
