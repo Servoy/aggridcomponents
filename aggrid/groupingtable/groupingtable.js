@@ -4278,12 +4278,18 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							}
 
 							colDef.onCellValueChanged = function(params) {
+								var focused = document.activeElement;
 								// in case value change is triggered by clicking into another cell
 								// we need a timeout so the new cell will enter edit mode (updateFoundsetRecord needs
 								// to know the new editing cell, so it can restore its editing state after update)
-								setTimeout(function() {
+								if(focused && ($(gridDiv).has($(focused)).length)) {
+									setTimeout(function() {
+										updateFoundsetRecord(params);
+									}, 200);
+								}
+								else {
 									updateFoundsetRecord(params);
-								}, 200);
+								}
 							}
 						}
 
