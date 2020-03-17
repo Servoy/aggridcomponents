@@ -1087,6 +1087,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 * @private
 				 * */
 				function onCellDoubleClicked(params) {
+					// need timeout because the selection is also in a 250ms timeout
 					setTimeout(function() {
 						onCellDoubleClickedEx(params);
 					}, 250);
