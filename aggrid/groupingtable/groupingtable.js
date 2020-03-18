@@ -1477,7 +1477,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 * Resize header and all columns so they can fit the horizontal space
 				 *  */
 				function sizeHeaderAndColumnsToFit() {
-					if($scope.model.visible) {
+					// only if visible and grid is/still ready
+					if($scope.model.visible && gridOptions.api) {
 						gridOptions.api.sizeColumnsToFit();
 						sizeHeader();
 					}
