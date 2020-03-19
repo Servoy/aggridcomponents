@@ -4973,21 +4973,24 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						$log.warn('editCellAt API, invalid columnindex:' + columnindex);
 					}
 					else {
-
-						// if is not ready to edit, wait for the row to be rendered
+						// if is not ready to edit or not all rows loaded, wait for the row to be rendered
 						if(isSelectionReady) {
-							var column = $scope.model.columns[columnindex];
-							var	colId = column.id ? column.id : getColumnID(column, columnindex);
-							setTimeout(function() {
-								gridOptions.api.startEditingCell({
-									rowIndex: foundsetindex - 1,
-									colKey: colId
-								});
-							}, 0);
+							var model = gridOptions.api.getModel();
+							var isRowLoaded = model.rootNode.childrenCache && foundsetindex <= model.rootNode.childrenCache.getVirtualRowCount();
+							if(isRowLoaded) {
+								var column = $scope.model.columns[columnindex];
+								var	colId = column.id ? column.id : getColumnID(column, columnindex);
+								setTimeout(function() {
+									gridOptions.api.startEditingCell({
+										rowIndex: foundsetindex - 1,
+										colKey: colId
+									});
+								}, 0);
 
-							// reset the edit cell coordinates
-							startEditFoundsetIndex = -1;
-							startEditColumnIndex = -1;
+								// reset the edit cell coordinates
+								startEditFoundsetIndex = -1;
+								startEditColumnIndex = -1;
+							}
 						}
 						else {
 							startEditFoundsetIndex = foundsetindex;
