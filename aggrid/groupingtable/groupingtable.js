@@ -2317,7 +2317,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							// check sort columns in both the reques and model, because it is disable in the grid, it will be only in the model
 							var sortColumns = sortModel.concat(getSortModel());
 							for(var i = 0; i < sortColumns.length; i++) {
-								if(gridOptions.columnApi.getColumn(sortColumns[i].colId).getColDef().sortable) {
+								var col = gridOptions.columnApi.getColumn(sortColumns[i].colId);
+								if(col && col.getColDef().sortable) {
 									isColumnSortable = true;
 									break;
 								}
