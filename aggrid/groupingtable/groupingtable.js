@@ -303,6 +303,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				// set to true once the grid is rendered and the selection is set
 				var isSelectionReady = false;
 				
+				// set to true during data request from ag grid, from request-start until all data is loaded
+				var isDataLoading = false;
+
 				// when the grid is not ready yet set the value to the column index for which has been requested focus
 				var requestFocusColumnIndex = -1;
 
@@ -815,9 +818,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				
 					// rows are rendered, if there was an editCell request, now it is the time to apply it
 					if(startEditFoundsetIndex > -1 && startEditColumnIndex > -1) {
-						setTimeout(function() {
-							$scope.api.editCellAt(startEditFoundsetIndex, startEditColumnIndex);
-						}, 200);
+						editCellAtWithTimeout(startEditFoundsetIndex, startEditColumnIndex);
 					}
 
 				    // when the grid is not ready yet set the value to the column index for which has been requested focus
@@ -2149,6 +2150,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				FoundsetDatasource.prototype.getRows = function(params) {
 					$log.debug('FoundsetDatasource.getRows: params = ', params);
 
+					isDataLoading = true;
+
 					// the row group cols, ie the cols that the user has dragged into the 'group by' zone, eg 'Country' and 'Customerid'
 					var rowGroupCols = params.request.rowGroupCols
 					// the keys we are looking at. will be empty if looking at top level (either no groups, or looking at top level groups). eg ['United States','2002']
@@ -2183,7 +2186,12 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						thisFoundsetDatasource.foundsetServer.getData(params.request, groupKeys,
 							function successCallback(resultForGrid, lastRow) {
 								params.successCallback(resultForGrid, lastRow);
+								isDataLoading = false;
 								selectedRowIndexesChanged();
+								// rows are rendered, if there was an editCell request, now it is the time to apply it
+								if(startEditFoundsetIndex > -1 && startEditColumnIndex > -1) {
+									editCellAtWithTimeout(startEditFoundsetIndex, startEditColumnIndex);
+								}
 							});
 					}, function(reason) {
 						$log.error('Can not get realValues for groupKeys ' + reason);
@@ -2419,6 +2427,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 					function getFoundsetRefError(e) {
 						$log.error(e);
+						isDataLoading = false;
 						gridOptions.columnApi.setRowGroupColumns([]);
 					}
 				}; // End getData
@@ -4872,6 +4881,17 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					return event;
 				}
 
+				var editCellAtTimeout;
+				function editCellAtWithTimeout(foundsetindex, columnindex) {
+					if(editCellAtTimeout) {
+						clearTimeout(editCellAtTimeout);
+					}
+					editCellAtTimeout = setTimeout(function() {
+						editCellAtTimeout = null;
+						$scope.api.editCellAt(startEditFoundsetIndex, startEditColumnIndex);
+					}, 200);
+				}
+
 				/***********************************************************************************************************************************
 				 ***********************************************************************************************************************************
 				 *
@@ -4975,7 +4995,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					else {
 
 						// if is not ready to edit, wait for the row to be rendered
-						if(isSelectionReady) {
+						if(isSelectionReady && !isDataLoading) {
 							var column = $scope.model.columns[columnindex];
 							var	colId = column.id ? column.id : getColumnID(column, columnindex);
 							setTimeout(function() {
