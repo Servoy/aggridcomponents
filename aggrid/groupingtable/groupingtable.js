@@ -466,6 +466,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 				}
 
+				var contextMenuItems = [];
+
 				var gridOptions = {
 
 					debug: false,
@@ -704,6 +706,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							gridOptions[property] = userGridOptions[property];
 						}
 					}
+				}
+
+				// handle options that are dependent on gridOptions
+				if(gridOptions["enableCharts"] && gridOptions["enableRangeSelection"]) {
+					contextMenuItems.push("chartRange");
 				}
 
 				// init the grid. If is in designer render a mocked grid
@@ -1195,8 +1202,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 * Context menu callback
 				 *  */
 				function getContextMenuItems(params) {
-					// hide any context menu
-					return [];
+					return contextMenuItems;
 				}
 
 				function keySelectionChangeNavigation(params) {

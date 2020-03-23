@@ -101,6 +101,8 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                 return (!$scope.model.columns || $scope.model.columns.length == 0) && $scope.svyServoyapi.isInDesigner();
             }
 
+            var contextMenuItems = [];
+
             var isGridReady = false;
 
             // AG grid definition
@@ -287,6 +289,11 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                 }
                 gridOptions.groupRowRenderer = DatasetTableGroupCellRenderer;
                 gridOptions.groupRowInnerRenderer = groupRowRendererFunc;
+            }
+
+            // handle options that are dependent on gridOptions
+            if(gridOptions["enableCharts"] && gridOptions["enableRangeSelection"]) {
+                contextMenuItems.push("chartRange");
             }
 
             // init the grid. If is in designer render a mocked grid
@@ -601,8 +608,7 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
             }
 
             function getContextMenuItems(params) {
-                // hide any context menu
-                return [];
+                return contextMenuItems;
             }
 
             function createColumnCallbackFunctionFromString(functionAsString) {
