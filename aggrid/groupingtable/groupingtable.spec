@@ -173,12 +173,12 @@
 		"onSort": {
 			"description": "Called when sort has changed",
 			"parameters": [{
-				"name": "columnindex",
-				"type": "int",
+				"name": "columnindexes",
+				"type": "int[]",
 				"optional": true
 			}, {
-				"name": "sort",
-				"type": "string",
+				"name": "sorts",
+				"type": "string[]",
 				"optional": true
 			}]
 		}

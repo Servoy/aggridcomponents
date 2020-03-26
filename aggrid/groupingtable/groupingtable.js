@@ -322,9 +322,15 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				function onSortHandler() {
 					var sortModel = gridOptions.api.getSortModel();
 					if(sortModel && sortModel[0]) {
-						var sortColumn = getColumnIndex(sortModel[0].colId);
-						var sortColumnDirection = sortModel[0].sort;
-						var sortHandlerPromise = $scope.handlers.onSort(sortColumn, sortColumnDirection);
+						var sortColumns = [];
+						var sortColumnDirections = [];
+
+						for(var i in sortModel) {
+							sortColumns.push(getColumnIndex(sortModel[i].colId));
+							sortColumnDirections.push(sortModel[i].sort);
+						}
+
+						var sortHandlerPromise = $scope.handlers.onSort(sortColumns, sortColumnDirections);
 						sortHandlerPromises.push(sortHandlerPromise);
 						sortHandlerPromise.then(
 							function(){
