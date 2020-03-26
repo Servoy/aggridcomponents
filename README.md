@@ -1,6 +1,6 @@
 # NG Grids
 
-NG Grids package contains two advanced table components which provides built-in grouping functionalities: Data Grid (https://github.com/Servoy/aggridcomponents/wiki/Data-Grid) that uses as data model Servoy foundsets, ideal for large amount of data, and Power Grid (https://github.com/Servoy/aggridcomponents/wiki/Power-Grid), that uses as data model Servoy datasets, better suited for small data, as it's loads the data model in memory. There are same functionalities covered by both, but there also differenties, please have a look on the wiki pages for more details.
+NG Grids package contains two advanced table components which provides built-in grouping functionalities: Data Grid (https://github.com/Servoy/aggridcomponents/wiki/Data-Grid) that uses as data model Servoy foundsets, ideal for large amount of data, and Power Grid (https://github.com/Servoy/aggridcomponents/wiki/Power-Grid), that uses as data model Servoy datasets, better suited for small data, as it loads the data model in memory. There are same functionalities covered by both, but there also differenties, please have a look on the wiki pages for more details.
 
 # Requirements
 
