@@ -26,7 +26,7 @@ Eager to fix a bug or introduce a new feature? Clone the repository and issue a 
 
 # License
 
-Ag Grid Components is licensed under the MIT license. You can freely use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies for the content of this repository.
+NG Grids is licensed under the MIT license. You can freely use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies for the content of this repository.
 
 Please note that you don't have the same rights on the referenced libraries.
 
