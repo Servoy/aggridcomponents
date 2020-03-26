@@ -1,14 +1,14 @@
-# Ag Grid Components
+# NG Grids
 
-Ag Grid Components component package of advanced table components. The only current component is the Grouping table, which provide built-in grouping functionalities for  large amount of data. Learn more about the Grouping Table in the [wiki](https://github.com/Servoy/aggridcomponents/wiki/Grouping-Table) page.
+NG Grids package contains two advanced table components which provides built-in grouping functionalities: Data Grid (https://github.com/Servoy/aggridcomponents/wiki/Data-Grid) that uses as data model Servoy foundsets, ideal for large amount of data, and Power Grid (https://github.com/Servoy/aggridcomponents/wiki/Power-Grid), that uses as data model Servoy datasets, better suited for small data, as it's loads the data model in memory. There are same functionalities covered by both, but there also differenties, please have a look on the wiki pages for more details.
 
 # Requirements
 
-The Ag Grid Components can be used on Servoy 8.2.1 or higher.
+The NG Grids can be used on Servoy 8.2.1 or higher.
 
 # Getting started
 
-To add the Ag Grid Components package in your solution, open the Servoy Developer IDE and download the AG Grid Components from the Web Package Manager (the Web Package Manager is accessible from the context menu of the Web Components node of your solution).
+To add the NG Grids package in your solution, open the Servoy Developer IDE and download the NG Grids components from the Web Package Manager (the Web Package Manager is accessible from the context menu of the Web Components node of your solution).
 
 To use the latest source code clone the git repository and checkout the develop branch. Install the egit plugin for Eclipse to clone the repository and import the projects into the workspace.
 
