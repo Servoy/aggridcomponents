@@ -370,7 +370,7 @@
 			"isEditableDataprovider": { "type": "dataprovider", "forFoundset": "myFoundset"},
 			"editType": {"type": "string", "values": [{"NONE":null}, {"TEXTFIELD":"TEXTFIELD"}, {"DATEPICKER":"DATEPICKER"}, {"COMBOBOX":"COMBOBOX"}, {"TYPEAHEAD":"TYPEAHEAD"}, {"FORM":"FORM"}]},
 			"editForm": {"type": "form"},
-			"filterType": {"type": "string", "values": [{"NONE":null}, {"TEXT":"TEXT"}, {"NUMBER":"NUMBER"}, {"DATE":"DATE"}]},
+			"filterType": {"type": "string", "values": [{"NONE":null}, {"TEXT":"TEXT"}, {"NUMBER":"NUMBER"}, {"DATE":"DATE"}, {"VALUELIST":"VALUELIST"}]},
 			"id": {"type" : "string", "tags": {"showInOutlineView": true }},
 			"columnDef": {"type" : "map"},
 			"showAs": { "type": "string", "values": [{"text":null}, {"html":"html"}, {"sanitizedHtml":"sanitizedHtml"}] }
