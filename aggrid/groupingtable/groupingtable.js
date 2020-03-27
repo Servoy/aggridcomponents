@@ -2330,7 +2330,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							function successCallback(resultForGrid, lastRow) {
 								params.successCallback(resultForGrid, lastRow);
 								isDataLoading = false;
-								selectedRowIndexesChanged();
+								// if selection did not changed, mark the selection ready
+								if(!selectedRowIndexesChanged()) {
+									isSelectionReady = true;
+								}
 								// rows are rendered, if there was an editCell request, now it is the time to apply it
 								if(startEditFoundsetIndex > -1 && startEditColumnIndex > -1) {
 									editCellAtWithTimeout(startEditFoundsetIndex, startEditColumnIndex);
@@ -3934,9 +3937,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 					// Disable selection when table is grouped
 					if (isTableGrouped()) {
-						return;
+						return  false;;
 					}
 
+					var isSelectedRowIndexesChanged = false;
 					// old selection
 					var oldSelectedNodes = gridOptions.api.getSelectedNodes();
 
@@ -3970,14 +3974,18 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					for (var i = 0; i < oldSelectedNodes.length; i++) {
 						if(selectedNodes.indexOf(oldSelectedNodes[i]) == -1) {
 							oldSelectedNodes[i].setSelected(false);
+							isSelectedRowIndexesChanged = true;
 						}
 					}
 
 					for (var i = 0; i < selectedNodes.length; i++) {
 						if(oldSelectedNodes.indexOf(selectedNodes[i]) == -1) {
 							selectedNodes[i].setSelected(true);
+							isSelectedRowIndexesChanged = true;
 						}
 					}
+
+					return isSelectedRowIndexesChanged;
 				}
 
 				function scrollToSelection(foundsetManager)
