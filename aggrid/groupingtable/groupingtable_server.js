@@ -89,6 +89,12 @@ $scope.getGroupedFoundsetUUID = function(
 		childFoundset = servoyApi.getViewFoundSet("", query);
 	} else { // is not a new group, will be a leaf !
 		childFoundset = parentFoundset.duplicateFoundSet();
+		// remove foundset filters, those are already in the query!
+		var foundsetFilters = childFoundset.getFoundSetFilterParams();
+		for(var j = 0 ; j < foundsetFilters.length; j++) {
+			childFoundset.removeFoundSetFilterParam(foundsetFilters[j][foundsetFilters[j].length - 1]);
+		}
+		
 		if (sFilterModel) filterFoundset(childFoundset, sFilterModel);
 		childFoundset.loadRecords(query);
 	}
