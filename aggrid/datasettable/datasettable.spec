@@ -34,7 +34,9 @@
 		"gridOptions": {"type": "map"},
 		"localeText": {"type": "map"},
 		"groupRowRendererFunc": { "type": "string"},
-		"mainMenuItemsConfig": { "type": "mainMenuItemsConfig", "tags": { "scope": "design" } }
+		"mainMenuItemsConfig": { "type": "mainMenuItemsConfig", "tags": { "scope": "design" } },
+		"_internalFormEditorValue": { "type": "object", "tags": {"scope" : "private"}, "pushToServer": "allow"},
+		"arrowsUpDownMoveWhenEditing": {"type": "string", "values": [{"DEFAULT": null}, {"NONE":"NONE"}, {"NEXTCELL":"NEXTCELL"}, {"NEXTEDITABLECELL":"NEXTEDITABLECELL"}]}
 	},
 	"handlers" : {
 		"onRowSelected": {
@@ -98,6 +100,30 @@
 				}	
 			]
 		},
+		"onColumnDataChange": {
+			"description": "Called when the columns data is changed",
+			"parameters": [{
+				"name": "rowindex",
+				"type": "int"
+			}, {
+				"name": "columnindex",
+				"type": "int",
+				"optional": true
+			}, {
+				"name": "oldvalue",
+				"type": "object",
+				"optional": true
+			}, {
+				"name": "newvalue",
+				"type": "object",
+				"optional": true
+			}, {
+				"name": "event",
+				"type": "JSEvent",
+				"optional": true
+			}],
+			"returns": {"type": "boolean", "default": true}
+		},
 		"onLazyLoadingGetRows": {
 			"description": "Called when lazy loading is used, and new rows are requested to display",
 			"parameters": [
@@ -141,6 +167,22 @@
 		},
 		"onReady": {
 			"description": "Called when the table is ready to be shown"
+		},
+		"onColumnFormEditStarted": {
+			"description": "Called when the column's form editor is started",
+			"parameters": [{
+				"name": "rowindex",
+				"type": "int",
+				"optional": true
+			}, {
+				"name": "columnindex",
+				"type": "int",
+				"optional": true
+			}, {
+				"name": "value",
+				"type": "object",
+				"optional": true
+			}]
 		}
 	}, 
 	"api" : {
@@ -197,6 +239,25 @@
 				{ "name": "dataset", "type": {"type": "dataset"} },
 				{ "name": "lastRowIndex", "type": {"type": "long"}, "optional": true }
 			]
+		},
+		"editCellAt": {
+			"parameters": [{
+				"name": "rowindex",
+				"type": "int"
+			}, {
+				"name": "columnindex",
+				"type": "int"
+			}]
+		},
+		"stopCellEditing": {
+			"parameters": [
+				{ "name": "cancel", "type": "boolean", "optional": true}
+			]
+		},
+		"setFormEditorValue": {
+			"parameters": [
+				{ "name": "value", "type": "object"}
+			]
 		}
 	},
 	"types" : {
@@ -226,6 +287,8 @@
 			"cellRendererFunc": {"type": "string"},
 			"format": {"type": "tagstring"},
 			"formatType": {"type": "string", "values": ["TEXT", "NUMBER", "DATETIME"], "default": "TEXT"},
+			"editType": {"type": "string", "values": [{"NONE":null}, {"TEXTFIELD":"TEXTFIELD"}, {"DATEPICKER":"DATEPICKER"}, {"FORM":"FORM"}]},
+			"editForm": {"type": "form"},
 			"filterType": {"type": "string", "values": [{"NONE":null}, {"TEXT":"TEXT"}, {"NUMBER":"NUMBER"}, {"DATE":"DATE"}]},
 			"id": {"type" : "string", "tags": {"showInOutlineView": true }},
 			"columnDef": {"type" : "map"},

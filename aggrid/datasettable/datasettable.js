@@ -1,5 +1,5 @@
-angular.module('aggridDatasettable', ['servoy']).directive('aggridDatasettable', ['$sabloConstants', '$log', '$q', '$filter', '$formatterUtils', '$injector', '$services', '$sanitize',
-function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $services, $sanitize) {
+angular.module('aggridDatasettable', ['servoy']).directive('aggridDatasettable', ['$sabloApplication', '$sabloConstants', '$log', '$formatterUtils', '$injector', '$services', '$sanitize', '$applicationService', '$windowService', '$filter', '$compile',
+function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $services, $sanitize, $applicationService, $windowService, $filter, $compile) {
     return {
         restrict: 'E',
         scope: {
@@ -12,6 +12,10 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
 
             var gridDiv = $element.find('.ag-table')[0];
             var columnDefs = getColumnDefs();
+
+            // position of cell with invalid data as reported by the return of onColumnDataChange
+            var invalidCellDataIndex = { rowIndex: -1, colKey: ''};
+            var onColumnDataChangePromise = null;
 
             // if aggrid service is present read its defaults
             var toolPanelConfig = null;
@@ -145,10 +149,10 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                 suppressCellSelection: false, // TODO implement focus lost/gained
                 enableRangeSelection: false,
 
-                // stopEditingWhenGridLosesFocus: true,
-                // singleClickEdit: true,
-                // suppressClickEdit: false,
-                // enableGroupEdit: false,
+                stopEditingWhenGridLosesFocus: true,
+                singleClickEdit: true,
+                suppressClickEdit: false,
+                enableGroupEdit: false,
                 // groupUseEntireRow: false,
                 // groupMultiAutoColumn: true,
 
@@ -214,7 +218,34 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                 enableBrowserTooltips: true,
                 onToolPanelVisibleChanged : function(event) {
                     sizeColumnsToFit();
-                }
+                },
+                onCellEditingStopped : function(event) {
+                    // don't allow escape if cell data is invalid
+                    if(onColumnDataChangePromise == null) {
+                        var rowIndex = event.rowIndex;
+                        var colId = event.column.colId;
+                        if(invalidCellDataIndex.rowIndex == rowIndex  && invalidCellDataIndex.colKey == colId) {
+                            gridOptions.api.startEditingCell({
+                                rowIndex: rowIndex,
+                                colKey: colId
+                            });
+                        }
+                    }
+                },
+                onCellEditingStarted : function(event) {
+                    // don't allow editing another cell if we have an invalidCellData
+                    if(invalidCellDataIndex.rowIndex != -1 && invalidCellDataIndex.colKey != '') {
+                        var rowIndex = event.rowIndex;
+                        var colId = event.column.colId;
+                        if(invalidCellDataIndex.rowIndex != rowIndex  || invalidCellDataIndex.colKey != colId) {
+                            gridOptions.api.stopEditing();
+                            gridOptions.api.startEditingCell({
+                                rowIndex: invalidCellDataIndex.rowIndex,
+                                colKey: invalidCellDataIndex.colKey
+                            });
+                        }
+                    }
+                }                
             };
 
             // check if we have filters
@@ -415,6 +446,84 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                 };
             }
 
+            function onCellValueChanged(params) {
+                var rowIndex = params.node.rowIndex;
+                var colId = params.column.colId;
+
+                // if we have an invalid cell data, ignore any updates for other cells
+                if((invalidCellDataIndex.rowIndex != -1 && invalidCellDataIndex.rowIndex != rowIndex)
+                    || (invalidCellDataIndex.colKey != '' && invalidCellDataIndex.colKey != colId)) {
+                    return;
+                }
+
+                var newValue = params.newValue;
+                var oldValue = params.oldValue;
+                var oldValueStr = oldValue;
+                if(oldValueStr == null) oldValueStr = "";
+
+                var col = getColumn(params.colDef.field);
+                // ignore types in compare only for non null values ("200"/200 are equals, but ""/0 is not)
+                var isValueChanged = newValue != oldValueStr || (!newValue && newValue !== oldValueStr);
+                if(col && col["dataprovider"] && (isValueChanged || invalidCellDataIndex.rowIndex != -1)) {
+                    if($scope.handlers.onColumnDataChange && isValueChanged) {
+                        var currentEditCells = gridOptions.api.getEditingCells();
+                        onColumnDataChangePromise = $scope.handlers.onColumnDataChange(
+                            rowIndex,
+                            getColumnIndex(params.column.colId),
+                            oldValue,
+                            newValue,
+                            createJSEvent()
+                        );
+                        onColumnDataChangePromise.then(function(r) {
+                            if(r == false) {
+                                // if old value was reset, clear invalid state
+                                var currentValue = gridOptions.api.getValue(colId, params.node);
+                                if(oldValue === currentValue) {
+                                    invalidCellDataIndex.rowIndex = -1;
+                                    invalidCellDataIndex.colKey = '';
+                                }
+                                else {
+                                    invalidCellDataIndex.rowIndex = rowIndex;
+                                    invalidCellDataIndex.colKey = colId;
+                                }
+                                var editCells = gridOptions.api.getEditingCells();
+                                if(!editCells.length || (editCells[0].rowIndex != rowIndex || editCells[0].column.colId != colId)) {
+                                    gridOptions.api.stopEditing();
+                                    gridOptions.api.startEditingCell({
+                                        rowIndex: rowIndex,
+                                        colKey: colId
+                                    });
+                                    setTimeout(function() {
+                                        gridOptions.api.forEachNode( function(node) {
+                                            if (node.rowIndex === rowIndex) {
+                                                node.setSelected(true, true);
+                                            }
+                                        });
+                                    }, 0);
+                                }
+                            }
+                            else {
+                                invalidCellDataIndex.rowIndex = -1;
+                                invalidCellDataIndex.colKey = '';
+                                var editCells = gridOptions.api.getEditingCells();
+                                if(editCells.length == 0 && currentEditCells.length != 0) {
+                                    gridOptions.api.startEditingCell({
+                                        rowIndex: currentEditCells[0].rowIndex,
+                                        colKey: currentEditCells[0].column.colId
+                                    });
+                                }
+                            }
+                            onColumnDataChangePromise = null;
+                        }).catch(function(e) {
+                            $log.error(e);
+                            invalidCellDataIndex.rowIndex = -1;
+                            invalidCellDataIndex.colKey = '';
+                            onColumnDataChangePromise = null;
+                        });
+                    }
+                }
+            }
+
             function getColumnDefs() {
                 
                 //create the column definitions from the specified columns in designer
@@ -499,6 +608,22 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                         }
                         
                         colDef.filterParams = { applyButton: true, clearButton: true, newRowsAction: 'keep', suppressAndOrCondition: true, caseSensitive: false };
+                    }
+
+                    if (column.editType) {
+                        colDef.editable = !$scope.model.readOnly;
+
+                        if(column.editType == 'TEXTFIELD') {
+                            colDef.cellEditor = getTextEditor();
+                        }
+                        else if(column.editType == 'DATEPICKER') {
+                            colDef.cellEditor = getDatePicker();
+                        }
+                        else if(column.editType == 'FORM') {
+                            colDef.cellEditor = getFormEditor();
+                        }
+
+                        colDef.onCellValueChanged = onCellValueChanged;
                     }
 
                     var columnOptions = {};
@@ -855,6 +980,378 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
                 return label;
             }
 
+            function getColumn(colId) {
+                if($scope.model.columns) {
+                    for (var i = 0; i < $scope.model.columns.length; i++) {
+                        if($scope.model.columns[i]["id"] == colId || $scope.model.columns[i]["dataprovider"] == colId) {
+                            return $scope.model.columns[i];
+                        }
+                    }
+                }
+                return null;
+            }
+
+            function getColumnIndex(colId) {
+                if($scope.model.columns) {
+                    for (var i = 0; i < $scope.model.columns.length; i++) {
+                        if($scope.model.columns[i]["id"] == colId || $scope.model.columns[i]["dataprovider"] == colId) {
+                            return i;
+                        }
+                    }
+                }
+                return -1;
+            }
+
+            function isTableGrouped() {
+                var rowGroupCols = gridOptions.columnApi.getRowGroupColumns();
+                return rowGroupCols && rowGroupCols.length > 0;
+            }
+
+            /**************************************************************************************************
+             **************************************************************************************************
+             *
+             *  Cell editors
+             *
+             **************************************************************************************************
+             **************************************************************************************************/
+
+            function getTextEditor() {
+                // function to act as a class
+                function TextEditor() {}
+            
+                // gets called once before the renderer is used
+                TextEditor.prototype.init = function(params) {
+                    // create the cell
+                    this.params = params;
+                    this.eInput = document.createElement('input');
+                    this.eInput.className = "ag-cell-edit-input";
+
+                    var column = getColumn(params.column.colId);
+
+                    this.initialValue = params.value;
+
+                    var v = this.initialValue;
+                    if(column && column.format) {
+                        this.format = column.format;
+                        if (this.format.maxLength) {
+                            this.eInput.setAttribute('maxlength', this.format.maxLength);
+                        }
+                        if(this.format.edit) {
+                            v = $formatterUtils.format(v, this.format.edit, this.format.type);
+                        }
+
+                        if (v && this.format.type == "TEXT") {
+                            if (this.format.uppercase) v = v.toUpperCase();
+                            else if (this.format.lowercase) v = v.toLowerCase();
+                        }
+
+                    }
+                    this.initialDisplayValue = v;
+
+                    var thisEditor = this;
+
+                    if(config.arrowsUpDownMoveWhenEditing && config.arrowsUpDownMoveWhenEditing != 'NONE') {
+                        this.keyDownListener = function (event) {
+                            var isNavigationLeftRightKey = event.keyCode === 37 || event.keyCode === 39;
+                            var isNavigationUpDownEntertKey = event.keyCode === 38 || event.keyCode === 40 || event.keyCode === 13;
+
+                            if (isNavigationLeftRightKey || isNavigationUpDownEntertKey) {
+
+                                if(isNavigationUpDownEntertKey) {
+                                    var newEditingNode = null;
+                                    var columnToCheck = thisEditor.params.column;
+                                    var mustBeEditable = config.arrowsUpDownMoveWhenEditing == 'NEXTEDITABLECELL'
+                                    if( event.keyCode == 38) { // UP
+                                        if(thisEditor.params.rowIndex > 0) {
+                                            gridOptions.api.forEachNode( function(node) {
+                                                if (node.rowIndex <= (thisEditor.params.rowIndex - 1) &&
+                                                    (!mustBeEditable || columnToCheck.isCellEditable(node))) {
+                                                    newEditingNode = node;
+                                                }
+                                            });	
+                                        }
+                                    }
+                                    else if (event.keyCode == 13 || event.keyCode == 40) { // ENTER/DOWN
+                                        if( thisEditor.params.rowIndex < gridOptions.api.getModel().getRowCount() - 1) {
+                                            gridOptions.api.forEachNode( function(node) {
+                                                if (node.rowIndex >= (thisEditor.params.rowIndex + 1) &&
+                                                    !newEditingNode && (!mustBeEditable || columnToCheck.isCellEditable(node))) {
+                                                    newEditingNode = node;
+                                                }
+                                            });	
+                                        }
+                                    }
+                                    gridOptions.api.stopEditing();
+                                    if (newEditingNode) {
+                                        newEditingNode.setSelected(true, true);
+
+                                        if(columnToCheck.isCellEditable(newEditingNode)) {
+                                            gridOptions.api.startEditingCell({
+                                                rowIndex: newEditingNode.rowIndex,
+                                                colKey: columnToCheck.colId
+                                            });
+                                        }
+                                        else {
+                                            gridOptions.api.setFocusedCell(newEditingNode.rowIndex, columnToCheck.colId);
+                                        }
+                                    }
+                                    event.preventDefault();
+                                }
+                                event.stopPropagation();
+                            }
+                        };
+                        this.eInput.addEventListener('keydown', this.keyDownListener);
+                    }
+
+                    this.keyPressListener = function (event) {
+                        var isNavigationLeftRightKey = event.keyCode === 37 || event.keyCode === 39;
+                        var isNavigationUpDownEntertKey = event.keyCode === 38 || event.keyCode === 40 || event.keyCode === 13;
+                        
+                        if(!(isNavigationLeftRightKey || isNavigationUpDownEntertKey) && $formatterUtils.testForNumbersOnly && thisEditor.format) {
+                            return $formatterUtils.testForNumbersOnly(event, null, thisEditor.eInput, false, true, thisEditor.format);
+                        }
+                        else return true;
+                    };
+                    $(this.eInput).on('keypress', this.keyPressListener);
+                };
+            
+                // gets called once when grid ready to insert the element
+                TextEditor.prototype.getGui = function() {
+                    return this.eInput;
+                };
+            
+                // focus and select can be done after the gui is attached
+                TextEditor.prototype.afterGuiAttached = function() {
+                    this.eInput.value = this.initialDisplayValue;
+                    this.eInput.focus();
+                    this.eInput.select();
+                    if(this.format && this.format.edit && this.format.isMask) {
+                        var settings = {};
+                        settings['placeholder'] = this.format.placeHolder ? this.format.placeHolder : " ";
+                        if (this.format.allowedCharacters)
+                            settings['allowedCharacters'] = this.format.allowedCharacters;
+
+                        $(this.eInput).mask(this.format.edit, settings);
+                    }
+                };
+
+                // returns the new value after editing
+                TextEditor.prototype.getValue = function() {
+                    var displayValue = this.eInput.value;
+                    if(this.format) {
+                        if(this.format.edit) {
+                            displayValue = $formatterUtils.unformat(displayValue, this.format.edit, this.format.type, this.initialValue);
+                        }
+                        if (this.format.type == "TEXT" && (this.format.uppercase || this.format.lowercase)) {
+                            if (this.format.uppercase) displayValue = displayValue.toUpperCase();
+                            else if (this.format.lowercase) displayValue = displayValue.toLowerCase();
+                        }
+                    }
+
+                    return displayValue;
+                };
+
+                TextEditor.prototype.destroy = function() {
+                    this.eInput.removeEventListener('keydown', this.keyDownListener);
+                    $(this.eInput).off('keypress', this.keyPressListener);
+                };
+
+                return TextEditor;
+            }
+
+            function getDatePicker() {
+                // function to act as a class
+                function Datepicker() {}
+            
+                // gets called once before the renderer is used
+                Datepicker.prototype.init = function(params) {
+                    // create the cell
+                    this.params = params;
+                    this.eInput = document.createElement('input');
+                    this.eInput.className = "ag-cell-edit-input";
+
+                    var options = {
+                        widgetParent: $(document.body),
+                        useCurrent : false,
+                        useStrict : true,
+                        showClear : true,
+                        ignoreReadonly : true,
+                        showTodayButton: true,
+                        calendarWeeks: true,
+                        showClose: true,
+                        icons: {
+                            close: 'glyphicon glyphicon-ok'
+                        }
+                    };
+
+                    var locale = $sabloApplication.getLocale();
+                    if (locale.language) {
+                        options.locale = locale.language;
+                    }
+                    
+                    var showISOWeeks = $applicationService.getUIProperty('ngCalendarShowISOWeeks');
+                    if (showISOWeeks)
+                    {
+                        options.isoCalendarWeeks = true;
+                    }	
+                    
+                    $(this.eInput).datetimepicker(options);
+
+                    var editFormat = 'MM/dd/yyyy hh:mm a';
+                    var column = getColumn(params.column.colId);
+                    if(column && column.format) {
+                        editFormat = column.format;
+                    }
+                    var theDateTimePicker = $(this.eInput).data('DateTimePicker');
+                    theDateTimePicker.format(moment().toMomentFormatString(editFormat));
+                    this.eInput.value = $filter("formatFilter")(params.value, editFormat, 'DATETIME');
+                    
+                    // set key binds
+                    $(this.eInput).keydown(datepickerKeyDown);
+                    
+                    // key binds handler
+                    function datepickerKeyDown(e) {
+                        if (e.shiftKey || e.ctrlKey || e.altKey || e.metaKey) {
+                            return true;
+                        }
+                        
+                        switch (e.keyCode) {
+                        case 89: // y Yesterday
+                            var x = $(e.target).data('DateTimePicker');
+                            x.date(moment().add(-1, 'days'));
+                            e.stopPropagation();
+                                e.preventDefault();
+                            break;
+                        case 66: // b Beginning ot the month
+                            var x = $(e.target).data('DateTimePicker');
+                            x.date(moment().startOf('month'));
+                            e.stopPropagation();
+                                e.preventDefault();
+                            break;
+                        case 69: // e End of the month
+                            var x = $(e.target).data('DateTimePicker');
+                            x.date(moment().endOf('month'));
+                            e.stopPropagation();
+                            e.preventDefault();
+                            break;
+                        case 107: // + Add 1 day
+                            var x = $(e.target).data('DateTimePicker');
+                            if (x.date()) {
+                                x.date(x.date().clone().add(1, 'd'));
+                            }
+                            e.stopPropagation();
+                            e.preventDefault();
+                            break;
+                        case 109: // - Subtract 1 day
+                            var x = $(e.target).data('DateTimePicker');
+                            if (x.date()) {
+                                x.date(x.date().clone().subtract(1, 'd'));
+                            }
+                            e.stopPropagation();
+                            e.preventDefault();
+                            break;
+                        default:
+                            break;
+                        }
+                            
+                        return true;
+                    };
+                    
+                };
+            
+                // gets called once when grid ready to insert the element
+                Datepicker.prototype.getGui = function() {
+                    return this.eInput;
+                };
+            
+                // focus and select can be done after the gui is attached
+                Datepicker.prototype.afterGuiAttached = function() {
+                    this.eInput.focus();
+                    this.eInput.select();
+                };
+
+                // returns the new value after editing
+                Datepicker.prototype.getValue = function() {
+                    $(this.eInput).change();
+                    var theDateTimePicker = $(this.eInput).data('DateTimePicker');
+                    var selectedDate = theDateTimePicker.date();
+                    return selectedDate ? selectedDate.toDate() : null;
+                };
+            
+                // any cleanup we need to be done here
+                Datepicker.prototype.destroy = function() {
+                    var theDateTimePicker = $(this.eInput).data('DateTimePicker');
+                    if(theDateTimePicker) theDateTimePicker.destroy();
+                };
+
+                return Datepicker;
+            }
+				
+
+            function getFormEditor() {
+                function FormEditor() {}
+
+                FormEditor.prototype.init = function(params) {
+                    this.params = params;
+
+                    $scope.model._internalFormEditorValue = params.value;
+                    if($scope.handlers.onColumnFormEditStarted) {
+                        $scope.handlers.onColumnFormEditStarted(
+                            params.node.rowIndex, getColumnIndex(params.column.colId), params.value);
+                    }
+
+                    this.eGui = document.createElement("div");
+
+                    var column = getColumn(params.column.colId);
+
+                    $scope.ngEditFormUrl = null;
+                    $scope.svyServoyapi.formWillShow(column.editForm).then(function successCallback() {
+                        $scope.ngEditFormUrl = $windowService.getFormUrl(column.editForm);
+                    }, function errorCallback(e) {
+                        console.log(e);
+                    });
+
+                    $scope.getNGEditFormUrl = function() {
+                        return $scope.ngEditFormUrl;
+                    };
+
+                    $scope.loadSize = function() {
+                        $sabloApplication.getFormState(column.editForm).then(function(formState){
+                            var css = {};
+                            css["width"] = formState.properties.designSize.width + "px";
+                            css["height"] = formState.properties.designSize.height + "px";
+                            $('#ngformeditor').css(css);
+                        })
+                    };
+
+                    this.eGui.innerHTML = '<div id=\'ngformeditor\' svyform="' + column.editForm + '" ng-include="getNGEditFormUrl()" onload="loadSize()"></div>';
+                    $compile(this.eGui)($scope);
+                };
+
+                FormEditor.prototype.getGui = function() {
+                    return this.eGui;
+                };
+
+                FormEditor.prototype.afterGuiAttached = function () {
+                    gridOptions.api.setFocusedCell(this.params.node.rowIndex, this.params.column.colId);
+                };
+
+                FormEditor.prototype.isPopup = function() {
+                    return true;
+                };
+
+                FormEditor.prototype.getValue = function() {
+                    return $scope.model._internalFormEditorValue;
+                };
+
+                FormEditor.prototype.destroy = function() {
+                    var column = getColumn(this.params.column.colId);
+                    $scope.svyServoyapi.hideForm(column.editForm);						
+                };
+
+                return FormEditor;
+            }
+
             /**
              * Export data to excel format (xlsx)
              * 
@@ -916,6 +1413,41 @@ function($sabloConstants, $log, $q, $filter, $formatterUtils, $injector, $servic
 					//result.push({rowIndex:  selectedNodes[i].rowIndex, rowData: selectedNodes[i].data})
 				}
 				return result;
+            }
+
+            /**
+             * Start cell editing (only works when the table is not in grouping mode).
+             * @param rowindex row index of the editing cell (0-based)
+             * @param columnindex column index in the model of the editing cell (0-based)
+             */
+            $scope.api.editCellAt = function(rowindex, columnindex) {
+                if(isTableGrouped()) {
+                    $log.warn('editCellAt API is not supported in grouped mode');
+                }
+                else if (rowindex < 0) {
+                    $log.warn('editCellAt API, invalid rowindex:' + rowindex);
+                }
+                else if(columnindex < 0 || columnindex > $scope.model.columns.length - 1) {
+                    $log.warn('editCellAt API, invalid columnindex:' + columnindex);
+                }
+                else {
+                    var column = $scope.model.columns[columnindex];
+                    var	colId = column["id"] ? column["id"] : column["dataprovider"];
+                    setTimeout(function() {
+                        gridOptions.api.startEditingCell({
+                            rowIndex: rowindex,
+                            colKey: colId
+                        });
+                    }, 0);
+                }
+            }
+
+            /**
+             * If a cell is editing, it stops the editing
+             * @param cancel 'true' to cancel the editing (ie don't accept changes)
+             */
+            $scope.api.stopCellEditing = function(cancel) {
+                gridOptions.api.stopEditing(cancel);
             }
         },
         templateUrl: 'aggrid/datasettable/datasettable.html'
