@@ -2652,14 +2652,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						];
 						for(var i = 0; i < $scope.model.columns.length; i++) {
 							for( var j = 0; j < columnKeysToWatch.length; j++) {
-								var columnWatch = $scope.$watch("model.columns[" + i + "]['" + columnKeysToWatch[j] + "']",
-								function(newValue, oldValue) {
-									if(newValue != oldValue) {
-										$log.debug('column property changed');
-										updateColumnDefs();
-									}
-								});
-								columnWatches.push(columnWatch);
+								columnWatches.push(watchColumnModel(i, columnKeysToWatch[j]));
 							}
 						}
 						// watch the column header title
@@ -2676,9 +2669,25 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				});
 				
 				/**
-				 * 
 				 * @private 
-				 *  */
+				 */
+				function watchColumnModel(index, property) {
+					var columnWatch = $scope.$watch("model.columns[" + index + "]['" + property + "']",
+					function(newValue, oldValue) {
+						if(newValue != oldValue) {
+							$log.debug('column property changed');
+							updateColumnDefs();
+							if(property != "visible" && property != "width") {
+								restoreColumnsState();
+							}
+						}
+					});
+					return columnWatch;
+				}
+
+				/**
+				 * @private 
+				 */
 				function watchColumnHeaderTitle(index) {
 					var columnWatch = $scope.$watch("model.columns[" + index + "]['headerTitle']",
 						function(newValue, oldValue) {
@@ -4532,7 +4541,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 					gridOptions.api.setColumnDefs(getColumnDefs());
 					// selColumnDefs should redraw the grid, but it stopped doing so from v19.1.2
-					$scope.purge();	
+					$scope.purge(); 
 				}
 				
 				function updateColumnHeaderTitle(id, text) {					
