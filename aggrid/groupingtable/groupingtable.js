@@ -360,10 +360,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				var gridDiv = $element.find('.ag-table')[0];
 				var columnDefs = getColumnDefs();
 				var maxBlocksInCache = CACHED_CHUNK_BLOCKS;
+
+				// if row autoHeight, we need to do a refresh after first time data are displayed, to allow ag grid to re-calculate the heights
+				var isRefreshNeededForAutoHeight = false;
 				// if there is 'autoHeight' = true in any column, infinite cache needs to be disabled (ag grid lib requirement)
 				for(var i = 0; i < columnDefs.length; i++) {
 					if(columnDefs[i]['autoHeight']) {
 						maxBlocksInCache = -1;
+						isRefreshNeededForAutoHeight = true;
 						break;
 					}
 				}
@@ -2329,6 +2333,26 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						thisFoundsetDatasource.foundsetServer.getData(params.request, groupKeys,
 							function successCallback(resultForGrid, lastRow) {
 								params.successCallback(resultForGrid, lastRow);
+
+								// if row autoHeight is on, we need to refresh first time the data are loaded, that means,
+								// the first block has the state == "loaded"
+								if(isRefreshNeededForAutoHeight) {
+									var model = gridOptions.api.getModel();
+									if(model.rootNode.childrenCache) {
+										var sortedBlockIds = model.rootNode.childrenCache.getBlockIdsSorted();
+										if(sortedBlockIds.length) {
+											var firstBlock = model.rootNode.childrenCache.getBlock(sortedBlockIds[0])
+											if(firstBlock.state == "loaded") {
+												isRefreshNeededForAutoHeight = false;
+												setTimeout(function() {
+													purgeImpl();
+												}, 150);
+												return;
+											}
+										}
+									}
+								}
+
 								isDataLoading = false;
 								// if selection did not changed, mark the selection ready
 								if(!selectedRowIndexesChanged()) {
