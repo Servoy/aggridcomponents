@@ -1719,7 +1719,12 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								this.eInput.setAttribute('maxlength', this.format.maxLength);
 							}
 							if(this.format.edit) {
-								v = $formatterUtils.format(v, this.format.edit, this.format.type);
+								try {
+									v = $formatterUtils.format(v, this.format.edit, this.format.type);
+								}
+								catch(e) {
+									console.log(e);
+								}
 							}
 
 							if (v && this.format.type == "TEXT") {
