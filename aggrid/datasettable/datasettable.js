@@ -65,6 +65,36 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 return mergeConfig;
             }
 
+            // defaults
+            var TABLE_PROPERTIES_DEFAULTS = {
+                rowHeight: { gridOptionsProperty: "rowHeight", default: 25 },
+                headerHeight: { gridOptionsProperty: "headerHeight", default: 33 },
+                multiSelect: { gridOptionsProperty: "rowSelection", default: false }
+            }
+            var COLUMN_PROPERTIES_DEFAULTS = {
+                id: { colDefProperty: "colId", default: null },
+                headerTitle: { colDefProperty: "headerName", default: null },
+                headerTooltip: { colDefProperty: "headerTooltip", default: null },
+                headerStyleClass: { colDefProperty: "headerClass", default: null },
+                tooltip: {colDefProperty: "tooltipField", default: null},
+                styleClass: { colDefProperty: "cellClass", default: null },
+                enableRowGroup: { colDefProperty: "enableRowGroup", default: true },
+                rowGroupIndex: { colDefProperty: "rowGroupIndex", default: -1 },
+                enablePivot: { colDefProperty: "enablePivot", default: false },
+                pivotIndex: { colDefProperty: "pivotIndex", default: -1 },
+                aggFunc: { colDefProperty: "aggFunc", default: "" },
+                width: { colDefProperty: "width", default: 0 },
+                enableToolPanel: { colDefProperty: "suppressToolPanel", default: true },
+                maxWidth: { colDefProperty: "maxWidth", default: null },
+                minWidth: { colDefProperty: "minWidth", default: null },                
+                visible: { colDefProperty: "hide", default: true },
+                enableResize: { colDefProperty: "resizable", default: true },
+                autoResize: { colDefProperty: "suppressSizeToFit", default: true },
+                enableSort: { colDefProperty: "sortable", default: true },
+                cellStyleClassFunc: { colDefProperty: "cellClass", default: null },
+                cellRendererFunc: { colDefProperty: "cellRenderer", default: null }
+            }
+
             toolPanelConfig = mergeConfig(toolPanelConfig, config.toolPanelConfig);
             iconConfig = mergeConfig(iconConfig, config.iconConfig);
             userGridOptions = mergeConfig(userGridOptions, config.gridOptions);
@@ -306,8 +336,15 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
 
             // fill user grid options properties
             if (userGridOptions) {
+                var gridOptionsSetByComponent = {};
+                for( var p in TABLE_PROPERTIES_DEFAULTS) {
+                    if(TABLE_PROPERTIES_DEFAULTS[p]["default"] != config[p]) {
+                        gridOptionsSetByComponent[TABLE_PROPERTIES_DEFAULTS[p]["gridOptionsProperty"]] = true;
+                    }
+                }
+
                 for (var property in userGridOptions) {
-                    if (userGridOptions.hasOwnProperty(property)) {
+                    if (userGridOptions.hasOwnProperty(property) && !gridOptionsSetByComponent.hasOwnProperty(property)) {
                         gridOptions[property] = userGridOptions[property];
                     }
                 }
@@ -573,8 +610,8 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
         			if (column.enableResize === false) colDef.resizable = column.enableResize;
         			if (column.autoResize === false) colDef.suppressSizeToFit = !column.autoResize;
                     
-        			// sorting
-        			if (column.enableSort === false) colDef.suppressSorting = !column.enableSort;
+                    // sorting
+                    if (column.enableSort === false) colDef.sortable = false;
         			
         			// visibility
                     if (column.visible === false) colDef.hide = true;
@@ -637,8 +674,14 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     columnOptions = mergeConfig(columnOptions, column.columnDef);
 
                     if(columnOptions) {
+                        var colDefSetByComponent = {};
+                        for( var p in COLUMN_PROPERTIES_DEFAULTS) {
+                            if(COLUMN_PROPERTIES_DEFAULTS[p]["default"] != column[p]) {
+                                colDefSetByComponent[COLUMN_PROPERTIES_DEFAULTS[p]["colDefProperty"]] = true;
+                            }
+                        }
                         for (var property in columnOptions) {
-                            if (columnOptions.hasOwnProperty(property)) {
+                            if (columnOptions.hasOwnProperty(property) && !colDefSetByComponent.hasOwnProperty(property)) {
                                 colDef[property] = columnOptions[property];
                             }
                         }

@@ -381,6 +381,29 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				var invalidCellDataIndex = { rowIndex: -1, colKey: ''};
 				var onColumnDataChangePromise = null;
 
+				// defaults
+				var TABLE_PROPERTIES_DEFAULTS = {
+					rowHeight: { gridOptionsProperty: "rowHeight", default: 25 },
+					groupUseEntireRow: { gridOptionsProperty: "groupUseEntireRow", default: true },
+					enableColumnMove: { gridOptionsProperty: "suppressMovableColumns", default: true } 
+				}
+				var COLUMN_PROPERTIES_DEFAULTS = {
+					headerTitle: { colDefProperty: "headerName", default: null },
+					headerTooltip: { colDefProperty: "headerTooltip", default: null },
+					id: { colDefProperty: "colId", default: null },
+					styleClassDataprovider: { colDefProperty: "cellClass", default: null },
+					styleClass: { colDefProperty: "cellClass", default: null },
+					rowGroupIndex: { colDefProperty: "rowGroupIndex", default: -1 },
+					width: { colDefProperty: "width", default: 0 },
+					enableToolPanel: { colDefProperty: "suppressToolPanel", default: true },
+					maxWidth: { colDefProperty: "maxWidth", default: null },
+					minWidth: { colDefProperty: "minWidth", default: null },
+					visible: { colDefProperty: "hide", default: true },
+					enableResize: { colDefProperty: "resizable", default: true },
+					autoResize: { colDefProperty: "suppressSizeToFit", default: true },
+					enableSort: { colDefProperty: "sortable", default: true }
+				}
+
 				// if aggrid service is present read its defaults
 				var toolPanelConfig = null;
 				var iconConfig = null;
@@ -711,8 +734,15 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 				// fill user grid options properties
 				if (userGridOptions) {
+					var gridOptionsSetByComponent = {};
+					for( var p in TABLE_PROPERTIES_DEFAULTS) {
+						if(TABLE_PROPERTIES_DEFAULTS[p]["default"] != config[p]) {
+							gridOptionsSetByComponent[TABLE_PROPERTIES_DEFAULTS[p]["gridOptionsProperty"]] = true;
+						}
+					}
+
 					for (var property in userGridOptions) {
-						if (userGridOptions.hasOwnProperty(property)) {
+						if (userGridOptions.hasOwnProperty(property) && !gridOptionsSetByComponent.hasOwnProperty(property)) {
 							gridOptions[property] = userGridOptions[property];
 						}
 					}
@@ -4523,8 +4553,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						columnOptions = mergeConfig(columnOptions, column.columnDef);
 
 						if(columnOptions) {
+							var colDefSetByComponent = {};
+							for( var p in COLUMN_PROPERTIES_DEFAULTS) {
+								if(COLUMN_PROPERTIES_DEFAULTS[p]["default"] != column[p]) {
+									colDefSetByComponent[COLUMN_PROPERTIES_DEFAULTS[p]["colDefProperty"]] = true;
+								}
+							}
 							for (var property in columnOptions) {
-								if (columnOptions.hasOwnProperty(property)) {
+								if (columnOptions.hasOwnProperty(property) && !colDefSetByComponent.hasOwnProperty(property)) {
 									colDef[property] = columnOptions[property];
 								}
 							}
