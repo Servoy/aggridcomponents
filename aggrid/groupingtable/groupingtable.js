@@ -1718,13 +1718,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							if (this.format.maxLength) {
 								this.eInput.setAttribute('maxlength', this.format.maxLength);
 							}
-							if(this.format.edit) {
-								try {
-									v = $formatterUtils.format(v, this.format.edit, this.format.type);
-								}
-								catch(e) {
-									console.log(e);
-								}
+							var editFormat = this.format.edit ? this.format.edit : this.format.display;
+							if(editFormat) {
+								v = $formatterUtils.format(v, editFormat, this.format.type);
 							}
 
 							if (v && this.format.type == "TEXT") {
@@ -1814,13 +1810,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						if(this.editType == 'TEXTFIELD') {
 							this.eInput.select();
 						}
-						if(this.format && this.format.edit && this.format.isMask) {
+						var editFormat = this.format.edit ? this.format.edit : this.format.display;
+						if(this.format && editFormat && this.format.isMask) {
 							var settings = {};
 							settings['placeholder'] = this.format.placeHolder ? this.format.placeHolder : " ";
 							if (this.format.allowedCharacters)
 								settings['allowedCharacters'] = this.format.allowedCharacters;
 	
-							$(this.eInput).mask(this.format.edit, settings);
+							$(this.eInput).mask(editFormat, settings);
 						}
 					};
 
@@ -1838,8 +1835,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							}
 						}
 						if(this.format) {
-							if(this.format.edit) {
-								displayValue = $formatterUtils.unformat(displayValue, this.format.edit, this.format.type, this.initialValue);
+							var editFormat = this.format.edit ? this.format.edit : this.format.display;
+							if(editFormat) {
+								displayValue = $formatterUtils.unformat(displayValue, editFormat, this.format.type, this.initialValue);
 							}
 							if (this.format.type == "TEXT" && (this.format.uppercase || this.format.lowercase)) {
 								if (this.format.uppercase) displayValue = displayValue.toUpperCase();
