@@ -581,11 +581,17 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						if($scope.handlers.onReady) {
 							$scope.handlers.onReady();
 						}
-						// without timeout the column don't fit automatically
-						setTimeout(function() {
-							sizeHeaderAndColumnsToFit();
-							scrollToSelection();
-							}, 150);
+
+						if(isColumnModelChangedBeforeGridReady) {
+							updateColumnDefs();	
+						}
+						else {
+							// without timeout the column don't fit automatically
+							setTimeout(function() {
+								sizeHeaderAndColumnsToFit();
+								scrollToSelection();
+								}, 150);
+						}
 					},
 					onGridSizeChanged: function() {
 						setTimeout(function() {
@@ -2725,6 +2731,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 				});
 				
+				var isColumnModelChangedBeforeGridReady = false;
+
 				/**
 				 * @private 
 				 */
@@ -2733,9 +2741,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					function(newValue, oldValue) {
 						if(newValue != oldValue) {
 							$log.debug('column property changed');
-							updateColumnDefs();
-							if(property != "visible" && property != "width") {
-								restoreColumnsState();
+							if(isGridReady) {
+								updateColumnDefs();
+								if(property != "visible" && property != "width") {
+									restoreColumnsState();
+								}
+							}
+							else {
+								isColumnModelChangedBeforeGridReady = true;
 							}
 						}
 					});
