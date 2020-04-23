@@ -2260,12 +2260,12 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 					ValuelistFilter.prototype.onApplyFilter = function() {
 						var filterRealValue = this.getFilterRealValue();
-						if(filterRealValue === "") {
+						if(filterRealValue === "" || filterRealValue === null) {
 							this.model = null;
 						}
 						else {
 							this.model = {
-								filterType: isNaN(filterRealValue) ? "string" : "number",
+								filterType: isNaN(filterRealValue) ? "text" : "number",
 								type: "equals",
 								filter: filterRealValue
 							};
