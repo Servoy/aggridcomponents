@@ -2346,6 +2346,17 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					// resolve valuelist display values to real values
 					var filterPromises = [];
 
+					function handleFilterCallback(groupKeys, idx, valuelistValues) {
+						if(valuelistValues) {
+							for (var i = 0; i < valuelistValues.length; i++) {
+								if (valuelistValues[i].displayValue == groupKeys[idx] && valuelistValues[i].realValue != undefined) {
+									groupKeys[idx] = valuelistValues[i].realValue;
+									break;
+								}
+							}
+						}
+					}
+
 					for (var i = 0; i < groupKeys.length; i++) {
 						if (groupKeys[i] == NULL_VALUE) {
 							groupKeys[i] = null;	// reset to real null, so we use the right value for grouping
@@ -2356,11 +2367,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								filterPromises.push(vl.filterList(groupKeys[i]));
 								var idx = i;
 								filterPromises[filterPromises.length - 1].then(function(valuelistValues) {
-									if(valuelistValues && valuelistValues.length) {
-										if(valuelistValues[0] && valuelistValues[0].realValue != undefined) {
-											groupKeys[idx] = valuelistValues[0].realValue;
-										}
-									}
+									handleFilterCallback(groupKeys, idx, valuelistValues);
 								});
 							}
 						}
