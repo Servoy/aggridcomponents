@@ -4907,15 +4907,19 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					var sortColumns = [];
 					if (sortModel) {
 						sortString = '';
+						var addedColumnNames = [];
 						for (var i = 0; i < sortModel.length; i++) {
 							var sortModelCol = sortModel[i];
 							var column = getColumn(sortModelCol.colId);
 							if (column) {
 								var columnName = column.dataprovider.idForFoundset;
-								var direction = sortModelCol.sort;
-								if (i > 0) sortString += ',';
-								sortString += columnName + ' ' + direction + '';
-								sortColumns.push({ name: columnName, direction: direction });
+								if(addedColumnNames.indexOf(columnName) == -1) {
+									addedColumnNames.push(columnName);
+									var direction = sortModelCol.sort;
+									if (i > 0) sortString += ',';
+									sortString += columnName + ' ' + direction + '';
+									sortColumns.push({ name: columnName, direction: direction });
+								}
 							}
 						}
 						sortString = sortString.trim();
