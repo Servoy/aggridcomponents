@@ -2202,6 +2202,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 					ValuelistFilter.prototype.init = function(params) {
 						this.params = params;
+						this.columnIndex = getColumnIndex(params.column.colId);
+
 						var txtClearFilter = gridOptions["localeText"] && gridOptions["localeText"]["clearFilter"] ? 
 							gridOptions["localeText"] && gridOptions["localeText"]["clearFilter"] : "Clear Filter";
 
@@ -2211,8 +2213,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						this.gui = document.createElement('div');
 						this.gui.innerHTML =
 							'<div class="ag-filter-body-wrapper">' +
-							'<div class="ag-filter-body"><div class="ag-input-wrapper"><input class="ag-filter-filter" type="text" id="filterText" autocomplete="off"/></div></div>' +
-							'</div>' +
+							'<div class="ag-filter-body">' +
+							this.getFilterUI() +
+							'</div></div>' +
 							'<div class="ag-filter-apply-panel">' +
 							'<button type="button" id="btnClearFilter">' + txtClearFilter + '</button>' +
 							'<button type="button" id="btnApplyFilter">' +txtApplyFilter + '</button>' +
@@ -2222,21 +2225,46 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						this.btnClearFilter.addEventListener('click', this.onClearFilter.bind(this));
 						this.btnApplyFilter = this.gui.querySelector('#btnApplyFilter');
 						this.btnApplyFilter.addEventListener('click', this.onApplyFilter.bind(this));
-						this.eFilterText = this.gui.querySelector('#filterText');
 
-						this.columnIndex = getColumnIndex(params.column.colId);
-						this.eFilterText.setAttribute("uib-typeahead", "value.displayValue | formatFilter:model.columns[" + this.columnIndex + "].format.display:model.columns[" + this.columnIndex + "].format.type for value in filterValuelist[" + this.columnIndex+ "] | filter:$viewValue");
-						this.eFilterText.setAttribute("typeahead-wait-ms", "300");
-						this.eFilterText.setAttribute("typeahead-min-length", "0");
-						this.eFilterText.setAttribute("typeahead-append-to-body", "true");
-						this.eFilterText.setAttribute("ng-model", "typeaheadFilterValue");
+						if(this.params.svyFilterType == 'VALUELIST') {
+							this.eFilterText = this.gui.querySelector('#filterText');
+							this.eFilterText.setAttribute("uib-typeahead", "value.displayValue | formatFilter:model.columns[" + this.columnIndex + "].format.display:model.columns[" + this.columnIndex + "].format.type for value in filterValuelist[" + this.columnIndex+ "] | filter:$viewValue");
+							this.eFilterText.setAttribute("typeahead-wait-ms", "300");
+							this.eFilterText.setAttribute("typeahead-min-length", "0");
+							this.eFilterText.setAttribute("typeahead-append-to-body", "true");
+							this.eFilterText.setAttribute("ng-model", "typeaheadFilterValue");
 
-						$compile(this.eFilterText)($scope);
-						$scope.$digest();
+							$compile(this.eFilterText)($scope);
+							$scope.$digest();
 
-						var ariaOwns = this.eFilterText.getAttribute("aria-owns");
-						$("#" + ariaOwns).addClass("ag-custom-component-popup");
+							var ariaOwns = this.eFilterText.getAttribute("aria-owns");
+							$("#" + ariaOwns).addClass("ag-custom-component-popup");
+						}
+						else {
+							this.eFilterRadio = this.gui.querySelector('#filterRadio');
+							$compile(this.eFilterRadio)($scope);
+							$scope.$digest();
+						}
 					};
+
+					ValuelistFilter.prototype.getFilterUI = function() {
+						if(this.params.svyFilterType == 'RADIO') {
+							return '<label class="ag-radio-filter" id="filterRadio" ng-repeat="item in filterValuelist[' + this.columnIndex + ']"><input type="radio" name="radioFilterInput" ng-value="item.displayValue" /><span ng-bind="item.displayValue" ></span></label>';
+						}
+						else { // VALUELIST
+							return '<div class="ag-input-wrapper"><input class="ag-filter-filter" type="text" id="filterText" autocomplete="off"/></div>';
+						}
+					}
+
+					ValuelistFilter.prototype.getFilterUIValue = function() {
+						if(this.params.svyFilterType == 'RADIO') {
+							var checkedRadio = this.gui.querySelector('input[name="radioFilterInput"]:checked');
+							return  checkedRadio ? checkedRadio.value : null;
+						}
+						else { // VALUELIST
+							return this.eFilterText.value;	
+						}
+					}
 
 					ValuelistFilter.prototype.getGui = function() {
 						this.createValuelistForFilterIfNeeded();
@@ -2260,7 +2288,13 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					};
 
 					ValuelistFilter.prototype.onClearFilter = function() {
-						this.eFilterText.value = "";
+						if(this.params.svyFilterType == 'RADIO') {
+							var checkedRadio = this.gui.querySelector('input[name="radioFilterInput"]:checked');
+							if(checkedRadio) checkedRadio.checked = false;
+						}
+						else { // VALUELIST
+							this.eFilterText.value = "";
+						}
 						this.model = "";
 					}
 
@@ -2298,7 +2332,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 					ValuelistFilter.prototype.getFilterRealValue = function() {
 						var realValue = "";
-						var displayValue = this.eFilterText.value;
+						var displayValue = this.getFilterUIValue();
 						if($scope.filterValuelist && $scope.filterValuelist[this.columnIndex]) {
 							for (var i = 0; i < $scope.filterValuelist[this.columnIndex].length; i++) {
 								// compare trimmed values, typeahead will trim the selected value
@@ -4544,6 +4578,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 						if (column.filterType) {
 							colDef.suppressFilter = false;
+							colDef.filterParams = { applyButton: true, clearButton: true, newRowsAction: 'keep', suppressAndOrCondition: true, caseSensitive: false };
 
 							if(column.filterType == 'TEXT') {
 								colDef.filter = 'agTextColumnFilter';
@@ -4554,11 +4589,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							else if(column.filterType == 'DATE') {
 								colDef.filter = 'agDateColumnFilter';
 							}
-							else if(column.filterType == 'VALUELIST') {
+							else if(column.filterType == 'VALUELIST' || column.filterType == 'RADIO') {
 								colDef.filter = getValuelistFilter();
-							}
-							
-							colDef.filterParams = { applyButton: true, clearButton: true, newRowsAction: 'keep', suppressAndOrCondition: true, caseSensitive: false };
+								colDef.filterParams.svyFilterType = column.filterType;
+							}	
 						}
 
 						if(true) {
