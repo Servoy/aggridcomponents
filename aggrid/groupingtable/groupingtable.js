@@ -2324,7 +2324,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								var valuelistValuesPromise = vl.filterList("");
 								var thisFilter = this;
 								valuelistValuesPromise.then(function(valuelistValues) {
-									$scope.filterValuelist[thisFilter.columnIndex] = valuelistValues;
+									$scope.$evalAsync(function() {	
+										$scope.filterValuelist[thisFilter.columnIndex] = valuelistValues;
+									});
 								});
 							}
 						}
