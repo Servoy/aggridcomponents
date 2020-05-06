@@ -2321,23 +2321,26 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						if(!$scope.filterValuelist) $scope.filterValuelist = {};
 						if(!$scope.filterValuelist[this.columnIndex]) $scope.filterValuelist[this.columnIndex] = new Array();
 
+						if(!$scope.filterValuelistPromise) $scope.filterValuelistPromise = {};
+
 						$log.warn("RF VALUELIST SIZE " + $scope.filterValuelist[this.columnIndex].length);
 
-						if(!$scope.filterValuelist[this.columnIndex].length) {
+						if(!$scope.filterValuelist[this.columnIndex].length && !$scope.filterValuelistPromise[this.columnIndex]) {
 							var rows = gridOptions.api.getSelectedRows();
 							$log.warn("RF VALUELIST SELECTED ROWS " + rows);
 							if(rows && rows.length > 0) {
 								var vl = getValuelistEx(rows[0], this.params.column.colId)
 								$log.warn("RF VALUELIST IS " + vl);
-								var valuelistValuesPromise = vl.filterList("");
+								$scope.filterValuelistPromise[this.columnIndex] = vl.filterList("");
 								var thisFilter = this;
 								$log.warn("RF CALL FILTER");
-								valuelistValuesPromise.then(function(valuelistValues) {
+								$scope.filterValuelistPromise[this.columnIndex].then(function(valuelistValues) {
 									$log.warn("RF CALL FILTER RESPONSE " + valuelistValues);
-									$scope.$evalAsync(function() {
-										$log.warn("RF CALL FILTER SET RESPONSE " + valuelistValues);
-										$scope.filterValuelist[thisFilter.columnIndex] = valuelistValues;
-									});
+									$scope.filterValuelist[thisFilter.columnIndex] = valuelistValues;
+									$scope.filterValuelistPromise[thisFilter.columnIndex] = null;
+								}, function(e) {
+									$log.warn("RF CALL FILTER ERROR " + e);
+									$scope.filterValuelistPromise[thisFilter.columnIndex] = null;
 								});
 							}
 						}
