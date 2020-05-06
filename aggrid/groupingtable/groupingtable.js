@@ -2241,11 +2241,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							$("#" + ariaOwns).addClass("ag-custom-component-popup");
 						}
 						else {
-							$log.info("RF CREATING");
+							$log.warn("RF CREATING");
 							this.eFilterRadio = this.gui.querySelector('#filterRadio');
 							$compile(this.eFilterRadio)($scope);
 							$scope.$digest();
-							$log.info("RF CREATING DONE");
+							$log.warn("RF CREATING DONE");
 						}
 					};
 
@@ -2269,7 +2269,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 
 					ValuelistFilter.prototype.getGui = function() {
-						$log.info("RF GET GUI");
+						$log.warn("RF GET GUI");
 						this.createValuelistForFilterIfNeeded();
 						return this.gui;
 					};
@@ -2317,25 +2317,25 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 
 					ValuelistFilter.prototype.createValuelistForFilterIfNeeded = function() {
-						$log.info("RF CREATE VALUELIST FILTER IF NEEDED");
+						$log.warn("RF CREATE VALUELIST FILTER IF NEEDED");
 						if(!$scope.filterValuelist) $scope.filterValuelist = {};
 						if(!$scope.filterValuelist[this.columnIndex]) $scope.filterValuelist[this.columnIndex] = new Array();
 
-						$log.info("RF VALUELIST SIZE " + $scope.filterValuelist[this.columnIndex].length);
+						$log.warn("RF VALUELIST SIZE " + $scope.filterValuelist[this.columnIndex].length);
 
 						if(!$scope.filterValuelist[this.columnIndex].length) {
 							var rows = gridOptions.api.getSelectedRows();
-							$log.info("RF VALUELIST SELECTED ROWS " + rows);
+							$log.warn("RF VALUELIST SELECTED ROWS " + rows);
 							if(rows && rows.length > 0) {
 								var vl = getValuelistEx(rows[0], this.params.column.colId)
-								$log.info("RF VALUELIST IS " + vl);
+								$log.warn("RF VALUELIST IS " + vl);
 								var valuelistValuesPromise = vl.filterList("");
 								var thisFilter = this;
-								$log.info("RF CALL FILTER");
+								$log.warn("RF CALL FILTER");
 								valuelistValuesPromise.then(function(valuelistValues) {
-									$log.info("RF CALL FILTER RESPONSE " + valuelistValues);
+									$log.warn("RF CALL FILTER RESPONSE " + valuelistValues);
 									$scope.$evalAsync(function() {
-										$log.info("RF CALL FILTER SET RESPONSE " + valuelistValues);
+										$log.warn("RF CALL FILTER SET RESPONSE " + valuelistValues);
 										$scope.filterValuelist[thisFilter.columnIndex] = valuelistValues;
 									});
 								});
