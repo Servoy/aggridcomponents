@@ -2749,6 +2749,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				$scope.$watchCollection("model.columns", function(newValue, oldValue) {
 					$log.debug('columns changed');
 					if(newValue) {
+						state.columns = {};
 						for(var i = 0; i < columnWatches.length; i++) {
 							columnWatches[i]();
 						}
