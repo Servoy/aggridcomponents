@@ -2317,16 +2317,20 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						if(!$scope.filterValuelist) $scope.filterValuelist = {};
 						if(!$scope.filterValuelist[this.columnIndex]) $scope.filterValuelist[this.columnIndex] = new Array();
 
-						if(!$scope.filterValuelist[this.columnIndex].length) {
+						if(!$scope.filterValuelistPromise) $scope.filterValuelistPromise = {};
+
+						if(!$scope.filterValuelist[this.columnIndex].length && !$scope.filterValuelistPromise[this.columnIndex]) {
 							var rows = gridOptions.api.getSelectedRows();
 							if(rows && rows.length > 0) {
 								var vl = getValuelistEx(rows[0], this.params.column.colId)
-								var valuelistValuesPromise = vl.filterList("");
+								$scope.filterValuelistPromise[this.columnIndex] = vl.filterList("");
 								var thisFilter = this;
-								valuelistValuesPromise.then(function(valuelistValues) {
-									$scope.$evalAsync(function() {	
-										$scope.filterValuelist[thisFilter.columnIndex] = valuelistValues;
-									});
+								$scope.filterValuelistPromise[this.columnIndex].then(function(valuelistValues) {
+									$scope.filterValuelist[thisFilter.columnIndex] = valuelistValues;
+									$scope.filterValuelistPromise[thisFilter.columnIndex] = null;
+								}, function(e) {
+									$log.error(e);
+									$scope.filterValuelistPromise[thisFilter.columnIndex] = null;
 								});
 							}
 						}
@@ -2735,6 +2739,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				$scope.$watchCollection("model.columns", function(newValue, oldValue) {
 					$log.debug('columns changed');
 					if(newValue) {
+						state.columns = {};
 						for(var i = 0; i < columnWatches.length; i++) {
 							columnWatches[i]();
 						}
