@@ -330,7 +330,8 @@
                     "name": "parentFoundset",
                     "type": "foundsetRef"
                 }
-            ]
+            ],
+			"allowaccess" : "visible"
         },
 		"filterMyFoundset" : {
             "parameters" : [{
