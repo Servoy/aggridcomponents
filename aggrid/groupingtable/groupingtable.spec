@@ -1,6 +1,7 @@
 {
 	"name": "aggrid-groupingtable",
 	"displayName": "Data Grid",
+	"categoryName": "Grids",
 	"version": 1,
 	"icon" :"aggrid/groupingtable/ag-grouping.png",
 	"definition": "aggrid/groupingtable/groupingtable.js",

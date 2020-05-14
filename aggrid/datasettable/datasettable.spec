@@ -1,6 +1,7 @@
 {
 	"name": "aggrid-datasettable",
 	"displayName": "Power Grid",
+	"categoryName": "Grids",
 	"version": 1,
 	"icon" :"aggrid/datasettable/ag-dataset.png",
 	"definition": "aggrid/datasettable/datasettable.js",
