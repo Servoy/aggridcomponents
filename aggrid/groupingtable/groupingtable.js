@@ -532,8 +532,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					suppressColumnMoveAnimation: true,
 					suppressAnimationFrame: true,
 
-					rowSelection: 'multiple',
-					rowDeselection: true,
+					rowSelection: $scope.model.myFoundset && ($scope.model.myFoundset.multiSelect === true) ? 'multiple' : 'single',
+					rowDeselection: $scope.model.myFoundset && ($scope.model.myFoundset.multiSelect === true),
 					suppressCellSelection: true, // TODO implement focus lost/gained
 					enableRangeSelection: false,
 
@@ -3983,6 +3983,12 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 					// Floor
 					var idRandom = Math.floor(1000 * Math.random());
+
+					if(change[$foundsetTypeConstants.NOTIFY_MULTI_SELECT_CHANGED])
+					{
+						gridOptions.rowSelection =  change[$foundsetTypeConstants.NOTIFY_MULTI_SELECT_CHANGED].newValue ? 'multiple' : 'single';
+						gridOptions.rowDeselection = change[$foundsetTypeConstants.NOTIFY_MULTI_SELECT_CHANGED].newValue;
+					}
 
 					if (change[$foundsetTypeConstants.NOTIFY_SORT_COLUMNS_CHANGED]) {
 						$log.debug(idRandom + ' - 1. Sort');
