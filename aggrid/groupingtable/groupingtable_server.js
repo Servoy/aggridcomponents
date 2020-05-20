@@ -186,43 +186,6 @@ $scope.removeGroupedFoundsetUUID = function(parentFoundset) {
 }
 
 /**
- * @type {Object} parentFoundset
- * @type {Object} parentRecordFinder
- *
- * */
-$scope.getFoundsetRecord = function(parentFoundset, parentRecordFinder) {
-	if (!parentFoundset) parentFoundset = $scope.model.myFoundset.foundset;
-	var record = parentRecordFinder(parentFoundset);
-	var result = new Object();
-	for (var prop in record) {
-		if (! (record[prop] instanceof Function)) {
-			result[prop] = record[prop];
-		}
-	}
-	return result;
-}
-
-/**
- * The only use case is to retrieve the record index while gruped.
- * Don't implement for now
- * @deprecated
- * Get the foundset index of the given record
- * @type {Object} parentFoundset
- * @type {Object} parentRecordFinder
- *
- * */
-$scope.getRecordIndex = function(parentFoundset, parentRecordFinder) {
-	if (!parentFoundset) parentFoundset = $scope.model.myFoundset.foundset;
-	var rootFoundset = $scope.model.myFoundset.foundset;
-	var record = parentRecordFinder(parentFoundset);
-	if (record) {
-		return rootFoundset.getRecordIndex(record);
-	} else {
-		return -1;
-	}
-}
-
-/**
  * @private
  * @return {QBSelect}
  * */
