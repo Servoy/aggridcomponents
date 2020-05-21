@@ -1516,6 +1516,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						return;
 					}
 					
+					if (!groupKeys.length) {
+						return;
+					}
+					
 					// search for the group key node
 					var node = $scope.model._internalExpandedState;
 					for (var i = 0; i < groupKeys.length - 1; i++) {
@@ -1528,7 +1532,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 					
 					// remove the node
-					delete node[groupKeys.length - 1];
+					delete node[groupKeys[groupKeys.length - 1]];
 					
 					$scope.svyServoyapi.apply("_internalExpandedState");
 				}
