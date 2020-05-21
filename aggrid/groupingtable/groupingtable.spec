@@ -48,7 +48,7 @@
 			"parameters": []
 		},
 		"onCellClick": {
-			"description": "Called when the mouse is clicked on a row/cell (foundset and column indexes are given)\nthe foundsetindex is always -1 when there are grouped rows\nthe record is not an actual JSRecord but an object having the dataprovider values of the clicked record",
+			"description": "Called when the mouse is clicked on a row/cell (foundset and column indexes are given)\nthe foundsetindex is always -1 when there are grouped rows",
 			"parameters": [{
 				"name": "foundsetindex",
 				"type": "int"
@@ -58,7 +58,7 @@
 				"optional": true
 			}, {
 				"name": "record",
-				"type": "object",
+				"type": "record",
 				"optional": true
 			}, {
 				"name": "event",
@@ -67,7 +67,7 @@
 			}]
 		},
 		"onCellDoubleClick": {
-			"description": "Called when the mouse is clicked on a row/cell (foundset and column indexes are given)\nthe foundsetindex is always -1 when there are grouped rows\nthe record is not an actual JSRecord but an object having the dataprovider values of the clicked record",
+			"description": "Called when the mouse is clicked on a row/cell (foundset and column indexes are given)\nthe foundsetindex is always -1 when there are grouped rows",
 			"parameters": [{
 				"name": "foundsetindex",
 				"type": "int"
@@ -77,7 +77,7 @@
 				"optional": true
 			}, {
 				"name": "record",
-				"type": "object",
+				"type": "record",
 				"optional": true
 			}, {
 				"name": "event",
@@ -86,7 +86,7 @@
 			}]
 		},
 		"onCellRightClick": {
-			"description": "Called when the right mouse button is clicked on a row/cell (foundset and column indexes are given)\nthe foundsetindex is always -1 when there are grouped rows\nthe record is not an actual JSRecord but an object having the dataprovider values of the clicked record",
+			"description": "Called when the right mouse button is clicked on a row/cell (foundset and column indexes are given)\nthe foundsetindex is always -1 when there are grouped rows",
 			"parameters": [{
 				"name": "foundsetindex",
 				"type": "int"
@@ -96,7 +96,7 @@
 				"optional": true
 			}, {
 				"name": "record",
-				"type": "object",
+				"type": "record",
 				"optional": true
 			}, {
 				"name": "event",

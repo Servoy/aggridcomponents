@@ -542,8 +542,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					suppressColumnMoveAnimation: true,
 					suppressAnimationFrame: true,
 
-					rowSelection: 'multiple',
-					rowDeselection: true,
+					rowSelection: $scope.model.myFoundset && ($scope.model.myFoundset.multiSelect === true) ? 'multiple' : 'single',
+					rowDeselection: $scope.model.myFoundset && ($scope.model.myFoundset.multiSelect === true),
 					suppressCellSelection: true, // TODO implement focus lost/gained
 					enableRangeSelection: false,
 
@@ -986,20 +986,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						//							foundsetIndex = -1;
 						//						}
 
-						var foundsetIndex = getFoundsetIndexFromEvent(params);
-						var columnIndex = getColumnIndex(params.column.colId);
-						var recordPromise = getFoundsetRecord(params);
-
-						recordPromise.then(function(record) {
-
-							// FIXME with R&D, doesn't translate the record when grouped (because not from root foundset cache).
-							// How to retrieve the record ? Via Mapping or via PK ?
-							$scope.handlers.onCellClick(foundsetIndex, columnIndex, record, params.event);
-						}).catch(function(e) {
-							$log.error(e);
-							$scope.handlers.onCellClick(foundsetIndex, columnIndex, null, params.event);
-						});
-
+						$scope.handlers.onCellClick(getFoundsetIndexFromEvent(params), getColumnIndex(params.column.colId), params.data, params.event);
 					}
 				}
 
@@ -1016,39 +1003,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						foundsetIndex = params.node.rowIndex + 1;
 					}
 					return foundsetIndex;
-				}
-
-				/**
-				 * @return {PromiseType}
-				 * */
-				function getFoundsetRecord(params) {
-					/** @type {PromiseType} */
-					var promiseResult = $q.defer();
-					var row = params.data;
-					var foundsetManager = getFoundsetManagerByFoundsetUUID(row._svyFoundsetUUID);
-					if (!foundsetManager) foundsetManager = foundset;
-					var foundsetRef = foundsetManager.foundset;
-					var foundsetUUID = foundsetManager.foundsetUUID;
-
-					// if is a root resolve immediately
-					if (foundsetManager.isRoot) {
-						foundsetUUID = null;
-
-						//						var foundsetIndex = getFoundsetIndexFromEvent(params);
-						//						var record = foundsetRef.viewPort.rows[foundsetIndex - foundsetRef.viewPort.startIndex];
-						//						promiseResult.resolve(record);
-					}
-					//else {
-					$scope.svyServoyapi.callServerSideApi("getFoundsetRecord",
-						[foundsetUUID, row._svyRowId]).then(function(record) {
-						$log.debug(record);
-						promiseResult.resolve(record);
-					}).catch(function(e) {
-						$log.error(e);
-						promiseResult.resolve(null);
-					});
-					//}
-					return promiseResult.promise;
 				}
 
 				function updateFoundsetRecord(params) {
@@ -1187,20 +1141,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						//						}
 						//						$scope.handlers.onCellDoubleClick(foundsetIndex, columnIndex, record, params.event);
 
-						var foundsetIndex = getFoundsetIndexFromEvent(params);
-						var columnIndex = getColumnIndex(params.column.colId);
-						var recordPromise = getFoundsetRecord(params);
-
-						recordPromise.then(function(record) {
-
-							// FIXME with R&D, doesn't translate the record when grouped (because not from root foundset cache).
-							// How to retrieve the record ? Via Mapping or via PK ?
-							$scope.handlers.onCellDoubleClick(foundsetIndex, columnIndex, record, params.event);
-						}).catch(function(e) {
-							$log.error(e);
-							$scope.handlers.onCellDoubleClick(foundsetIndex, columnIndex, null, params.event);
-						});
-
+						$scope.handlers.onCellDoubleClick(getFoundsetIndexFromEvent(params), getColumnIndex(params.column.colId), params.data, params.event);
 					}
 				}
 
@@ -1237,20 +1178,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						//						}
 						//						$scope.handlers.onCellRightClick(foundsetIndex, columnIndex, record, params.event);
 
-						var foundsetIndex = getFoundsetIndexFromEvent(params);
-						var columnIndex = getColumnIndex(params.column.colId);
-						var recordPromise = getFoundsetRecord(params);
-
-						recordPromise.then(function(record) {
-
-							// FIXME with R&D, doesn't translate the record when grouped (because not from root foundset cache).
-							// How to retrieve the record ? Via Mapping or via PK ?
-							$scope.handlers.onCellRightClick(foundsetIndex, columnIndex, record, params.event);
-						}).catch(function(e) {
-							$log.error(e);
-							$scope.handlers.onCellRightClick(foundsetIndex, columnIndex, null, params.event);
-						});
-
+						$scope.handlers.onCellRightClick(getFoundsetIndexFromEvent(params), getColumnIndex(params.column.colId), params.data, params.event);
 					}
 				}
 				
@@ -4245,6 +4173,12 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 					// Floor
 					var idRandom = Math.floor(1000 * Math.random());
+
+					if(change[$foundsetTypeConstants.NOTIFY_MULTI_SELECT_CHANGED])
+					{
+						gridOptions.rowSelection =  change[$foundsetTypeConstants.NOTIFY_MULTI_SELECT_CHANGED].newValue ? 'multiple' : 'single';
+						gridOptions.rowDeselection = change[$foundsetTypeConstants.NOTIFY_MULTI_SELECT_CHANGED].newValue;
+					}
 
 					if (change[$foundsetTypeConstants.NOTIFY_SORT_COLUMNS_CHANGED]) {
 						$log.debug(idRandom + ' - 1. Sort');
