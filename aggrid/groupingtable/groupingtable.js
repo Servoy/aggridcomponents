@@ -272,9 +272,19 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					/** valuelists stored per field */
 					valuelists: { },
 					expanded: {
-						/** The column collapsed */
+						/** The column collapsed 
+						 * @deprecated */
 						columns: { },
-						buffer: []
+						/** the group fields in order
+						 * This is a re-duntant info. I can obtain it via:
+						 * 	
+						 * var groupedColumns = gridOptions.columnApi.getRowGroupColumns();
+						 * var groupFields = [];
+						 * for (var j = 0; j < groupedColumns.length; j++) {
+						 *	    groupFields.push(groupedColumns[j].colDef.field);
+						 * }
+						 *  */
+						fields: [],
 					},
 					/** Store the latest column group, as an ordered array of colId  */
 					grouped: {
@@ -287,7 +297,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					/** Sort state of the root group */
 					rootGroupSort: null
 				}
-
+				
 				// used in HTML template to toggle sync button
 				$scope.isGroupView = false;
 
@@ -834,7 +844,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				gridOptions.api.addEventListener('columnRowGroupChanged', onColumnRowGroupChanged);
 
 				// listen to group collapsed
-				//				gridOptions.api.addEventListener('rowGroupOpened', onRowGroupOpened);
+				gridOptions.api.addEventListener('rowGroupOpened', onRowGroupOpened);
 
 				/**
 				 * Grid Event
@@ -1440,7 +1450,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 * @private
 				 * */
 				function onRowGroupOpened(event) {
-					$log.debug(event);
+					// $log.debug(event.node);
 					// TODO remove foundset from memory when a group is closed
 
 					var column = event.node;
@@ -1449,26 +1459,37 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					var groupIndex = column.level;
 					var isExpanded = column.expanded;
 
-					// TODO doesn't make sense if i can't make a particoular row to open via API
+					// get group parent
+					var rowGroupInfo = getNodeGroupInfo(column);
+					var rowGroupCols = rowGroupInfo.rowGroupFields;
+					var groupKeys = rowGroupInfo.rowGroupKeys;
+					
 					// Persist the state of an expanded row
-					var expandedState = state.expanded;
 					if (isExpanded) { // add expanded node to cache
-						if (!expandedState.columns[field]) {
-							expandedState.columns[field] = new Object();
-						}
-						var node = expandedState.columns[field];
-						node[key] = groupIndex;
+						addRowExpandedState(groupKeys);
 					} else { // remove expanded node from cache when collapsed
-						if (expandedState.columns[field]) {
-							delete expandedState.columns[field][key];
+						removeRowExpandedState(groupKeys);
+					}
+					
+					if ($scope.handlers.onRowGroupOpened) {
+						
+						// return the column indexes
+						var rowGroupColIdxs = [];
+						for (var i = 0; i < rowGroupCols.length; i++) {
+							rowGroupColIdxs.push(getColumnIndex(rowGroupCols[i]));
 						}
+						
+						$scope.handlers.onRowGroupOpened(rowGroupColIdxs, groupKeys, isExpanded);
 					}
 
+					return
+					// TODO why was this commented ?
+					
 					// TODO expose model property to control perfomance
-					if (isExpanded === false && $scope.model.perfomanceClearCacheStateOnCollapse === true) {
-						// FIXME remove foundset based on values
-						groupManager.removeChildFoundsetRef(column.data._svyFoundsetUUID, column.field, column.data[field]);
-					}
+//					if (isExpanded === false && $scope.model.perfomanceClearCacheStateOnCollapse === true) {
+//						// FIXME remove foundset based on values
+//						groupManager.removeChildFoundsetRef(column.data._svyFoundsetUUID, column.field, column.data[field]);
+//					}
 					// TODO remove logs
 					//					console.log($scope.model.hashedFoundsets);
 					//					console.log(state.foundsetManagers);
@@ -1477,7 +1498,149 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					//foundsetManager.destroy();
 
 				}
+				
+				/**
+				 * Returns the group hierarchy for the given node
+				 * @private 
+				 * @param {Object} node
+				 * @return {{
+				 * 	rowGroupFields : Array<String>,
+				 * 	rowGroupKeys: Array
+				 * }}
+				 * 
+				 * */
+				function getNodeGroupInfo(node) {
+					var rowGroupCols = [];
+					//var rowGroupColIdxs = [];
+					var groupKeys = [];
+					
+					var isExpanded = node.expanded;
+					
+					var parentNode = node.parent;
+					while (parentNode && parentNode.level >= 0 && parentNode.group === true) {
+						// check if all fields are fine
+						if (!parentNode.field && !parentNode.data) {
+							$log.warn("cannot resolve group nodes ");
+							// exit
+							return;
+						}			
 
+						// is reverse order
+						rowGroupCols.unshift(parentNode.field);
+						//rowGroupColIdxs.unshift(getColumnIndex(parentNode.field))
+						groupKeys.unshift(parentNode.data[parentNode.field]);
+
+						// next node
+						parentNode = parentNode.parent;
+					}
+					
+					var field = node.field;
+					var key = node.key;
+					
+					rowGroupCols.push(field);
+					groupKeys.push(key);
+					
+					var result = {
+						rowGroupFields: rowGroupCols,
+						rowGroupKeys: groupKeys
+					}
+					return result;
+				}
+				
+				/** 
+				 * add expanded node to cache
+				 * see onRowGroupOpened
+				 * 
+				 * @param {Array} groupKeys
+				 * 
+				 * @private  */
+				function addRowExpandedState(groupKeys) {
+					
+					if (!$scope.model._internalExpandedState) {
+						$scope.model._internalExpandedState = new Object();
+					}
+					
+					var node = $scope.model._internalExpandedState;
+					
+					// Persist the state of an expanded row
+					for (var i = 0; i < groupKeys.length; i++) {
+						var key = groupKeys[i];
+						
+						if (!node[key]) {
+							node[key] = new Object();
+						}
+						
+						node = node[key];
+					}
+
+					$scope.svyServoyapi.apply("_internalExpandedState");
+				}
+				
+				/** 
+				 * remove expanded node state from cache
+				 * see onRowGroupOpened
+				 * @param {Array} groupKeys
+				 * 
+				 * @private  */
+				function removeRowExpandedState(groupKeys) {
+					
+					if (!groupKeys) {
+						return;
+					}
+					
+					// search for the group key node
+					var node = $scope.model._internalExpandedState;
+					for (var i = 0; i < groupKeys.length - 1; i++) {
+						var key = groupKeys[i];
+						node = node[key];
+						
+						if (!node) {
+							return;
+						}
+					}
+					
+					// remove the node
+					delete node[groupKeys.length - 1];
+					
+					$scope.svyServoyapi.apply("_internalExpandedState");
+				}
+				
+				/** 
+				 * remove state of expanded nodes from level
+				 * see onRowGroupChanged
+				 * @param {Number} level
+				 * 
+				 * @private  */
+				function removeRowExpandedStateAtLevel(level) {
+					if (i === null || i === undefined)  {
+						return;
+					}
+					
+					console.log("clear expanded state at level " + level)
+					
+					removeNodeAtLevel($scope.model._internalExpandedState, level);
+					
+					function removeNodeAtLevel(node, lvl) {
+						if (!node) {
+							return;
+						}
+						
+						if (node) {
+							for (var key in node) {
+								if (lvl === 0) {
+									// remove all keys at this level
+									delete node[key];
+								} else {
+									// clear subnodes
+									removeNodeAtLevel(node[key], lvl - 1);
+								}
+							}	
+						}
+					}
+					
+					$scope.svyServoyapi.apply("_internalExpandedState");
+				}
+				
 				var NULL_VALUE = {displayValue: '', realValue: null};
 
 				/**
@@ -2448,10 +2611,86 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								if(startEditFoundsetIndex > -1 && startEditColumnIndex > -1) {
 									editCellAtWithTimeout(startEditFoundsetIndex, startEditColumnIndex);
 								}
+								
+								
+								// Preserve Group State
+								// https://www.ag-grid.com/javascript-grid-server-side-model-grouping/#preserving-group-state
+								
+								var expandedState = $scope.model._internalExpandedState;
+								var groupFields = state.expanded.fields;
+								
+								if (resultForGrid && resultForGrid.length && isTableGrouped() && groupFields && expandedState) {
+
+									// get the fs manager for the group
+									//var foundsetRefManager = getFoundsetManagerByFoundsetUUID(resultForGrid[0]._svyFoundsetUUID);
+
+									// to preserve group state we expand any previously expanded groups for this block
+									for (var i = 0; i < resultForGrid.length; i++) {
+										
+										var row = resultForGrid[i];
+										try {
+											
+											// get group levels, in order
+//											var groupedColumns = gridOptions.columnApi.getRowGroupColumns();
+//											var groupFields = [];
+//											for (var j = 0; j < groupedColumns.length; j++) {
+//												groupFields.push(groupedColumns[j].colDef.field);
+//											}
+											
+											
+											// TODO do i need to retrieve the node before to know if column is expanded or not ?
+											var node = gridOptions.api.getRowNode(row._svyFoundsetUUID + '_' + row._svyFoundsetIndex);
+											if (!node) break;
+											
+											var rowGroupInfo = getNodeGroupInfo(node);
+											var rowGroupFields = rowGroupInfo.rowGroupFields;
+											var rowGroupKeys = rowGroupInfo.rowGroupKeys;
+											
+											// check if node is expanded
+											var isExpanded;
+													
+											
+											// check if the expanded columns matches the expanded columns in cache
+//											for (var j = 0; j < rowGroupFields.length; j++) {
+//												if (rowGroupFields[j] != groupFields[j]) {
+//													isExpanded = false;
+//													break;
+//												}
+//											}
+//											if (isExpanded === false) {
+//												break;
+//											}
+											
+											// check if the node is expanded
+											expandedState = $scope.model._internalExpandedState;
+											
+											for (var j = 0; expandedState && j < rowGroupKeys.length; j++) {
+												expandedState = expandedState[rowGroupKeys[j]];
+												if (!expandedState) {
+													isExpanded = false;
+													break;
+												} else {
+													isExpanded = true;
+												}
+											}
+											
+											// expand the node
+											if (isExpanded) {
+												node.setExpanded(true);
+											}
+											
+										} catch (e) {
+											console.log(e)
+										}
+									}
+								}
 							});
 					}, function(reason) {
 						$log.error('Can not get realValues for groupKeys ' + reason);
 					});
+					
+
+					
 				};
 
 				function FoundsetServer(allData) {
@@ -2674,6 +2913,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 								result = foundsetManager.getViewPortData(viewPortStartIndex, viewPortEndIndex);
 								callback(result, lastRowIndex);
+								
+								// TODO data is ready here ?
 
 							}).catch(getFoundsetRefError);
 						} else {
@@ -3953,11 +4194,32 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 * @type {Array}
 				 * */
 				function setStateGroupedColumns(columns) {
+					
 					// cache order of grouped columns
 					state.grouped.columns = [];
+					var groupFields = [];
+					var levelToRemove = null;
+					
 					for (i = 0; i < columns.length; i++) {
 						state.grouped.columns.push(columns[i].colId);
+						
+						// cache order of grouped fields
+						var field = columns[i].colDef.field;
+						groupFields.push(field);
+						
+						// TODO i am sure this run always before the onRowGroupOpen ?
+						// Remove the grouped fields
+						if (state.expanded.fields[i] && state.expanded.fields[i] != field) {
+							if (levelToRemove === null || levelToRemove === undefined) levelToRemove = i;
+						}
 					}
+					
+					// clear expanded node if grouped columns change
+					removeRowExpandedStateAtLevel(levelToRemove);
+					
+					// TODO shall i use the state.grouped.fields instead ?
+					// cache order of grouped fields
+					state.expanded.fields = groupFields;
 				}
 
 				/*************************************************************************************

@@ -16,6 +16,7 @@
 		"columnState": { "type": "string", "tags": {"scope" : "private"}, "pushToServer": "allow"},
 		"columnStateOnError": { "type": "function", "tags": {"scope" : "private"}},
 		"_internalColumnState": { "type": "string", "tags": {"scope" : "private"}, "pushToServer": "allow"},
+		"_internalExpandedState": { "type": "object", "tags": {"scope" : "private"}, "pushToServer": "allow"},
 		"restoreStates": { "type": "map", "tags": {"scope" : "private"}},
 		"responsiveHeight": { "type": "int", "default": 300 },
 		"rowHeight" : {"type" : "int", "default": 25, "tags": {"scope": "design"}},
