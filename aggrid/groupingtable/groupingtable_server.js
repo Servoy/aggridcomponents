@@ -67,8 +67,9 @@ $scope.getGroupedFoundsetUUID = function(
 		}
 	}
 
+	var isGroupQuery = groupColumns.length > groupKeys.length;
 	var childFoundset;
-	if (groupColumns.length > groupKeys.length) {
+	if (isGroupQuery) {
 		query.result.clear();
 		if(groupColumnType == 'DATETIME') {
 			query.result.add(groupColumn.cast('date'), groupDataprovider);
@@ -78,6 +79,7 @@ $scope.getGroupedFoundsetUUID = function(
 			query.result.add(groupColumn, groupDataprovider);
 			query.groupBy.add(groupColumn);	
 		}
+		query.result.add(groupColumn.count, "svycount");
 		query.sort.clear();
 
 		if (sort === 'desc') {
@@ -146,6 +148,13 @@ $scope.getGroupedFoundsetUUID = function(
 			format: $scope.model.columns[idx].format,
 			valuelist: $scope.model.columns[idx].valuelist,
 			id: $scope.model.columns[idx].id
+		});
+	}
+
+	if (isGroupQuery) {
+		columns.push({
+			dataprovider: 'svycount',
+			id: 'svycount'
 		});
 	}
 

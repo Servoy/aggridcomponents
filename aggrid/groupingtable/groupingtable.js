@@ -698,6 +698,15 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 				};
 				
+				if($scope.model.showGroupCount) {
+					gridOptions.getChildCount = function(row) {
+						if($scope.model.showGroupCount && row && (row['svycount'] != undefined)) {
+							return row['svycount'];
+						}
+						return undefined;
+					};
+				}
+
 				// check if we have filters
 				for(var i = 0; gridOptions.sideBar && gridOptions.sideBar.toolPanels && i < columnDefs.length; i++) {
 					// suppress the side filter if the suppressColumnFilter is set to true
@@ -3114,7 +3123,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							// push each dataprovider
 							for (var i = 0; i < columns.length; i++) {
 								var header = columns[i];
-								var field = getColumnID(header, i);
+								var field = header.id == 'svycount' ? header.id : getColumnID(header, i);
 
 								var value = header.dataprovider ? header.dataprovider[index] : null;
 								r[field] = value;
