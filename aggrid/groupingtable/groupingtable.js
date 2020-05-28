@@ -1553,7 +1553,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 * 
 				 * @private  */
 				function removeRowExpandedStateAtLevel(level) {
-					if (i === null || i === undefined)  {
+					if (level === null || level === undefined)  {
 						return;
 					}
 					
@@ -5568,6 +5568,18 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 */
 				$scope.api.stopCellEditing = function(cancel) {
 					gridOptions.api.stopEditing(cancel);
+				}
+
+				/**
+				 * Sets expanded groups
+				 *
+				 * @param {Object} groups an object like {expandedGroupName1:{}, expandedGroupName2:{expandedSubGroupName2_1:{}, expandedSubGroupName2_2:{}}}
+				 */
+				$scope.api.setExpandedGroups = function(groups) {
+					$scope.model._internalExpandedState = groups;
+					if(isGridReady && isTableGrouped()) {
+						$scope.purge();
+					}
 				}
 
 				// FIXME how to force re-fit when table is shown for the first time

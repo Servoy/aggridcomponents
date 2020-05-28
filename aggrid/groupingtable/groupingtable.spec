@@ -180,6 +180,22 @@
 				"type": "string[]",
 				"optional": true
 			}]
+		},
+		"onRowGroupOpened": {
+			"description": "Called when group is opened/closed",
+			"parameters": [{
+				"name": "groupcolumnindexes",
+				"type": "int[]",
+				"optional": true
+			}, {
+				"name": "groupkeys",
+				"type": "string[]",
+				"optional": true
+			}, {
+				"name": "isopened",
+				"type": "boolean",
+				"optional": true
+			}]			
 		}
 	}, 
 	"api" : {
@@ -275,7 +291,15 @@
 			"parameters": [
 				{ "name": "cancel", "type": "boolean", "optional": true}
 			]
-		}
+		},
+		"getExpandedGroups": {
+			"returns": "object"
+		},
+		"setExpandedGroups": {
+			"parameters": [
+				{ "name": "groups", "type": "object"}
+			]
+		}		
     },
 	"internalApi" : {
 		"getGroupedFoundsetUUID" : {
