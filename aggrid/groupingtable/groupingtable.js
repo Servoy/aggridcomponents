@@ -995,7 +995,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						//							foundsetIndex = -1;
 						//						}
 
-						$scope.handlers.onCellClick(getFoundsetIndexFromEvent(params), getColumnIndex(params.column.colId), params.data, params.event);
+						$scope.handlers.onCellClick(getFoundsetIndexFromEvent(params), getColumnIndex(params.column.colId), getRecord(params), params.event);
 					}
 				}
 
@@ -1012,6 +1012,15 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						foundsetIndex = params.node.rowIndex + 1;
 					}
 					return foundsetIndex;
+				}
+
+				function getRecord(params) {
+					if(params.data) {
+						var foundsetId = params.data["_svyFoundsetUUID"] == "root" ? foundset.foundset["foundsetId"]: params.data["_svyFoundsetUUID"];
+						var jsonRecord = {_svyRowId : params.data["_svyRowId"], foundsetId: foundsetId };
+						return jsonRecord;
+					}
+					return null;
 				}
 
 				function updateFoundsetRecord(params) {
@@ -1150,7 +1159,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						//						}
 						//						$scope.handlers.onCellDoubleClick(foundsetIndex, columnIndex, record, params.event);
 
-						$scope.handlers.onCellDoubleClick(getFoundsetIndexFromEvent(params), getColumnIndex(params.column.colId), params.data, params.event);
+						$scope.handlers.onCellDoubleClick(getFoundsetIndexFromEvent(params), getColumnIndex(params.column.colId), getRecord(params), params.event);
 					}
 				}
 
@@ -1187,7 +1196,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						//						}
 						//						$scope.handlers.onCellRightClick(foundsetIndex, columnIndex, record, params.event);
 
-						$scope.handlers.onCellRightClick(getFoundsetIndexFromEvent(params), getColumnIndex(params.column.colId), params.data, params.event);
+						$scope.handlers.onCellRightClick(getFoundsetIndexFromEvent(params), getColumnIndex(params.column.colId), getRecord(params), params.event);
 					}
 				}
 				
