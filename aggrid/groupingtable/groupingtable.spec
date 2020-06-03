@@ -189,7 +189,7 @@
 				"optional": true
 			}, {
 				"name": "groupkeys",
-				"type": "string[]",
+				"type": "object[]",
 				"optional": true
 			}, {
 				"name": "isopened",
