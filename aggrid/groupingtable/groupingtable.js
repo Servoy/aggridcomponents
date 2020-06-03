@@ -331,7 +331,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				var sortHandlerTimeout;
 				function onSortHandler() {
 					var sortModel = gridOptions.api.getSortModel();
-					if(sortModel && sortModel[0]) {
+					if(sortModel) {
 						var sortColumns = [];
 						var sortColumnDirections = [];
 
