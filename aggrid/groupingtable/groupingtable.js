@@ -5586,6 +5586,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 */
 				$scope.api.setExpandedGroups = function(groups) {
 					$scope.model._internalExpandedState = groups;
+					$scope.svyServoyapi.apply('_internalExpandedState');
 					if(isGridReady && isTableGrouped()) {
 						$scope.purge();
 					}
