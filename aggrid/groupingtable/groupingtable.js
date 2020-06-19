@@ -2760,7 +2760,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						}
 
 						var currentGridSort = getFoundsetSortModel(gridOptions.api.getSortModel());
-						var foundsetSort = foundsetRefManager.getSortColumns();
+						var foundsetSort = stripUnsortableColumns(foundsetRefManager.getSortColumns());
 						var isSortChanged = !$scope.handlers.onSort && rowGroupCols.length === groupKeys.length && sortString != foundsetSort
 						&& currentGridSort.sortString != foundsetSort;
 
@@ -5020,6 +5020,42 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						}
 					}
 					return sortModel;
+				}
+
+				function stripUnsortableColumns(sortString) {
+					if (sortString) {
+						var newSortString = "";
+						var sortColumns = sortString.split(",");
+						for (var i = 0; i < sortColumns.length; i++) {
+							var sortColumn = sortColumns[i];
+							var idForFoundset;
+							var sortDirection;
+							if (!sortColumn) {
+								continue;
+							} else if (sortColumn.substr(sortColumn.length - 5, 5) === " desc") {
+								idForFoundset = sortColumn.substring(0, sortColumn.length - 5);
+								sortDirection = "desc";
+							} else if (sortColumn.substr(sortColumn.length - 4, 4) === " asc") {
+								idForFoundset = sortColumn.substring(0, sortColumn.length - 4),
+								sortDirection = "asc";
+							}
+
+							var isSortable = false;
+							if (idForFoundset && sortDirection) {
+								var agColIds = getColIDs(idForFoundset);
+								for (var j = 0; j < agColIds.length; j++) {
+									isSortable = isSortable || getColumn(agColIds[j]).enableSort;
+									if(isSortable) break;
+								}
+							}
+							if(isSortable) {
+								if(newSortString) newSortString += ",";
+								newSortString += idForFoundset + " " + sortDirection;
+							}
+						}
+						return newSortString;
+					}
+					else return sortString;
 				}
 
 				/**
