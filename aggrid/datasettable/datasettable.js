@@ -501,6 +501,9 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 var col = getColumn(params.colDef.field);
                 // ignore types in compare only for non null values ("200"/200 are equals, but ""/0 is not)
                 var isValueChanged = newValue != oldValueStr || (!newValue && newValue !== oldValueStr);
+                if(isValueChanged && newValue instanceof Date && oldValue instanceof Date) {
+                    isValueChanged = newValue.toISOString() != oldValue.toISOString();
+                }
                 if(col && col["dataprovider"] && (isValueChanged || invalidCellDataIndex.rowIndex != -1)) {
                     if($scope.handlers.onColumnDataChange && isValueChanged) {
                         var currentEditCells = gridOptions.api.getEditingCells();
@@ -617,7 +620,26 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     if (column.visible === false) colDef.hide = true;
                     
                     if (column.format) {
-                        colDef.valueFormatter = createValueFormatter(column.format, column.formatType);
+                        var parsedFormat = column.format;
+                        if(column.formatType == 'DATETIME') {
+                            var useLocalDateTime = false;
+                            try {
+                                var jsonFormat = JSON.parse(column.format);
+                                parsedFormat = jsonFormat.displayFormat;
+                                useLocalDateTime = jsonFormat.useLocalDateTime;
+                            }
+                            catch(e){}
+                            if(useLocalDateTime) {
+                                colDef.valueGetter = function(params) {
+                                    var field = params.colDef.field;
+                                    if (field && params.data) {
+                                        return new Date(params.data[field]);
+                                    }
+                                    return undefined;				
+                                };
+                            }
+                        }
+                        colDef.valueFormatter = createValueFormatter(parsedFormat, column.formatType);
                     }
 
                     if(column.cellStyleClassFunc) {
@@ -1243,7 +1265,13 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     var editFormat = 'MM/dd/yyyy hh:mm a';
                     var column = getColumn(params.column.colId);
                     if(column && column.format) {
-                        editFormat = column.format;
+                        var parsedFormat = column.format;
+                        try {
+                            var jsonFormat = JSON.parse(column.format);
+                            parsedFormat = jsonFormat.editFormat ? jsonFormat.editFormat : jsonFormat.displayFormat;
+                        }
+                        catch(e){}                        
+                        editFormat = parsedFormat;
                     }
                     var theDateTimePicker = $(this.eInput).data('DateTimePicker');
                     theDateTimePicker.format(moment().toMomentFormatString(editFormat));

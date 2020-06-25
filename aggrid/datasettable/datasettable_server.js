@@ -114,7 +114,22 @@ $scope.api.renderData = function(dataset) {
         var row = dataset.getRowAsArray(i);
         var rowData = {};
         for(var j = 0; j < row.length; j++) {
-            rowData[dataset.getColumnName(j + 1)] = row[j];
+            var columnName = dataset.getColumnName(j + 1);
+            var value = row[j];
+        	if(value instanceof Date) {
+                var column = getColumnByDataprovider(columnName);
+                if(column.formatType == 'DATETIME' && column.format) {
+                    try {
+                        var formatJSON = JSON.parse(column.format);
+                        if(formatJSON.useLocalDateTime) {
+                            var tzoffset = value.getTimezoneOffset() * 60000; //offset in milliseconds
+                            value = (new Date(value.getTime() - tzoffset)).toISOString().slice(0, -1);
+                        }
+                    }
+                    catch(e) {}
+                }
+        	}
+            rowData[columnName] = value;
         }
         $scope.model.data.push(rowData);
     }     
@@ -146,4 +161,15 @@ $scope.api.appendLazyRequestData = function(dataset, lastRowIndex) {
  */
 $scope.api.setFormEditorValue = function(value) {
 	$scope.model._internalFormEditorValue = value;
+}
+
+function getColumnByDataprovider(dp) {
+    if($scope.model.columns) {
+        for(var i = 0; i < $scope.model.columns.length; i++) {
+            if(dp == $scope.model.columns[i]["dataprovider"]) {
+                return $scope.model.columns[i];
+            }
+        }
+    }
+    return null;
 }

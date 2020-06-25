@@ -1051,6 +1051,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					var col = getColumn(params.colDef.field);
 					// ignore types in compare only for non null values ("200"/200 are equals, but ""/0 is not)
 					var isValueChanged = newValue != oldValueStr || (!newValue && newValue !== oldValueStr);
+					if(isValueChanged && newValue instanceof Date && oldValue instanceof Date) {
+						isValueChanged = newValue.toISOString() != oldValue.toISOString();
+					}
 					if(col && col.dataprovider && col.dataprovider.idForFoundset && (isValueChanged || invalidCellDataIndex.rowIndex != -1)) {
 						if(isValueChanged) {
 							foundsetRef.updateViewportRecord(row._svyRowId, col.dataprovider.idForFoundset, newValue, oldValue);
