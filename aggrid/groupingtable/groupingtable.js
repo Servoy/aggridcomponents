@@ -834,14 +834,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								clickTimer = setTimeout(function() {
 									clickTimer = null;
 									onCellClicked(params);
-								}, 250);
+								}, 350);
 							}
 						}
 						else {
-							// Added setTimeOut to enable onColumnDataChangeEvent to go first
+							// Added setTimeOut to enable onColumnDataChangeEvent to go first; must be over 250, so selection is sent first
 							setTimeout(function() {
 								onCellClicked(params);
-							}, 250);
+							}, 350);
 						}
 					}
 				}
