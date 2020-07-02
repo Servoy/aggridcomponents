@@ -23,7 +23,8 @@
                     {"version":"2.3.0","url":"https://github.com/Servoy/aggridcomponents/releases/download/v2.3.0/Servoy-NG-Grids.zip", "servoy-version":"2019.12.0"},
                     {"version":"2.4.0","url":"https://github.com/Servoy/aggridcomponents/releases/download/v2.4.0/Servoy-NG-Grids.zip", "servoy-version":"2019.12.0"},
                     {"version":"2.4.1","url":"https://github.com/Servoy/aggridcomponents/releases/download/v2.4.1/Servoy-NG-Grids.zip", "servoy-version":"2019.12.0"},
-                    {"version":"2.5.0","url":"https://github.com/Servoy/aggridcomponents/releases/download/v2.5.0/Servoy-NG-Grids.zip", "servoy-version":"2019.12.0"}
+                    {"version":"2.5.0","url":"https://github.com/Servoy/aggridcomponents/releases/download/v2.5.0/Servoy-NG-Grids.zip", "servoy-version":"2019.12.0"},
+                    {"version":"2.5.1","url":"https://github.com/Servoy/aggridcomponents/releases/download/v2.5.1/Servoy-NG-Grids.zip", "servoy-version":"2019.12.0"}
                  ]
     
 }
