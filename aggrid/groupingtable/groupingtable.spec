@@ -299,7 +299,15 @@
 			"parameters": [
 				{ "name": "groups", "type": "object"}
 			]
-		}		
+		},
+		"showToolPanel": {
+			"parameters": [
+				{ "name": "show", "type": "boolean"}
+			]
+		},
+		"isToolPanelShowing": {
+			"returns": "boolean"
+		}
     },
 	"internalApi" : {
 		"getGroupedFoundsetUUID" : {

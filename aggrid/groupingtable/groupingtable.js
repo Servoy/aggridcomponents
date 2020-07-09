@@ -5630,6 +5630,30 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						$scope.purge();
 					}
 				}
+				
+				
+				/**
+				 * Show or hide the ToolPanel
+				 *
+				 * @param {Boolean} show
+				 */
+				$scope.api.showToolPanel = function(show) {
+					if (show) {
+						gridOptions.api.openToolPanel("columns");
+					} else {
+						gridOptions.api.closeToolPanel();
+					}
+				}
+				
+				/**
+				 * Returns true if the ToolPanel is showing
+				 *
+				 * @return {Boolean}
+				 */
+				$scope.api.isToolPanelShowing = function(show) {
+					return gridOptions.api.getOpenedToolPanel();
+				}
+
 
 				// FIXME how to force re-fit when table is shown for the first time
 
