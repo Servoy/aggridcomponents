@@ -118,7 +118,7 @@ $scope.api.renderData = function(dataset) {
             var value = row[j];
         	if(value instanceof Date) {
                 var column = getColumnByDataprovider(columnName);
-                if(column.formatType == 'DATETIME' && column.format) {
+                if(column && column.formatType == 'DATETIME' && column.format) {
                     try {
                         var formatJSON = JSON.parse(column.format);
                         if(formatJSON.useLocalDateTime) {
