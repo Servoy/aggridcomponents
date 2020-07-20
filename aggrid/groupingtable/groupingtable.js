@@ -4227,7 +4227,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							if(sortHandlerPromises.length == 0) {
 								gridOptions.api.setSortModel(getSortModel());
 							}
-							gridOptions.api.purgeServerSideCache();
+							else {
+								gridOptions.api.purgeServerSideCache();
+							}
 							isSelectionReady = false;
 							scrollToSelectionWhenSelectionReady = true;
 						} else if (newSort == oldSort && !newSort && !oldSort) {
