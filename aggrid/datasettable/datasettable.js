@@ -1477,7 +1477,16 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     skipHeader: skipHeader,
                     columnGroups: columnGroups,
                     skipFooters: skipFooters,
-                    skipGroups: skipGroups
+                    skipGroups: skipGroups,
+                    processCellCallback: function(processCellParams) {
+                        var columnModel = getColumn(processCellParams.column.colId);
+                        if(columnModel && columnModel.exportDisplayValue && processCellParams.column.colDef.valueFormatter) {
+                            return processCellParams.column.colDef.valueFormatter({value: processCellParams.value });
+                        }
+                        else {
+                            return processCellParams.value;
+                        }
+                    }
                 };
                 if(asCSV) {
                     gridOptions.api.exportDataAsCsv(params);
