@@ -905,8 +905,8 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
 				}
 				
 				function selectionChangeNavigation(params) {
-					var previousCell = params.previousCellDef;
-					var suggestedNextCell = params.nextCellDef;
+					var previousCell = params.previousCellPosition;
+					var suggestedNextCell = params.nextCellPosition;
 				 
 					var KEY_UP = 38;
 					var KEY_DOWN = 40;
@@ -915,30 +915,48 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
 				 
 					switch (params.key) {
 						case KEY_DOWN:
-							previousCell = params.previousCellDef;
-							// set selected cell on current cell + 1
-							gridOptions.api.forEachNode( function(node) {
-								if (previousCell.rowIndex + 1 === node.rowIndex) {
-									if ($scope.model.multiSelect) {
-										// node.setSelected(true); // keep previus selection
-									} else {
-										node.setSelected(true, true);	// exclusive selection
+							var newIndex = previousCell.rowIndex + 1;
+							var nextRow = gridOptions.api.getDisplayedRowAtIndex(newIndex);
+							while(nextRow && (nextRow.group || nextRow.selected)) {
+								newIndex++;
+								nextRow = gridOptions.api.getDisplayedRowAtIndex(newIndex);
+							}
+
+							// set selected cell on next non-group row cells
+							if(nextRow) {
+								gridOptions.api.forEachNode( function(node) {
+									if (newIndex === node.rowIndex) {
+                                        if ($scope.model.multiSelect) {
+                                            // node.setSelected(true); // keep previus selection
+                                        } else {
+                                            node.setSelected(true, true);
+                                        }
 									}
-								}
-							});
+								});
+								suggestedNextCell.rowIndex = newIndex;
+							}
 							return suggestedNextCell;
 						case KEY_UP:
-							previousCell = params.previousCellDef;
-							// set selected cell on current cell - 1
-							gridOptions.api.forEachNode( function(node) {
-								if (previousCell.rowIndex - 1 === node.rowIndex) {
-									if ($scope.model.multiSelect) {
-										// node.setSelected(true); // keep previus selection
-									} else {
-										node.setSelected(true, true);	// exclusive selection
+							var newIndex = previousCell.rowIndex - 1;
+							var nextRow = gridOptions.api.getDisplayedRowAtIndex(newIndex);
+							while(nextRow && (nextRow.group || nextRow.selected)) {
+								newIndex--;
+								nextRow = gridOptions.api.getDisplayedRowAtIndex(newIndex);
+							}
+
+							// set selected cell on previous non-group row cells
+							if(nextRow) {
+								gridOptions.api.forEachNode( function(node) {
+									if (newIndex === node.rowIndex) {
+                                        if ($scope.model.multiSelect) {
+                                            // node.setSelected(true); // keep previus selection
+                                        } else {
+                                            node.setSelected(true, true);
+                                        }
 									}
-								}
-							});
+								});
+								suggestedNextCell.rowIndex = newIndex;
+							}
 							return suggestedNextCell;
 						case KEY_LEFT:
 						case KEY_RIGHT:

@@ -1221,20 +1221,40 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 
 					switch (params.key) {
 						case KEY_DOWN:
-							// set selected cell on current cell + 1
-							gridOptions.api.forEachNode( function(node) {
-								if (previousCell.rowIndex + 1 === node.rowIndex) {
-									node.setSelected(true, true);
-								}
-							});
+							var newIndex = previousCell.rowIndex + 1;
+							var nextRow = gridOptions.api.getDisplayedRowAtIndex(newIndex);
+							while(nextRow && (nextRow.group || nextRow.selected)) {
+								newIndex++;
+								nextRow = gridOptions.api.getDisplayedRowAtIndex(newIndex);
+							}
+
+							// set selected cell on next non-group row cells
+							if(nextRow) {
+								gridOptions.api.forEachNode( function(node) {
+									if (newIndex === node.rowIndex) {
+										node.setSelected(true, true);
+									}
+								});
+								suggestedNextCell.rowIndex = newIndex;
+							}
 							return suggestedNextCell;
 						case KEY_UP:
-							// set selected cell on current cell - 1
-							gridOptions.api.forEachNode( function(node) {
-								if (previousCell.rowIndex - 1 === node.rowIndex) {
-									node.setSelected(true, true);
-								}
-							});
+							var newIndex = previousCell.rowIndex - 1;
+							var nextRow = gridOptions.api.getDisplayedRowAtIndex(newIndex);
+							while(nextRow && (nextRow.group || nextRow.selected)) {
+								newIndex--;
+								nextRow = gridOptions.api.getDisplayedRowAtIndex(newIndex);
+							}
+
+							// set selected cell on previous non-group row cells
+							if(nextRow) {
+								gridOptions.api.forEachNode( function(node) {
+									if (newIndex === node.rowIndex) {
+										node.setSelected(true, true);
+									}
+								});
+								suggestedNextCell.rowIndex = newIndex;
+							}
 							return suggestedNextCell;
 						case KEY_LEFT:
 						case KEY_RIGHT:
