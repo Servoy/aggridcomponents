@@ -818,6 +818,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				// grid handlers
 				var clickTimer;
 				function cellClickHandler(params) {
+					selectionEvent = { type: 'click', event: params.event, rowIndex: params.node.rowIndex };
 					if(params.node.rowPinned) {
 						if (params.node.rowPinned == "bottom" && $scope.handlers.onFooterClick) {
 							var columnIndex = getColumnIndex(params.column.colId);
@@ -860,6 +861,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 * @private
 				 *
 				 * */
+				var selectionEvent;
 				var onSelectionChangedTimeout = null;
 				var requestSelectionPromises = new Array();
 				function onSelectionChanged(event) {
@@ -873,7 +875,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				}
 
 				function onSelectionChangedEx() {
-					
 					// Don't trigger foundset selection if table is grouping
 					if (isTableGrouped()) {
 						
@@ -884,7 +885,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						
 						return;
 					}
-					
+
 					// set to true once the grid is ready and selection is set
 				    isSelectionReady = true;
 				
@@ -898,14 +899,55 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				    	$scope.api.requestFocus(requestFocusColumnIndex);
 				    }
 
-					var selectedNodes = gridOptions.api.getSelectedNodes();
-					if (selectedNodes.length > 0) {
-						var foundsetIndexes = new Array();
+					if(selectionEvent) {
+						var foundsetIndexes;
+						if(foundset.foundset.multiSelect && selectionEvent.type == 'click' &&
+							(selectionEvent.event.ctrlKey || selectionEvent.event.shiftKey)) {
+							foundsetIndexes = foundset.foundset.selectedRowIndexes.slice();
+							if(selectionEvent.event.ctrlKey) {
+								var selectionIndex = foundsetIndexes.indexOf(selectionEvent.rowIndex);
+								if(selectionIndex == -1) foundsetIndexes.push(selectionEvent.rowIndex);
+								else foundsetIndexes.splice(selectionIndex, 1);
+							}
+							else {	// shiftKey
+								var firstRow = foundsetIndexes[0];
+								var lastRow = foundsetIndexes.length > 1 ? foundsetIndexes[foundsetIndexes.length - 1] : firstRow;
 
-						for(var i = 0; i < selectedNodes.length; i++) {
-							var node = selectedNodes[i];
-							if(node) foundsetIndexes.push(node.rowIndex);				
+								var fillStart, fillEnd;
+								if(selectionEvent.rowIndex < firstRow) {
+									fillStart = selectionEvent.rowIndex;
+									fillEnd = firstRow - 1;
+
+								} else if(selectionEvent.rowIndex < lastRow) {
+									fillStart = selectionEvent.rowIndex;
+									fillEnd = lastRow - 1;
+
+								} else {
+									fillStart = lastRow + 1;
+									fillEnd = selectionEvent.rowIndex;
+								}
+								for(var i = fillStart; i <= fillEnd; i++) {
+									if(foundsetIndexes.indexOf(i) == -1) {
+										foundsetIndexes.push(i);
+									}
+								}
+
+								gridOptions.api.forEachNode( function(node) {
+									if (foundsetIndexes.indexOf(node.rowIndex) != -1) {
+										node.setSelected(true);
+									}
+								});
+							}
 						}
+						else {
+							foundsetIndexes = new Array();
+							var selectedNodes = gridOptions.api.getSelectedNodes();
+							for(var i = 0; i < selectedNodes.length; i++) {
+								var node = selectedNodes[i];
+								if(node && foundsetIndexes.indexOf(node.rowIndex) == -1) foundsetIndexes.push(node.rowIndex);
+							}
+						}
+
 						if(foundsetIndexes.length > 0) {
 							foundsetIndexes.sort(function(a, b){return a - b});
 							// if single select don't send the old selection along with the new one, to the server
@@ -927,10 +969,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 									if(scrollToSelectionWhenSelectionReady) {
 										$scope.api.scrollToSelection();
 									}
-				                    // Trigger event on selection change
-				                    if ($scope.handlers.onSelectedRowsChanged) {
-				                        $scope.handlers.onSelectedRowsChanged();
-				                    }
+									// Trigger event on selection change
+									if ($scope.handlers.onSelectedRowsChanged) {
+										$scope.handlers.onSelectedRowsChanged();
+									}
 									
 									//success
 								},
@@ -951,7 +993,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							);
 							return;
 						}
-
 					}
 					$log.debug("table must always have a selected record");
 					selectedRowIndexesChanged();
@@ -1090,6 +1131,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 											colKey: colId
 										});
 										setTimeout(function() {
+											selectionEvent = null;
 											gridOptions.api.forEachNode( function(node) {
 												if (node.rowIndex === rowIndex) {
 													node.setSelected(true, true);
@@ -1230,6 +1272,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 							// set selected cell on next non-group row cells
 							if(nextRow) {
+								selectionEvent = { type: 'key', event: params.event };
 								gridOptions.api.forEachNode( function(node) {
 									if (newIndex === node.rowIndex) {
 										node.setSelected(true, true);
@@ -1248,6 +1291,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 							// set selected cell on previous non-group row cells
 							if(nextRow) {
+								selectionEvent = { type: 'key', event: params.event };
 								gridOptions.api.forEachNode( function(node) {
 									if (newIndex === node.rowIndex) {
 										node.setSelected(true, true);
@@ -1278,6 +1322,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						}
 
 						if(!suggestedNextCellSelected) {
+							selectionEvent = { type: 'key', event: params.event };
 							gridOptions.api.forEachNode( function(node) {
 								if (suggestedNextCell.rowIndex === node.rowIndex) {
 									node.setSelected(true, true);
@@ -1908,6 +1953,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 										}
 										gridOptions.api.stopEditing();
 										if (newEditingNode) {
+											selectionEvent = { type: 'key', event: event };
 											newEditingNode.setSelected(true, true);
 
 											if(columnToCheck.isCellEditable(newEditingNode)) {
@@ -4343,6 +4389,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 					for (var i = 0; i < oldSelectedNodes.length; i++) {
 						if(selectedNodes.indexOf(oldSelectedNodes[i]) == -1) {
+							selectionEvent = null;
 							oldSelectedNodes[i].setSelected(false);
 							isSelectedRowIndexesChanged = true;
 						}
@@ -4350,6 +4397,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 					for (var i = 0; i < selectedNodes.length; i++) {
 						if(oldSelectedNodes.indexOf(selectedNodes[i]) == -1) {
+							selectionEvent = null;
 							selectedNodes[i].setSelected(true);
 							isSelectedRowIndexesChanged = true;
 						}
