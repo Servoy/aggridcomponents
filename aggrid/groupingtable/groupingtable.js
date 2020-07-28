@@ -695,9 +695,43 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					enableBrowserTooltips: true,
 					onToolPanelVisibleChanged : function(event) {
 						sizeHeaderAndColumnsToFit();
+					},
+					onCellFocused: function(event) {
+						if(!event.rowPinned && event.rowIndex != null) {
+							var focusedRow = gridOptions.api.getDisplayedRowAtIndex(event.rowIndex);
+							if(focusedRow && !focusedRow.selected) {
+								var rowIndex = event.rowIndex;
+								var colKey = event.column.colId;
+								if(focusedRow.id) { // row is already created
+									selectionEvent = { type: 'key' };
+									focusedRow.setSelected(true);
+								}
+								else {
+									// row is not yet created, postpone selection & focus
+									postFocusCell = { rowIndex: rowIndex, colKey: colKey };
+								}
+							}
+						}
+					},
+					processRowPostCreate: function(params) {
+						if(postFocusCell && postFocusCell.rowIndex == params.rowIndex) {
+							var rowIndex = postFocusCell.rowIndex;
+							var colKey = postFocusCell.colKey;
+							var focusedRow = params.node;
+							postFocusCell = null;;
+							// need a timeout 0 because we can't call grid api during row creation
+							setTimeout(function() {
+								gridOptions.api.clearFocusedCell(); // start clean, this will force setting the focus on the postFocusCell
+								selectionEvent = { type: 'key' };
+								focusedRow.setSelected(true);
+								gridOptions.api.setFocusedCell(rowIndex, colKey)
+							}, 0);
+						}
 					}
 				};
 				
+				var postFocusCell; // hold informations (rowIndex, colKey) about row/cell that need to be selected/focused after they are created
+
 				if($scope.model.showGroupCount) {
 					gridOptions.getChildCount = function(row) {
 						if($scope.model.showGroupCount && row && (row['svycount'] != undefined)) {
@@ -996,7 +1030,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 					$log.debug("table must always have a selected record");
 					selectedRowIndexesChanged();
-					if(scrollToSelectionWhenSelectionReady) {
+					if(scrollToSelectionWhenSelectionReady || postFocusCell) {
 						$scope.api.scrollToSelection();
 					}
 
