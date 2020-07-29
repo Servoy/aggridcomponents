@@ -704,7 +704,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								var colKey = event.column.colId;
 								if(focusedRow.id) { // row is already created
 									selectionEvent = { type: 'key' };
-									focusedRow.setSelected(true);
+									focusedRow.setSelected(true, true);
 								}
 								else {
 									// row is not yet created, postpone selection & focus
@@ -723,7 +723,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							setTimeout(function() {
 								gridOptions.api.clearFocusedCell(); // start clean, this will force setting the focus on the postFocusCell
 								selectionEvent = { type: 'key' };
-								focusedRow.setSelected(true);
+								focusedRow.setSelected(true, true);
 								gridOptions.api.setFocusedCell(rowIndex, colKey)
 							}, 0);
 						}
