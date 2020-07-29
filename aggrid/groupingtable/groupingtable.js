@@ -696,21 +696,26 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					onToolPanelVisibleChanged : function(event) {
 						sizeHeaderAndColumnsToFit();
 					},
-					onCellFocused: function(event) {
-						if(!event.rowPinned && event.rowIndex != null) {
-							var focusedRow = gridOptions.api.getDisplayedRowAtIndex(event.rowIndex);
-							if(focusedRow && !focusedRow.selected) {
-								var rowIndex = event.rowIndex;
-								var colKey = event.column.colId;
-								if(focusedRow.id) { // row is already created
-									selectionEvent = { type: 'key' };
-									focusedRow.setSelected(true, true);
+					onCellKeyDown: function(param) {
+						switch(param.event.keyCode) {
+							case 33: // PGUP
+							case 34: // PGDOWN
+							case 35: // END
+							case 36: // HOME
+								var focusedCell = gridOptions.api.getFocusedCell();
+								if(focusedCell && !focusedCell.rowPinned && focusedCell.rowIndex != null) {
+									var focusedRow = gridOptions.api.getDisplayedRowAtIndex(focusedCell.rowIndex);
+									if(focusedRow && !focusedRow.selected) {
+										if(focusedRow.id) { // row is already created
+											selectionEvent = { type: 'key' };
+											focusedRow.setSelected(true, true);
+										}
+										else {
+											// row is not yet created, postpone selection & focus
+											postFocusCell = { rowIndex: focusedCell.rowIndex, colKey: focusedCell.column.colId };
+										}
+									}
 								}
-								else {
-									// row is not yet created, postpone selection & focus
-									postFocusCell = { rowIndex: rowIndex, colKey: colKey };
-								}
-							}
 						}
 					},
 					processRowPostCreate: function(params) {
