@@ -173,3 +173,13 @@ function getColumnByDataprovider(dp) {
     }
     return null;
 }
+
+/**
+ * Returns currently expanded groups as an object like
+ * {expandedGroupName1:{}, expandedGroupName2:{expandedSubGroupName2_1:{}, expandedSubGroupName2_2:{}}}
+ *
+ * @returns {Object}
+ */
+$scope.api.getExpandedGroups = function() {
+	return $scope.model._internalExpandedState;
+}

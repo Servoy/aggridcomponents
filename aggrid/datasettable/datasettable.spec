@@ -16,6 +16,7 @@
 		"columns": { "type": "column[]", "droppable" : true, "tags": {"doc": "List all columns to be used in table as dataprovider"}},
 		"columnState": { "type": "string", "tags": {"scope" : "private"}, "pushToServer": "allow"},
 		"_internalColumnState": { "type": "string", "tags": {"scope" : "private"}, "pushToServer": "allow"},
+		"_internalExpandedState": { "type": "object", "tags": {"scope" : "private"}, "pushToServer": "allow"},
 		"responsiveHeight": { "type": "int", "default": 300, "tags": {"doc": "Table's height to be set in a responsive form. When responsiveHeight is set to 0, the table will use 100% height of the parent container"} },
 		"rowHeight" : {"type" : "int", "default": 25, "tags": {"scope": "design", "doc": "The height in pixels of the table's rows"}},
 		"rowStyleClassFunc": { "type": "string", "tags": {"doc": "Function to add style class to row"}},
@@ -184,7 +185,23 @@
 				"type": "object",
 				"optional": true
 			}]
-		}
+		},
+		"onRowGroupOpened": {
+			"description": "Called when group is opened/closed",
+			"parameters": [{
+				"name": "groupcolumnindexes",
+				"type": "int[]",
+				"optional": true
+			}, {
+				"name": "groupkeys",
+				"type": "object[]",
+				"optional": true
+			}, {
+				"name": "isopened",
+				"type": "boolean",
+				"optional": true
+			}]			
+		}		
 	}, 
 	"api" : {
 		"renderData": {
@@ -259,7 +276,15 @@
 			"parameters": [
 				{ "name": "value", "type": "object"}
 			]
-		}
+		},
+		"getExpandedGroups": {
+			"returns": "object"
+		},
+		"setExpandedGroups": {
+			"parameters": [
+				{ "name": "groups", "type": "object"}
+			]
+		}		
 	},
 	"types" : {
 		"column" : {

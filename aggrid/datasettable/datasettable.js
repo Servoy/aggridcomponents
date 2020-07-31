@@ -135,6 +135,24 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 return (!$scope.model.columns || $scope.model.columns.length == 0) && $scope.svyServoyapi.isInDesigner();
             }
 
+            /**
+             * Store the state of the table.
+             * */
+            var state = {
+                expanded: {
+                    /** the group fields in order
+                     * This is a re-duntant info. I can obtain it via:
+                     * 	
+                     * var groupedColumns = gridOptions.columnApi.getRowGroupColumns();
+                     * var groupFields = [];
+                     * for (var j = 0; j < groupedColumns.length; j++) {
+                     *	    groupFields.push(groupedColumns[j].colDef.field);
+                        * }
+                        *  */
+                    fields: [],
+                }
+            }
+
             var contextMenuItems = [];
 
             var isGridReady = false;
@@ -202,6 +220,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                             $scope.svyServoyapi.apply('_internalColumnState');
                         }
                         restoreColumnsState();
+                        applyExpandedState();
                     }
                     gridOptions.onDisplayedColumnsChanged = function() {
                         sizeColumnsToFit();
@@ -390,6 +409,12 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
             gridOptions.api.addEventListener('displayedColumnsChanged', function() {
                 sizeColumnsToFit();
             });
+
+            // listen to group changes
+			gridOptions.api.addEventListener('columnRowGroupChanged', onColumnRowGroupChanged);
+
+            // listen to group collapsed
+            gridOptions.api.addEventListener('rowGroupOpened', onRowGroupOpened);
 
 
             if(!$scope.svyServoyapi.isInDesigner() && $scope.model.useLazyLoading) {
@@ -1090,6 +1115,224 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 return rowGroupCols && rowGroupCols.length > 0;
             }
 
+            function onRowGroupOpened(event) {
+                var column = event.node;
+                var isExpanded = column.expanded;
+
+                // get group parent
+                var rowGroupInfo = getNodeGroupInfo(column);
+                var rowGroupCols = rowGroupInfo.rowGroupFields;
+                var groupKeys = rowGroupInfo.rowGroupKeys;
+                
+                // Persist the state of an expanded row
+                if (isExpanded) { // add expanded node to cache
+                    addRowExpandedState(groupKeys);
+                } else { // remove expanded node from cache when collapsed
+                    removeRowExpandedState(groupKeys);
+                }
+                
+                if ($scope.handlers.onRowGroupOpened) {
+                    
+                    // return the column indexes
+                    var rowGroupColIdxs = [];
+                    for (var i = 0; i < rowGroupCols.length; i++) {
+                        rowGroupColIdxs.push(getColumnIndex(rowGroupCols[i]));
+                    }
+                    
+                    $scope.handlers.onRowGroupOpened(rowGroupColIdxs, groupKeys, isExpanded);
+                }
+            }
+
+            /** 
+             * add expanded node to cache
+             * see onRowGroupOpened
+             * 
+             * @param {Array} groupKeys
+             */
+            function addRowExpandedState(groupKeys) {
+                
+                if (!$scope.model._internalExpandedState) {
+                    $scope.model._internalExpandedState = new Object();
+                }
+                
+                var node = $scope.model._internalExpandedState;
+                
+                // Persist the state of an expanded row
+                for (var i = 0; i < groupKeys.length; i++) {
+                    var key = groupKeys[i];
+                    
+                    if (!node[key]) {
+                        node[key] = new Object();
+                    }
+                    
+                    node = node[key];
+                }
+
+                $scope.svyServoyapi.apply("_internalExpandedState");
+            }
+				
+            /** 
+             * remove expanded node state from cache
+             * see onRowGroupOpened
+             * @param {Array} groupKeys
+             * 
+             */
+            function removeRowExpandedState(groupKeys) {
+                
+                if (!groupKeys) {
+                    return;
+                }
+                
+                if (!groupKeys.length) {
+                    return;
+                }
+                
+                // search for the group key node
+                var node = $scope.model._internalExpandedState;
+                for (var i = 0; i < groupKeys.length - 1; i++) {
+                    var key = groupKeys[i];
+                    node = node[key];
+                    
+                    if (!node) {
+                        return;
+                    }
+                }
+                
+                // remove the node
+                delete node[groupKeys[groupKeys.length - 1]];
+                
+                $scope.svyServoyapi.apply("_internalExpandedState");
+            }
+                
+            /**
+             * Returns the group hierarchy for the given node
+             * @param {Object} node
+             * @return {{
+                * 	rowGroupFields : Array<String>,
+                * 	rowGroupKeys: Array
+                * }}
+                * 
+                * */
+            function getNodeGroupInfo(node) {
+                var rowGroupCols = [];
+                //var rowGroupColIdxs = [];
+                var groupKeys = [];
+                
+                var isExpanded = node.expanded;
+                
+                var parentNode = node.parent;
+                while (parentNode && parentNode.level >= 0 && parentNode.group === true) {
+                    // is reverse order
+                    rowGroupCols.unshift(parentNode.field);
+                    groupKeys.unshift(parentNode.key);
+
+                    // next node
+                    parentNode = parentNode.parent;
+                }
+                
+                var field = node.field;
+                var key = node.key;
+                
+                rowGroupCols.push(field);
+                groupKeys.push(key);
+                
+                var result = {
+                    rowGroupFields: rowGroupCols,
+                    rowGroupKeys: groupKeys
+                }
+                return result;
+            }
+
+            /**
+             * When Column Group Changes
+             */
+            function onColumnRowGroupChanged(event) {
+                var columns = event.columns;
+                var groupFields = [];
+                var levelToRemove = null;
+                
+                for (i = 0; i < columns.length; i++) {
+                    // cache order of grouped fields
+                    var field = columns[i].colDef.field;
+                    groupFields.push(field);
+                    
+                    // TODO i am sure this run always before the onRowGroupOpen ?
+                    // Remove the grouped fields
+                    if (state.expanded.fields[i] && state.expanded.fields[i] != field) {
+                        if (levelToRemove === null || levelToRemove === undefined) levelToRemove = i;
+                    }
+                }
+                
+                // clear expanded node if grouped columns change
+                removeRowExpandedStateAtLevel(levelToRemove);
+                
+                // cache order of grouped fields
+                state.expanded.fields = groupFields;
+            }
+
+            /** 
+             * remove state of expanded nodes from level
+             * see onRowGroupChanged
+             * @param {Number} level
+             * 
+             */
+            function removeRowExpandedStateAtLevel(level) {
+                if (level === null || level === undefined)  {
+                    return;
+                }
+    
+                removeNodeAtLevel($scope.model._internalExpandedState, level);
+                
+                function removeNodeAtLevel(node, lvl) {
+                    if (!node) {
+                        return;
+                    }
+                    
+                    if (node) {
+                        for (var key in node) {
+                            if (lvl === 0) {
+                                // remove all keys at this level
+                                delete node[key];
+                            } else {
+                                // clear subnodes
+                                removeNodeAtLevel(node[key], lvl - 1);
+                            }
+                        }	
+                    }
+                }
+                
+                $scope.svyServoyapi.apply("_internalExpandedState");
+            }
+
+
+            function applyExpandedState() {
+                var expandedState = $scope.model._internalExpandedState;
+                var groupFields = state.expanded.fields;
+                if (isTableGrouped() && groupFields && expandedState) {
+                    gridOptions.api.forEachNode(function(node, index) {
+                        var rowGroupInfo = getNodeGroupInfo(node);
+                        var rowGroupKeys = rowGroupInfo.rowGroupKeys;
+                        
+                        // check if node is expanded
+                        var isExpanded = false;
+                
+                        // check if the node is expanded
+                        expandedState = $scope.model._internalExpandedState;
+                        
+                        for (var j = 0; expandedState && j < rowGroupKeys.length; j++) {
+                            expandedState = expandedState[rowGroupKeys[j]];
+                            if (!expandedState) {
+                                isExpanded = false;
+                                break;
+                            } else {
+                                isExpanded = true;
+                            }
+                        }
+
+                        node.setExpanded(isExpanded);
+                    });
+                }
+            }
             /**************************************************************************************************
              **************************************************************************************************
              *
@@ -1547,6 +1790,19 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
             $scope.api.stopCellEditing = function(cancel) {
                 gridOptions.api.stopEditing(cancel);
             }
+
+            /**
+             * Sets expanded groups
+             *
+             * @param {Object} groups an object like {expandedGroupName1:{}, expandedGroupName2:{expandedSubGroupName2_1:{}, expandedSubGroupName2_2:{}}}
+             */
+            $scope.api.setExpandedGroups = function(groups) {
+                $scope.model._internalExpandedState = groups;
+                $scope.svyServoyapi.apply('_internalExpandedState');
+                if(isGridReady) {
+                    applyExpandedState();
+                }
+            }            
         },
         templateUrl: 'aggrid/datasettable/datasettable.html'
     };
