@@ -4489,16 +4489,15 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 *  */
 				function isTableGrouped() {
 					var rowGroupCols = getRowGroupColumns();
-					return rowGroupCols && rowGroupCols.length > 0;
+					return rowGroupCols.length > 0;
 				}
 
 				/**
 				 * Returns table's rowGroupColumns
-				 * @return {Boolean}
 				 *  */
 				function getRowGroupColumns() {
-					var rowGroupCols = gridOptions.columnApi.getRowGroupColumns();
-					return rowGroupCols;
+					var rowGroupCols = gridOptions.columnApi ? gridOptions.columnApi.getRowGroupColumns() : null;
+					return rowGroupCols ? rowGroupCols : [];
 				}
 
 				/**
@@ -5383,7 +5382,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				}
 	
 				function restoreColumnsState() {
-					if($scope.model.columnState) {
+					if($scope.model.columnState && gridOptions.api && gridOptions.columnApi) { // if there is columnState and grid not yet destroyed
 						var columnStateJSON = null;
 
 						try {
