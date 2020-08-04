@@ -161,6 +161,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					$scope.dirtyCache = false;
 					isSelectionReady = false;
 					scrollToSelectionWhenSelectionReady = true;
+					columnsToFitAfterRowsRendered = true;
 					// $log.warn('purge cache');
 
 					// TODO expand previously expanded rows
@@ -324,6 +325,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				var startEditColumnIndex = -1;
 
 				var scrollToSelectionWhenSelectionReady = false;
+
+				// set to true, if columns needs to be fit after rows are rendered - set to true when purge is called (all rows are rendered)
+				var columnsToFitAfterRowsRendered = false;
 
 				// foundset sort promise
 				var sortPromise;
@@ -730,6 +734,12 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								selectionEvent = { type: 'key' };
 								focusedRow.setSelected(true, true);
 								gridOptions.api.setFocusedCell(rowIndex, colKey)
+							}, 0);
+						}
+						if(columnsToFitAfterRowsRendered) {
+							columnsToFitAfterRowsRendered = false;
+							setTimeout(function() {
+								sizeHeaderAndColumnsToFit();
 							}, 0);
 						}
 					}
