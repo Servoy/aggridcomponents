@@ -2829,7 +2829,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						allPromises.push($scope.svyServoyapi.callServerSideApi("filterMyFoundset", filterMyFoundsetArg));
 					}
 
-					var sortModel = request.sortModel;
+					var sortModel = gridOptions.api.getSortModel();
 
 					var result;
 					var sortRootGroup = false;
@@ -2894,10 +2894,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							state.rootGroupSort = sortModel[0];
 						}
 
-						var currentGridSort = getFoundsetSortModel(gridOptions.api.getSortModel());
 						var foundsetSort = stripUnsortableColumns(foundsetRefManager.getSortColumns());
-						var isSortChanged = !$scope.handlers.onSort && rowGroupCols.length === groupKeys.length && sortString != foundsetSort
-						&& currentGridSort.sortString != foundsetSort;
+						var isSortChanged = !$scope.handlers.onSort && rowGroupCols.length === groupKeys.length && sortString != foundsetSort;
 
 						if(isSortChanged) {
 							$log.debug('CHANGE SORT REQUEST');
@@ -2914,7 +2912,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 							if(isColumnSortable) {
 								// send sort request if header is clicked; skip if is is not from UI (isSelectionReady == false) or if it from a sort handler or a group column sort
-								if(isSelectionReady) {
+								if(isSelectionReady || sortString) {
 									foundsetSortModel = getFoundsetSortModel(sortModel)
 									sortPromise = foundsetRefManager.sort(foundsetSortModel.sortColumns);
 									sortPromise.then(function() {
