@@ -191,6 +191,17 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						$scope.model.iconConfig.iconRefreshData : "glyphicon glyphicon-refresh";
 				}
 
+				function getIconCheckboxEditor(state) {
+					if(state) {
+						return $scope.model.iconConfig && $scope.model.iconConfig.iconEditorChecked ?
+							$scope.model.iconConfig.iconEditorChecked : "glyphicon glyphicon-check";
+					}
+					else {
+						return $scope.model.iconConfig && $scope.model.iconConfig.iconEditorUnchecked ?
+						$scope.model.iconConfig.iconEditorUnchecked : "glyphicon glyphicon-unchecked";
+					}
+				}
+
 				/* Test Root Foundset Cache */
 				function test_validateCache() {
 					var cacheBlocks = gridOptions.api.getCacheBlockState();
@@ -1057,6 +1068,12 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 * */
 				function onCellClicked(params) {
 					$log.debug(params);
+					var col = params.colDef.field ? getColumn(params.colDef.field) : null;
+					if(col && col.editType == 'CHECKBOX' && params.event.target.tagName == 'I') {
+						var v = parseInt(params.value);
+						if(v == NaN) v = 0;						
+						params.node.setDataValue(params.column.colId, v ? 0 : 1);
+					}
 					if ($scope.handlers.onCellClick) {
 						//						var row = params.data;
 						//						var foundsetManager = getFoundsetManagerByFoundsetUUID(row._svyFoundsetUUID);
@@ -4783,19 +4800,27 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 						var col = colId != null ? getColumn(colId) : null;
 						var value = params.value;
-						
+
 						var returnValueFormatted = false;
-						if(col != null && col.showAs == 'html') {
-							value =  value && value.displayValue != undefined ? value.displayValue : value;
-						} else if(col != null && col.showAs == 'sanitizedHtml') {
-							value = $sanitize(value && value.displayValue != undefined ? value.displayValue : value)
-						} else if (value && value.contentType && value.contentType.indexOf('image/') == 0 && value.url) {
-							value = '<img class="ag-table-image-cell" src="' + value.url + '">';
-						} else {
-							returnValueFormatted = true;
+						var checkboxEl = null;
+
+						if(col && col.editType == 'CHECKBOX' && !params.node.group) {
+							checkboxEl = document.createElement('i');
+							checkboxEl.className = getIconCheckboxEditor(parseInt(value));
 						}
-					
-						if(value instanceof Date) returnValueFormatted = true;
+						else {
+							if(col != null && col.showAs == 'html') {
+								value =  value && value.displayValue != undefined ? value.displayValue : value;
+							} else if(col != null && col.showAs == 'sanitizedHtml') {
+								value = $sanitize(value && value.displayValue != undefined ? value.displayValue : value)
+							} else if (value && value.contentType && value.contentType.indexOf('image/') == 0 && value.url) {
+								value = '<img class="ag-table-image-cell" src="' + value.url + '">';
+							} else {
+								returnValueFormatted = true;
+							}
+						
+							if(value instanceof Date) returnValueFormatted = true;
+						}
 
 						var styleClassProvider = null;
 						if(!isGroupColumn) {
@@ -4820,15 +4845,26 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								styleClassProvider = col.footerStyleClass;
 							}
 						}
-							
+						
 						if(styleClassProvider) {
 							var divContainer = document.createElement("div");
 							divContainer.className = styleClassProvider;
-							divContainer.innerHTML = returnValueFormatted ? params.valueFormatted : value;
+							if(checkboxEl) {
+								divContainer.appendChild(checkboxEl);
+							}
+							else {
+								divContainer.innerHTML = returnValueFormatted ? params.valueFormatted : value;
+							}
+
 							return divContainer;
 						}
 						else {
-							return returnValueFormatted ? document.createTextNode(params.valueFormatted) : value;
+							if(checkboxEl) {
+								return checkboxEl;
+							}
+							else {
+								return returnValueFormatted ? document.createTextNode(params.valueFormatted) : value;
+							}
 						}
 					}
 
@@ -4888,7 +4924,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 //						column.menuTabs = colMenuTabs;
 						
 						if (column.editType) {
-							colDef.editable = isColumnEditable;
+							colDef.editable = isColumnEditable && (column.editType != 'CHECKBOX');
 
 							if(column.editType == 'TEXTFIELD' || column.editType == 'TYPEAHEAD') {
 								colDef.cellEditor = getTextEditor();

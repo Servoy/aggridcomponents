@@ -486,8 +486,25 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 }
             });
 
+            function getIconCheckboxEditor(state) {
+                if(state) {
+                    return $scope.model.iconConfig && $scope.model.iconConfig.iconEditorChecked ?
+                        $scope.model.iconConfig.iconEditorChecked : "glyphicon glyphicon-check";
+                }
+                else {
+                    return $scope.model.iconConfig && $scope.model.iconConfig.iconEditorUnchecked ?
+                    $scope.model.iconConfig.iconEditorUnchecked : "glyphicon glyphicon-unchecked";
+                }
+            }
+
             function getDefaultCellRenderer(column) {
                 return function(params) {
+                    if(column.editType == 'CHECKBOX' && !params.node.group) {
+                        var checkboxEl = document.createElement('i');
+                        checkboxEl.className = getIconCheckboxEditor(parseInt(params.value));
+                        return checkboxEl;
+                    }
+
                     var value = params.value != null ? params.value : "";
                     var valueFormatted = params.valueFormatted != null ? params.valueFormatted : value;
                     
@@ -501,8 +518,6 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     } else {
                         returnValueFormatted = true;
                     }
-                
-                    if(value instanceof Date) returnValueFormatted = true;
 
                     return returnValueFormatted ? document.createTextNode(valueFormatted) : value;
                 };
@@ -695,7 +710,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     }
 
                     if (column.editType) {
-                        colDef.editable = !$scope.model.readOnly;
+                        colDef.editable = !$scope.model.readOnly && (column.editType != 'CHECKBOX');
 
                         if(column.editType == 'TEXTFIELD') {
                             colDef.cellEditor = getTextEditor();
@@ -891,6 +906,13 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
 			}
 
 				function onCellClicked(params) {
+                    var col = params.colDef.field ? getColumn(params.colDef.field) : null;
+					if(col && col.editType == 'CHECKBOX' && params.event.target.tagName == 'I') {
+						var v = parseInt(params.value);
+						if(v == NaN) v = 0;						
+						params.node.setDataValue(params.column.colId, v ? 0 : 1);
+					}
+
 					if ($scope.handlers.onCellClick && params.data && params.colDef.field) {
 						$scope.handlers.onCellClick(params.data, params.colDef.colId != undefined ? params.colDef.colId : params.colDef.field, params.value, params.event);
 					}

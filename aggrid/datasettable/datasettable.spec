@@ -313,7 +313,7 @@
 			"cellRendererFunc": {"type": "string", "tags": {"doc": "Function to change the cell rendering"}},
 			"format": {"type": "tagstring", "tags": {"doc": "Format string as used in Servoy, for the type set in formatType"}},
 			"formatType": {"type": "string", "values": ["TEXT", "NUMBER", "DATETIME"], "default": "TEXT", "tags": {"doc": "Type of data the format is applied on"}},
-			"editType": {"type": "string", "values": [{"NONE":null}, {"TEXTFIELD":"TEXTFIELD"}, {"DATEPICKER":"DATEPICKER"}, {"FORM":"FORM"}], "tags": {"doc": "Type of editing used for that column"}},
+			"editType": {"type": "string", "values": [{"NONE":null}, {"TEXTFIELD":"TEXTFIELD"}, {"DATEPICKER":"DATEPICKER"}, {"FORM":"FORM"}, {"CHECKBOX":"CHECKBOX"}], "tags": {"doc": "Type of editing used for that column"}},
 			"editForm": {"type": "form", "tags": {"doc": "Form used as custom editor"}},
 			"filterType": {"type": "string", "values": [{"NONE":null}, {"TEXT":"TEXT"}, {"NUMBER":"NUMBER"}, {"DATE":"DATE"}]},
 			"id": {"type" : "string", "tags": {"showInOutlineView": true, "doc": "Used to set the column id (colId) property in the serialized column state json string of getColumnState and onColumnStateChanged" }},
@@ -364,7 +364,9 @@
 			"iconRowGroupPanel": { "type": "styleclass", "tags": {"scope": "design"}},
 			"iconPivotPanel": { "type": "styleclass", "tags": {"scope": "design"}},
 			"iconValuePanel": { "type": "styleclass", "tags": {"scope": "design"}},
-			"iconRefreshData": { "type": "styleclass", "default" : "glyphicon glyphicon-refresh", "tags": {"scope": "design"}}
+			"iconRefreshData": { "type": "styleclass", "default" : "glyphicon glyphicon-refresh", "tags": {"scope": "design"}},
+			"iconEditorChecked": { "type": "styleclass", "default" : "glyphicon glyphicon-check", "tags": {"scope": "design"}},
+			"iconEditorUnchecked": { "type": "styleclass", "default" : "glyphicon glyphicon-unchecked", "tags": {"scope": "design"}}			
         },
 		"columnVO": {
 			"id": {"type": "string"},
