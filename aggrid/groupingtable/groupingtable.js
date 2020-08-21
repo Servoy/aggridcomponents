@@ -3177,7 +3177,16 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							gridOptions.columnApi.resetColumnState();
 						}
 					}
-				});				
+				});
+				
+				$scope.$watch("model._internalAutoSizeState", function(newValue, oldValue) {
+					if(isGridReady && (newValue === true)) {
+						// need to clear it, so the watch can be used, if columnState changes, and we want to apply the same _internalAutoSizeState again
+						$scope.model._internalAutoSizeState = false;
+						$scope.svyServoyapi.apply('_internalAutoSizeState');
+						gridOptions.columnApi.autoSizeAllColumns(false);
+					}
+				});	
 
 				/**************************************************************************************************
 				 **************************************************************************************************

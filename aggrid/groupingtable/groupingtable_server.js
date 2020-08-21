@@ -615,6 +615,14 @@ $scope.api.restoreColumnState = function(columnState, onError, columns, filter, 
 }
 
 /**
+ * Auto-sizes all columns based on content.
+ * 
+ */
+$scope.api.autoSizeAllColumns = function() {
+	$scope.model._internalAutoSizeState = true;
+}
+
+/**
  * Returns the current state of the columns (width, position, grouping state) as a json string
  * that can be used to restore to this state using restoreColumnState
  * 

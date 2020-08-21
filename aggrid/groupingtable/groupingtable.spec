@@ -15,6 +15,7 @@
 		"columns": { "type": "column[]", "droppable" : true, "pushToServer": "shallow", "tags": {"doc": "List all columns to be used in table as dataprovider"}},
 		"columnState": { "type": "string", "tags": {"scope" : "private"}, "pushToServer": "allow"},
 		"columnStateOnError": { "type": "function", "tags": {"scope" : "private"}},
+		"_internalAutoSizeState": { "type": "boolean", "tags": {"scope" : "private"}, "pushToServer": "allow"},
 		"_internalColumnState": { "type": "string", "tags": {"scope" : "private"}, "pushToServer": "allow"},
 		"_internalExpandedState": { "type": "object", "tags": {"scope" : "private"}, "pushToServer": "allow"},
 		"restoreStates": { "type": "map", "tags": {"scope" : "private"}},
@@ -215,6 +216,10 @@
 				{ "name": "columns", "type": "boolean", "optional": true},
 				{ "name": "filter", "type": "boolean", "optional": true},
 				{ "name": "sort", "type": "boolean", "optional": true}
+			]
+		},
+		"autoSizeAllColumns" : {
+			"parameters": [
 			]
 		},
 		"getColumnsCount": {
