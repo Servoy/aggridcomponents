@@ -487,15 +487,17 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
             });
 
             function getIconCheckboxEditor(state) {
-                if(state) {
-                    return $scope.model.iconConfig && $scope.model.iconConfig.iconEditorChecked ?
-                        $scope.model.iconConfig.iconEditorChecked : "glyphicon glyphicon-check";
-                }
-                else {
-                    return $scope.model.iconConfig && $scope.model.iconConfig.iconEditorUnchecked ?
-                    $scope.model.iconConfig.iconEditorUnchecked : "glyphicon glyphicon-unchecked";
-                }
-            }
+				var checkboxEditorIconConfig = iconConfig ? iconConfig : $scope.model.iconConfig;
+				
+				if(state) {
+					return checkboxEditorIconConfig && checkboxEditorIconConfig.iconEditorChecked ?
+					checkboxEditorIconConfig.iconEditorChecked : "glyphicon glyphicon-check";
+				}
+				else {
+					return checkboxEditorIconConfig && checkboxEditorIconConfig.iconEditorUnchecked ?
+					checkboxEditorIconConfig.iconEditorUnchecked : "glyphicon glyphicon-unchecked";
+				}
+			}
 
             function getDefaultCellRenderer(column) {
                 return function(params) {

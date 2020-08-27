@@ -192,13 +192,15 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				}
 
 				function getIconCheckboxEditor(state) {
+					var checkboxEditorIconConfig = iconConfig ? iconConfig : $scope.model.iconConfig;
+					
 					if(state) {
-						return $scope.model.iconConfig && $scope.model.iconConfig.iconEditorChecked ?
-							$scope.model.iconConfig.iconEditorChecked : "glyphicon glyphicon-check";
+						return checkboxEditorIconConfig && checkboxEditorIconConfig.iconEditorChecked ?
+						checkboxEditorIconConfig.iconEditorChecked : "glyphicon glyphicon-check";
 					}
 					else {
-						return $scope.model.iconConfig && $scope.model.iconConfig.iconEditorUnchecked ?
-						$scope.model.iconConfig.iconEditorUnchecked : "glyphicon glyphicon-unchecked";
+						return checkboxEditorIconConfig && checkboxEditorIconConfig.iconEditorUnchecked ?
+						checkboxEditorIconConfig.iconEditorUnchecked : "glyphicon glyphicon-unchecked";
 					}
 				}
 
