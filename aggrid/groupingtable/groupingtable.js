@@ -385,6 +385,12 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				var groupManager = new GroupManager();
 
 				var gridDiv = $element.find('.ag-table')[0];
+				gridDiv.addEventListener("click", function(e) {
+					if(e.target.classList.contains("ag-icon-checkbox-checked") || e.target.classList.contains("ag-icon-checkbox-unchecked")) {
+						selectionEvent = { type: 'click' };
+					}
+				});
+				  
 				var columnDefs = getColumnDefs();
 				var maxBlocksInCache = CACHED_CHUNK_BLOCKS;
 
@@ -963,7 +969,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 					if(selectionEvent) {
 						var foundsetIndexes;
-						if(foundset.foundset.multiSelect && selectionEvent.type == 'click' &&
+						if(foundset.foundset.multiSelect && selectionEvent.type == 'click' && selectionEvent.event &&
 							(selectionEvent.event.ctrlKey || selectionEvent.event.shiftKey)) {
 							foundsetIndexes = foundset.foundset.selectedRowIndexes.slice();
 							if(selectionEvent.event.ctrlKey) {
