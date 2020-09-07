@@ -2921,8 +2921,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						}
 
 						var currentGridSort = getFoundsetSortModel(gridOptions.api.getSortModel());
-						var foundsetSort = stripUnsortableColumns(foundsetRefManager.getSortColumns());
-						var isSortChanged = !$scope.handlers.onSort && rowGroupCols.length === groupKeys.length && sortString != foundsetSort
+						var foundsetSort = stripUnsortableColumns(foundset.getSortColumns());
+						var isSortChanged = !$scope.handlers.onSort /*&& rowGroupCols.length === groupKeys.length*/ && sortString != foundsetSort
 						&& currentGridSort.sortString != foundsetSort;
 
 						if(isSortChanged) {
