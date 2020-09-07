@@ -4449,6 +4449,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				}
 
 				function selectedRowIndexesChanged(foundsetManager) {
+					// skip selection if ag-grid is not initialized
+					if (!gridOptions.api) {
+						return false;
+					}
 					// FIXME can't select the record when is not in viewPort. Need to synchornize with viewPort record selection
 					$log.debug(' - 2.1 Request selection changes');
 
