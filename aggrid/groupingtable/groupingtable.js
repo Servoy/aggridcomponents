@@ -4641,7 +4641,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							for (i = 0; i < allDisplayedColumns.length; i++) {
 								var column = allDisplayedColumns[i];
 								var columnModel = getColumn(column.colDef.field)
-								if (columnModel && columnModel.styleClassDataprovider) {
+								if (columnModel && columnModel.styleClassDataprovider && columnModel.styleClassDataprovider[index]) {
 									styleClassDPColumns.push(column);
 								}
 							}
