@@ -1671,16 +1671,9 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                         return $scope.ngEditFormUrl;
                     };
 
-                    $scope.loadSize = function() {
-                        $sabloApplication.getFormState(column.editForm).then(function(formState){
-                            var css = {};
-                            css["width"] = formState.properties.designSize.width + "px";
-                            css["height"] = formState.properties.designSize.height + "px";
-                            $('#ngformeditor').css(css);
-                        })
-                    };
+                    this.eGui.innerHTML = '<div id="ngformeditor" svyform="' + column.editForm +
+                        '" ng-include="getNGEditFormUrl()" style="width:' + column.editFormSize.width + 'px; height:' + column.editFormSize.height + 'px;"></div>';
 
-                    this.eGui.innerHTML = '<div id=\'ngformeditor\' svyform="' + column.editForm + '" ng-include="getNGEditFormUrl()" onload="loadSize()"></div>';
                     $compile(this.eGui)($scope);
                 };
 
