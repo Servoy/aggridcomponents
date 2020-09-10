@@ -28,3 +28,7 @@
 .design-mode {
 	display: block;
 }
+
+#nggridformeditor > * > .svy-respform {
+	height: 100%;
+}

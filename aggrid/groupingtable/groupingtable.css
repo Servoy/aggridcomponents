@@ -66,3 +66,7 @@
 .ag-radio-filter {
 	display: block;
 }
+
+#nggridformeditor > * > .svy-respform {
+	height: 100%;
+}

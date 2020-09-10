@@ -2427,7 +2427,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							return $scope.ngEditFormUrl;
 						};
 
-						this.eGui.innerHTML = '<div id="ngformeditor" svyform="' + column.editForm +
+						this.eGui.innerHTML = '<div id="nggridformeditor" svyform="' + column.editForm +
 							'" ng-include="getNGEditFormUrl()" style="width:' + column.editFormSize.width + 'px; height:' + column.editFormSize.height + 'px;"></div>';
 						$compile(this.eGui)($scope);
 					};
