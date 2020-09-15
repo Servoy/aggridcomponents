@@ -6382,5 +6382,5 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 		};
 	}]).run(function() {
 		// this is not part of the open source license, can only be used in combination of the Servoy NG Grids components
-		agGrid.LicenseManager.setLicenseKey("Servoy_B.V_Servoy_7Devs_200Deployment_11_October_2020__MTYwMjM3MDgwMDAwMA==26d908e26f73b44683ba7a5dfdd00755");
+		agGrid.LicenseManager.setLicenseKey("CompanyName=Servoy B.V.,LicensedApplication=Servoy,LicenseType=SingleApplication,LicensedConcurrentDeveloperCount=7,LicensedProductionInstancesCount=200,AssetReference=AG-010463,ExpiryDate=11_October_2021_[v2]_MTYzMzkwNjgwMDAwMA==4c6752fe4cb2066ab1f0e9c572bc7491");
 });
