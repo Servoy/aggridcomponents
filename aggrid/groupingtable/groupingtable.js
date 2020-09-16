@@ -5295,31 +5295,20 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 * @return {Object}
 				 * */
 				function getColumn(field, columnsModel) {
-					var fieldToCompare = field;
-					var fieldIdx = 0;
-					if (field.indexOf('_') > 0) { // has index
-						var fieldParts = field.split('_');
-						if('col' != fieldParts[0] && !isNaN(fieldParts[1])) {
-							fieldToCompare = fieldParts[0];
-							fieldIdx = parseInt(fieldParts[1]);
-						}
-					}
 					if (!columnsModel && state.columns[field]) { // check if is already cached
 						return state.columns[field];
 					} else {
 						var columns = columnsModel ? columnsModel : $scope.model.columns;
 						for (var i = 0; i < columns.length; i++) {
 							var column = columns[i];
-							if (column.id === fieldToCompare || getColumnID(column, i) === fieldToCompare) {
-								if(fieldIdx < 1) {
-									// cache it in hashmap for quick retrieval
-									if(!columnsModel) state.columns[field] = column;
-									return columns[i];
-								}
-								fieldIdx--;
+							if (column.id === field || getColumnID(column, i) === field) {
+								// cache it in hashmap for quick retrieval
+								if(!columnsModel) state.columns[field] = column;
+								return column;
 							}
 						}
 					}
+					return null;
 				}
 
 				/**
