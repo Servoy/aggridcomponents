@@ -342,6 +342,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				// set to true, if columns needs to be fit after rows are rendered - set to true when purge is called (all rows are rendered)
 				var columnsToFitAfterRowsRendered = false;
 
+				// flag used to set removing all foundset just before getting data tp display; it is set when doing sort while grouped
+				var removeAllFoundsetRef = false;
+
 				// foundset sort promise
 				var sortPromise;
 				var sortHandlerPromises = new Array();
@@ -639,7 +642,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					onSortChanged: function() {
 						storeColumnsState();
 						if(isTableGrouped()) {
-							groupManager.removeFoundsetRefAtLevel(0);
+							removeAllFoundsetRef = true;
 							gridOptions.api.purgeServerSideCache();
 						}
 						if($scope.handlers.onSort) {
@@ -2663,6 +2666,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						}
 					}
 
+					var removeAllFoundsetRefPostponed = false;
 					for (var i = 0; i < groupKeys.length; i++) {
 						if (groupKeys[i] == NULL_VALUE) {
 							groupKeys[i] = null;	// reset to real null, so we use the right value for grouping
@@ -2674,14 +2678,23 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								var idx = i;
 								filterPromises[filterPromises.length - 1].then(function(valuelistValues) {
 									handleFilterCallback(groupKeys, idx, valuelistValues);
+									if(removeAllFoundsetRef) {
+										groupManager.removeFoundsetRefAtLevel(0);
+									}
 								});
+								removeAllFoundsetRefPostponed = true;
 							}
 						}
+					}
+
+					if(removeAllFoundsetRef && !removeAllFoundsetRefPostponed) {
+						groupManager.removeFoundsetRefAtLevel(0);
 					}
 
 					var thisFoundsetDatasource = this;
 					var allPromisses = sortHandlerPromises.concat(filterPromises);
 					$q.all(allPromisses).then(function() {
+						removeAllFoundsetRef = false;
 						thisFoundsetDatasource.foundsetServer.getData(params.request, groupKeys,
 							function successCallback(resultForGrid, lastRow) {
 								params.successCallback(resultForGrid, lastRow);
