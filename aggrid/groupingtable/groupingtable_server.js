@@ -448,6 +448,8 @@ function filterFoundset(foundset, sFilterModel) {
 						var dateFromD = new Date(dateFromSplit[0], dateFromSplit[1] - 1, dateFromSplit[2]);
 						var dateToD = new Date(dateFromD.getTime());
 						dateToD.setDate(dateToD.getDate() + 1);
+						var dateToDTime = dateToD.getTime();
+						dateToD.setTime(dateToDTime - 1);
 						value = new Array();
 						value.push(dateFromD);
 						value.push(dateToD);
