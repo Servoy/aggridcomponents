@@ -390,7 +390,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				var gridDiv = $element.find('.ag-table')[0];
 				gridDiv.addEventListener("click", function(e) {
 					if(e.target.parentNode.classList.contains("ag-selection-checkbox")) {
-						selectionEvent = { type: 'click' };
+						var rowIndex = $(e.target.parentNode).closest('[row-index]').attr('row-index');
+						selectionEvent = { type: 'click' , event: {ctrlKey: true}, rowIndex: parseInt(rowIndex)};
 					}
 				});
 				  
