@@ -4674,7 +4674,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 								// stop editing to allow setting the new data
 								if(editingColumnId) {
-									gridOptions.api.stopEditing(false);
+									gridOptions.api.stopEditing(true);
 								}
 
 								if(isRowChanged) {
