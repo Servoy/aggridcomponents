@@ -1990,6 +1990,13 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								});
 							}
 						}
+						else if(this.editType == 'TEXTFIELD' && column.format) {
+							var attConverter = document.createAttribute("svy-decimal-key-converter");
+							this.eInput.setAttributeNode(attConverter);
+							$scope.model.format = column.format;
+							$compile(this.eInput)($scope);
+							$scope.$digest();
+						}
 
 						this.initialValue = params.value;
 						if(this.initialValue && this.initialValue.displayValue != undefined) {
@@ -2193,6 +2200,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							var ariaId = $(this.eInput).attr('aria-owns');
 							$('#' + ariaId).remove();
 						}
+						// delete format created on scope model for svy-decimal-key-converter
+						if($scope.model.format) delete $scope.model.format;
 					};
 
 					return TextEditor;
