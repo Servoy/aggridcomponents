@@ -1672,7 +1672,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     };
 
                     this.eGui.innerHTML = '<div id="nggridformeditor" svyform="' + column.editForm +
-                        '" ng-include="getNGEditFormUrl()" style="width:' + column.editFormSize.width + 'px; height:' + column.editFormSize.height + 'px;"></div>';
+                        '" ng-include="getNGEditFormUrl()" style="width:' + (column.editFormSize ? column.editFormSize.width : 300) + 'px; height:' + (column.editFormSize ? column.editFormSize.height : 200) + 'px;"></div>';
 
                     $compile(this.eGui)($scope);
                 };
