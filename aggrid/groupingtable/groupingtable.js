@@ -5471,15 +5471,24 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							$log.error(e);
 						}
 						
-						var restoreColumns = $scope.model.restoreStates == undefined || $scope.model.restoreStates.columns == undefined || $scope.model.restoreStates.columns;
-
-						if(restoreColumns && $scope.model.columnStateOnError) {
-							// can't parse columnState
-							if(columnStateJSON == null || !Array.isArray(columnStateJSON.columnState)) {
+						function innerColumnStateOnError(errorMsg) {
+							if (restoreColumns && $scope.model.columnStateOnError) {
+								// can't parse columnState
 								$window.executeInlineScript(
 									$scope.model.columnStateOnError.formname,
 									$scope.model.columnStateOnError.script,
-									['Cannot restore columns state, invalid format']);
+									[errorMsg]);
+							} else {
+								console.error(errorMsg);
+							}
+						}
+						
+						var restoreColumns = $scope.model.restoreStates == undefined || $scope.model.restoreStates.columns == undefined || $scope.model.restoreStates.columns;
+
+						if (restoreColumns) {
+							// can't parse columnState
+							if(columnStateJSON == null || !Array.isArray(columnStateJSON.columnState)) {
+								innerColumnStateOnError('Cannot restore columns state, invalid format');
 								return;
 							}
 
@@ -5492,10 +5501,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								savedColumns.push(columnStateJSON.columnState[i].colId);
 							}
 							if(savedColumns.length != $scope.model.columns.length) {
-									$window.executeInlineScript(
-										$scope.model.columnStateOnError.formname,
-										$scope.model.columnStateOnError.script,
-										['Cannot restore columns state, different number of columns in saved state and component']);
+									innerColumnStateOnError('Cannot restore columns state, different number of columns in saved state and component');
 									return;
 							}
 	
@@ -5521,10 +5527,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 									}
 								}
 								if(!columnExist) {
-									$window.executeInlineScript(
-										$scope.model.columnStateOnError.formname,
-										$scope.model.columnStateOnError.script,
-										['Cannot restore columns state, cant find column from state in component columns']);
+									innerColumnStateOnError('Cannot restore columns state, cant find column from state in component columns');
 									return;
 								}
 							}
