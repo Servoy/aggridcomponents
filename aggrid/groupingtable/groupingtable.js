@@ -5507,6 +5507,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 	
 							for(var i = 0; i < savedColumns.length; i++) {
 								var columnExist = false;
+								var columnMatch = false;
 								var fieldToCompare = savedColumns[i];
 								var fieldIdx = 0;
 								if (fieldToCompare.indexOf('_') > 0) { // has index
@@ -5516,9 +5517,32 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 										fieldIdx = parseInt(fieldParts[1]);
 									}
 								}
-								for(var j = 0; j < $scope.model.columns.length; j++) {
-									if(($scope.model.columns[j].id && fieldToCompare == $scope.model.columns[j].id) ||
-									($scope.model.columns[j].dataprovider && fieldToCompare == getColumnID($scope.model.columns[j], j))) {
+								
+								for (var j = 0; j < $scope.model.columns.length; j++) {
+									// TODO shall i simply check if column exists using gridOptions.columnApi.getColumn(fieldToCompare) instead ?
+									
+									// check if fieldToCompare has a matching column id
+									if ($scope.model.columns[j].id && fieldToCompare == $scope.model.columns[j].id) {
+										columnMatch = true;
+									} else if ($scope.model.columns[j].dataprovider && fieldToCompare == getColumnID($scope.model.columns[j], j)) {
+										// if no column id check if column has matching column identifier
+										
+										// if a column id has been later set. Update the columnState
+										if ($scope.model.columns[j].id) {
+											
+											for (var k = 0; k < columnStateJSON.columnState.length; k++) {
+												// find the column in columnState
+												if (columnStateJSON.columnState[k].colId == savedColumns[i]) {
+													columnStateJSON.columnState[k].colId = $scope.model.columns[j].id;
+													break;
+												}
+											}
+										}
+										columnMatch = true;
+									}
+									
+									// there is a match. Check the col_X position
+									if (columnMatch) {
 											if(fieldIdx < 1) {
 												columnExist = true;
 												break;
