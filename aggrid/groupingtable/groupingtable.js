@@ -1081,28 +1081,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				function onCellClicked(params) {
 					$log.debug(params);
 					var col = params.colDef.field ? getColumn(params.colDef.field) : null;
-					if(col && col.editType == 'CHECKBOX' && params.event.target.tagName == 'I') {
-						var isColumnEditable = true;
-						
-						// if column has isEditableDataprovider check is is allowed
-						if (col.isEditableDataprovider) {
-							if (!isTableGrouped()) {
-								var index = params.node.rowIndex - foundset.foundset.viewPort.startIndex;
-								isColumnEditable = col.isEditableDataprovider[index];
-							} else {
-								var foundsetManager = getFoundsetManagerByFoundsetUUID(params.data._svyFoundsetUUID);
-								var index = foundsetManager.getRowIndex(params.data) - foundsetManager.foundset.viewPort.startIndex;
-								if (index >= 0 && foundsetManager.foundset.viewPort.rows[index][params.colDef.field + "_isEditableDataprovider"] != undefined) {
-									isColumnEditable = foundsetManager.foundset.viewPort.rows[index][params.colDef.field + "_isEditableDataprovider"];
-								}
-							}
-						}
-						
-						if (isColumnEditable) {
-							var v = parseInt(params.value);
-							if(v == NaN) v = 0;						
-							params.node.setDataValue(params.column.colId, v ? 0 : 1);
-						}
+					if(col && col.editType == 'CHECKBOX' && params.event.target.tagName == 'I' && isColumnEditable(params)) {
+						var v = parseInt(params.value);
+						if(v == NaN) v = 0;		
+						params.node.setDataValue(params.column.colId, v ? 0 : 1);
 					}
 					if ($scope.handlers.onCellClick) {
 						//						var row = params.data;
@@ -4978,7 +4960,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 //						column.menuTabs = colMenuTabs;
 						
 						if (column.editType) {
-							colDef.editable = isColumnEditable && (column.editType != 'CHECKBOX');
+							colDef.editable = column.editType != 'CHECKBOX' ? isColumnEditable : false;
 
 							if(column.editType == 'TEXTFIELD' || column.editType == 'TYPEAHEAD') {
 								colDef.cellEditor = getTextEditor();
