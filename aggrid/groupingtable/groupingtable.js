@@ -4655,7 +4655,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								}
 
 								// stop editing to allow setting the new data
-								if(editingColumnId) {
+								if(isRowChanged && editingColumnId) {
 									gridOptions.api.stopEditing(true);
 								}
 
@@ -4673,7 +4673,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								}
 
 								// restart the editing
-								if(editingColumnId) {
+								if(isRowChanged && editingColumnId) {
 									gridOptions.api.startEditingCell({rowIndex: index, colKey: editingColumnId});
 								}
 							}
