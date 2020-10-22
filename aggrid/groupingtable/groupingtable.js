@@ -1176,66 +1176,66 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					if(col && col.dataprovider && col.dataprovider.idForFoundset && (isValueChanged || invalidCellDataIndex.rowIndex != -1)) {
 						if(isValueChanged) {
 							foundsetRef.updateViewportRecord(row._svyRowId, col.dataprovider.idForFoundset, newValue, oldValue);
-						}
-						if($scope.handlers.onColumnDataChange && isValueChanged) {
-							var currentEditCells = gridOptions.api.getEditingCells();
-							onColumnDataChangePromise = $scope.handlers.onColumnDataChange(
-								getFoundsetIndexFromEvent(params),
-								getColumnIndex(params.column.colId),
-								oldValue,
-								newValue,
-								createJSEvent()
-							);
-							onColumnDataChangePromise.then(function(r) {
-								if(r == false) {
-									// if old value was reset, clear invalid state
-									var currentValue = gridOptions.api.getValue(colId, params.node);
-									if(currentValue && currentValue.realValue !== undefined) {
-										currentValue = currentValue.realValue;
-									}
-									if(oldValue === currentValue) {
-										invalidCellDataIndex.rowIndex = -1;
-										invalidCellDataIndex.colKey = '';
+							if($scope.handlers.onColumnDataChange) {
+								var currentEditCells = gridOptions.api.getEditingCells();
+								onColumnDataChangePromise = $scope.handlers.onColumnDataChange(
+									getFoundsetIndexFromEvent(params),
+									getColumnIndex(params.column.colId),
+									oldValue,
+									newValue,
+									createJSEvent()
+								);
+								onColumnDataChangePromise.then(function(r) {
+									if(r == false) {
+										// if old value was reset, clear invalid state
+										var currentValue = gridOptions.api.getValue(colId, params.node);
+										if(currentValue && currentValue.realValue !== undefined) {
+											currentValue = currentValue.realValue;
+										}
+										if(oldValue === currentValue) {
+											invalidCellDataIndex.rowIndex = -1;
+											invalidCellDataIndex.colKey = '';
+										}
+										else {
+											invalidCellDataIndex.rowIndex = rowIndex;
+											invalidCellDataIndex.colKey = colId;
+										}
+										var editCells = gridOptions.api.getEditingCells();
+										if(isSelectionReady && (!editCells.length || (editCells[0].rowIndex != rowIndex || editCells[0].column.colId != colId))) {
+											gridOptions.api.stopEditing();
+											gridOptions.api.startEditingCell({
+												rowIndex: rowIndex,
+												colKey: colId
+											});
+											setTimeout(function() {
+												selectionEvent = null;
+												gridOptions.api.forEachNode( function(node) {
+													if (node.rowIndex === rowIndex) {
+														node.setSelected(true, true);
+													}
+												});
+											}, 0);
+										}
 									}
 									else {
-										invalidCellDataIndex.rowIndex = rowIndex;
-										invalidCellDataIndex.colKey = colId;
-									}
-									var editCells = gridOptions.api.getEditingCells();
-									if(isSelectionReady && (!editCells.length || (editCells[0].rowIndex != rowIndex || editCells[0].column.colId != colId))) {
-										gridOptions.api.stopEditing();
-										gridOptions.api.startEditingCell({
-											rowIndex: rowIndex,
-											colKey: colId
-										});
-										setTimeout(function() {
-											selectionEvent = null;
-											gridOptions.api.forEachNode( function(node) {
-												if (node.rowIndex === rowIndex) {
-													node.setSelected(true, true);
-												}
+										invalidCellDataIndex.rowIndex = -1;
+										invalidCellDataIndex.colKey = '';
+										var editCells = gridOptions.api.getEditingCells();
+										if(isSelectionReady && editCells.length == 0 && currentEditCells.length != 0) {
+											gridOptions.api.startEditingCell({
+												rowIndex: currentEditCells[0].rowIndex,
+												colKey: currentEditCells[0].column.colId
 											});
-										}, 0);
+										}
 									}
-								}
-								else {
+									onColumnDataChangePromise = null;
+								}).catch(function(e) {
+									$log.error(e);
 									invalidCellDataIndex.rowIndex = -1;
 									invalidCellDataIndex.colKey = '';
-									var editCells = gridOptions.api.getEditingCells();
-									if(isSelectionReady && editCells.length == 0 && currentEditCells.length != 0) {
-										gridOptions.api.startEditingCell({
-											rowIndex: currentEditCells[0].rowIndex,
-											colKey: currentEditCells[0].column.colId
-										});
-									}
-								}
-								onColumnDataChangePromise = null;
-							}).catch(function(e) {
-								$log.error(e);
-								invalidCellDataIndex.rowIndex = -1;
-								invalidCellDataIndex.colKey = '';
-								onColumnDataChangePromise = null;
-							});
+									onColumnDataChangePromise = null;
+								});
+							}
 						}
 					}
 				}
