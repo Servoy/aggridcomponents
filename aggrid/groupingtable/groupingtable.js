@@ -3098,6 +3098,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							"headerTitle",
 							"headerStyleClass",
 							"headerTooltip",
+							"footerText",
 							"styleClass",
 							"visible",
 							"width",
@@ -3115,14 +3116,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							for( var j = 0; j < columnKeysToWatch.length; j++) {
 								columnWatches.push(watchColumnModel(i, columnKeysToWatch[j]));
 							}
-						}
-						// watch the column header title
-						for (var i = 0; i < $scope.model.columns.length; i++) {
-							watchColumnHeaderTitle(i);
-							watchColumnFooterText(i);
-						}
-					
-						
+						}					
+
 						if(newValue != oldValue) {
 							updateColumnDefs();
 						}
@@ -3148,6 +3143,13 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							else {
 								isColumnModelChangedBeforeGridReady = true;
 							}
+
+							if(property == "headerTitle") {
+								handleColumnHeaderTitle(newValue, oldValue);
+							}
+							else if (property == "footerText") {
+								handleColumnFooterText(newValue, oldValue);
+							}
 						}
 					});
 					return columnWatch;
@@ -3156,36 +3158,26 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				/**
 				 * @private 
 				 */
-				function watchColumnHeaderTitle(index) {
-					var columnWatch = $scope.$watch("model.columns[" + index + "]['headerTitle']",
-						function(newValue, oldValue) {
-							if(newValue != oldValue) {
-								$log.debug('header title column property changed');
-								
-								// column id is either the id of the column
-								var column = $scope.model.columns[index];
-								var colId = column.id;
-								if (!colId) {	// or column is retrieved by getColumnID !?
-									colId = getColumnID(column, index);
-								}
-								
-								if (!colId) {
-									$log.warn("cannot update header title for column at position index " + index);
-									return;
-								}
-								updateColumnHeaderTitle(colId, newValue);
-							}
-					});
+				function handleColumnHeaderTitle(newValue, oldValue) {
+					$log.debug('header title column property changed');
+					
+					// column id is either the id of the column
+					var column = $scope.model.columns[index];
+					var colId = column.id;
+					if (!colId) {	// or column is retrieved by getColumnID !?
+						colId = getColumnID(column, index);
+					}
+					
+					if (!colId) {
+						$log.warn("cannot update header title for column at position index " + index);
+						return;
+					}
+					updateColumnHeaderTitle(colId, newValue);
 				}
 				
-				function watchColumnFooterText(index) {
-					var columnWatch = $scope.$watch("model.columns[" + index + "]['footerText']",
-						function(newValue, oldValue) {
-							if(newValue != oldValue) {
-								$log.debug('footer text column property changed');
-								gridOptions.api.setPinnedBottomRowData(getFooterData());
-							}
-					});
+				function handleColumnFooterText(newValue, oldValue) {
+					$log.debug('footer text column property changed');
+					gridOptions.api.setPinnedBottomRowData(getFooterData());
 				}
 
 				$scope.$watch("model._internalColumnState", function(newValue, oldValue) {

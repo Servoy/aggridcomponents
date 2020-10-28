@@ -508,7 +508,7 @@ function filterFoundset(foundset, sFilterModel) {
  *	%%prefix%%%%elementName%%.getColumnsCount()
  */ 
 $scope.api.getColumnsCount = function() {
-    return $scope.model.columns.length; 
+    return $scope.model.columns ? $scope.model.columns.length : 0;
 }
 
 /**
@@ -570,7 +570,7 @@ $scope.api.newColumn = function(dataproviderid,index) {
  * @return {boolean}
  */
 $scope.api.removeColumn = function(index) {
-	if(index >= 0 && index < $scope.model.columns.length) {
+	if($scope.model.columns && index >= 0 && index < $scope.model.columns.length) {
 		for(var i = index; i < $scope.model.columns.length - 1; i++) {
 			$scope.model.columns[i] = $scope.model.columns[i + 1];
 		}
@@ -589,7 +589,7 @@ $scope.api.removeColumn = function(index) {
  * @return {boolean}
  */
 $scope.api.removeAllColumns = function() {
-	   if($scope.model.columns.length > 0) {
+	   if($scope.model.columns && $scope.model.columns.length > 0) {
 		   $scope.model.columns.length = 0;
 		   return true;
 	   }
