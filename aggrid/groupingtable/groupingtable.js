@@ -2383,7 +2383,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					};
 
 					SelectEditor.prototype.getValue = function () {
-						var displayValue = this.eSelect.options[this.eSelect.selectedIndex ].text;
+						var displayValue = this.eSelect.selectedIndex > -1 ? this.eSelect.options[this.eSelect.selectedIndex ].text : "";
 						var realValue = this.eSelect.value == '_SERVOY_NULL' ? null : this.eSelect.value;
 						return displayValue != realValue ? {displayValue: displayValue, realValue: realValue} : realValue;
 					};
