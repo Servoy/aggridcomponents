@@ -71,22 +71,28 @@ $scope.getGroupedFoundsetUUID = function(
 	var childFoundset;
 	if (isGroupQuery) {
 		query.result.clear();
+		query.sort.clear();
 		if(groupColumnType == 'DATETIME') {
 			query.result.add(groupColumn.cast('date'), groupDataprovider);
 			query.groupBy.add(groupColumn.cast('date'));
+
+			if (sort === 'desc') {
+				query.sort.add(groupColumn.cast('date').desc);
+			} else {
+				query.sort.add(groupColumn.cast('date').asc);
+			}
 		}
 		else {
 			query.result.add(groupColumn, groupDataprovider);
 			query.groupBy.add(groupColumn);	
+
+			if (sort === 'desc') {
+				query.sort.add(groupColumn.desc);
+			} else {
+				query.sort.add(groupColumn.asc);
+			}
 		}
 		query.result.add(groupColumn.count, "svycount");
-		query.sort.clear();
-
-		if (sort === 'desc') {
-			query.sort.add(groupColumn.desc);
-		} else {
-			query.sort.add(groupColumn.asc);
-		}
 
 		childFoundset = servoyApi.getViewFoundSet("", query);
 	} else { // is not a new group, will be a leaf !
