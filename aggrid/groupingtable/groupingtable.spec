@@ -149,7 +149,8 @@
 				"type": "JSEvent",
 				"optional": true
 			}],
-			"returns": {"type": "boolean", "default": true}
+			"returns": {"type": "boolean", "default": true},
+			"ignoreNGBlockDuplicateEvents": true
 		},
 		"onReady": {
 			"description": "Called when the table is ready to be shown"
