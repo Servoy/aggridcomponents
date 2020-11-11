@@ -461,15 +461,109 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 });
             }
 
+            var columnWatches = [];
             $scope.$watchCollection("model.columns", function(newValue, oldValue) {
-                if(gridOptions) {
-					// need to clear/remove old columns first, else the id for
-					// the new columns will have the counter at the end (ex. "myid_1")
-					// and that will broke our getColumn()
-					gridOptions.api.setColumnDefs([]);
-					gridOptions.api.setColumnDefs(getColumnDefs());
+                $log.debug('columns changed');
+                if(newValue) {
+                    for(var i = 0; i < columnWatches.length; i++) {
+                        columnWatches[i]();
+                    }
+                    columnWatches.length = 0;
+                    var columnKeysToWatch = [
+                        "headerTitle",
+                        "headerStyleClass",
+                        "headerTooltip",
+                        "styleClass",
+                        "visible",
+                        "width",
+                        "minWidth",
+                        "maxWidth",
+                        "enableRowGroup",
+                        "enableSort",
+                        "enableResize",
+                        "enableToolPanel",
+                        "autoResize",
+                        "editType",
+                        "id"
+                    ];
+                    for(var i = 0; i < $scope.model.columns.length; i++) {
+                        for( var j = 0; j < columnKeysToWatch.length; j++) {
+                            columnWatches.push(watchColumnModel(i, columnKeysToWatch[j]));
+                        }
+                    }					
+
+                    if(newValue != oldValue) {
+                        updateColumnDefs();
+                    }
                 }
             });
+
+            /**
+             * @private 
+             */
+            function watchColumnModel(index, property) {
+                var columnWatch = $scope.$watch("model.columns[" + index + "]['" + property + "']",
+                function(newValue, oldValue) {
+                    if(newValue != oldValue) {
+                        $log.debug('column property changed');
+                        if(isGridReady) {
+                            updateColumnDefs();
+                            if(property != "visible" && property != "width") {
+                                restoreColumnsState();
+                            }
+                        }
+
+                        if(property == "headerTitle") {
+                            handleColumnHeaderTitle(newValue, oldValue);
+                        }
+                    }
+                });
+                return columnWatch;
+            }
+
+
+            function updateColumnDefs() {
+                if(gridOptions) {
+                    // need to clear/remove old columns first, else the id for
+                    // the new columns will have the counter at the end (ex. "myid_1")
+                    // and that will broke our getColumn()
+                    gridOptions.api.setColumnDefs([]);
+
+                    gridOptions.api.setColumnDefs(getColumnDefs());
+                }
+            }
+
+            function handleColumnHeaderTitle(newValue, oldValue) {
+                $log.debug('header title column property changed');
+                
+                // column id is either the id of the column
+                var column = $scope.model.columns[index];
+                var colId = column.id;
+                if (!colId) {
+                    colId = column["dataprovider"];
+                }
+                
+                if (!colId) {
+                    $log.warn("cannot update header title for column at position index " + index);
+                    return;
+                }
+                updateColumnHeaderTitle(colId, newValue);
+            }
+
+            function updateColumnHeaderTitle(id, text) {					
+                // get a reference to the column
+                var col = gridOptions.columnApi.getColumn(id);
+
+                // obtain the column definition from the column
+                var colDef = col.getColDef();
+
+                // update the header name
+                colDef.headerName = text;
+
+                // the column is now updated. to reflect the header change, get the grid refresh the header
+                gridOptions.api.refreshHeader();
+            }
+
 
             $scope.$watch("model._internalColumnState", function(newValue, oldValue) {
                 if(isGridReady && (newValue !== "_empty")) {
