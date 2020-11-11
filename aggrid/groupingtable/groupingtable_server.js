@@ -153,7 +153,8 @@ $scope.getGroupedFoundsetUUID = function(
 			dataprovider: $scope.model.columns[idx].dataprovider,
 			format: $scope.model.columns[idx].format,
 			valuelist: $scope.model.columns[idx].valuelist,
-			id: $scope.model.columns[idx].id
+			id: $scope.model.columns[idx].id,
+			styleClassDataprovider: $scope.model.columns[idx].styleClassDataprovider
 		});
 	}
 

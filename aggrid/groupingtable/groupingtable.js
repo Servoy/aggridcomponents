@@ -3400,9 +3400,21 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						if (change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROW_UPDATES_RECEIVED]) {
 							var updates = change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROW_UPDATES_RECEIVED].updates;
 							$log.debug(updates)
-							updateRows(updates, null, null);
+							updateRows(updates, thisInstance);
 						}
 
+						if (change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROWS_COMPLETELY_CHANGED]) {
+							var updates = [];
+							for(var i = 0; i < change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROWS_COMPLETELY_CHANGED].newValue.length; i++) {
+								var idx = thisInstance.getRowIndex(change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROWS_COMPLETELY_CHANGED].newValue[i]);
+								updates.push({
+									"startIndex": idx,
+									"endIndex": idx,
+									"type": $foundsetTypeConstants.ROWS_CHANGED
+								});
+							}
+							updateRows(updates, thisInstance);
+						}
 					}
 
 					this.destroy = function() {
@@ -4425,7 +4437,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					if (change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROW_UPDATES_RECEIVED]) {
 						$log.debug(idRandom + ' - 4. Notify viewport row update');
 						var updates = change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROW_UPDATES_RECEIVED].updates;
-						if(updateRows(updates, null, null)) {
+						if(updateRows(updates, foundset)) {
 							// i don't need a selection update in case of purge
 							return;
 						}
@@ -4555,15 +4567,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 *
 				 * return {Boolean} whatever a purge ($scope.purge();) was done due to update
 				 *  */
-				function updateRows(rowUpdates, oldStartIndex, oldSize) {
+				function updateRows(rowUpdates, foundsetManager) {
 					var needPurge = false;
-
-					// Don't update automatically if the row are grouped
-					if (isTableGrouped()) {
-						// register update
-						$scope.dirtyCache = true;
-						return needPurge;
-					}
 					
 					var rowUpdatesSorted = rowUpdates.sort(function(a, b) {
 						return b.type - a.type;
@@ -4574,7 +4579,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						switch (rowUpdate.type) {
 						case $foundsetTypeConstants.ROWS_CHANGED:
 							for (var j = rowUpdate.startIndex; j <= rowUpdate.endIndex; j++) {
-								updateRow(j);
+								updateRow(j, foundsetManager);
 							}
 							break;
 						case $foundsetTypeConstants.ROWS_INSERTED:
@@ -4597,19 +4602,13 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				/**
 				 * Update the uiGrid row with given viewPort index
 				 * @param {Number} index
-				 * @param {Object} [foundsetObj]
 				 *
 				 *  */
-				function updateRow(index, foundsetObj) {
-					var row;
-					if (!foundsetObj) {
-						row = foundset.getViewPortRow(index);
-					} else {
-						row = getClientViewPortRow(foundsetObj, index); // TODO get it from viewportObj
-					}
-
+				function updateRow(index, foundsetManager) {
+					var rows = foundsetManager.getViewPortData(index, index + 1);
+					var row = rows.length > 0 ? rows[0] : null;
 					if (row) {
-						var rowFoundsetIndex = foundset.foundset.viewPort.startIndex + index;
+						var rowFoundsetIndex = foundsetManager.foundset.viewPort.startIndex + index;
 						var node = gridOptions.api.getRowNode(row._svyFoundsetUUID + "_" + rowFoundsetIndex);
 						if(node) {
 							// check if row is really changed
@@ -4629,9 +4628,19 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							var styleClassDPColumns = [];
 							var allDisplayedColumns = gridOptions.columnApi.getAllDisplayedColumns();
 
-							for (i = 0; i < allDisplayedColumns.length; i++) {
+							for (var i = 0; i < allDisplayedColumns.length; i++) {
 								var column = allDisplayedColumns[i];
-								var columnModel = getColumn(column.colDef.field)
+								var columnModel = null;
+								if (foundsetManager.isRoot) {
+									columnModel = getColumn(column.colDef.field);
+								} else if ($scope.model.hashedFoundsets) {
+									for (var j = 0; j < $scope.model.hashedFoundsets.length; j++) {
+										if ($scope.model.hashedFoundsets[j].foundsetUUID == foundsetManager.foundsetUUID) {
+											columnModel = getColumn(column.colDef.field, $scope.model.hashedFoundsets[j].columns);
+											break;
+										}
+									}
+								}
 								if (columnModel && columnModel.styleClassDataprovider && columnModel.styleClassDataprovider[index]) {
 									styleClassDPColumns.push(column);
 								}
@@ -4679,15 +4688,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					else {
 						$log.warn("could not update row at index " + index);
 					}
-				}
-
-				/** return the row of the given foundsetObj at given index */
-				function getClientViewPortRow(foundsetObj, index) {
-					var row;
-					if (foundsetObj.viewPort.rows) {
-						row = foundsetObj.viewPort.rows[index];
-					}
-					return row;
 				}
 
 				function getMainMenuItems(params) {
