@@ -5283,7 +5283,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				function getColumnID(column, idx) {					
 					if (column.dataprovider) {
 						return column.dataprovider.idForFoundset + ':' + idx;
-					} else {
+					}
+					else if(column.styleClassDataprovider) {
+						return column.styleClassDataprovider.idForFoundset + ':' + idx;
+					}
+					else {
 						return "col_" + idx;
 					}
 				}
@@ -5481,6 +5485,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 									return;
 							}
 	
+							if(!haveAllColumnsUniqueIds()) {
+								innerColumnStateOnError('Cannot restore columns state, not all columns have id or dataprovider set.');
+								return;
+							}
+
 							for(var i = 0; i < savedColumns.length; i++) {
 								var columnExist = false;
 								var fieldToCompare = savedColumns[i];
@@ -5535,6 +5544,22 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 				}
 
+
+				function haveAllColumnsUniqueIds() {
+					var ids = [];
+					for (var j = 0; j < $scope.model.columns.length; j++) {
+						var id = $scope.model.columns[j].id != undefined ? $scope.model.columns[j].id :
+							($scope.model.columns[j].dataprovider != undefined ? $scope.model.columns[j].dataprovider.idForFoundset :
+								($scope.model.columns[j].styleClassDataprovider != undefined ? $scope.model.columns[j].styleClassDataprovider.idForFoundset : null));
+						if(id == null || ids.indexOf(id) != -1) {
+							console.error('Column at index ' + j + ' in the model, does not have unique id/dataprovider/styleClassDataprovider');
+							return false;
+						}
+						ids.push(id);
+
+					}
+					return true;
+				}
 
 				/***********************************************************************************************************************************
 				 ***********************************************************************************************************************************
