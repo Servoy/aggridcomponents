@@ -341,30 +341,6 @@
                 }
             ]
         },
-		"getFoundsetRecord" : {
-            "returns" : "object",
-            "parameters" :
-            [{
-                    "name" : "parentFoundset",
-                    "type" : "foundsetRef"
-                }, {
-                    "name" : "parentRecordFinder",
-                    "type" : "rowRef"
-                }
-            ]
-        },
-        "getRecordIndex" : {
-            "returns" : "int",
-            "parameters" :
-            [{
-                    "name" : "parentFoundset",
-                    "type" : "foundsetRef"
-                }, {
-                    "name" : "parentRecordFinder",
-                    "type" : "rowRef"
-                }
-            ]
-        },
         "removeGroupedFoundsetUUID" : {
             "returns" : "boolean",
             "parameters" : [{
