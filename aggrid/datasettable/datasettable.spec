@@ -42,7 +42,7 @@
 	},
 	"handlers" : {
 		"onRowSelected": {
-			"description": "Called when the mouse is clicked on a row/cell",
+			"doc": "Called when the mouse is clicked on a row/cell",
 			"parameters": [{
 				"name": "rowData",
 				"type": "object"
@@ -56,7 +56,7 @@
 			}]
 		},
 		"onCellClick": {
-			"description": "Called when the mouse is clicked on a row/cell",
+			"doc": "Called when the mouse is clicked on a row/cell",
 			"parameters": [{
 				"name": "rowData",
 				"type": "object"
@@ -75,7 +75,7 @@
 			}]
 		},
 		"onCellDoubleClick": {
-			"description": "Called when the mouse is double clicked on a row/cell",
+			"doc": "Called when the mouse is double clicked on a row/cell",
 			"parameters": [{
 				"name": "rowData",
 				"type": "object"
@@ -94,7 +94,7 @@
 			}]
 		},
 		"onColumnStateChanged": {
-			"description": "Called when the columns state is changed",
+			"doc": "Called when the columns state is changed",
 			"parameters": [
 				{
 					"name": "columnState",
@@ -103,7 +103,7 @@
 			]
 		},
 		"onColumnDataChange": {
-			"description": "Called when the columns data is changed",
+			"doc": "Called when the columns data is changed",
 			"parameters": [{
 				"name": "rowindex",
 				"type": "int"
@@ -127,7 +127,7 @@
 			"returns": {"type": "boolean", "default": true}
 		},
 		"onLazyLoadingGetRows": {
-			"description": "Called when lazy loading is used, and new rows are requested to display",
+			"doc": "Called when lazy loading is used, and new rows are requested to display",
 			"parameters": [
 				{
 					"name": "startRow",
@@ -168,10 +168,10 @@
 			]
 		},
 		"onReady": {
-			"description": "Called when the table is ready to be shown"
+			"doc": "Called when the table is ready to be shown"
 		},
 		"onColumnFormEditStarted": {
-			"description": "Called when the column's form editor is started",
+			"doc": "Called when the column's form editor is started",
 			"parameters": [{
 				"name": "rowindex",
 				"type": "int",
@@ -187,7 +187,7 @@
 			}]
 		},
 		"onRowGroupOpened": {
-			"description": "Called when group is opened/closed",
+			"doc": "Called when group is opened/closed",
 			"parameters": [{
 				"name": "groupcolumnindexes",
 				"type": "int[]",

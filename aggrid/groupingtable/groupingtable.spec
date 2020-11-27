@@ -46,11 +46,11 @@
 	},
 	"handlers" : {
     	"onSelectedRowsChanged": {
-			"description": "Called when the selected rows have changed.",
+			"doc": "Called when the selected rows have changed.",
 			"parameters": []
 		},
 		"onCellClick": {
-			"description": "Called when the mouse is clicked on a row/cell (foundset and column indexes are given)\nthe foundsetindex is always -1 when there are grouped rows",
+			"doc": "Called when the mouse is clicked on a row/cell (foundset and column indexes are given)\nthe foundsetindex is always -1 when there are grouped rows",
 			"parameters": [{
 				"name": "foundsetindex",
 				"type": "int"
@@ -69,7 +69,7 @@
 			}]
 		},
 		"onCellDoubleClick": {
-			"description": "Called when the mouse is clicked on a row/cell (foundset and column indexes are given)\nthe foundsetindex is always -1 when there are grouped rows",
+			"doc": "Called when the mouse is clicked on a row/cell (foundset and column indexes are given)\nthe foundsetindex is always -1 when there are grouped rows",
 			"parameters": [{
 				"name": "foundsetindex",
 				"type": "int"
@@ -88,7 +88,7 @@
 			}]
 		},
 		"onCellRightClick": {
-			"description": "Called when the right mouse button is clicked on a row/cell (foundset and column indexes are given)\nthe foundsetindex is always -1 when there are grouped rows",
+			"doc": "Called when the right mouse button is clicked on a row/cell (foundset and column indexes are given)\nthe foundsetindex is always -1 when there are grouped rows",
 			"parameters": [{
 				"name": "foundsetindex",
 				"type": "int"
@@ -107,7 +107,7 @@
 			}]
 		},
 		"onFooterClick": {
-			"description": "Called when the mouse is clicked on a footer cell",
+			"doc": "Called when the mouse is clicked on a footer cell",
 			"parameters": [{
 				"name": "columnindex",
 				"type": "int",
@@ -119,7 +119,7 @@
 			}]
 		},		
 		"onColumnStateChanged": {
-			"description": "Called when the columns state is changed",
+			"doc": "Called when the columns state is changed",
 			"parameters": [
 				{
 					"name": "columnState",
@@ -128,7 +128,7 @@
 			]
 		},
 		"onColumnDataChange": {
-			"description": "Called when the columns data is changed",
+			"doc": "Called when the columns data is changed",
 			"parameters": [{
 				"name": "foundsetindex",
 				"type": "int"
@@ -153,10 +153,10 @@
 			"ignoreNGBlockDuplicateEvents": true
 		},
 		"onReady": {
-			"description": "Called when the table is ready to be shown"
+			"doc": "Called when the table is ready to be shown"
 		},
 		"onColumnFormEditStarted": {
-			"description": "Called when the column's form editor is started",
+			"doc": "Called when the column's form editor is started",
 			"parameters": [{
 				"name": "foundsetindex",
 				"type": "int",
@@ -172,7 +172,7 @@
 			}]
 		},
 		"onSort": {
-			"description": "Called when sort has changed",
+			"doc": "Called when sort has changed",
 			"parameters": [{
 				"name": "columnindexes",
 				"type": "int[]",
@@ -184,7 +184,7 @@
 			}]
 		},
 		"onRowGroupOpened": {
-			"description": "Called when group is opened/closed",
+			"doc": "Called when group is opened/closed",
 			"parameters": [{
 				"name": "groupcolumnindexes",
 				"type": "int[]",
