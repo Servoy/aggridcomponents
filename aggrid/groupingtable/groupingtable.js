@@ -391,7 +391,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				gridDiv.addEventListener("click", function(e) {
 					if(e.target.parentNode.classList.contains("ag-selection-checkbox")) {
 						var rowIndex = $(e.target.parentNode).closest('[row-index]').attr('row-index');
-						selectionEvent = { type: 'click' , event: {ctrlKey: true}, rowIndex: parseInt(rowIndex)};
+						selectionEvent = { type: 'click' , event: {ctrlKey: true, shiftKey: e.shiftKey}, rowIndex: parseInt(rowIndex)};
 					}
 				});
 				  
@@ -977,12 +977,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						if(foundset.foundset.multiSelect && selectionEvent.type == 'click' && selectionEvent.event &&
 							(selectionEvent.event.ctrlKey || selectionEvent.event.shiftKey)) {
 							foundsetIndexes = foundset.foundset.selectedRowIndexes.slice();
-							if(selectionEvent.event.ctrlKey) {
-								var selectionIndex = foundsetIndexes.indexOf(selectionEvent.rowIndex);
-								if(selectionIndex == -1) foundsetIndexes.push(selectionEvent.rowIndex);
-								else foundsetIndexes.splice(selectionIndex, 1);
-							}
-							else {	// shiftKey
+							
+							if(selectionEvent.event.shiftKey) { // shifkey, select range of rows in multiselect
 								var firstRow = foundsetIndexes[0];
 								var lastRow = foundsetIndexes.length > 1 ? foundsetIndexes[foundsetIndexes.length - 1] : firstRow;
 
@@ -1010,6 +1006,12 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 										node.setSelected(true);
 									}
 								});
+							}
+							else {	// ctrlKey pressed, include row in multiselect
+							
+								var selectionIndex = foundsetIndexes.indexOf(selectionEvent.rowIndex);
+								if(selectionIndex == -1) foundsetIndexes.push(selectionEvent.rowIndex);
+								else foundsetIndexes.splice(selectionIndex, 1);
 							}
 						}
 						else {
