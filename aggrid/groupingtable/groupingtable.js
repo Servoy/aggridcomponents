@@ -1336,6 +1336,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				function keySelectionChangeNavigation(params) {
 					var previousCell = params.previousCellPosition;
 					var suggestedNextCell = params.nextCellPosition;
+					var isPinnedBottom = previousCell ? previousCell.rowPinned == "bottom" : false;
+					// Test isPinnedTop
 				 
 					var KEY_UP = 38;
 					var KEY_DOWN = 40;
@@ -1352,7 +1354,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							}
 
 							// set selected cell on next non-group row cells
-							if(nextRow) {
+							if(nextRow && suggestedNextCell && !isPinnedBottom) {  	// don't change selection if row is pinned to the bottom (footer)
 								selectionEvent = { type: 'key', event: params.event };
 								gridOptions.api.forEachNode( function(node) {
 									if (newIndex === node.rowIndex) {
@@ -1371,7 +1373,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							}
 
 							// set selected cell on previous non-group row cells
-							if(nextRow) {
+							if(nextRow && suggestedNextCell) {
 								selectionEvent = { type: 'key', event: params.event };
 								gridOptions.api.forEachNode( function(node) {
 									if (newIndex === node.rowIndex) {
@@ -1391,8 +1393,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 				function tabSelectionChangeNavigation(params) {
 					var suggestedNextCell = params.nextCellPosition;
+					var isPinnedBottom = suggestedNextCell ? suggestedNextCell.rowPinned == "bottom" : false;
 
-					if(suggestedNextCell) {
+					// don't change selection if row is pinned to the bottom (footer)
+					if(suggestedNextCell && !isPinnedBottom) {
 						var suggestedNextCellSelected = false;
 						var selectedNodes = gridOptions.api.getSelectedNodes();
 						for(var i = 0; i < selectedNodes.length; i++) {
