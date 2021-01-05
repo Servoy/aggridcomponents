@@ -4649,7 +4649,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 										}
 									}
 								}
-								if (columnModel && columnModel.styleClassDataprovider && columnModel.styleClassDataprovider[index]) {
+								if (columnModel && columnModel.styleClassDataprovider && columnModel.styleClassDataprovider[index] != undefined) {
 									styleClassDPColumns.push(column);
 								}
 							}
