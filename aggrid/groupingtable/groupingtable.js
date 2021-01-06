@@ -82,6 +82,12 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 *
 				 *  */
 
+				var GRID_EVENT_TYPES = {
+					GRID_READY: 'gridReady',
+					DISPLAYED_COLUMNS_CHANGED : 'displayedColumnsChanged',
+					GRID_COLUMNS_CHANGED: 'gridColumnsChanged'
+				}
+				
 				/**
 				 * @typedef{{
 				 * 	resolve: Function,
@@ -613,7 +619,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							restoreColumnsState();
 						}
 						gridOptions.onDisplayedColumnsChanged = function() {
-							sizeHeaderAndColumnsToFit();
+							sizeHeaderAndColumnsToFit(GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED);
 							storeColumnsState();
 						};
 						if($scope.handlers.onReady) {
@@ -626,7 +632,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						else {
 							// without timeout the column don't fit automatically
 							setTimeout(function() {
-								sizeHeaderAndColumnsToFit();
+								sizeHeaderAndColumnsToFit(GRID_EVENT_TYPES.GRID_READY);
 								scrollToSelection();
 								}, 150);
 						}
@@ -1793,12 +1799,34 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				}
 
 				/**`
+				 * @param {String} eventType
 				 * Resize header and all columns so they can fit the horizontal space
 				 *  */
-				function sizeHeaderAndColumnsToFit() {
+				function sizeHeaderAndColumnsToFit(eventType) {
 					// only if visible and grid is/still ready
 					if($scope.model.visible && gridOptions.api) {
-						gridOptions.api.sizeColumnsToFit();
+						switch ($scope.model.columnsAutoSizing) {
+							case "NONE":
+								break;
+							case "AUTO_SIZE":
+								
+								// calling auto-size upon displayedColumnsChanged runs in an endless loop 
+								var skipEvents = [GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED];
+								
+								// call auto-size only upon certain events
+								var autoSizeOnEvents = [GRID_EVENT_TYPES.GRID_READY];
+							
+								if (eventType && autoSizeOnEvents.indexOf(eventType) > -1) {
+									var skipHeader = gridOptions.skipHeaderOnAutoSize == true ? true : false;
+									gridOptions.columnApi.autoSizeAllColumns(skipHeader);
+								}
+								break;
+							case "SIZE_COLUMNS_TO_FIT":
+							default:
+								gridOptions.api.sizeColumnsToFit();
+
+						}
+						
 						sizeHeader();
 					}
 				}
