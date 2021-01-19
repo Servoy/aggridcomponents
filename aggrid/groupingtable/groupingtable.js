@@ -5514,6 +5514,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								if(columnStateJSON.columnState[i].colId.indexOf('_') == 0) {
 									continue; // if special column, that starts with '_'
 								}
+								if(columnStateJSON.columnState[i].colId.indexOf('ag-Grid-AutoColumn') == 0) {
+									continue; // grouped columns
+								}
 								savedColumns.push(columnStateJSON.columnState[i].colId);
 							}
 							if(savedColumns.length != $scope.model.columns.length) {
