@@ -610,7 +610,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						$log.debug("gridReady");
 						isGridReady = true;
 						if(isRendered) {
-							if($scope.model._internalColumnState !== "_empty") {
+							if($scope.model._internalColumnState && $scope.model._internalColumnState !== "_empty") {
 								$scope.model.columnState = $scope.model._internalColumnState;
 								$scope.svyServoyapi.apply('columnState');
 								// need to clear it, so the watch can be used, if columnState changes, and we want to apply the same _internalColumnState again
