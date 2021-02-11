@@ -633,8 +633,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						else {
 							// without timeout the column don't fit automatically
 							setTimeout(function() {
-								sizeHeaderAndColumnsToFit(GRID_EVENT_TYPES.GRID_READY);
-								scrollToSelection();
+									if(gridOptions.api) { // make sure the grid is still present/not destroyed
+										sizeHeaderAndColumnsToFit(GRID_EVENT_TYPES.GRID_READY);
+										scrollToSelection();
+									}
 								}, 150);
 						}
 					},
