@@ -523,7 +523,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
 
 
             function updateColumnDefs() {
-                if(gridOptions) {
+                if(gridOptions && gridOptions.api) {
                     // need to clear/remove old columns first, else the id for
                     // the new columns will have the counter at the end (ex. "myid_1")
                     // and that will broke our getColumn()
