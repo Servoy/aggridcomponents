@@ -173,6 +173,12 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     sortable: config.enableSorting,
                     resizable: config.enableColumnResize
                 },
+                excelStyles: [
+                    {
+                        id: 'stringType',
+                        dataType: 'string'
+                    }
+                ],
                 columnDefs: columnDefs,
                 getMainMenuItems: getMainMenuItems,
 
@@ -725,7 +731,13 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
 
                     // styleClass
                     colDef.headerClass = 'ag-table-header ' + column.headerStyleClass;
-                    colDef.cellClass = 'ag-table-cell ' + column.styleClass;
+                    colDef.cellClass = ['ag-table-cell'];
+                    if(column.formatType == 'TEXT') {
+                        colDef.cellClass.push('stringType');
+                    }
+                    if(column.styleClass) {
+                        colDef.cellClass = colDef.cellClass.concat(column.styleClass.split(' '));
+                    }
 
 
                     // column grouping & pivoting
