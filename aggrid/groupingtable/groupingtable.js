@@ -2470,13 +2470,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					};
 
 					FormEditor.prototype.afterGuiAttached = function () {
-						// overwrite aggrid's logic that changes the vertical
-						// position if the popup does not fit inside the table's viewport
-						var eRect = this.params.eGridCell.getBoundingClientRect()
-						this.eGui.style.top = eRect.top + "px";
-						this.eGui.style.left = eRect.left + "px";
-						this.eGui.style.position = "fixed";
-						
 						gridOptions.api.setFocusedCell(this.params.node.rowIndex, this.params.column.colId);
 					};
 
