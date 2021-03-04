@@ -202,5 +202,5 @@
 
 .ag-popup-editor {
 	z-index: 1;
-	padding-bottom: 1px;
+	min-height: 1px;
 }
