@@ -11,6 +11,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
         controller: function($scope, $element, $attrs) {
 
             var gridDiv = $element.find('.ag-table')[0];
+            var hasAutoHeightColumn = false;
             var columnDefs = getColumnDefs();
 
             // position of cell with invalid data as reported by the return of onColumnDataChange
@@ -707,7 +708,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
             }
 
             function getColumnDefs() {
-                
+                hasAutoHeightColumn = false;
                 //create the column definitions from the specified columns in designer
                 var colDefs = [];
                 var colDef = { };
@@ -857,6 +858,10 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                         }
                     }
 
+                    if(colDef['autoHeight'] && !hasAutoHeightColumn) {
+                        hasAutoHeightColumn = true;
+                    }
+
                     if(column.headerGroup) {
                         if(!colGroups[column.headerGroup]) {
                             colGroups[column.headerGroup] = {}
@@ -907,6 +912,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
             function sizeColumnsToFit() {
                 if($scope.model.visible) {
                     gridOptions.api.sizeColumnsToFit();
+                    if(hasAutoHeightColumn) gridOptions.api.resetRowHeights();
                 }
             }
 
