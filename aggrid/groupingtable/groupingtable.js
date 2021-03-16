@@ -3086,6 +3086,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				}
 
 				function refreshDatasource() {
+					var currentEditCells = gridOptions.api.getEditingCells();
+					if(currentEditCells.length != 0) {
+						startEditFoundsetIndex = currentEditCells[0].rowIndex + 1;
+						startEditColumnIndex = getColumnIndex(currentEditCells[0].column.colId);
+					}
 					var foundsetServer = new FoundsetServer([]);
 					var datasource = new FoundsetDatasource(foundsetServer);
 					gridOptions.api.setServerSideDatasource(datasource);
@@ -4570,9 +4575,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							// virtual row count must be multiple of CHUNK_SIZE (limitation/bug of aggrid)
 							var offset = foundsetManager.foundset.selectedRowIndexes[0] % CHUNK_SIZE
 							var virtualRowCount = foundsetManager.foundset.selectedRowIndexes[0] + (CHUNK_SIZE - offset);
+							var newVirtualRowCount = Math.min(virtualRowCount, foundsetManager.foundset.serverSize);
 
-							if(virtualRowCount > model.rootNode.childrenCache.getVirtualRowCount()) {
-								var newVirtualRowCount = Math.min(virtualRowCount, foundsetManager.foundset.serverSize);
+							if(newVirtualRowCount > model.rootNode.childrenCache.getVirtualRowCount()) {
 								var maxRowFound = newVirtualRowCount == foundsetManager.foundset.serverSize;
 								model.rootNode.childrenCache.setVirtualRowCount(newVirtualRowCount, maxRowFound);
 							}
