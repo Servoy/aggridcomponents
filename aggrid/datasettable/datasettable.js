@@ -1027,7 +1027,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
 						params.node.setDataValue(params.column.colId, v ? 0 : 1);
 					}
 
-					if ($scope.handlers.onCellClick && params.data && params.colDef.field) {
+					if ($scope.handlers.onCellClick && params.data) {
 						$scope.handlers.onCellClick(params.data, params.colDef.colId != undefined ? params.colDef.colId : params.colDef.field, params.value, params.event);
 					}
 				}
@@ -1057,11 +1057,8 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
 				 * */
 				function onCellDoubleClicked(params) {
 					$log.debug(params);
-					if ($scope.handlers.onCellDoubleClick) {
-						if (params.data && params.colDef.field) {
-							$scope.handlers.onCellDoubleClick(params.data, params.colDef.colId != undefined ? params.colDef.colId : params.colDef.field, params.value, params.event);
-						}
-
+					if ($scope.handlers.onCellDoubleClick && params.data) {
+						$scope.handlers.onCellDoubleClick(params.data, params.colDef.colId != undefined ? params.colDef.colId : params.colDef.field, params.value, params.event);
 					}
 				}
 				
