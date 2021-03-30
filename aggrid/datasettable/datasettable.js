@@ -972,7 +972,19 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                                 return params.value.toLowerCase();
                             }
                         }
-                        return $formatterUtils.format(params.value,format,formatType);
+                        var cellValue = params.value;
+                        // it is possible to have string value with non-string format
+                        // when the group-column is trying to use the formatter from the regular column;
+                        // in this case, convert the string value to the right type so we can apply the format
+                        if (typeof cellValue === 'string' || cellValue instanceof String) {
+                            if(formatType == 'DATETIME') {
+                                cellValue = new Date(cellValue);
+                            }
+                            else if(formatType == 'NUMBER') {
+                                cellValue = Number(cellValue);
+                            }
+                        }
+                        return $formatterUtils.format(cellValue,format,formatType);
                     }
                     return '';
                 }
