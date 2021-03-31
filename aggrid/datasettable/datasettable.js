@@ -788,6 +788,8 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                                 };
                             }
                         }
+
+                        colDef.keyCreator = createValueFormatter(parsedFormat, column.formatType);
                         colDef.valueFormatter = createValueFormatter(parsedFormat, column.formatType);
                     }
 
@@ -973,16 +975,9 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                             }
                         }
                         var cellValue = params.value;
-                        // it is possible to have string value with non-string format
-                        // when the group-column is trying to use the formatter from the regular column;
-                        // in this case, convert the string value to the right type so we can apply the format
-                        if (typeof cellValue === 'string' || cellValue instanceof String) {
-                            if(formatType == 'DATETIME') {
-                                cellValue = new Date(cellValue);
-                            }
-                            else if(formatType == 'NUMBER') {
-                                cellValue = Number(cellValue);
-                            }
+                        // if the value is a group-value then it is a string that is already formatted
+                        if ((formatType == 'DATETIME' || formatType == 'NUMBER') && (typeof cellValue === 'string' || cellValue instanceof String)) {
+                            return cellValue;
                         }
                         return $formatterUtils.format(cellValue,format,formatType);
                     }
