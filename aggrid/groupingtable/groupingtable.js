@@ -4491,6 +4491,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					if (change[$foundsetTypeConstants.NOTIFY_SELECTED_ROW_INDEXES_CHANGED] && !requestSelectionPromises.length) {
 						$log.debug(idRandom + ' - 3. Request selection changed');
 						selectedRowIndexesChanged();
+						scrollToSelection();
 					}
 
 				}
