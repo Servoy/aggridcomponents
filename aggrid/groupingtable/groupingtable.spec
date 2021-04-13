@@ -149,6 +149,10 @@
 				"name": "event",
 				"type": "JSEvent",
 				"optional": true
+			}, {
+				"name": "record",
+				"type": "record",
+				"optional": true
 			}],
 			"returns": {"type": "boolean", "default": true},
 			"ignoreNGBlockDuplicateEvents": true
