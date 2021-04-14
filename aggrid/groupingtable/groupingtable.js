@@ -4947,6 +4947,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					//create the column definitions from the specified columns in designer
 					var colDefs = [];
 					var colDef = { };
+					var colGroups = { };
 					var column;
 					for (var i = 0; $scope.model.columns && i < $scope.model.columns.length; i++) {
 						column = $scope.model.columns[i];
@@ -5081,7 +5082,26 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							}
 						}
 
-						colDefs.push(colDef);
+						if(column.headerGroup) {
+							if(!colGroups[column.headerGroup]) {
+								colGroups[column.headerGroup] = {}
+								colGroups[column.headerGroup]['headerClass'] = column.headerGroupStyleClass;
+								colGroups[column.headerGroup]['children'] = [];
+	
+							}
+							colGroups[column.headerGroup]['children'].push(colDef);
+						}
+						else {
+							colDefs.push(colDef);
+						}
+					}
+
+					for(var groupName in colGroups) {
+						var group = {};
+						group.headerName = groupName;
+						group.headerClass = colGroups[groupName]['headerClass']; 
+						group.children = colGroups[groupName]['children'];
+						colDefs.push(group);
 					}
 
 					// TODO svyRowId should not be visible. I need the id for the selection

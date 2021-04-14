@@ -370,6 +370,8 @@
 			"footerStyleClass" : {"type" : "styleclass"},
 			"headerStyleClass" : {"type" : "styleclass"},
 			"headerTooltip" : {"type" : "tagstring"},
+			"headerGroup": {"type" : "tagstring", "tags": {"doc": "Header group, that this column will be part of"}},
+			"headerGroupStyleClass" : {"type" : "styleclass"},
 			"dataprovider": { "type": "dataprovider", "forFoundset": "myFoundset", "resolveValuelist" : true},
 			"tooltip": { "type": "dataprovider", "forFoundset": "myFoundset"},
 			"styleClass" : {"type" : "styleclass"},
