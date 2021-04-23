@@ -5388,23 +5388,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 * @return {Number}
 				 * */
 				function getColumnIndex(field) {
-					var fieldToCompare = field;
-					var fieldIdx = 0;
-					if (field.indexOf('_') > 0) { // has index
-						var fieldParts = field.split('_');
-						if('col' != fieldParts[0] && !isNaN(fieldParts[1])) {
-							fieldToCompare = fieldParts[0];
-							fieldIdx = parseInt(fieldParts[1]);
-						}
-					}
 					var columns = $scope.model.columns;
 					for (var i = 0; i < columns.length; i++) {
 						var column = columns[i];
-						if (column.id === fieldToCompare || getColumnID(column, i) == fieldToCompare) {
-							if(fieldIdx < 1) {
-								return i;
-							}
-							fieldIdx--;
+						if (column.id === field || getColumnID(column, i) == field) {
+							return i;
 						}
 					}
 					return -1;
