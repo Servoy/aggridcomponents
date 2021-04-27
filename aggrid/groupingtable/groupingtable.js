@@ -819,6 +819,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					gridOptions.getRowClass = getRowClass;
 				}
 
+				if(!$scope.model.showLoadingIndicator) {
+					gridOptions.loadingCellRenderer = getBlankLoadingCellRenderer();
+				}
+
 				// set all custom icons
 	            if (iconConfig) {
 	                var icons = new Object();
@@ -4853,6 +4857,21 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						result.push(resultData)
 					}
 					return result;
+				}
+
+				function getBlankLoadingCellRenderer() {
+					function BlankLoadingCellRenderer() {}
+				
+					// gets called once before the renderer is used
+					BlankLoadingCellRenderer.prototype.init = function(params) {
+						this.eGui = document.createElement("div");
+					}
+
+					BlankLoadingCellRenderer.prototype.getGui = function() {
+						return this.eGui;
+					}
+
+					return BlankLoadingCellRenderer;
 				}
 
 				/**
