@@ -3131,7 +3131,12 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						$scope.model.myFoundset.removeChangeListener(changeListener);
 						$scope.model.myFoundset.addChangeListener(changeListener);
 
-					});
+				});
+				$scope.$watchCollection("model.myFoundset", function(newValue, oldValue) {
+					if(newValue && oldValue && newValue.foundsetId !== oldValue.foundsetId) {
+						delete $scope.model.filterModel;
+					}					
+				});
 				var columnWatches = [];
 				$scope.$watchCollection("model.columns", function(newValue, oldValue) {
 					$log.debug('columns changed');
@@ -5611,7 +5616,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								gridOptions.columnApi.setRowGroupColumns(columnStateJSON.rowGroupColumnsState);
 							}
 
-							if($scope.model.restoreStates && $scope.model.restoreStates.filter && $.isPlainObject(columnStateJSON.filterModel)) {
+							if(restoreColumns && $.isPlainObject(columnStateJSON.filterModel)) {
 								gridOptions.api.setFilterModel(columnStateJSON.filterModel);
 							}
 
