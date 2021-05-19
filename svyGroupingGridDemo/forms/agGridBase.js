@@ -225,7 +225,15 @@ function onActionSort(event) { }
  */
 function onAutosaveToggle(event) {
 	databaseManager.setAutoSave(!databaseManager.getAutoSave());
+	var acquireLock = false;
+	if (!databaseManager.getAutoSave() && foundset.getSelectedRecord()) {
+		// lock record before saving
+		acquireLock = databaseManager.acquireLock(foundset, foundset.getSelectedIndex(), 'mylock')
+	}
 	databaseManager.saveData();
+	if (acquireLock) {
+		databaseManager.releaseAllLocks('mylock');
+	}
 	updateUI();
 }
 
