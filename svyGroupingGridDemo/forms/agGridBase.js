@@ -238,10 +238,46 @@ function onAutosaveToggle(event) {
 }
 
 /**
+ * Perform the element onclick action.
+ *
+ * @param {JSEvent} event the event that triggered the action
+ *
+ * @protected
+ *
+ * @properties={typeid:24,uuid:"DADDB95B-44BE-4AD4-A06E-654CE00080ED"}
+ */
+function onLock(event) {
+	if (!foundset.getSelectedRecord()) return;
+	
+	if (databaseManager.hasLocks('recordLock')) {
+		if (databaseManager.releaseAllLocks('recordLock')) {
+			databaseManager.saveData();
+			databaseManager.setAutoSave(true);
+		}
+	} else {
+		if (databaseManager.acquireLock(foundset, foundset.getSelectedIndex(), 'recordLock')) {
+			databaseManager.setAutoSave(false);
+		}
+	}
+	updateUI();
+}
+
+
+/**
  * @protected 
  * @properties={typeid:24,uuid:"AB580C79-2A13-45A2-BB7D-D7D68B9D180B"}
  */
 function updateUI() {
+	if (databaseManager.hasLocks('recordLock')) {
+		elements.btnAutosave.enabled = false;
+		elements.btnLock.removeStyleClass("btn-warning");
+		elements.btnLock.addStyleClass("btn-success");
+	} else {
+		elements.btnAutosave.enabled = true;
+		elements.btnLock.removeStyleClass("btn-success");
+		elements.btnLock.addStyleClass("btn-warning");
+	}
+	
 	if (databaseManager.getAutoSave()) {
 		elements.btnAutosave.removeStyleClass("btn-default");
 		elements.btnAutosave.addStyleClass("btn-success");

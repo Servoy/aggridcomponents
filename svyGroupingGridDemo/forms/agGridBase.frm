@@ -89,6 +89,18 @@ text:"Title",
 transparent:true,
 typeid:7,
 uuid:"EA926B95-3F1E-4DDA-9C38-496D1F154163"
+},
+{
+displaysTags:true,
+location:"345,4",
+name:"btnLock",
+onActionMethodID:"DADDB95B-44BE-4AD4-A06E-654CE00080ED",
+size:"40,32",
+styleClass:"btn-warning",
+text:"<span class=\"glyphicon glyphicon-lock\"/>",
+toolTipText:"Lock record",
+typeid:7,
+uuid:"F44B6727-A85E-4887-8409-AC22FD5E79B0"
 }
 ],
 name:"agGridBase",
