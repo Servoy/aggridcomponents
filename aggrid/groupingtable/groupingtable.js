@@ -2693,7 +2693,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					function handleFilterCallback(groupKeys, idx, valuelistValues) {
 						if(valuelistValues) {
 							for (var i = 0; i < valuelistValues.length; i++) {
-								if (valuelistValues[i].displayValue == groupKeys[idx] && valuelistValues[i].realValue != undefined) {
+								if (valuelistValues[i].displayValue == groupKeys[idx] && valuelistValues[i].realValue !== undefined) {
 									groupKeys[idx] = valuelistValues[i].realValue;
 									break;
 								}
