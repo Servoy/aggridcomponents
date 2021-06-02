@@ -1,0 +1,12 @@
+<div [id]="servoyApi.getMarkupId()" style="height:100%; width:100%; position: relative;">
+	<ag-grid-angular
+    #element
+    style="height: 100%;"
+    class="ag-table"
+    [ngClass]="styleClass"
+    [gridOptions]="agGridOptions">
+    </ag-grid-angular>
+	<span *ngIf="isGroupView" class="ag-table-info" [ngClass]="dirtyCache ? 'ag-table-info-notify' : ''" [svyTooltip]="tooltipTextRefreshData">
+		<i [ngClass]="getIconRefreshData()" (click)="purge()"></i>
+	</span>
+</div>

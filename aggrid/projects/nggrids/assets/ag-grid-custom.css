@@ -1,0 +1,223 @@
+@import "datagrid/datagrid.css";
+@import "powergrid/powergrid.css";
+@import "~@ag-grid-community/core/dist/styles/ag-grid.css";
+@import "~@ag-grid-community/core/dist/styles/agGridClassicFont.css";
+@import "~@ag-grid-community/core/dist/styles/ag-theme-bootstrap.css";
+
+/**
+ * General Rules 
+ *
+ */
+
+/* font style */
+.ag-table,
+.ag-table .ag-menu {
+	font-size: 14px;
+	font-weight: normal;
+    font-family: inherit;
+    z-index: 1;
+}
+
+.ag-table .ag-group-cell {
+	font-style: inherit;
+}
+
+.ag-icon {
+	font-size: 12px;
+    padding: 4px;
+    color: black;
+}
+
+.ag-table .ag-icon {
+	font-size: 12px;
+    color: black;
+}
+
+/* No cell borders */
+.ag-table .ag-body .ag-cell-value {
+	border: 0;
+}
+
+/* Clickable & Draggable empty header */
+.ag-cell-label-container {
+    height: 100%;
+}
+
+.ag-table-header .ag-header-cell-label {
+    /* min-height: 100%;
+    height: auto !important;
+    align-items: center; */
+    align-self: center;
+}
+
+.ag-header-cell-label .ag-header-cell-text {
+	white-space: normal !important;
+}
+
+.ag-header-cell-menu-button {
+    width: 12px;
+}
+
+/** style the droppable column label in the row group panel 
+.ag-table.ag-theme-fresh .ag-column-drop-cell,
+.ag-table.ag-theme-bootstrap .ag-column-drop-cell {
+	color: #333;
+	background: #ddd;
+	border: 1px solid #ccc;
+    padding: 6px 12px;
+    margin-bottom: 0;
+    font-size: 14px;
+    font-weight: normal;
+    line-height: 1.42857143;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    -ms-touch-action: manipulation;
+    touch-action: manipulation;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    background-image: none;
+    border-radius: 4px;
+}
+*/
+
+/** style the droppable column label in the row group panel  
+.ag-table.ag-theme-fresh .ag-column-drop-cell:focus,
+.ag-table.ag-theme-bootstrap .ag-column-drop-cell:active:focus,
+.ag-table.ag-theme-fresh .ag-column-drop-cell:focus,
+.ag-table.ag-theme-bootstrap .ag-column-drop-cell:active:focus {
+    outline: thin dotted;
+    outline: 5px auto -webkit-focus-ring-color;
+    outline-offset: -2px;
+    
+}
+*/
+
+/** style the droppable column label in the row group panel  
+.ag-table.ag-theme-fresh .ag-column-drop-cell:hover
+.ag-table.ag-theme-fresh .ag-column-drop-cell:focus, 
+.ag-table.ag-theme-fresh .ag-column-drop-cell:active,
+.ag-table.ag-theme-bootstrap .ag-column-drop-cell:hover
+.ag-table.ag-theme-bootstrap .ag-column-drop-cell:focus, 
+.ag-table.ag-theme-bootstrap .ag-column-drop-cell:active {
+    color: #333;
+    background-color: #e6e6e6;
+    border-color: #adadad;
+}
+*/
+
+/** style the remove button in the droppable column label in the row group panel 
+.ag-table.ag-theme-fresh .ag-column-drop-cell-button:hover,
+.ag-table.ag-theme-bootstrap .ag-column-drop-cell-button:hover {
+	border-color: transparent;
+	color: #777;
+}
+
+.ag-table.ag-theme-bootstrap .ag-column-drop-cell-button {
+	border: 0;
+}
+
+.ag-table .ag-column-drop-horizontal {
+	padding: 4px;
+}
+*/
+
+/** Side Bar Adjustments when no style */
+.ag-side-bar .ag-side-buttons .ag-side-button button {
+	background: transparent;
+    border: 0;
+}
+
+.ag-side-bar .ag-side-buttons .ag-selected button {
+	background-color: #f6f6f6;
+}
+
+/**
+ *
+ * Theme Style Adjustments 
+ *
+ **/
+.ag-table.ag-theme-bootstrap .ag-root {
+    border: 1px solid darkgray;
+}
+
+.ag-table.ag-theme-bootstrap .ag-header {
+    border-bottom: 1px solid darkgray;
+    font-weight: 600;
+}
+
+.ag-table.ag-theme-bootstrap .ag-header-cell {
+    border-right: 1px solid darkgray;
+}
+
+.ag-table.ag-theme-bootstrap .ag-side-bar .ag-side-buttons .ag-side-button button {
+	background: transparent;
+    border: 0;
+    padding: 8px 0 8px 0;
+}
+
+.ag-table.ag-theme-bootstrap .ag-side-bar .ag-side-buttons .ag-selected button {
+	background-color: #f6f6f6;
+}
+
+.ag-table.ag-theme-bootstrap .ag-side-bar {
+    border-right: 1px solid darkgray;
+    border-top: 1px solid darkgray;
+    border-bottom: 1px solid darkgray;
+}
+
+/**
+.ag-table.ag-theme-bootstrap .ag-column-drop-horizontal {
+    border-top: 1px solid darkgrey;
+    border-left: 1px solid darkgrey;
+    border-right: 1px solid darkgrey;
+}
+*/
+
+/* Header, change the ag-theme-fresh style */
+.ag-table.ag-theme-fresh,
+.ag-table.ag-theme-fresh .ag-header {
+	background: inherit;
+}
+
+/* Text color */
+.ag-table.ag-theme-bootstrap,
+.ag-table.ag-theme-bootstrap .ag-menu,
+.ag-table.ag-theme-fresh,
+.ag-table.ag-theme-fresh .ag-menu   {
+	color: #333;
+}
+
+/* Icon color */
+.ag-theme-bootstrap .ag-icon,
+.ag-theme-fresh .ag-icon,
+.ag-dark .ag-icon {
+	color: #333;
+}
+
+/* Group column drag img
+.ag-column-drag {
+    padding-left: 8px;
+    padding-right: 8px;
+    background-image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMy41IDIuNXYxbTAgMnYxbTAgMnYxbTMtN3YxbTAgMnYxbTAgMnYxbTMtN3YxbTAgMnYxbTAgMnYxbTMtN3YxbTAgMnYxbTAgMnYxIiBzdHJva2U9IiM3RjhDOEQiIGZpbGw9Im5vbmUiIHN0cm9rZS1saW5lY2FwPSJzcXVhcmUiLz48L3N2Zz4=);
+    background-position-y: 2px !important;
+}*/
+
+.ag-cell-inline-editing .ag-cell-edit-input, .ag-cell-inline-editing .ag-input-wrapper {
+    height: 100%;
+    width: 100%;
+    line-height: normal;
+}
+
+#nggridformeditor .svy-form {
+    min-width: 0 !important;
+    min-height: 0 !important;
+}
+
+.ag-popup-editor {
+	z-index: 1;
+	min-height: 1px;
+}

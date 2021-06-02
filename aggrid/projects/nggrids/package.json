@@ -1,0 +1,26 @@
+{
+  "name": "@servoy/nggrids",
+  "version": "2.6.4",
+  "peerDependencies": {
+    "@angular/animations": ">=12",
+    "@angular/cdk": ">=12",
+    "@angular/common": ">=12",
+    "@angular/core": ">=12",
+    "@angular/forms": ">=12",
+    "moment": "^2.29.1",
+    "bootstrap": "5.0.1",
+    "luxon": ">=1"
+  },
+  "dependencies": {
+    "@ng-bootstrap/ng-bootstrap": "^9.1.1",
+    "@ag-grid-community/angular": "25.2.0",
+    "@ag-grid-enterprise/all-modules": "25.2.0",
+    "@danielmoncada/angular-datetime-picker": "^12.0.0",
+    "tslib": "*"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Servoy/aggridcomponents"
+  }
+}
