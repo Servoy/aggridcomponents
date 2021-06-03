@@ -1776,9 +1776,19 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
 
                     var column = getColumn(params.column.colId);
 
+                    var thiz = this;
                     $scope.ngEditFormUrl = null;
                     $scope.svyServoyapi.formWillShow(column.editForm).then(function successCallback() {
                         $scope.ngEditFormUrl = $windowService.getFormUrl(column.editForm);
+                        // wait for the form to load (setTimeout) and search for typeaheads (aria-owns) in order
+                        // to add 'ag-custom-component-popup' to their popups (that are not child of the form-editor, but
+                        // appended to the document 'body')
+                        setTimeout(function() {;
+                            $(thiz.eGui).find("input[aria-owns]").each(function() {
+                                var ariaOwns = this.getAttribute("aria-owns");
+                                $("#" + ariaOwns).addClass("ag-custom-component-popup");
+                            });
+                        }, 0);
                     }, function errorCallback(e) {
                         console.log(e);
                     });
