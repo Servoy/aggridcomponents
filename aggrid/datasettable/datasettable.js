@@ -995,6 +995,16 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     }
                 }
             });
+
+            var destroyListenerUnreg = $scope.$on('$destroy', function() { // unbind resize on destroy
+                destroyListenerUnreg();
+                delete $scope.model[$sabloConstants.modelChangeNotifier];
+
+                // release grid resources
+                delete gridOptions.onGridSizeChanged;
+                gridOptions.api.destroy();
+
+            });            
             
 				/**
 				 * Grid Event

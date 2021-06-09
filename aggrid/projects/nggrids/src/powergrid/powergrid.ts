@@ -514,6 +514,12 @@ export class PowerGrid extends NGGridDirective {
         super.svyOnChanges(changes);
     }
 
+    ngOnDestroy() {
+        super.ngOnDestroy();
+        // release grid resources
+        this.agGrid.api.destroy();
+    }
+
     getColumnDefs() {
         this.hasAutoHeightColumn = false;
         //create the column definitions from the specified columns in designer
