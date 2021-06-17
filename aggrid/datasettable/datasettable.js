@@ -464,6 +464,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 $scope.$watchCollection("model.data", function(newValue, oldValue) {
                     if(gridOptions) {
                         gridOptions.api.setRowData($scope.model.data);
+                        applyExpandedState();
                     }
                 });
             }

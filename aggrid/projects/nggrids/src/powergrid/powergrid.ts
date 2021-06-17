@@ -464,6 +464,7 @@ export class PowerGrid extends NGGridDirective {
                     case 'data':
                         if(this.agGrid) {
                             this.agGrid.api.setRowData(this.data);
+                            this.applyExpandedState();
                         }
                         break;
                     case 'columns':
