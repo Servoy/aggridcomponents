@@ -416,6 +416,10 @@ export class PowerGrid extends NGGridDirective {
             this.contextMenuItems.push('chartRange');
         }
 
+        // show warnings
+        if(this.styleClass === 'ag-theme-fresh') {
+            this.log.warn('ag-theme-fresh is deprecated, see: https://www.ag-grid.com/javascript-grid/themes-v23-migration/');
+        }
     }
 
     svyOnInit() {

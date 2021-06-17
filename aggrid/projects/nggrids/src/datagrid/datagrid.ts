@@ -568,6 +568,11 @@ export class DataGrid extends NGGridDirective {
 
         // the group manager
         this.groupManager = new GroupManager(this);
+
+        // show warnings
+        if(this.styleClass === 'ag-theme-fresh') {
+            this.log.warn('ag-theme-fresh is deprecated, see: https://www.ag-grid.com/javascript-grid/themes-v23-migration/');
+        }
     }
 
     svyOnInit() {
