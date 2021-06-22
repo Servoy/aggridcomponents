@@ -673,8 +673,7 @@ export class DataGrid extends NGGridDirective {
 						if(this.myFoundset.viewPort.size > 0 || isChangedToEmpty) {
 							// browser refresh
                             this.isRootFoundsetLoaded = true;
-                            // is init needed?
-							//this.initRootFoundset();
+                            this.initRootFoundset();
 						} else {
 							// newly set foundset
 							this.isRootFoundsetLoaded = false;

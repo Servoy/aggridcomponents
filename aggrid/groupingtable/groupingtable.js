@@ -4465,7 +4465,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 
 					// if viewPort changes and startIndex does not change is the result of a sort or of a loadRecords
-					if (change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROWS_COMPLETELY_CHANGED] && !state.waitfor.loadRecords) {
+					if ((change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROWS_COMPLETELY_CHANGED] ||
+						change[$foundsetTypeConstants.NOTIFY_FULL_VALUE_CHANGED]) && !state.waitfor.loadRecords) {
 						$log.debug(idRandom + ' - 2. Change foundset serverside');
 						$log.debug("Foundset changed serverside ");
 
