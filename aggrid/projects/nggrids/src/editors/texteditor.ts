@@ -17,47 +17,51 @@ export class TextEditor extends EditorDirective {
     @Input() maxLength = 524288;
 
     @HostListener('keydown',['$event']) onKeyDown(e: KeyboardEvent) {
-        if(this.ngGrid.arrowsUpDownMoveWhenEditing && this.ngGrid.arrowsUpDownMoveWhenEditing !== 'NONE') {
+        if((this.ngGrid.arrowsUpDownMoveWhenEditing && this.ngGrid.arrowsUpDownMoveWhenEditing !== 'NONE') || this.ngGrid.editNextCellOnEnter) {
             const isNavigationLeftRightKey = e.keyCode === 37 || e.keyCode === 39;
             const isNavigationUpDownEntertKey = e.keyCode === 38 || e.keyCode === 40 || e.keyCode === 13;
 
             if (isNavigationLeftRightKey || isNavigationUpDownEntertKey) {
 
                 if(isNavigationUpDownEntertKey) {
-                    let newEditingNode = null;
-                    const columnToCheck = this.params.column;
-                    const mustBeEditable = this.ngGrid.arrowsUpDownMoveWhenEditing === 'NEXTEDITABLECELL';
-                    if( e.keyCode === 38) { // UP
-                        if(this.params.rowIndex > 0) {
-                            this.ngGrid.agGrid.api.forEachNode( (node) => {
-                                if (node.rowIndex <= (this.params.rowIndex - 1) &&
-                                    (!mustBeEditable || columnToCheck.isCellEditable(node))) {
-                                    newEditingNode = node;
-                                }
-                            });
-                        }
-                    } else if (e.keyCode === 13 || e.keyCode === 40) { // ENTER/DOWN
-                        if( this.params.rowIndex < this.ngGrid.agGrid.api.getModel().getRowCount() - 1) {
-                            this.ngGrid.agGrid.api.forEachNode( (node) => {
-                                if (node.rowIndex >= (this.params.rowIndex + 1) &&
-                                    !newEditingNode && (!mustBeEditable || columnToCheck.isCellEditable(node))) {
-                                    newEditingNode = node;
-                                }
-                            });
-                        }
-                    }
-                    this.ngGrid.agGrid.api.stopEditing();
-                    if (newEditingNode) {
-                        this.ngGrid.selectionEvent = { type: 'key', event: e };
-                        newEditingNode.setSelected(true, true);
 
-                        if(columnToCheck.isCellEditable(newEditingNode)) {
-                            this.ngGrid.agGrid.api.startEditingCell({
-                                rowIndex: newEditingNode.rowIndex,
-                                colKey: columnToCheck.getColId()
-                            });
-                        } else {
+                    if(this.ngGrid.editNextCellOnEnter && e.keyCode === 13) {
+                        this.ngGrid.agGrid.api.tabToNextCell();
+                    } else if (this.ngGrid.arrowsUpDownMoveWhenEditing && this.ngGrid.arrowsUpDownMoveWhenEditing !== 'NONE') {
+                        let newEditingNode = null;
+                        const columnToCheck = this.params.column;
+                        const mustBeEditable = this.ngGrid.arrowsUpDownMoveWhenEditing === 'NEXTEDITABLECELL';
+                        if( e.keyCode === 38) { // UP
+                            if(this.params.rowIndex > 0) {
+                                this.ngGrid.agGrid.api.forEachNode( (node) => {
+                                    if (node.rowIndex <= (this.params.rowIndex - 1) &&
+                                        (!mustBeEditable || columnToCheck.isCellEditable(node))) {
+                                        newEditingNode = node;
+                                    }
+                                });
+                            }
+                        } else if (e.keyCode === 13 || e.keyCode === 40) { // ENTER/DOWN
+                            if( this.params.rowIndex < this.ngGrid.agGrid.api.getModel().getRowCount() - 1) {
+                                this.ngGrid.agGrid.api.forEachNode( (node) => {
+                                    if (node.rowIndex >= (this.params.rowIndex + 1) &&
+                                        !newEditingNode && (!mustBeEditable || columnToCheck.isCellEditable(node))) {
+                                        newEditingNode = node;
+                                    }
+                                });
+                            }
+                        }
+                        this.ngGrid.agGrid.api.stopEditing();
+                        if (newEditingNode) {
+                            this.ngGrid.selectionEvent = { type: 'key', event: e };
+                            newEditingNode.setSelected(true, true);
+    
                             this.ngGrid.agGrid.api.setFocusedCell(newEditingNode.rowIndex, columnToCheck.getColId());
+                            if(columnToCheck.isCellEditable(newEditingNode)) {
+                                this.ngGrid.agGrid.api.startEditingCell({
+                                    rowIndex: newEditingNode.rowIndex,
+                                    colKey: columnToCheck.getColId()
+                                });
+                            }
                         }
                     }
                     e.preventDefault();

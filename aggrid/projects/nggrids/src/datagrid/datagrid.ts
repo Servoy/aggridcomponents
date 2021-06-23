@@ -166,6 +166,7 @@ export class DataGrid extends NGGridDirective {
 
     agMainMenuItemsConfig: any;
     agArrowsUpDownMoveWhenEditing: any;
+    agEditNextCellOnEnter = false;
 
     // position of cell with invalid data as reported by the return of onColumnDataChange
     invalidCellDataIndex = { rowIndex: -1, colKey: ''};
@@ -216,6 +217,9 @@ export class DataGrid extends NGGridDirective {
         if(this.datagridService.arrowsUpDownMoveWhenEditing) {
             this.agArrowsUpDownMoveWhenEditing = this.datagridService.arrowsUpDownMoveWhenEditing;
         }
+        if(this.datagridService.editNextCellOnEnter) {
+            this.agEditNextCellOnEnter = this.datagridService.editNextCellOnEnter;
+        }
 
         toolPanelConfig = this.mergeConfig(toolPanelConfig, this.toolPanelConfig);
         iconConfig = this.mergeConfig(iconConfig, this.iconConfig);
@@ -226,6 +230,9 @@ export class DataGrid extends NGGridDirective {
         if(this.arrowsUpDownMoveWhenEditing) {
             this.agArrowsUpDownMoveWhenEditing = this.arrowsUpDownMoveWhenEditing;
         }
+        if(this.editNextCellOnEnter) {
+            this.agEditNextCellOnEnter = this.editNextCellOnEnter;
+        }        
 
         const vMenuTabs = ['generalMenuTab', 'filterMenuTab'];
         if(this.showColumnsMenuTab) vMenuTabs.push('columnsMenuTab');
@@ -673,7 +680,6 @@ export class DataGrid extends NGGridDirective {
 						if(this.myFoundset.viewPort.size > 0 || isChangedToEmpty) {
 							// browser refresh
                             this.isRootFoundsetLoaded = true;
-                            this.initRootFoundset();
 						} else {
 							// newly set foundset
 							this.isRootFoundsetLoaded = false;
@@ -3106,7 +3112,7 @@ export class DataGrid extends NGGridDirective {
         }
 
         // if viewPort changes and startIndex does not change is the result of a sort or of a loadRecords
-        if (changeEvent.viewportRowsCompletelyChanged && !this.state.waitFor.loadRecords) {
+        if ((changeEvent.viewportRowsCompletelyChanged || changeEvent.fullValueChanged) && !this.state.waitFor.loadRecords) {
             this.log.debug(idRandom + ' - 2. Change foundset serverside');
             this.log.debug('Foundset changed serverside ');
 

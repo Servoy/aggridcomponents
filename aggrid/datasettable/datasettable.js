@@ -1527,7 +1527,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
 
                     var thisEditor = this;
 
-                    if(config.arrowsUpDownMoveWhenEditing && config.arrowsUpDownMoveWhenEditing != 'NONE') {
+                    if((config.arrowsUpDownMoveWhenEditing && config.arrowsUpDownMoveWhenEditing != 'NONE') || config.editNextCellOnEnter) {
                         this.keyDownListener = function (event) {
                             var isNavigationLeftRightKey = event.keyCode === 37 || event.keyCode === 39;
                             var isNavigationUpDownEntertKey = event.keyCode === 38 || event.keyCode === 40 || event.keyCode === 13;
@@ -1535,41 +1535,44 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                             if (isNavigationLeftRightKey || isNavigationUpDownEntertKey) {
 
                                 if(isNavigationUpDownEntertKey) {
-                                    var newEditingNode = null;
-                                    var columnToCheck = thisEditor.params.column;
-                                    var mustBeEditable = config.arrowsUpDownMoveWhenEditing == 'NEXTEDITABLECELL'
-                                    if( event.keyCode == 38) { // UP
-                                        if(thisEditor.params.rowIndex > 0) {
-                                            gridOptions.api.forEachNode( function(node) {
-                                                if (node.rowIndex <= (thisEditor.params.rowIndex - 1) &&
-                                                    (!mustBeEditable || columnToCheck.isCellEditable(node))) {
-                                                    newEditingNode = node;
-                                                }
-                                            });	
-                                        }
-                                    }
-                                    else if (event.keyCode == 13 || event.keyCode == 40) { // ENTER/DOWN
-                                        if( thisEditor.params.rowIndex < gridOptions.api.getModel().getRowCount() - 1) {
-                                            gridOptions.api.forEachNode( function(node) {
-                                                if (node.rowIndex >= (thisEditor.params.rowIndex + 1) &&
-                                                    !newEditingNode && (!mustBeEditable || columnToCheck.isCellEditable(node))) {
-                                                    newEditingNode = node;
-                                                }
-                                            });	
-                                        }
-                                    }
-                                    gridOptions.api.stopEditing();
-                                    if (newEditingNode) {
-                                        newEditingNode.setSelected(true, true);
 
-                                        if(columnToCheck.isCellEditable(newEditingNode)) {
-                                            gridOptions.api.startEditingCell({
-                                                rowIndex: newEditingNode.rowIndex,
-                                                colKey: columnToCheck.colId
-                                            });
+                                    if(config.editNextCellOnEnter && event.keyCode === 13) {
+                                        gridOptions.api.tabToNextCell();
+                                    } else if(config.arrowsUpDownMoveWhenEditing && config.arrowsUpDownMoveWhenEditing != 'NONE') {
+                                        var newEditingNode = null;
+                                        var columnToCheck = thisEditor.params.column;
+                                        var mustBeEditable = config.arrowsUpDownMoveWhenEditing == 'NEXTEDITABLECELL'
+                                        if( event.keyCode == 38) { // UP
+                                            if(thisEditor.params.rowIndex > 0) {
+                                                gridOptions.api.forEachNode( function(node) {
+                                                    if (node.rowIndex <= (thisEditor.params.rowIndex - 1) &&
+                                                        (!mustBeEditable || columnToCheck.isCellEditable(node))) {
+                                                        newEditingNode = node;
+                                                    }
+                                                });	
+                                            }
                                         }
-                                        else {
+                                        else if (event.keyCode == 13 || event.keyCode == 40) { // ENTER/DOWN
+                                            if( thisEditor.params.rowIndex < gridOptions.api.getModel().getRowCount() - 1) {
+                                                gridOptions.api.forEachNode( function(node) {
+                                                    if (node.rowIndex >= (thisEditor.params.rowIndex + 1) &&
+                                                        !newEditingNode && (!mustBeEditable || columnToCheck.isCellEditable(node))) {
+                                                        newEditingNode = node;
+                                                    }
+                                                });	
+                                            }
+                                        }
+                                        gridOptions.api.stopEditing();
+                                        if (newEditingNode) {
+                                            newEditingNode.setSelected(true, true);
+    
                                             gridOptions.api.setFocusedCell(newEditingNode.rowIndex, columnToCheck.colId);
+                                            if(columnToCheck.isCellEditable(newEditingNode)) {
+                                                gridOptions.api.startEditingCell({
+                                                    rowIndex: newEditingNode.rowIndex,
+                                                    colKey: columnToCheck.colId
+                                                });
+                                            }
                                         }
                                     }
                                     event.preventDefault();

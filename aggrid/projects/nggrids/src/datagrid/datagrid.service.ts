@@ -11,6 +11,7 @@ export class DatagridService {
     public columnOptions: any;
     public mainMenuItemsConfig: any;
     public arrowsUpDownMoveWhenEditing: string;
+    public editNextCellOnEnter: boolean;
 
     /**
      * Creates an empty icon configuration object
