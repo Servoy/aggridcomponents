@@ -1049,8 +1049,9 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
 						params.node.setDataValue(params.column.colId, v ? 0 : 1);
 					}
 
-					if ($scope.handlers.onCellClick && params.data) {
-						$scope.handlers.onCellClick(params.data, params.colDef.colId != undefined ? params.colDef.colId : params.colDef.field, params.value, params.event);
+                    var rowData = params.data || Object.assign(params.node.groupData, params.node.aggData);
+					if ($scope.handlers.onCellClick && rowData) {
+						$scope.handlers.onCellClick(rowData, params.colDef.colId != undefined ? params.colDef.colId : params.colDef.field, params.value, params.event);
 					}
 				}
 
