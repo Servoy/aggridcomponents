@@ -979,8 +979,9 @@ export class PowerGrid extends NGGridDirective {
             params.node.setDataValue(params.column.colId, v ? 0 : 1);
         }
 
-        if (this.onCellClick && params.data) {
-            this.onCellClick(params.data, params.colDef.colId !== undefined ? params.colDef.colId : params.colDef.field, params.value, params.event);
+        var rowData = params.data || Object.assign(params.node.groupData, params.node.aggData);
+        if (this.onCellClick && rowData) {
+            this.onCellClick(rowData, params.colDef.colId !== undefined ? params.colDef.colId : params.colDef.field, params.value, params.event);
         }
     }
 
