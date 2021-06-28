@@ -980,7 +980,11 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                         if ((formatType == 'DATETIME' || formatType == 'NUMBER') && (typeof cellValue === 'string' || cellValue instanceof String)) {
                             return cellValue;
                         }
-                        return $formatterUtils.format(cellValue,format,formatType);
+                        var displayFormat = null;
+                        if(format) {
+                            displayFormat = format.split("|")[0];
+                        }
+                        return $formatterUtils.format(cellValue,displayFormat,formatType);
                     }
                     return '';
                 }
@@ -1677,72 +1681,98 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     
                     $(this.eInput).datetimepicker(options);
 
-                    var editFormat = 'MM/dd/yyyy hh:mm a';
+                    var theDateTimePicker = $(this.eInput).data('DateTimePicker');
+                    this.hasMask = false;
                     var column = getColumn(params.column.colId);
+                    
+                    var displayFormat = 'MM/dd/yyyy hh:mm a';
+                    var editFormat = 'MM/dd/yyyy hh:mm a';
                     if(column && column.format) {
                         var parsedFormat = column.format;
                         try {
                             var jsonFormat = JSON.parse(column.format);
+                            displayFormat = jsonFormat.displayFormat;
                             parsedFormat = jsonFormat.editFormat ? jsonFormat.editFormat : jsonFormat.displayFormat;
+                            this.hasMask = jsonFormat.mask;
+                            this.maskPlaceholder = jsonFormat.editOrPlaceholder;
                         }
                         catch(e){}                        
                         editFormat = parsedFormat;
+
+                        var splitedEditFormat = editFormat.split("|");
+                        if(splitedEditFormat.length === 4 && splitedEditFormat[3] === 'mask') {
+                            displayFormat = splitedEditFormat[0]
+                            editFormat = splitedEditFormat[1];
+                            this.hasMask = true;
+                            this.maskPlaceholder = splitedEditFormat[2];
+                        }
+                        else if(splitedEditFormat > 1) {
+                            editFormat = splitedEditFormat[1];
+                        }
                     }
-                    var theDateTimePicker = $(this.eInput).data('DateTimePicker');
-                    theDateTimePicker.format(moment().toMomentFormatString(editFormat));
-                    this.eInput.value = $filter("formatFilter")(params.value, editFormat, 'DATETIME');
-                    
-                    // set key binds
-                    $(this.eInput).keydown(datepickerKeyDown);
-                    
-                    // key binds handler
-                    function datepickerKeyDown(e) {
-                        if (e.shiftKey || e.ctrlKey || e.altKey || e.metaKey) {
-                            return true;
-                        }
+
+                    if (this.hasMask) {
+                        this.maskSettings = {};
+                        this.maskSettings.placeholder = this.maskPlaceholder ? this.maskPlaceholder : " ";
+
+                        theDateTimePicker.format(moment().toMomentFormatString(displayFormat));
+                        this.eInput.value = $filter("formatFilter")(params.value, displayFormat, 'DATETIME');
+                        this.maskEditFormat = editFormat;
+                    } else {
+                        theDateTimePicker.format(moment().toMomentFormatString(editFormat));
+                        this.eInput.value = $filter("formatFilter")(params.value, editFormat, 'DATETIME');
                         
-                        switch (e.keyCode) {
-                        case 89: // y Yesterday
-                            var x = $(e.target).data('DateTimePicker');
-                            x.date(moment().add(-1, 'days'));
-                            e.stopPropagation();
-                                e.preventDefault();
-                            break;
-                        case 66: // b Beginning ot the month
-                            var x = $(e.target).data('DateTimePicker');
-                            x.date(moment().startOf('month'));
-                            e.stopPropagation();
-                                e.preventDefault();
-                            break;
-                        case 69: // e End of the month
-                            var x = $(e.target).data('DateTimePicker');
-                            x.date(moment().endOf('month'));
-                            e.stopPropagation();
-                            e.preventDefault();
-                            break;
-                        case 107: // + Add 1 day
-                            var x = $(e.target).data('DateTimePicker');
-                            if (x.date()) {
-                                x.date(x.date().clone().add(1, 'd'));
+                        // set key binds
+                        $(this.eInput).keydown(datepickerKeyDown);
+                        
+                        // key binds handler
+                        function datepickerKeyDown(e) {
+                            if (e.shiftKey || e.ctrlKey || e.altKey || e.metaKey) {
+                                return true;
                             }
-                            e.stopPropagation();
-                            e.preventDefault();
-                            break;
-                        case 109: // - Subtract 1 day
-                            var x = $(e.target).data('DateTimePicker');
-                            if (x.date()) {
-                                x.date(x.date().clone().subtract(1, 'd'));
-                            }
-                            e.stopPropagation();
-                            e.preventDefault();
-                            break;
-                        default:
-                            break;
-                        }
                             
-                        return true;
-                    };
-                    
+                            switch (e.keyCode) {
+                            case 89: // y Yesterday
+                                var x = $(e.target).data('DateTimePicker');
+                                x.date(moment().add(-1, 'days'));
+                                e.stopPropagation();
+                                    e.preventDefault();
+                                break;
+                            case 66: // b Beginning ot the month
+                                var x = $(e.target).data('DateTimePicker');
+                                x.date(moment().startOf('month'));
+                                e.stopPropagation();
+                                    e.preventDefault();
+                                break;
+                            case 69: // e End of the month
+                                var x = $(e.target).data('DateTimePicker');
+                                x.date(moment().endOf('month'));
+                                e.stopPropagation();
+                                e.preventDefault();
+                                break;
+                            case 107: // + Add 1 day
+                                var x = $(e.target).data('DateTimePicker');
+                                if (x.date()) {
+                                    x.date(x.date().clone().add(1, 'd'));
+                                }
+                                e.stopPropagation();
+                                e.preventDefault();
+                                break;
+                            case 109: // - Subtract 1 day
+                                var x = $(e.target).data('DateTimePicker');
+                                if (x.date()) {
+                                    x.date(x.date().clone().subtract(1, 'd'));
+                                }
+                                e.stopPropagation();
+                                e.preventDefault();
+                                break;
+                            default:
+                                break;
+                            }
+                                
+                            return true;
+                        };
+                    }                    
                 };
             
                 // gets called once when grid ready to insert the element
@@ -1754,6 +1784,11 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 Datepicker.prototype.afterGuiAttached = function() {
                     this.eInput.focus();
                     this.eInput.select();
+                    if(this.hasMask) {
+                        $(this.eInput).mask(this.maskEditFormat, this.maskSettings);
+                        // library doesn't handle well this scenario, forward focus event to make sure mask is set
+                        if ($(this.eInput).val() == '') $(this.eInput).trigger("focus.mask");
+                    }
                 };
 
                 // returns the new value after editing

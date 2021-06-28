@@ -2280,66 +2280,78 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						
 						$(this.eInput).datetimepicker(options);
 
-						var editFormat = 'MM/dd/yyyy hh:mm a';
-						var column = getColumn(params.column.colId);
-						if(column && column.format) {
-							editFormat = column.format.edit ? column.format.edit : column.format.display;
-						}
 						var theDateTimePicker = $(this.eInput).data('DateTimePicker');
-						theDateTimePicker.format(moment().toMomentFormatString(editFormat));
-						this.eInput.value = formatFilter(params.value, editFormat, 'DATETIME');
-						
-						// set key binds
-						$(this.eInput).keydown(datepickerKeyDown);
-						
-						// key binds handler
-						function datepickerKeyDown(e) {
-							if (e.shiftKey || e.ctrlKey || e.altKey || e.metaKey) {
-								return true;
+						this.hasMask = false;
+						var column = getColumn(params.column.colId);
+						if (column && column.format && column.format.edit && column.format.isMask) {
+							this.hasMask = true;
+							this.maskSettings = {};
+							this.maskSettings.placeholder = column.format.placeHolder ? column.format.placeHolder : " ";
+							if (column.format.allowedCharacters)
+								this.maskSettings.allowedCharacters = column.format.allowedCharacters;
+
+							theDateTimePicker.format(moment().toMomentFormatString(column.format.display));
+							this.eInput.value = formatFilter(params.value, column.format.display, 'DATETIME');
+							this.maskEditFormat = column.format.edit;
+						} else {
+							var editFormat = 'MM/dd/yyyy hh:mm a';
+							if(column && column.format) {
+								editFormat = column.format.edit ? column.format.edit : column.format.display;
 							}
+							theDateTimePicker.format(moment().toMomentFormatString(editFormat));
+							this.eInput.value = formatFilter(params.value, editFormat, 'DATETIME');
 							
-							switch (e.keyCode) {
-							case 89: // y Yesterday
-								var x = $(e.target).data('DateTimePicker');
-								x.date(moment().add(-1, 'days'));
-			                    e.stopPropagation();
-			                       e.preventDefault();
-								break;
-							case 66: // b Beginning ot the month
-								var x = $(e.target).data('DateTimePicker');
-								x.date(moment().startOf('month'));
-			                   	e.stopPropagation();
-			                       e.preventDefault();
-								break;
-							case 69: // e End of the month
-								var x = $(e.target).data('DateTimePicker');
-								x.date(moment().endOf('month'));
-			                    e.stopPropagation();
-			                    e.preventDefault();
-			                    break;
-							case 107: // + Add 1 day
-								var x = $(e.target).data('DateTimePicker');
-								if (x.date()) {
-									x.date(x.date().clone().add(1, 'd'));
+							// set key binds
+							$(this.eInput).keydown(datepickerKeyDown);
+							
+							// key binds handler
+							function datepickerKeyDown(e) {
+								if (e.shiftKey || e.ctrlKey || e.altKey || e.metaKey) {
+									return true;
 								}
-			                   	e.stopPropagation();
-			                    e.preventDefault();
-								break;
-							case 109: // - Subtract 1 day
-								var x = $(e.target).data('DateTimePicker');
-								if (x.date()) {
-									x.date(x.date().clone().subtract(1, 'd'));
-								}
-		                    	e.stopPropagation();
-		                        e.preventDefault();
-								break;
-							default:
-								break;
-							}
 								
-							return true;
-						};
-						
+								switch (e.keyCode) {
+								case 89: // y Yesterday
+									var x = $(e.target).data('DateTimePicker');
+									x.date(moment().add(-1, 'days'));
+									e.stopPropagation();
+									   e.preventDefault();
+									break;
+								case 66: // b Beginning ot the month
+									var x = $(e.target).data('DateTimePicker');
+									x.date(moment().startOf('month'));
+									   e.stopPropagation();
+									   e.preventDefault();
+									break;
+								case 69: // e End of the month
+									var x = $(e.target).data('DateTimePicker');
+									x.date(moment().endOf('month'));
+									e.stopPropagation();
+									e.preventDefault();
+									break;
+								case 107: // + Add 1 day
+									var x = $(e.target).data('DateTimePicker');
+									if (x.date()) {
+										x.date(x.date().clone().add(1, 'd'));
+									}
+									   e.stopPropagation();
+									e.preventDefault();
+									break;
+								case 109: // - Subtract 1 day
+									var x = $(e.target).data('DateTimePicker');
+									if (x.date()) {
+										x.date(x.date().clone().subtract(1, 'd'));
+									}
+									e.stopPropagation();
+									e.preventDefault();
+									break;
+								default:
+									break;
+								}
+									
+								return true;
+							};
+						}
 					};
 				
 					// gets called once when grid ready to insert the element
@@ -2351,6 +2363,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					Datepicker.prototype.afterGuiAttached = function() {
 						this.eInput.focus();
 						this.eInput.select();
+						if(this.hasMask) {
+							$(this.eInput).mask(this.maskEditFormat, this.maskSettings);
+							// library doesn't handle well this scenario, forward focus event to make sure mask is set
+							if ($(this.eInput).val() == '') $(this.eInput).trigger("focus.mask");
+						}
 					};
 
 					// returns the new value after editing
