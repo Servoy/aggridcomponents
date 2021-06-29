@@ -1,6 +1,6 @@
 import { GridOptions, GroupCellRenderer } from '@ag-grid-community/core';
 import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Inject, Input, Output, Renderer2, SecurityContext, SimpleChanges, ViewChild } from '@angular/core';
-import { FormattingService } from '@servoy/public';
+import { Format, FormattingService } from '@servoy/public';
 import { LoggerFactory, LoggerService } from '@servoy/public';
 import { NGGridDirective } from '../nggrid';
 import { DatePicker } from '../editors/datepicker';
@@ -1238,7 +1238,10 @@ export class PowerGrid extends NGGridDirective {
                         return v.toLowerCase();
                     }
                 }
-                return params.context.componentParent.formattingService.format(params.value, format, false);
+                const formatDef = new Format();
+                formatDef.type = formatType;
+                formatDef.display = format.split("|")[0];
+                return params.context.componentParent.formattingService.format(params.value, formatDef, false);
             }
             return '';
         };

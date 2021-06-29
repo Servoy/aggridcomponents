@@ -17,6 +17,7 @@ import { ValuelistFilter } from './datagrid/filters/valuelistfilter';
 import { RadioFilter } from './datagrid/filters/radiofilter';
 import { PowerGrid } from './powergrid/powergrid';
 import { BlankLoadingCellRendrer } from './datagrid/renderers/blankloadingcellrenderer';
+import { FormsModule } from '@angular/forms';
 
 @NgModule({
     declarations: [
@@ -33,6 +34,7 @@ import { BlankLoadingCellRendrer } from './datagrid/renderers/blankloadingcellre
     ],
     imports: [
         CommonModule,
+        FormsModule,
         ServoyPublicModule,
         OwlDateTimeModule,
         NgbModule,

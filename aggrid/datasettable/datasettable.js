@@ -1707,7 +1707,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                             this.hasMask = true;
                             this.maskPlaceholder = splitedEditFormat[2];
                         }
-                        else if(splitedEditFormat > 1) {
+                        else if(splitedEditFormat.length > 1) {
                             editFormat = splitedEditFormat[1];
                         }
                     }
