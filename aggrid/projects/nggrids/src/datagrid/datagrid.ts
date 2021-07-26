@@ -2431,7 +2431,11 @@ export class DataGrid extends NGGridDirective {
     }
 
     getIconRefreshData() {
-        return this.iconConfig && this.iconConfig.iconRefreshData &&  this.iconConfig.iconRefreshData !== 'glyphicon glyphicon-refresh' ?
+        let iconConfig = this.datagridService.iconConfig ? this.datagridService.iconConfig : null;
+        iconConfig = this.mergeConfig(iconConfig, this.iconConfig);
+        const refreshEditorIconConfig = this.iconConfig ? this.iconConfig : null;
+        
+        return refreshEditorIconConfig && refreshEditorIconConfig.iconRefreshData &&  refreshEditorIconConfig.iconRefreshData !== 'glyphicon glyphicon-refresh' ?
             this.iconConfig.iconRefreshData : 'fa fa-sync';
     }
 

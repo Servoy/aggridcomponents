@@ -193,8 +193,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				}
 
 				$scope.getIconRefreshData = function() {
-					return $scope.model.iconConfig && $scope.model.iconConfig.iconRefreshData ?
-						$scope.model.iconConfig.iconRefreshData : "glyphicon glyphicon-refresh";
+                    var refreshEditorIconConfig = iconConfig ? iconConfig : $scope.model.iconConfig;
+					return refreshEditorIconConfig && refreshEditorIconConfig.iconRefreshData ?
+                    refreshEditorIconConfig.iconRefreshData : "glyphicon glyphicon-refresh";
 				}
 
 				function getIconCheckboxEditor(state) {

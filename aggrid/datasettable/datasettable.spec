@@ -367,8 +367,8 @@
 			"iconPivotPanel": { "type": "styleclass", "tags": {"scope": "design"}},
 			"iconValuePanel": { "type": "styleclass", "tags": {"scope": "design"}},
 			"iconRefreshData": { "type": "styleclass", "default" : "glyphicon glyphicon-refresh", "tags": {"scope": "design"}},
-			"iconEditorChecked": { "type": "styleclass", "default" : "glyphicon glyphicon-check", "tags": {"scope": "design"}},
-			"iconEditorUnchecked": { "type": "styleclass", "default" : "glyphicon glyphicon-unchecked", "tags": {"scope": "design"}}			
+			"iconEditorChecked": { "type": "styleclass", "tags": {"scope": "design"}},
+			"iconEditorUnchecked": { "type": "styleclass", "tags": {"scope": "design"}}
         },
 		"columnVO": {
 			"id": {"type": "string"},
