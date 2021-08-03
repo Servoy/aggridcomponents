@@ -329,7 +329,8 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
             if($scope.model.rowStyleClassFunc) {
                 var rowStyleClassFunc = eval($scope.model.rowStyleClassFunc);
                 gridOptions.getRowClass = function(params) {
-                    return rowStyleClassFunc(params.rowIndex, params.data, params.event);
+                    var rowData = params.data || Object.assign(params.node.groupData, params.node.aggData);
+                    return rowStyleClassFunc(params.rowIndex, rowData, params.event, params.node.group);
                 };
             }
 

@@ -353,7 +353,7 @@ export class PowerGrid extends NGGridDirective {
         if(this.rowStyleClassFunc) {
             // eslint-disable-next-line no-eval
             const rowStyleClassFunc = eval(this.rowStyleClassFunc);
-            this.agGridOptions.getRowClass = (params) => rowStyleClassFunc(params.rowIndex, params.data, params.event);
+            this.agGridOptions.getRowClass = (params) => rowStyleClassFunc(params.rowIndex, (params.data || Object.assign(params.node.groupData, params.node.aggData)), params.event, params.node.group);
         }
 
         // set the icons
