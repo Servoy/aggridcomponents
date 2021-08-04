@@ -414,6 +414,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
 			gridOptions.api.addEventListener('selectionChanged', onSelectionChanged);
             gridOptions.api.addEventListener('cellClicked', cellClickHandler);
 			gridOptions.api.addEventListener('cellDoubleClicked', onCellDoubleClicked);
+            gridOptions.api.addEventListener('cellContextMenu', onCellContextMenu);
             gridOptions.api.addEventListener('displayedColumnsChanged', function() {
                 sizeColumnsToFit();
             });
@@ -1082,12 +1083,19 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
 				 * @private
 				 * */
 				function onCellDoubleClicked(params) {
-					$log.debug(params);
-					if ($scope.handlers.onCellDoubleClick && params.data) {
-						$scope.handlers.onCellDoubleClick(params.data, params.colDef.colId != undefined ? params.colDef.colId : params.colDef.field, params.value, params.event);
+                    var rowData = params.data || Object.assign(params.node.groupData, params.node.aggData);
+					if ($scope.handlers.onCellDoubleClick && rowData) {
+						$scope.handlers.onCellDoubleClick(rowData, params.colDef.colId != undefined ? params.colDef.colId : params.colDef.field, params.value, params.event);
 					}
 				}
 				
+                function onCellContextMenu(params) {
+                    var rowData = params.data || Object.assign(params.node.groupData, params.node.aggData);
+					if ($scope.handlers.onCellRightClick && rowData) {
+						$scope.handlers.onCellRightClick(rowData, params.colDef.colId != undefined ? params.colDef.colId : params.colDef.field, params.value, params.event);
+					}                    
+                }
+
 				function selectionChangeNavigation(params) {
 					var previousCell = params.previousCellPosition;
 					var suggestedNextCell = params.nextCellPosition;

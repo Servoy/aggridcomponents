@@ -99,6 +99,7 @@ export class PowerGrid extends NGGridDirective {
 
     @Input() onCellClick: any;
     @Input() onCellDoubleClick: any;
+    @Input() onCellRightClick: any;
     @Input() onColumnDataChange: any;
     @Input() onColumnFormEditStarted: any;
     @Input() onLazyLoadingGetRows: any;
@@ -443,6 +444,7 @@ export class PowerGrid extends NGGridDirective {
         this.agGrid.api.addEventListener('rowSelected', (event: any) => this.onRowSelectedHandler(event));
         this.agGrid.api.addEventListener('cellClicked', (params: any) => this.cellClickHandler(params));
         this.agGrid.api.addEventListener('cellDoubleClicked', (params: any) => this.onCellDoubleClicked(params));
+        this.agGrid.api.addEventListener('cellContextMenu', (params: any) => this.onCellContextMenu(params));
         this.agGrid.api.addEventListener('displayedColumnsChanged', () => this.sizeColumnsToFit());
 
         // listen to group changes
@@ -1002,9 +1004,16 @@ export class PowerGrid extends NGGridDirective {
     }
 
     onCellDoubleClicked(params: any) {
-        this.log.debug(params);
-        if (this.onCellDoubleClick && params.data) {
-            this.onCellDoubleClick(params.data, params.colDef.colId !== undefined ? params.colDef.colId : params.colDef.field, params.value, params.event);
+        var rowData = params.data || Object.assign(params.node.groupData, params.node.aggData);
+        if (this.onCellDoubleClick && rowData) {
+            this.onCellDoubleClick(rowData, params.colDef.colId !== undefined ? params.colDef.colId : params.colDef.field, params.value, params.event);
+        }
+    }
+
+    onCellContextMenu(params: any) {
+        var rowData = params.data || Object.assign(params.node.groupData, params.node.aggData);
+        if (this.onCellRightClick && rowData) {
+            this.onCellRightClick(rowData, params.colDef.colId !== undefined ? params.colDef.colId : params.colDef.field, params.value, params.event);
         }
     }
 
