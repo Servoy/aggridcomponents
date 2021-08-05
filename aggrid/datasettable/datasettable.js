@@ -304,6 +304,10 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 }                
             };
 
+            if ($scope.model.groupWidth || $scope.model.groupWidth === 0) gridOptions.autoGroupColumnDef.width = $scope.model.groupWidth;
+            if ($scope.model.groupMaxWidth) gridOptions.autoGroupColumnDef.maxWidth = $scope.model.groupMaxWidth;
+            if ($scope.model.groupMinWidth || $scope.model.groupMinWidth === 0) gridOptions.autoGroupColumnDef.minWidth = $scope.model.groupMinWidth;
+
             // check if we have filters
             for(var i = 0; gridOptions.sideBar && gridOptions.sideBar.toolPanels && i < columnDefs.length; i++) {
                 if(columnDefs[i].filter) {

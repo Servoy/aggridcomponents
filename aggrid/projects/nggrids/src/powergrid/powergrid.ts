@@ -87,6 +87,9 @@ export class PowerGrid extends NGGridDirective {
     @Input() readOnly: boolean;
     @Input() rowStyleClassFunc: any;
     @Input() groupStyleClass: any;
+    @Input() groupWidth: number;
+    @Input() groupMinWidth: number;
+    @Input() groupMaxWidth: number;
     @Input() groupRowRendererFunc: any;
     @Input() responsiveHeight: number;
 
@@ -329,6 +332,11 @@ export class PowerGrid extends NGGridDirective {
                 }
             }
         };
+
+        if (this.groupWidth || this.groupWidth === 0) this.agGridOptions.autoGroupColumnDef.width = this.groupWidth;
+        if (this.groupMaxWidth) this.agGridOptions.autoGroupColumnDef.maxWidth = this.groupMaxWidth;
+        if (this.groupMinWidth || this.groupMinWidth === 0) this.agGridOptions.autoGroupColumnDef.minWidth = this.groupMinWidth;
+
 
         // check if we have filters
         for(let i = 0; this.agGridOptions.sideBar && this.agGridOptions.sideBar['toolPanels'] && i < columnDefs.length; i++) {
