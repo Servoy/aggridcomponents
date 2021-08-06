@@ -4445,7 +4445,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					$log.debug(change);
 
 					if(!isRootFoundsetLoaded) {
-						if(change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROWS_COMPLETELY_CHANGED]) {
+						if(change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROWS_COMPLETELY_CHANGED] || change[$foundsetTypeConstants.NOTIFY_FULL_VALUE_CHANGED]) {
 							isRootFoundsetLoaded = true;
 							initRootFoundset();
 						}
