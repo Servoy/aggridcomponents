@@ -3142,6 +3142,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				$scope.$watch("model.myFoundset", function(newValue, oldValue) {
 
 						$log.debug('myFoundset root changed');
+						if(!$scope.model.myFoundset) {
+							$log.debug('myFoundset not set, ignore model change');
+							return;
+						}
 						if(isTableGrouped()) {
 							$scope.purge();
 						}
@@ -4557,6 +4561,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						foundsetManager = foundset;
 					}
 
+					if (!foundsetManager.foundset) {
+						return false;
+					}
+
 					var selectedNodes = new Array();
 					for(var i = 0; i < foundsetManager.foundset.selectedRowIndexes.length; i++) {
 
@@ -4607,6 +4615,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					
 					if (!foundsetManager) {
 						foundsetManager = foundset;
+					}
+
+					if (!foundsetManager.foundset) {
+						return;
 					}
 
 					if(foundsetManager.foundset.selectedRowIndexes.length) {

@@ -669,6 +669,10 @@ export class DataGrid extends NGGridDirective {
                         break;
                     case 'myFoundset':
 						this.log.debug('myFoundset root changed');
+                        if(!this.myFoundset) {
+							this.log.debug('myFoundset not set, ignore model change');
+							return;
+						}
 						if(this.isTableGrouped()) {
 							this.purge();
 						}
@@ -680,6 +684,7 @@ export class DataGrid extends NGGridDirective {
 						if(this.myFoundset.viewPort.size > 0 || isChangedToEmpty) {
 							// browser refresh
                             this.isRootFoundsetLoaded = true;
+                            this.initRootFoundset();
 						} else {
 							// newly set foundset
 							this.isRootFoundsetLoaded = false;
@@ -859,7 +864,7 @@ export class DataGrid extends NGGridDirective {
 
         const foundsetServer = new FoundsetServer(this, []);
         const datasource = new FoundsetDatasource(this, foundsetServer);
-        this.agGrid.api.setServerSideDatasource(datasource);
+        if(this.myFoundset) this.agGrid.api.setServerSideDatasource(datasource);
         this.isSelectionReady = false;
     }
 
@@ -1400,6 +1405,10 @@ export class DataGrid extends NGGridDirective {
         // CHANGE Seleciton
         if (!foundsetManager) {
             foundsetManager = this.foundset;
+        }
+
+        if (!foundsetManager.foundset) {
+            return false;
         }
 
         const selectedNodes = new Array();
@@ -2295,6 +2304,10 @@ export class DataGrid extends NGGridDirective {
 
         if (!foundsetManager) {
             foundsetManager = this.foundset;
+        }
+
+        if (!foundsetManager.foundset) {
+            return;
         }
 
         if(foundsetManager.foundset.selectedRowIndexes.length) {
