@@ -1938,11 +1938,22 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
             }
             
             /**
+             *  Sets selected rows
+             * 
+             *  @param Array<Number> rowIndexes (0-based)
+             */
+            $scope.api.setSelectedRows = function(rowIndexes) {
+                gridOptions.api.forEachNode( function(node) {
+                    node.setSelected(rowIndexes.indexOf(node.rowIndex) !== -1);
+                });
+            }
+
+            /**
              * Gets selected rows data
              * 
              * @return {Array<String>}
              */
-            $scope.api.getSelectedRows = function() {
+             $scope.api.getSelectedRows = function() {
 				var selectedNodes = gridOptions.api.getSelectedNodes();
 				// TODO return the selected Nodes as JSON;
 				var result = [];

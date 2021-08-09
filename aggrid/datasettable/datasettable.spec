@@ -270,6 +270,11 @@
 		"getSelectedRows" : {
 			"returns": "object[]"
 		},
+		"setSelectedRows" : {
+			"parameters": [
+				{ "name": "rowIndexes", "type": "int[]"}
+			]
+		},
 		"restoreColumnState" : {
 			"parameters": [
 				{ "name": "columnState", "type": "string", "optional": true}

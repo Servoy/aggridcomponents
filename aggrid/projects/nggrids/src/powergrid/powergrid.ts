@@ -1390,6 +1390,17 @@ export class PowerGrid extends NGGridDirective {
     }
 
     /**
+     *  Sets selected rows
+     * 
+     *  @param Array<Number> rowIndexes (0-based)
+     */
+    setSelectedRows(rowIndexes: number[]) {
+        this.agGrid.api.forEachNode((node) => {
+            node.setSelected(rowIndexes.indexOf(node.rowIndex) !== -1);
+        });
+    }
+
+    /**
      * Gets selected rows data
      */
     getSelectedRows(): any {
