@@ -3080,7 +3080,7 @@ export class DataGrid extends NGGridDirective {
         this.log.debug(changeEvent);
 
         if(!this.isRootFoundsetLoaded) {
-            if(changeEvent.viewportRowsCompletelyChanged) {
+            if(changeEvent.viewportRowsCompletelyChanged || changeEvent.fullValueChanged) {
                 this.isRootFoundsetLoaded = true;
                 this.initRootFoundset();
             }
