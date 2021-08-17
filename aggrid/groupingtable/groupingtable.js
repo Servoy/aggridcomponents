@@ -625,7 +625,12 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								$scope.model._internalColumnState = "_empty";
 								$scope.svyServoyapi.apply('_internalColumnState');
 							}
-							restoreColumnsState();
+							if($scope.model.columnState) {
+								restoreColumnsState();
+							}
+							else {
+								storeColumnsState(true);
+							}
 						}
 						gridOptions.onDisplayedColumnsChanged = function() {
 							sizeHeaderAndColumnsToFit(GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED);
@@ -5530,7 +5535,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					};
 				}
 
-				function storeColumnsState() {
+				function storeColumnsState(skipFireColumnStateChanged) {
 					if(isRendered) {
 						var agColumnState = gridOptions.columnApi.getColumnState();
 
@@ -5554,7 +5559,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						if (newColumnState !== $scope.model.columnState) {
 							$scope.model.columnState = newColumnState;
 							$scope.svyServoyapi.apply('columnState');
-							if ($scope.handlers.onColumnStateChanged) {
+							if (skipFireColumnStateChanged !== true && $scope.handlers.onColumnStateChanged) {
 								$scope.handlers.onColumnStateChanged($scope.model.columnState);
 							}
 						}

@@ -299,6 +299,13 @@ export class DataGrid extends NGGridDirective {
                         this._internalColumnState = emptyValue;
                         this._internalColumnStateChange.emit(emptyValue);
                     }
+                    if(this.columnState) {
+                        this.restoreColumnsState();
+                    }
+                    else {
+                        this.storeColumnsState(true);
+                    }
+
                     this.restoreColumnsState();
                 }
                 this.agGridOptions.onDisplayedColumnsChanged = ()=> {
@@ -2017,7 +2024,7 @@ export class DataGrid extends NGGridDirective {
         return event;
     }
 
-    storeColumnsState() {
+    storeColumnsState(skipFireColumnStateChanged?: boolean) {
         const agColumnState = this.agGrid.columnApi.getColumnState();
 
         const rowGroupColumns = this.getRowGroupColumns();
@@ -2040,7 +2047,7 @@ export class DataGrid extends NGGridDirective {
         if (newColumnState !== this.columnState) {
             this.columnState = newColumnState;
             this.columnStateChange.emit(newColumnState);
-            if (this.onColumnStateChanged) {
+            if (skipFireColumnStateChanged !== true && this.onColumnStateChanged) {
                 this.onColumnStateChanged(this.columnState);
             }
         }

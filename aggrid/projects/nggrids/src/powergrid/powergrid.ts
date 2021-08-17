@@ -257,7 +257,12 @@ export class PowerGrid extends NGGridDirective {
                     this._internalColumnState = emptyValue;
                     this._internalColumnStateChange.emit(emptyValue);
                 }
-                this.restoreColumnsState();
+                if(this.columnState) {
+                    this.restoreColumnsState();
+                }
+                else {
+                    this.storeColumnsState(true);
+                }
                 this.applyExpandedState();
 
                 this.agGridOptions.onDisplayedColumnsChanged = () => {
@@ -856,7 +861,7 @@ export class PowerGrid extends NGGridDirective {
         if(this.hasAutoHeightColumn) this.agGrid.api.resetRowHeights();
     }
 
-    storeColumnsState() {
+    storeColumnsState(skipFireColumnStateChanged?: boolean) {
         const rowGroupColumns = this.agGrid.columnApi.getRowGroupColumns();
         const svyRowGroupColumnIds = [];
         for(const rowGroupColumn of rowGroupColumns) {
@@ -877,7 +882,7 @@ export class PowerGrid extends NGGridDirective {
         if (newColumnState !== this.columnState) {
             this.columnState = newColumnState;
             this.columnStateChange.emit(newColumnState);
-            if (this.onColumnStateChanged) {
+            if (skipFireColumnStateChanged !== true && this.onColumnStateChanged) {
                 this.onColumnStateChanged(this.columnState);
             }
         }

@@ -226,7 +226,12 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                             $scope.model._internalColumnState = "_empty";
                             $scope.svyServoyapi.apply('_internalColumnState');
                         }
-                        restoreColumnsState();
+                        if($scope.model.columnState) {
+                            restoreColumnsState();
+                        }
+                        else {
+                            storeColumnsState(true);
+                        }
                         applyExpandedState();
                     }
                     gridOptions.onDisplayedColumnsChanged = function() {
@@ -1179,7 +1184,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
 				return event;
 			}
 
-            function storeColumnsState() {
+            function storeColumnsState(skipFireColumnStateChanged) {
                 if($scope.model.visible) {
                     var rowGroupColumns = gridOptions.columnApi.getRowGroupColumns();
                     var svyRowGroupColumnIds = [];
@@ -1200,7 +1205,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     if (newColumnState !== $scope.model.columnState) {
                         $scope.model.columnState = newColumnState;
                         $scope.svyServoyapi.apply('columnState');
-                        if ($scope.handlers.onColumnStateChanged) {
+                        if (skipFireColumnStateChanged !== true && $scope.handlers.onColumnStateChanged) {
                             $scope.handlers.onColumnStateChanged($scope.model.columnState);
                         }
                     }
