@@ -676,8 +676,13 @@ export class DataGrid extends NGGridDirective {
 						if(this.isTableGrouped()) {
 							this.purge();
 						}
-                        if(change.currentValue && this.myFoundsetId && change.currentValue.foundsetId !== this.myFoundsetId) {
-                            this.filterModel = null;
+                        if(change.currentValue && this.myFoundsetId ) {
+                            if(change.currentValue.foundsetId !== this.myFoundsetId) {
+                                this.filterModel = null;
+                            } else {
+                                // there is actually no foundset change!
+                                return;
+                            }
                         }
                         this.myFoundsetId = change.currentValue.foundsetId;
 						const isChangedToEmpty = change.currentValue && change.previousValue && change.previousValue.serverSize === 0 && change.previousValue.serverSize > 0;
@@ -3587,7 +3592,7 @@ class FoundsetManager {
         // TODO use loadExtraRecordsAsync to keep cache small
         size = (size * CACHED_CHUNK_BLOCKS) + size;
         if (this.hasMoreRecordsToLoad() === false) {
-            size = this.foundset.serverSize - startIndex;
+            size = Math.min(size, this.foundset.serverSize - startIndex);
         }
         if (size < 0) {
             this.dataGrid.log.error('Load size should not be negative: startIndex ' + startIndex + ' server size ' + this.foundset.serverSize);

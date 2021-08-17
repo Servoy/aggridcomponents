@@ -3410,7 +3410,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						// TODO use loadExtraRecordsAsync to keep cache small
 						size = (size * CACHED_CHUNK_BLOCKS) + size;
 						if (thisInstance.hasMoreRecordsToLoad() === false) {
-							size = this.foundset.serverSize - startIndex;
+							size = Math.min(size, this.foundset.serverSize - startIndex);
 						}
 						if (size < 0) {
 							$log.error('Load size should not be negative: startIndex ' + startIndex + ' server size ' + this.foundset.serverSize);
