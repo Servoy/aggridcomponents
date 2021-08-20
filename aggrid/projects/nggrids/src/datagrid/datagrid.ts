@@ -541,7 +541,8 @@ export class DataGrid extends NGGridDirective {
 
         // set all custom icons
         if (iconConfig) {
-            const icons = new Object();
+            type FunctionType = () => string;
+            const icons: {[key: string]: string | FunctionType}  = {};
 
             for (const iconName of Object.keys(iconConfig)) {
                 let aggridIcon = iconName.slice(4);
@@ -1715,7 +1716,6 @@ export class DataGrid extends NGGridDirective {
         }).catch((e) => {
             this.log.error(e);
         });
-        
         return true;
 
     }
@@ -2459,7 +2459,6 @@ export class DataGrid extends NGGridDirective {
         let iconConfig = this.datagridService.iconConfig ? this.datagridService.iconConfig : null;
         iconConfig = this.mergeConfig(iconConfig, this.iconConfig);
         const refreshEditorIconConfig = this.iconConfig ? this.iconConfig : null;
-        
         return refreshEditorIconConfig && refreshEditorIconConfig.iconRefreshData &&  refreshEditorIconConfig.iconRefreshData !== 'glyphicon glyphicon-refresh' ?
             this.iconConfig.iconRefreshData : 'fa fa-sync';
     }

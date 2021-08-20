@@ -365,14 +365,14 @@ export class PowerGrid extends NGGridDirective {
         }
 
         if(this.rowStyleClassFunc) {
-            // eslint-disable-next-line no-eval
-            const rowStyleClassFunc = eval(this.rowStyleClassFunc);
-            this.agGridOptions.getRowClass = (params) => rowStyleClassFunc(params.rowIndex, (params.data || Object.assign(params.node.groupData, params.node.aggData)), params.event, params.node.group);
+            const rowStyleClassFunc = this.rowStyleClassFunc;
+            this.agGridOptions.getRowClass = (params) => rowStyleClassFunc(params.rowIndex, (params.data || Object.assign(params.node.groupData, params.node.aggData)), /* TODO CHECK params.event*/ null, params.node.group);
         }
 
         // set the icons
         if(iconConfig) {
-            const icons = new Object();
+            type FunctionType = () => string;
+            const icons: {[key: string]: string | FunctionType}  = {};
 
             for (const iconName in iconConfig) {
                 if (iconName === 'iconRefreshData') continue;
@@ -416,8 +416,7 @@ export class PowerGrid extends NGGridDirective {
         if(this.agGridOptions.groupUseEntireRow) {
             let groupRowRendererFunc = this.groupRowInnerRenderer;
             if(this.groupRowRendererFunc) {
-                // eslint-disable-next-line no-eval
-                groupRowRendererFunc = eval(this.groupRowRendererFunc);
+                groupRowRendererFunc = this.groupRowRendererFunc;
             }
             this.agGridOptions.groupRowRenderer = DatasetTableGroupCellRenderer;
             this.agGridOptions.groupRowRendererParams = {
@@ -1269,12 +1268,9 @@ export class PowerGrid extends NGGridDirective {
         };
     }
 
-    createColumnCallbackFunctionFromString(functionAsString: string) {
-        // eslint-disable-next-line no-eval
-        const f = eval(functionAsString);
-        return (params: any) => f(params.rowIndex, params.data, params.colDef.colId !== undefined ? params.colDef.colId : params.colDef.field, params.value, params.event);
+    createColumnCallbackFunctionFromString(func: (rowIndex: number, data: any, colDef: string, value: any, event: any) => string) {
+        return (params: any) => func(params.rowIndex, params.data, params.colDef.colId !== undefined ? params.colDef.colId : params.colDef.field, params.value, params.event);
     }
-
     getDefaultCellRenderer(column: any) {
         return (params: any) => {
             if(column.editType === 'CHECKBOX' && !params.node.group) {
