@@ -7,15 +7,14 @@
     "@angular/common": ">=12",
     "@angular/core": ">=12",
     "@angular/forms": ">=12",
-    "moment": "^2.29.1",
-    "bootstrap": "5.0.1",
-    "luxon": ">=1"
+    "bootstrap": ">=5",
+    "luxon": ">=2"
   },
   "dependencies": {
     "@ng-bootstrap/ng-bootstrap": ">=10",
-    "@ag-grid-community/angular": "25.2.0",
-    "@ag-grid-enterprise/all-modules": "25.2.0",
-    "@danielmoncada/angular-datetime-picker": "^12.0.0",
+    "@ag-grid-community/angular": ">=26",
+    "@ag-grid-enterprise/all-modules": ">=26",
+    "@danielmoncada/angular-datetime-picker": ">=12",
     "tslib": "*"
   },
   "license": "MIT",
