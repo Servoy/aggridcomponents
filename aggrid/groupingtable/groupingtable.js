@@ -6009,6 +6009,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 						// release grid resources
 						delete gridOptions.onGridSizeChanged;
+						delete gridOptions.onColumnResized;
 						gridOptions.api.destroy();
 
 					});

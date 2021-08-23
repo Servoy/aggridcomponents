@@ -1020,6 +1020,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
 
                 // release grid resources
                 delete gridOptions.onGridSizeChanged;
+                delete gridOptions.onColumnResized;
                 gridOptions.api.destroy();
 
             });            
