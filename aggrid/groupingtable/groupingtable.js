@@ -4493,12 +4493,13 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							}
 							isSelectionReady = false;
 							scrollToSelectionWhenSelectionReady = true;
+
+							// if sort has changed, return, skip handling any additional foundset change flags
+							// because ag-grid will reload its newly sorted data
+							return;
 						} else if (newSort == oldSort && !newSort && !oldSort) {
 							$log.warn("this should not be happening");
 						}
-						// do nothing else after a sort ?
-						// sort should skip purge
-						return;
 					}
 
 					// if viewPort changes and startIndex does not change is the result of a sort or of a loadRecords
