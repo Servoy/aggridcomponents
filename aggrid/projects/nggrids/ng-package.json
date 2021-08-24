@@ -19,5 +19,5 @@
       "@danielmoncada/angular-datetime-picker": "danielmoncada.angular-datetime-picker"
     }
   },
-  "allowedNonPeerDependencies": ["@danielmoncada/angular-datetime-picker", "@ng-bootstrap/ng-bootstrap", "@ag-grid-community/angular", "@ag-grid-enterprise/all-modules"]
+  "allowedNonPeerDependencies": ["@danielmoncada/angular-datetime-picker", "@ng-bootstrap/ng-bootstrap", "@angular/cdk", "@ag-grid-community/angular", "@ag-grid-enterprise/all-modules"]
 }
