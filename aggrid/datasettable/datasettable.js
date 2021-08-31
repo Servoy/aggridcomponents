@@ -273,7 +273,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
 //                onColumnGroupOpened: storeColumnsState		 i don't think we need that, it doesn't include the open group in column state
 
                 navigateToNextCell: selectionChangeNavigation,
-                
+                tabToNextCell: tabSelectionChangeNavigation,
                 sideBar : sideBar,
                 popupParent: gridDiv,
                 enableBrowserTooltips: true,
@@ -1168,6 +1168,33 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
 					}					
 				}
 
+				function tabSelectionChangeNavigation(params) {
+					var suggestedNextCell = params.nextCellPosition;
+					var isPinnedBottom = suggestedNextCell ? suggestedNextCell.rowPinned == "bottom" : false;
+
+					// don't change selection if row is pinned to the bottom (footer)
+					if(suggestedNextCell && !isPinnedBottom) {
+						var suggestedNextCellSelected = false;
+						var selectedNodes = gridOptions.api.getSelectedNodes();
+						for(var i = 0; i < selectedNodes.length; i++) {
+							if(suggestedNextCell.rowIndex == selectedNodes[i].rowIndex) {
+								suggestedNextCellSelected = true;
+								break;
+							}
+						}
+
+						if(!suggestedNextCellSelected) {
+							selectionEvent = { type: 'key', event: params.event };
+							gridOptions.api.forEachNode( function(node) {
+								if (suggestedNextCell.rowIndex === node.rowIndex) {
+									node.setSelected(true, true);
+								}
+							});
+						}
+					}
+
+					return suggestedNextCell;
+				}
             
 			/**
 			 * Create a JSEvent

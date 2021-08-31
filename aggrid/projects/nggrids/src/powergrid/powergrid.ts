@@ -306,7 +306,7 @@ export class PowerGrid extends NGGridDirective {
             //                onColumnGroupOpened: storeColumnsState		 i don't think we need that, it doesn't include the open group in column state
 
             navigateToNextCell: (params) => this.selectionChangeNavigation(params),
-
+            tabToNextCell: (params) => this.tabSelectionChangeNavigation(params),
             sideBar,
             enableBrowserTooltips: true,
             onToolPanelVisibleChanged: () => this.sizeColumnsToFit(),
@@ -951,6 +951,34 @@ export class PowerGrid extends NGGridDirective {
             default:
                 throw new Error('this will never happen, navigation is always on of the 4 keys above');
         }
+    }
+
+    tabSelectionChangeNavigation(params: any) {
+        const suggestedNextCell = params.nextCellPosition;
+        const isPinnedBottom = suggestedNextCell ? suggestedNextCell.rowPinned === 'bottom' : false;
+
+        // don't change selection if row is pinned to the bottom (footer)
+        if(suggestedNextCell && !isPinnedBottom) {
+            let suggestedNextCellSelected = false;
+            const selectedNodes = this.agGrid.api.getSelectedNodes();
+            for(const selectedNode of selectedNodes) {
+                if(suggestedNextCell.rowIndex === selectedNode.rowIndex) {
+                    suggestedNextCellSelected = true;
+                    break;
+                }
+            }
+
+            if(!suggestedNextCellSelected) {
+                this.selectionEvent = { type: 'key', event: params.event };
+                this.agGrid.api.forEachNode( (node) => {
+                    if (suggestedNextCell.rowIndex === node.rowIndex) {
+                        node.setSelected(true, true);
+                    }
+                });
+            }
+        }
+
+        return suggestedNextCell;
     }
 
     getIconElement(iconStyleClass: any): any {
