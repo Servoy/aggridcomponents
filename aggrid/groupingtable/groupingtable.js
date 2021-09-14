@@ -1323,33 +1323,15 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 * */
 				function onCellContextMenu(params) {
 					$log.debug(params);
-					if ($scope.handlers.onCellRightClick && !params.node.rowPinned) {
-						//						var row = params.data;
-						//						var foundsetManager = getFoundsetManagerByFoundsetUUID(row._svyFoundsetUUID);
-						//						if (!foundsetManager) foundsetManager = foundset;
-						//						var foundsetRef = foundsetManager.foundset;
-						//						var foundsetIndex;
-						//						if (isTableGrouped()) {
-						//							// TODO search for grouped record in grouped foundset (may not work because of caching issues);
-						//							$log.warn('select grouped record not supported yet');
-						//							foundsetIndex = foundsetManager.getRowIndex(row);
-						//						} else {
-						//							foundsetIndex = params.node.rowIndex;
-						//						}
-						//
-						//						var columnIndex = getColumnIndex(params.colDef.field);
-						//						var record;
-						//						if (foundsetIndex > -1) {
-						//							record = foundsetRef.viewPort.rows[foundsetIndex - foundsetRef.viewPort.startIndex];
-						//						}
-						//
-						//						// no foundset index if record is grouped
-						//						if (foundsetManager.isRoot === false) {
-						//							foundsetIndex = -1;
-						//						}
-						//						$scope.handlers.onCellRightClick(foundsetIndex, columnIndex, record, params.event);
-
-						$scope.handlers.onCellRightClick(getFoundsetIndexFromEvent(params), getColumnIndex(params.column.colId), getRecord(params), params.event);
+					if(!params.node.rowPinned && !params.node.group) {
+						selectionEvent = { type: 'click', event: params.event, rowIndex: params.node.rowIndex };
+						params.node.setSelected(true, true);
+						if ($scope.handlers.onCellRightClick) {	
+							// Added setTimeOut to enable onColumnDataChangeEvent to go first; must be over 250, so selection is sent first
+							setTimeout(function() {
+								$scope.handlers.onCellRightClick(getFoundsetIndexFromEvent(params), getColumnIndex(params.column.colId), getRecord(params), params.event);
+							}, 350);
+						}
 					}
 				}
 				
