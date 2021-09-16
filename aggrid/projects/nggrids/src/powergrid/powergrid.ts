@@ -37,7 +37,8 @@ const COLUMN_PROPERTIES_DEFAULTS = {
     autoResize: { colDefProperty: 'suppressSizeToFit', default: true },
     enableSort: { colDefProperty: 'sortable', default: true },
     cellStyleClassFunc: { colDefProperty: 'cellClass', default: null },
-    cellRendererFunc: { colDefProperty: 'cellRenderer', default: null }
+    cellRendererFunc: { colDefProperty: 'cellRenderer', default: null },
+    pivotComparatorFunc: { colDefProperty: "pivotComparator", default: null }
 };
 
 const COLUMN_KEYS_TO_CHECK_FOR_CHANGES = [
@@ -624,6 +625,10 @@ export class PowerGrid extends NGGridDirective {
                     colDef.cellRenderer = this.createColumnCallbackFunctionFromString(column.cellRendererFunc);
                 } else {
                     colDef.cellRenderer = this.getDefaultCellRenderer(column);
+                }
+
+                if(column.pivotComparatorFunc) {
+                    colDef.pivotComparator = this.createPivotComparatorCallbackFunctionFromString(column.pivotComparatorFunc);
                 }
 
                 if (column.filterType) {
@@ -1301,6 +1306,11 @@ export class PowerGrid extends NGGridDirective {
     createColumnCallbackFunctionFromString(func: (rowIndex: number, data: any, colDef: string, value: any, event: any) => string) {
         return (params: any) => func(params.rowIndex, params.data, params.colDef.colId !== undefined ? params.colDef.colId : params.colDef.field, params.value, params.event);
     }
+
+    createPivotComparatorCallbackFunctionFromString(func: (valueA: string, valueB: string) => number) {
+        return (valueA: string, valueB: string) => func(valueA, valueB);
+    }
+
     getDefaultCellRenderer(column: any) {
         return (params: any) => {
             if (column.editType === 'CHECKBOX' && !params.node.group) {

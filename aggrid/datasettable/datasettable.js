@@ -93,7 +93,8 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 autoResize: { colDefProperty: "suppressSizeToFit", default: true },
                 enableSort: { colDefProperty: "sortable", default: true },
                 cellStyleClassFunc: { colDefProperty: "cellClass", default: null },
-                cellRendererFunc: { colDefProperty: "cellRenderer", default: null }
+                cellRendererFunc: { colDefProperty: "cellRenderer", default: null },
+                pivotComparatorFunc: { colDefProperty: "pivotComparator", default: null }
             }
 
             toolPanelConfig = mergeConfig(toolPanelConfig, config.toolPanelConfig);
@@ -819,6 +820,10 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                         colDef.cellRenderer = getDefaultCellRenderer(column);
                     }
 
+                    if(column.pivotComparatorFunc) {
+                        colDef.pivotComparator = createPivotComparatorFunctionFromString(column.pivotComparatorFunc);
+                    }
+
                     if (column.filterType) {
                         colDef.filter = true;
 
@@ -976,6 +981,13 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 var f = eval(functionAsString);
                 return function(params) {
                     return f(params.rowIndex, params.data, params.colDef.colId != undefined ? params.colDef.colId : params.colDef.field, params.value, params.event);
+                };                
+            }
+
+            function createPivotComparatorFunctionFromString(functionAsString) {
+                var f = eval(functionAsString);
+                return function(valueA, valueB) {
+                    return f(valueA, valueB);
                 };                
             }
 
