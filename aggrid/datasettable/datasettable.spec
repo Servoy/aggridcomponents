@@ -146,6 +146,9 @@
 				"name": "event",
 				"type": "JSEvent",
 				"optional": true
+			}, {
+				"name": "rowData",
+				"type": "object"
 			}],
 			"returns": {"type": "boolean", "default": true}
 		},

@@ -669,7 +669,8 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                             getColumnIndex(params.column.colId),
                             oldValue,
                             newValue,
-                            createJSEvent()
+                            createJSEvent(),
+                            params.data
                         );
                         onColumnDataChangePromise.then(function(r) {
                             if(r == false) {

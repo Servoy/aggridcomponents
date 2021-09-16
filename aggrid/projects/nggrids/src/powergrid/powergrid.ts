@@ -1522,7 +1522,8 @@ export class PowerGrid extends NGGridDirective {
                     this.getColumnIndex(params.column.colId),
                     oldValue,
                     newValue,
-                    this.createJSEvent()
+                    this.createJSEvent(),
+                    params.data
                 );
                 this.onColumnDataChangePromise.then((r: any) => {
                     if (r === false) {
