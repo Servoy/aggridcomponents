@@ -2144,6 +2144,14 @@ export class DataGrid extends NGGridDirective {
     }
 
     innerColumnStateOnError(errorMsg: any) {
+
+        // if the restore goes wrong, make sure the actual column state is persisted in the model.columnState
+        try {
+            this.storeColumnsState(true);
+        } catch (e) {
+            console.error(e);
+        }
+
         if (this.columnStateOnError) {
             // can't parse columnState
             this.servoyService.executeInlineScript(

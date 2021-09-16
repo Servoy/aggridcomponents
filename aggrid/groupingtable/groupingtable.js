@@ -5561,6 +5561,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						}
 						
 						function innerColumnStateOnError(errorMsg) {
+							
+					        // if the restore goes wrong, make sure the actual column state is persisted in the model.columnState
+					        try {
+					            storeColumnsState(true);
+					        } catch (e) {
+					            console.error(e);
+					        }
+							
 							if (restoreColumns && $scope.model.columnStateOnError) {
 								// can't parse columnState
 								$window.executeInlineScript(
