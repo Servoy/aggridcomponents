@@ -1,6 +1,6 @@
 import { GridOptions, GroupCellRenderer } from '@ag-grid-community/core';
 import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Inject, Input, Output, Renderer2, SecurityContext, SimpleChanges, ViewChild } from '@angular/core';
-import { Format, FormattingService } from '@servoy/public';
+import { BaseCustomObject, Format, FormattingService } from '@servoy/public';
 import { LoggerFactory, LoggerService } from '@servoy/public';
 import { NGGridDirective } from '../nggrid';
 import { DatePicker } from '../editors/datepicker';
@@ -133,6 +133,8 @@ export class PowerGrid extends NGGridDirective {
     clickTimer: any = null;
 
     hasAutoHeightColumn = false;
+
+    previousColumns: any[];
 
     constructor(renderer: Renderer2, cdRef: ChangeDetectorRef, logFactory: LoggerFactory,
         private powergridService: PowergridService, public formattingService: FormattingService,
@@ -495,14 +497,17 @@ export class PowerGrid extends NGGridDirective {
                             } else {
                                 for (let i = 0; i < this.columns.length; i++) {
                                     for (const prop of COLUMN_KEYS_TO_CHECK_FOR_CHANGES) {
-                                        const oldPropertyValue = change.previousValue[i][prop];
+                                        const oldPropertyValue = this.previousColumns &&
+                                            i < this.previousColumns.length ? this.previousColumns[i][prop] : null;
                                         const newPropertyValue = change.currentValue[i][prop];
                                         if (newPropertyValue !== oldPropertyValue) {
                                             this.log.debug('column property changed');
                                             if (this.isGridReady) {
-                                                this.updateColumnDefs();
-                                                if (prop !== 'visible' && prop !== 'width') {
-                                                    this.restoreColumnsState();
+                                                if(prop !== 'headerTitle') {
+                                                    this.updateColumnDefs();
+                                                    if (prop !== 'visible' && prop !== 'width') {
+                                                        this.restoreColumnsState();
+                                                    }
                                                 }
                                             }
 
@@ -513,6 +518,15 @@ export class PowerGrid extends NGGridDirective {
                                     }
                                 }
                             }
+                        }
+                        if(change.currentValue) {
+                            this.previousColumns = [];
+                            for(const column of change.currentValue) {
+                                this.previousColumns.push(Object.assign({}, column));
+                            }
+                        }
+                        else {
+                            this.previousColumns = null;
                         }
                         break;
                     case '_internalColumnState':
@@ -1280,6 +1294,49 @@ export class PowerGrid extends NGGridDirective {
 
         // the column is now updated. to reflect the header change, get the grid refresh the header
         this.agGrid.api.refreshHeader();
+        this.sizeHeader();
+    }
+
+    /**
+     * Update header height based on cells content height
+     */
+     sizeHeader() {
+        const headerCell =  this.findChildrenNativeElements(this.agGridElementRef.nativeElement, 'ag-header-cell');
+        const paddingTop = headerCell.length ? parseInt(this.getCSSProperty(headerCell[0], 'padding-top'), 10) : 0;
+        const paddinBottom = headerCell.length ? parseInt(this.getCSSProperty(headerCell[0], 'padding-bottom'), 10) : 0;
+        const headerCellLabels =  this.findChildrenNativeElements(this.agGridElementRef.nativeElement, 'ag-header-cell-text');
+        let minHeight = this.agGridOptions.headerHeight >= 0 ? this.agGridOptions.headerHeight : 25;
+
+        if(minHeight > 0) {
+            for(const label of headerCellLabels) {
+                minHeight = Math.max(minHeight, label.scrollHeight + paddingTop + paddinBottom);
+            }
+        }
+        this.agGrid.api.setHeaderHeight(minHeight);
+    }
+
+    findChildrenNativeElements(el: any, className: any) {
+        const childrenNativeElements: any = [];
+        this._findChildrenNativeElements(el, className, childrenNativeElements);
+        return childrenNativeElements;
+    }
+
+    _findChildrenNativeElements(el: any, className: any, childrenNativeElements: any) {
+        const clazz = el.hasAttribute && el.hasAttribute('class') ? el.getAttribute('class') : null;
+        if(clazz == null) return;
+        const idx = clazz.indexOf(className);
+        if(idx !== -1 && ((idx + className.length === clazz.length) || clazz[idx + className.length] === ' ')) {
+            childrenNativeElements.push(el);
+        }
+
+        for(const childNode of el.childNodes) {
+            this._findChildrenNativeElements(childNode, className, childrenNativeElements);
+        }
+    }
+
+    getCSSProperty(el: any, cssProperty: any) {
+        const style = window.getComputedStyle(el);
+        return style.getPropertyValue(cssProperty);
     }
 
     createValueFormatter(format: any, formatType: any): any {

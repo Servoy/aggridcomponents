@@ -198,6 +198,8 @@ export class DataGrid extends NGGridDirective {
     // id of the root foundset needed when the foundset is changed as there is no way to get the previous foundset id then to check for change
     myFoundsetId: any;
 
+    previousColumns: any[];
+
     constructor(renderer: Renderer2, cdRef: ChangeDetectorRef, logFactory: LoggerFactory,
         private servoyService: ServoyPublicService, public formattingService: FormattingService,
         private datagridService: DatagridService, private sanitizer: DomSanitizer, @Inject(DOCUMENT) private doc: Document) {
@@ -717,12 +719,13 @@ export class DataGrid extends NGGridDirective {
                             } else {
                                 for(let i = 0; i < this.columns.length; i++) {
                                     for(const prop of COLUMN_KEYS_TO_CHECK_FOR_CHANGES) {
-                                        const oldPropertyValue = change.previousValue[i][prop];
+                                        const oldPropertyValue = this.previousColumns &&
+                                            i < this.previousColumns.length ? this.previousColumns[i][prop] : null;
                                         const newPropertyValue = change.currentValue[i][prop];
                                         if(newPropertyValue !== oldPropertyValue) {
                                             this.log.debug('column property changed');
                                             if(this.isGridReady) {
-                                                if(prop !== 'footerText') {
+                                                if(prop !== 'footerText' && prop !== 'headerTitle') {
                                                     this.updateColumnDefs();
                                                 }
                                                 if(prop !== 'visible' && prop !== 'width') {
@@ -741,6 +744,15 @@ export class DataGrid extends NGGridDirective {
                                     }
                                 }
                             }
+                        }
+                        if(change.currentValue) {
+                            this.previousColumns = [];
+                            for(const column of change.currentValue) {
+                                this.previousColumns.push(Object.assign({}, column));
+                            }
+                        }
+                        else {
+                            this.previousColumns = null;
                         }
                         break;
                     case '_internalColumnState':
@@ -2519,6 +2531,7 @@ export class DataGrid extends NGGridDirective {
 
         // the column is now updated. to reflect the header change, get the grid refresh the header
         this.agGrid.api.refreshHeader();
+        this.sizeHeader();
     }
 
     onSelectionChanged() {

@@ -529,14 +529,16 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     if(newValue != oldValue) {
                         $log.debug('column property changed');
                         if(isGridReady) {
-                            updateColumnDefs();
-                            if(property != "visible" && property != "width") {
-                                restoreColumnsState();
+                            if(property != "headerTitle") {
+                                updateColumnDefs();
+                                if(property != "visible" && property != "width") {
+                                    restoreColumnsState();
+                                }
                             }
                         }
 
                         if(property == "headerTitle") {
-                            handleColumnHeaderTitle(newValue, oldValue);
+                            handleColumnHeaderTitle(index, newValue, oldValue);
                         }
                     }
                 });
@@ -555,7 +557,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 }
             }
 
-            function handleColumnHeaderTitle(newValue, oldValue) {
+            function handleColumnHeaderTitle(index, newValue, oldValue) {
                 $log.debug('header title column property changed');
                 
                 // column id is either the id of the column
@@ -584,8 +586,26 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
 
                 // the column is now updated. to reflect the header change, get the grid refresh the header
                 gridOptions.api.refreshHeader();
+                sizeHeader();
             }
 
+            /**
+             * Update header height based on cells content height
+             */
+            function sizeHeader() {
+                var headerCell = $element.find('.ag-header-cell');
+                var paddingTop = headerCell.length ? parseInt(headerCell.css('padding-top'), 10) : 0;
+                var paddinBottom = headerCell.length ? parseInt(headerCell.css('padding-bottom'), 10) : 0;
+                var headerCellLabels = $element.find('.ag-header-cell-text');
+                var minHeight = (gridOptions && (gridOptions.headerHeight >= 0)) ? gridOptions.headerHeight : 25;
+
+                if(minHeight > 0) {
+                    for(var i = 0; i < headerCellLabels.length; i++) {
+                        minHeight = Math.max(minHeight, headerCellLabels[i].scrollHeight + paddingTop + paddinBottom);
+                    }
+                }
+                gridOptions.api.setHeaderHeight(minHeight);
+            }          
 
             $scope.$watch("model._internalColumnState", function(newValue, oldValue) {
                 if(isGridReady && (newValue !== "_empty")) {

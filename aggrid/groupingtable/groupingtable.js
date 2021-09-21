@@ -3206,7 +3206,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						if(newValue != oldValue) {
 							$log.debug('column property changed');
 							if(isGridReady) {
-								if(property != "footerText") {
+								if(property != "footerText" && property != "headerTitle") {
 									updateColumnDefs();
 									if(property != "visible" && property != "width") {
 										restoreColumnsState();
@@ -3218,7 +3218,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							}
 
 							if(property == "headerTitle") {
-								handleColumnHeaderTitle(newValue, oldValue);
+								handleColumnHeaderTitle(index, newValue, oldValue);
 							}
 							else if (property == "footerText") {
 								handleColumnFooterText(newValue, oldValue);
@@ -3231,7 +3231,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				/**
 				 * @private 
 				 */
-				function handleColumnHeaderTitle(newValue, oldValue) {
+				function handleColumnHeaderTitle(index, newValue, oldValue) {
 					$log.debug('header title column property changed');
 					
 					// column id is either the id of the column
@@ -5206,6 +5206,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 					// the column is now updated. to reflect the header change, get the grid refresh the header
 					gridOptions.api.refreshHeader();
+					sizeHeader();
 				}
 
 				// FIXME styleClass Dataprovider on groups
