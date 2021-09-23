@@ -42,7 +42,9 @@
 		"mainMenuItemsConfig": { "type": "mainMenuItemsConfig", "tags": { "scope": "design" } },
 		"_internalFormEditorValue": { "type": "object", "tags": {"scope" : "private"}, "pushToServer": "allow"},
 		"arrowsUpDownMoveWhenEditing": {"type": "string", "values": [{"DEFAULT": null}, {"NONE":"NONE"}, {"NEXTCELL":"NEXTCELL"}, {"NEXTEDITABLECELL":"NEXTEDITABLECELL"}], "tags": {"doc": "Defines action on TEXTFIELD editor for up/down arrow keys"}},
-		"editNextCellOnEnter":  { "type": "boolean", "default": false }
+		"editNextCellOnEnter":  { "type": "boolean", "default": false },
+		"readOnly": {"type": "boolean", "default": false, "tags": {"scope" : "private"}},
+		"enabled" : {"type": "enabled", "blockingOn": false, "default": true, "blockingChanges": false, "tags": {"scope": "private"}},
 	},
 	"handlers" : {
 		"onRowSelected": {

@@ -91,6 +91,7 @@ export class DataGrid extends NGGridDirective {
     @Input() showGroupCount: boolean;
     @Input() styleClass: string;
     @Input() responsiveHeight: number;
+    @Input() enabled: boolean;
 
     @Input() toolPanelConfig: any;
     @Input() iconConfig: any;
@@ -1976,6 +1977,9 @@ export class DataGrid extends NGGridDirective {
         const _this = args.context.componentParent;
         // skip pinned (footer) nodes
         if(args.node.rowPinned) return false;
+
+        // not enabled/security-accesible
+        if(!_this.enabled) return false;
 
         // if read-only and no r-o columns
         if(_this.readOnly && !_this.readOnlyColumnIds) return false;

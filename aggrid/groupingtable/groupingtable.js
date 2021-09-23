@@ -4838,6 +4838,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					// skip pinned (footer) nodes
 					if(args.node.rowPinned) return false;
 
+					// not enabled/security-accesible
+					if(!$scope.model.enabled) return false;
+
 					// if read-only and no r-o columns
 					if($scope.model.readOnly && !$scope.model.readOnlyColumnIds) return false;
 

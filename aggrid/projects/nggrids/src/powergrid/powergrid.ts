@@ -86,6 +86,7 @@ export class PowerGrid extends NGGridDirective {
     @Input() data: any;
     @Input() lastRowIndex: number;
     @Input() readOnly: boolean;
+    @Input() enabled: boolean;
     @Input() rowStyleClassFunc: any;
     @Input() groupStyleClass: any;
     @Input() groupWidth: number;
@@ -659,7 +660,7 @@ export class PowerGrid extends NGGridDirective {
                 }
 
                 if (column.editType) {
-                    colDef.editable = !this.readOnly && (column.editType !== 'CHECKBOX');
+                    colDef.editable = this.enabled && !this.readOnly && (column.editType !== 'CHECKBOX');
 
                     if (column.editType === 'TEXTFIELD') {
                         colDef.cellEditorFramework = TextEditor;
@@ -1036,7 +1037,7 @@ export class PowerGrid extends NGGridDirective {
 
     onCellClicked(params: any) {
         const col = params.colDef.field ? this.getColumn(params.colDef.field) : null;
-        if (col && col.editType === 'CHECKBOX' && params.event.target.tagName === 'I') {
+        if (col && col.editType === 'CHECKBOX' && params.event.target.tagName === 'I' && this.enabled && !this.readOnly) {
             let v = parseInt(params.value, 10);
             if (isNaN(v)) v = 0;
             params.node.setDataValue(params.column.colId, v ? 0 : 1);

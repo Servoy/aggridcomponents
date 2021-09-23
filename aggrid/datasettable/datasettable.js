@@ -861,7 +861,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     }
 
                     if (column.editType) {
-                        colDef.editable = !$scope.model.readOnly && (column.editType != 'CHECKBOX');
+                        colDef.editable = $scope.model.enabled && !$scope.model.readOnly && (column.editType != 'CHECKBOX');
 
                         if(column.editType == 'TEXTFIELD') {
                             colDef.cellEditor = getTextEditor();
@@ -1090,7 +1090,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
 
 				function onCellClicked(params) {
                     var col = params.colDef.field ? getColumn(params.colDef.field) : null;
-					if(col && col.editType == 'CHECKBOX' && params.event.target.tagName == 'I') {
+					if(col && col.editType == 'CHECKBOX' && params.event.target.tagName == 'I' && $scope.model.enabled && !$scope.model.readOnly) {
 						var v = parseInt(params.value);
 						if(v == NaN) v = 0;						
 						params.node.setDataValue(params.column.colId, v ? 0 : 1);

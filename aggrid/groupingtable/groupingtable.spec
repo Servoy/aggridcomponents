@@ -38,6 +38,7 @@
 		"localeText": {"type": "map", "tags": {"doc": "Map where locales of ag-grid can be set"}},
 		"filterModel": {"type": "string", "tags": {"scope": "private"}},
 		"readOnly": {"type": "boolean", "default": false, "tags": {"scope" : "private"}},
+		"enabled" : {"type": "enabled", "blockingOn": false, "default": true, "blockingChanges": false, "tags": {"scope": "private"}},
 		"readOnlyColumnIds": {"type": "object", "tags": {"scope" : "private"} },
 		"mainMenuItemsConfig": { "type": "mainMenuItemsConfig", "tags": { "scope": "design" } },
 		"_internalFormEditorValue": { "type": "object", "tags": {"scope" : "private"}, "pushToServer": "allow"},
