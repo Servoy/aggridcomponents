@@ -3189,7 +3189,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							}
 						}					
 
-						if(newValue != oldValue) {
+						if(!isSameColumns(newValue, oldValue)) {
 							updateColumnDefs();
 						}
 					}
@@ -3251,6 +3251,35 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				function handleColumnFooterText(newValue, oldValue) {
 					$log.debug('footer text column property changed');
 					gridOptions.api.setPinnedBottomRowData(getFooterData());
+				}
+				
+				function isSameColumns(columnsArray1, collumnsArray2) {
+					if(columnsArray1 != collumnsArray2) {
+						var n = [];
+						if(columnsArray1) {
+							for(var i of columnsArray1) {
+								var ob = Object.assign({}, i);
+								// skip entries with data
+								delete ob['dataprovider']; 
+								delete ob['valuelist'];
+								n.push(ob);
+							}
+						}
+						var o = [];
+						if(collumnsArray2) {
+							for(var i of collumnsArray2) {
+								var ob = Object.assign({}, i);
+								// skip entries with data
+								delete ob['dataprovider'];
+								delete ob['valuelist'];
+								o.push(ob);
+							}
+						}
+						var nS = JSON.stringify(n);
+						var oS = JSON.stringify(o);
+						return nS === oS;
+					}					
+					return true;
 				}
 
 				$scope.$watch("model._internalColumnState", function(newValue, oldValue) {
@@ -3478,14 +3507,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 						if (change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROWS_COMPLETELY_CHANGED]) {
 							var updates = [];
-							for(var i = 0; i < change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROWS_COMPLETELY_CHANGED].newValue.length; i++) {
-								var idx = thisInstance.getRowIndex(change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROWS_COMPLETELY_CHANGED].newValue[i]);
-								updates.push({
-									"startIndex": idx,
-									"endIndex": idx,
-									"type": $foundsetTypeConstants.ROWS_CHANGED
-								});
-							}
+							updates.push({
+								"startIndex": 0,
+								"endIndex": change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROWS_COMPLETELY_CHANGED].newValue.length - 1,
+								"type": $foundsetTypeConstants.ROWS_CHANGED
+							});
 							updateRows(updates, thisInstance);
 						}
 					}
@@ -4502,7 +4528,28 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								initRootFoundset();
 							});
 						} else {
-							refreshDatasource();
+							var viewportChange
+							if(change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROWS_COMPLETELY_CHANGED]) {
+								viewportChange = change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROWS_COMPLETELY_CHANGED];
+							} else { // $foundsetTypeConstants.NOTIFY_FULL_VALUE_CHANGED
+								viewportChange = {
+									newValue: change[$foundsetTypeConstants.NOTIFY_FULL_VALUE_CHANGED].newValue.viewPort.rows,
+									oldValue: change[$foundsetTypeConstants.NOTIFY_FULL_VALUE_CHANGED].oldValue.viewPort.rows
+								}
+							}
+
+							if(viewportChange.newValue && viewportChange.newValue.length) {
+								var updates = [];
+								updates.push({
+									"startIndex": 0,
+									"endIndex": viewportChange.newValue.length - 1,
+									"type": $foundsetTypeConstants.ROWS_CHANGED
+								});
+								updateRows(updates, foundset);
+							}
+							else {
+								refreshDatasource();
+							}
 						}
 						return;
 					} else {
@@ -4764,9 +4811,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 									gridOptions.api.startEditingCell({rowIndex: index, colKey: editingColumnId});
 								}
 							}
-						}
-						else {
-							$log.warn("could not find row at index " + index);	
 						}
 					}
 					else {

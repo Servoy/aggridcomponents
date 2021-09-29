@@ -714,8 +714,7 @@ export class DataGrid extends NGGridDirective {
                         break;
                     case 'columns':
                         if(!change.firstChange) {
-                            // need a better way to detect if columns array are changed
-                            if(change.currentValue !== change.previousValue) {
+                            if(!this.isSameColumns(change.currentValue, change.previousValue)) {
                                 this.updateColumnDefs();
                             } else {
                                 for(let i = 0; i < this.columns.length; i++) {
@@ -1600,8 +1599,6 @@ export class DataGrid extends NGGridDirective {
                         this.agGrid.api.startEditingCell({rowIndex: index, colKey: editingColumnId});
                     }
                 }
-            } else {
-                this.log.warn('could not find row at index ' + index);
             }
         } else {
             this.log.warn('could not update row at index ' + index);
@@ -2538,6 +2535,35 @@ export class DataGrid extends NGGridDirective {
         this.sizeHeader();
     }
 
+    isSameColumns(columnsArray1: any[], collumnsArray2: any[]): boolean {
+        if(columnsArray1 != collumnsArray2) {
+            const n = [];
+            if(columnsArray1) {
+                for(let i of columnsArray1) {
+                    const ob = Object.assign({}, i);
+                    // skip entries with data
+                    delete ob['dataprovider']; 
+                    delete ob['valuelist'];
+                    n.push(ob);
+                }
+            }
+            const o = [];
+            if(collumnsArray2) {
+                for(let i of collumnsArray2) {
+                    const ob = Object.assign({}, i);
+                    // skip entries with data
+                    delete ob['dataprovider'];
+                    delete ob['valuelist'];
+                    o.push(ob);
+                }
+            }
+            const nS = JSON.stringify(n);
+            const oS = JSON.stringify(o);
+            return nS === oS;
+        }					
+        return true;
+    }
+
     onSelectionChanged() {
         if(this.onSelectionChangedTimeout) {
             clearTimeout(this.onSelectionChangedTimeout);
@@ -3164,7 +3190,28 @@ export class DataGrid extends NGGridDirective {
                     this.initRootFoundset();
                 });
             } else {
-                this.refreshDatasource();
+                let viewportChange: any;
+                if(changeEvent.viewportRowsCompletelyChanged) {
+                    viewportChange = changeEvent.viewportRowsCompletelyChanged;
+                } else { // $foundsetTypeConstants.NOTIFY_FULL_VALUE_CHANGED
+                    viewportChange = {
+                        newValue: changeEvent.fullValueChanged.newValue.viewPort.rows,
+                        oldValue: changeEvent.fullValueChanged.oldValue.viewPort.rows
+                    }
+                }
+
+                if(viewportChange.newValue && viewportChange.newValue.length) {
+                    const updates = [];
+                    updates.push({
+                        "startIndex": 0,
+                        "endIndex": viewportChange.newValue.length - 1,
+                        "type": ChangeType.ROWS_CHANGED
+                    });
+                    this.updateRows(updates, this.foundset);
+                }
+                else {
+                    this.refreshDatasource();
+                }
             }
             return;
         } else {
@@ -3515,6 +3562,15 @@ class FoundsetManager {
                     dataGrid.updateRows(updates, _this);
                 }
 
+                if (change.viewportRowsCompletelyChanged) {
+                    const updates = [];
+                    updates.push({
+                        "startIndex": 0,
+                        "endIndex": change.viewportRowsCompletelyChanged.newValue.length - 1,
+                        "type": ChangeType.ROWS_CHANGED
+                    });
+                    dataGrid.updateRows(updates, _this);
+                }                
             });
         }
     }
