@@ -4528,21 +4528,18 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								initRootFoundset();
 							});
 						} else {
-							var viewportChange
+							var viewportChangeNewLength;
 							if(change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROWS_COMPLETELY_CHANGED]) {
-								viewportChange = change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROWS_COMPLETELY_CHANGED];
+								viewportChangeNewLength = change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROWS_COMPLETELY_CHANGED].newValue.length;
 							} else { // $foundsetTypeConstants.NOTIFY_FULL_VALUE_CHANGED
-								viewportChange = {
-									newValue: change[$foundsetTypeConstants.NOTIFY_FULL_VALUE_CHANGED].newValue.viewPort.rows,
-									oldValue: change[$foundsetTypeConstants.NOTIFY_FULL_VALUE_CHANGED].oldValue.viewPort.rows
-								}
+								viewportChangeNewLength = change[$foundsetTypeConstants.NOTIFY_FULL_VALUE_CHANGED].newValue.viewPort.rows.length;
 							}
 
-							if(viewportChange.newValue && viewportChange.newValue.length) {
+							if(viewportChangeNewLength && viewportChangeNewLength >= gridOptions.api.getDisplayedRowCount()) {
 								var updates = [];
 								updates.push({
 									"startIndex": 0,
-									"endIndex": viewportChange.newValue.length - 1,
+									"endIndex": viewportChangeNewLength - 1,
 									"type": $foundsetTypeConstants.ROWS_CHANGED
 								});
 								updateRows(updates, foundset);
@@ -5990,7 +5987,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 * @param cancel 'true' to cancel the editing (ie don't accept changes)
 				 */
 				$scope.api.stopCellEditing = function(cancel) {
-					gridOptions.api.stopEditing(cancel);
+					if(gridOptions.api) gridOptions.api.stopEditing(cancel);
 				}
 
 				/**

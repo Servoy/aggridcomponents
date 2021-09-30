@@ -3190,21 +3190,18 @@ export class DataGrid extends NGGridDirective {
                     this.initRootFoundset();
                 });
             } else {
-                let viewportChange: any;
+                let viewportChangeNewLength: number;
                 if(changeEvent.viewportRowsCompletelyChanged) {
-                    viewportChange = changeEvent.viewportRowsCompletelyChanged;
+                    viewportChangeNewLength = changeEvent.viewportRowsCompletelyChanged.newValue.length;
                 } else { // $foundsetTypeConstants.NOTIFY_FULL_VALUE_CHANGED
-                    viewportChange = {
-                        newValue: changeEvent.fullValueChanged.newValue.viewPort.rows,
-                        oldValue: changeEvent.fullValueChanged.oldValue.viewPort.rows
-                    }
+                    viewportChangeNewLength = changeEvent.fullValueChanged.newValue.viewPort.rows.length;
                 }
 
-                if(viewportChange.newValue && viewportChange.newValue.length) {
+                if(viewportChangeNewLength && viewportChangeNewLength >= this.agGrid.api.getDisplayedRowCount()) {
                     const updates = [];
                     updates.push({
                         "startIndex": 0,
-                        "endIndex": viewportChange.newValue.length - 1,
+                        "endIndex": viewportChangeNewLength - 1,
                         "type": ChangeType.ROWS_CHANGED
                     });
                     this.updateRows(updates, this.foundset);
