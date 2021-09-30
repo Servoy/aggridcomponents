@@ -684,9 +684,6 @@ export class DataGrid extends NGGridDirective {
 							this.log.debug('myFoundset not set, ignore model change');
 							return;
 						}
-						if(this.isTableGrouped()) {
-							this.purge();
-						}
                         if(change.currentValue && this.myFoundsetId ) {
                             if(change.currentValue.foundsetId !== this.myFoundsetId) {
                                 this.filterModel = null;
@@ -695,6 +692,10 @@ export class DataGrid extends NGGridDirective {
                                 return;
                             }
                         }
+                        if(this.isTableGrouped()) {
+							this.purge();
+						}
+
                         this.myFoundsetId = change.currentValue.foundsetId;
 						const isChangedToEmpty = change.currentValue && change.previousValue && change.previousValue.serverSize === 0 && change.previousValue.serverSize > 0;
 						if(this.myFoundset.viewPort.size > 0 || isChangedToEmpty) {
@@ -1603,6 +1604,18 @@ export class DataGrid extends NGGridDirective {
         } else {
             this.log.warn('could not update row at index ' + index);
         }
+    }
+
+    isSameViewportRows(newRows: any[], oldRows: any[]): boolean {
+        if(newRows && newRows.length > 0 && oldRows && newRows.length === oldRows.length) {
+            for(let i = 0; i < newRows.length; i++) {
+                if(newRows[i]._svyRowId !== oldRows[i]._svyRowId) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
     }
 
     updateFoundsetRecord(params: any) {
@@ -3190,18 +3203,21 @@ export class DataGrid extends NGGridDirective {
                     this.initRootFoundset();
                 });
             } else {
-                let viewportChangeNewLength: number;
+                let viewportChangedRows: any;
                 if(changeEvent.viewportRowsCompletelyChanged) {
-                    viewportChangeNewLength = changeEvent.viewportRowsCompletelyChanged.newValue.length;
+                    viewportChangedRows = changeEvent.viewportRowsCompletelyChanged;
                 } else { // $foundsetTypeConstants.NOTIFY_FULL_VALUE_CHANGED
-                    viewportChangeNewLength = changeEvent.fullValueChanged.newValue.viewPort.rows.length;
+                    viewportChangedRows = {
+                        newValue: changeEvent.fullValueChanged.newValue.viewPort.rows,
+                        oldValue: changeEvent.fullValueChanged.oldValue.viewPort.rows
+                    }
                 }
 
-                if(viewportChangeNewLength && viewportChangeNewLength >= this.agGrid.api.getDisplayedRowCount()) {
+                if(this.isSameViewportRows(viewportChangedRows.newValue, viewportChangedRows.oldValue)) {
                     const updates = [];
                     updates.push({
                         "startIndex": 0,
-                        "endIndex": viewportChangeNewLength - 1,
+                        "endIndex": viewportChangedRows.newValue.length - 1,
                         "type": ChangeType.ROWS_CHANGED
                     });
                     this.updateRows(updates, this.foundset);
@@ -3560,13 +3576,18 @@ class FoundsetManager {
                 }
 
                 if (change.viewportRowsCompletelyChanged) {
-                    const updates = [];
-                    updates.push({
-                        "startIndex": 0,
-                        "endIndex": change.viewportRowsCompletelyChanged.newValue.length - 1,
-                        "type": ChangeType.ROWS_CHANGED
-                    });
-                    dataGrid.updateRows(updates, _this);
+                    if(dataGrid.isSameViewportRows(change.viewportRowsCompletelyChanged.newValue,
+                        change.viewportRowsCompletelyChanged.oldValue)) {
+                        const updates = [];
+                        updates.push({
+                            "startIndex": 0,
+                            "endIndex": change.viewportRowsCompletelyChanged.newValue.length - 1,
+                            "type": ChangeType.ROWS_CHANGED
+                        });
+                        dataGrid.updateRows(updates, _this);
+                    } else {
+                        dataGrid.refreshDatasource();
+                    }
                 }                
             });
         }

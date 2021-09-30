@@ -3506,13 +3506,18 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						}
 
 						if (change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROWS_COMPLETELY_CHANGED]) {
-							var updates = [];
-							updates.push({
-								"startIndex": 0,
-								"endIndex": change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROWS_COMPLETELY_CHANGED].newValue.length - 1,
-								"type": $foundsetTypeConstants.ROWS_CHANGED
-							});
-							updateRows(updates, thisInstance);
+							if(isSameViewportRows(change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROWS_COMPLETELY_CHANGED].newValue,
+								change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROWS_COMPLETELY_CHANGED].oldValue)) {
+									var updates = [];
+									updates.push({
+										"startIndex": 0,
+										"endIndex": change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROWS_COMPLETELY_CHANGED].newValue.length - 1,
+										"type": $foundsetTypeConstants.ROWS_CHANGED
+									});
+									updateRows(updates, thisInstance);
+							} else {
+								refreshDatasource();
+							}
 						}
 					}
 
@@ -4528,18 +4533,21 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								initRootFoundset();
 							});
 						} else {
-							var viewportChangeNewLength;
+							var viewportChangedRows;
 							if(change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROWS_COMPLETELY_CHANGED]) {
-								viewportChangeNewLength = change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROWS_COMPLETELY_CHANGED].newValue.length;
+								viewportChangedRows = change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROWS_COMPLETELY_CHANGED];
 							} else { // $foundsetTypeConstants.NOTIFY_FULL_VALUE_CHANGED
-								viewportChangeNewLength = change[$foundsetTypeConstants.NOTIFY_FULL_VALUE_CHANGED].newValue.viewPort.rows.length;
+								viewportChangedRows = {
+									newValue: change[$foundsetTypeConstants.NOTIFY_FULL_VALUE_CHANGED].newValue.viewPort.rows,
+									oldValue: change[$foundsetTypeConstants.NOTIFY_FULL_VALUE_CHANGED].oldValue.viewPort.rows
+								};
 							}
 
-							if(viewportChangeNewLength && viewportChangeNewLength >= gridOptions.api.getDisplayedRowCount()) {
+							if(isSameViewportRows(viewportChangedRows.newValue, viewportChangedRows.oldValue)) {
 								var updates = [];
 								updates.push({
 									"startIndex": 0,
-									"endIndex": viewportChangeNewLength - 1,
+									"endIndex": viewportChangedRows.newValue.length - 1,
 									"type": $foundsetTypeConstants.ROWS_CHANGED
 								});
 								updateRows(updates, foundset);
@@ -4813,6 +4821,18 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					else {
 						$log.warn("could not update row at index " + index);
 					}
+				}
+
+				function isSameViewportRows(newRows, oldRows) {
+					if(newRows && newRows.length > 0 && oldRows && newRows.length === oldRows.length) {
+						for(var i = 0; i < newRows.length; i++) {
+							if(newRows[i][$foundsetTypeConstants.ROW_ID_COL_KEY] !== oldRows[i][$foundsetTypeConstants.ROW_ID_COL_KEY]) {
+								return false;
+							}
+						}
+						return true;
+					}
+					return false;
 				}
 
 				function getMainMenuItems(params) {
