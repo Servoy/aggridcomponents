@@ -686,7 +686,7 @@ export class DataGrid extends NGGridDirective {
 						}
                         if(change.currentValue && this.myFoundsetId ) {
                             if(change.currentValue.foundsetId !== this.myFoundsetId) {
-                                this.filterModel = null;
+                                this.filterModel = undefined;
                             } else {
                                 // there is actually no foundset change!
                                 return;
