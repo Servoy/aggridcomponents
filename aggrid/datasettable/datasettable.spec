@@ -14,9 +14,9 @@
 	{
 		"data": { "type": "object[]", "tags": {"scope" : "private"}},
 		"columns": { "type": "column[]", "droppable" : true, "tags": {"doc": "List all columns to be used in table as dataprovider"}},
-		"columnState": { "type": "string", "tags": {"scope" : "private"}, "pushToServer": "allow"},
-		"_internalColumnState": { "type": "string", "tags": {"scope" : "private"}, "pushToServer": "allow"},
-		"_internalExpandedState": { "type": "object", "tags": {"scope" : "private"}, "pushToServer": "allow"},
+		"columnState": { "type": "string", "tags": {"scope" : "private", "allowaccess": "enabled"}, "pushToServer": "allow"},
+		"_internalColumnState": { "type": "string", "tags": {"scope" : "private", "allowaccess": "enabled"}, "pushToServer": "allow"},
+		"_internalExpandedState": { "type": "object", "tags": {"scope" : "private", "allowaccess": "enabled"}, "pushToServer": "allow"},
 		"responsiveHeight": { "type": "int", "default": 300, "tags": {"doc": "Table's height to be set in a responsive form. When responsiveHeight is set to 0, the table will use 100% height of the parent container"} },
 		"rowHeight" : {"type" : "int", "default": 25, "tags": {"scope": "design", "doc": "The height in pixels of the table's rows"}},
 		"rowStyleClassFunc": { "type": "clientfunction", "tags": {"doc": "Function to add style class to row"}},
@@ -43,8 +43,8 @@
 		"_internalFormEditorValue": { "type": "object", "tags": {"scope" : "private"}, "pushToServer": "allow"},
 		"arrowsUpDownMoveWhenEditing": {"type": "string", "values": [{"DEFAULT": null}, {"NONE":"NONE"}, {"NEXTCELL":"NEXTCELL"}, {"NEXTEDITABLECELL":"NEXTEDITABLECELL"}], "tags": {"doc": "Defines action on TEXTFIELD editor for up/down arrow keys"}},
 		"editNextCellOnEnter":  { "type": "boolean", "default": false },
-		"readOnly": {"type": "boolean", "default": false, "tags": {"scope" : "private"}},
-		"enabled" : {"type": "enabled", "blockingOn": false, "default": true, "blockingChanges": false, "tags": {"scope": "private"}},
+		"readOnly": {"type": "boolean", "default": false},
+		"enabled" : {"type": "enabled", "blockingOn": false, "default": true},
 	},
 	"handlers" : {
 		"onRowSelected": {
@@ -125,7 +125,8 @@
 					"name": "columnState",
 					"type": "string"
 				}	
-			]
+			],
+			"allowaccess": "enabled"
 		},
 		"onColumnDataChange": {
 			"doc": "Called when the columns data is changed",
@@ -193,10 +194,12 @@
 					"name": "sortModels",
 					"type": "sortModelVO[]"
 				}
-			]
+			],
+			"allowaccess": "enabled"
 		},
 		"onReady": {
-			"doc": "Called when the table is ready to be shown"
+			"doc": "Called when the table is ready to be shown",
+			"allowaccess": "enabled"
 		},
 		"onColumnFormEditStarted": {
 			"doc": "Called when the column's form editor is started",
@@ -228,7 +231,8 @@
 				"name": "isopened",
 				"type": "boolean",
 				"optional": true
-			}]			
+			}],
+			"allowaccess": "enabled"
 		}		
 	}, 
 	"api" : {

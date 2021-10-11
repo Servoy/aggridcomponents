@@ -357,6 +357,7 @@ export class DataGrid extends NGGridDirective {
             rowSelection: this.myFoundset && (this.myFoundset.multiSelect === true) ? 'multiple' : 'single',
             suppressCellSelection: true,
             enableRangeSelection: false,
+            suppressRowClickSelection: !this.enabled,
 
             singleClickEdit: false,
             suppressClickEdit: false,
@@ -2212,6 +2213,7 @@ export class DataGrid extends NGGridDirective {
     }
 
     keySelectionChangeNavigation(params: any) {
+        if(!this.enabled) return;
         const previousCell = params.previousCellPosition;
         const suggestedNextCell = params.nextCellPosition;
         const isPinnedBottom = previousCell ? previousCell.rowPinned === 'bottom' : false;
@@ -2272,6 +2274,7 @@ export class DataGrid extends NGGridDirective {
     }
 
     tabSelectionChangeNavigation(params: any) {
+        if(!this.enabled) return;
         const suggestedNextCell = params.nextCellPosition;
         const isPinnedBottom = suggestedNextCell ? suggestedNextCell.rowPinned === 'bottom' : false;
 
@@ -2715,28 +2718,30 @@ export class DataGrid extends NGGridDirective {
     }
 
     cellClickHandler(params: any) {
-        this.selectionEvent = { type: 'click', event: params.event, rowIndex: params.node.rowIndex };
-        if(params.node.rowPinned) {
-            if (params.node.rowPinned === 'bottom' && this.onFooterClick) {
-                const columnIndex = this.getColumnIndex(params.column.colId);
-                this.onFooterClick(columnIndex, params.event);
-            }
-        } else {
-            if(this.onCellDoubleClick) {
-                if(this.clickTimer) {
-                    clearTimeout(this.clickTimer);
-                    this.clickTimer = null;
-                } else {
-                    this.clickTimer = setTimeout(() => {
+        if(this.enabled) {
+            this.selectionEvent = { type: 'click', event: params.event, rowIndex: params.node.rowIndex };
+            if(params.node.rowPinned) {
+                if (params.node.rowPinned === 'bottom' && this.onFooterClick) {
+                    const columnIndex = this.getColumnIndex(params.column.colId);
+                    this.onFooterClick(columnIndex, params.event);
+                }
+            } else {
+                if(this.onCellDoubleClick) {
+                    if(this.clickTimer) {
+                        clearTimeout(this.clickTimer);
                         this.clickTimer = null;
+                    } else {
+                        this.clickTimer = setTimeout(() => {
+                            this.clickTimer = null;
+                            this.onCellClicked(params);
+                        }, 350);
+                    }
+                } else {
+                    // Added setTimeOut to enable onColumnDataChangeEvent to go first; must be over 250, so selection is sent first
+                    setTimeout(() => {
                         this.onCellClicked(params);
                     }, 350);
                 }
-            } else {
-                // Added setTimeOut to enable onColumnDataChangeEvent to go first; must be over 250, so selection is sent first
-                setTimeout(() => {
-                    this.onCellClicked(params);
-                }, 350);
             }
         }
     }
@@ -2782,10 +2787,12 @@ export class DataGrid extends NGGridDirective {
     }
 
     onCellDoubleClicked(params: any) {
-        // need timeout because the selection is also in a 250ms timeout
-        setTimeout(() => {
-            this.onCellDoubleClickedEx(params);
-        }, 250);
+        if(this.enabled) {
+            // need timeout because the selection is also in a 250ms timeout
+            setTimeout(() => {
+                this.onCellDoubleClickedEx(params);
+            }, 250);
+        }
     }
 
     onCellDoubleClickedEx(params: any) {
@@ -2824,8 +2831,8 @@ export class DataGrid extends NGGridDirective {
     }
 
     onCellContextMenu(params: any) {
-        this.log.debug(params);
-        if(!params.node.rowPinned && !params.node.group) {
+        if(this.enabled && !params.node.rowPinned && !params.node.group) {
+            this.log.debug(params);
             this.selectionEvent = { type: 'click', event: params.event, rowIndex: params.node.rowIndex };
             params.node.setSelected(true, true);
             if (this.onCellRightClick) {

@@ -11,13 +11,13 @@
 	],
 	"model":
 	{
-		"myFoundset": {"type": "foundset", "default" : {"foundsetSelector":""}, "pushToServer" : "allow" ,"initialPreferredViewPortSize": 50, "sendSelectionViewportInitially": true, "tags": {"doc": "The foundset where data are fetched from"} },
-		"columns": { "type": "column[]", "droppable" : true, "pushToServer": "shallow", "tags": {"doc": "List all columns to be used in table as dataprovider"}},
-		"columnState": { "type": "string", "tags": {"scope" : "private"}, "pushToServer": "allow"},
-		"columnStateOnError": { "type": "function", "tags": {"scope" : "private"}},
-		"_internalAutoSizeState": { "type": "boolean", "tags": {"scope" : "private"}, "pushToServer": "allow"},
-		"_internalColumnState": { "type": "string", "tags": {"scope" : "private"}, "pushToServer": "allow"},
-		"_internalExpandedState": { "type": "object", "tags": {"scope" : "private"}, "pushToServer": "allow"},
+		"myFoundset": {"type": "foundset", "default" : {"foundsetSelector":""}, "pushToServer" : "allow" ,"initialPreferredViewPortSize": 50, "sendSelectionViewportInitially": true, "tags": {"allowaccess": "enabled", "doc": "The foundset where data are fetched from"} },
+		"columns": { "type": "column[]", "droppable" : true, "pushToServer": "shallow", "tags": {"allowaccess": "enabled", "doc": "List all columns to be used in table as dataprovider"}},
+		"columnState": { "type": "string", "tags": {"scope" : "private", "allowaccess": "enabled"}, "pushToServer": "allow"},
+		"columnStateOnError": { "type": "function", "tags": {"scope" : "private", "allowaccess": "enabled"}},
+		"_internalAutoSizeState": { "type": "boolean", "tags": {"scope" : "private", "allowaccess": "enabled"}, "pushToServer": "allow"},
+		"_internalColumnState": { "type": "string", "tags": {"scope" : "private", "allowaccess": "enabled"}, "pushToServer": "allow"},
+		"_internalExpandedState": { "type": "object", "tags": {"scope" : "private", "allowaccess": "enabled"}, "pushToServer": "allow"},
 		"restoreStates": { "type": "map", "tags": {"scope" : "private"}},
 		"responsiveHeight": { "type": "int", "default": 300, "tags": {"doc": "Table's height to be set in a responsive form. When responsiveHeight is set to 0, the table will use 100% height of the parent container"} },
 		"rowHeight" : {"type" : "int", "default": 25, "tags": {"scope": "design", "doc": "The height in pixels of the table's rows"}},
@@ -29,7 +29,7 @@
 		"groupUseEntireRow" : {"type": "boolean", "default" : true, "tags" : {"scope": "design", "doc": "When true the group takes the entire row"}},
 		"tooltipTextRefreshData" : { "type": "tagstring", "default" : "Refresh for latest data !", "tags": {"doc": "Tooltip text shown when hovering the refresh button"}},
 		"visible": "visible",
-		"hashedFoundsets": { "type": "hashedFoundset[]", "default": [], "tags": {"scope": "private"}, "pushToServer": "shallow"},
+		"hashedFoundsets": { "type": "hashedFoundset[]", "default": [], "tags": {"scope": "private", "allowaccess": "enabled"}, "pushToServer": "shallow"},
 		"hashedColumns": {"type" : "string[]", "default": [], "tags": {"scope": "private"}},
 		"showColumnsMenuTab": {"type": "boolean", "default" : false, "tags" : {"scope": "design", "doc": "If the column selection panel should be shown in the column menu"}},
 		"toolPanelConfig": { "type": "toolPanelConfig", "tags": { "scope": "design" } },
@@ -37,8 +37,8 @@
 		"gridOptions": {"type": "map", "tags": {"doc": "Map where additional grid properties of ag-grid can be set"}},
 		"localeText": {"type": "map", "tags": {"doc": "Map where locales of ag-grid can be set"}},
 		"filterModel": {"type": "string", "tags": {"scope": "private"}},
-		"readOnly": {"type": "boolean", "default": false, "tags": {"scope" : "private"}},
-		"enabled" : {"type": "enabled", "blockingOn": false, "default": true, "blockingChanges": false, "tags": {"scope": "private"}},
+		"readOnly": {"type": "boolean", "default": false},
+		"enabled" : {"type": "enabled", "blockingOn": false, "default": true},
 		"readOnlyColumnIds": {"type": "object", "tags": {"scope" : "private"} },
 		"mainMenuItemsConfig": { "type": "mainMenuItemsConfig", "tags": { "scope": "design" } },
 		"_internalFormEditorValue": { "type": "object", "tags": {"scope" : "private"}, "pushToServer": "allow"},
@@ -129,7 +129,8 @@
 					"name": "columnState",
 					"type": "string"
 				}	
-			]
+			],
+			"allowaccess": "enabled"
 		},
 		"onColumnDataChange": {
 			"doc": "Called when the columns data is changed",
@@ -161,7 +162,8 @@
 			"ignoreNGBlockDuplicateEvents": true
 		},
 		"onReady": {
-			"doc": "Called when the table is ready to be shown"
+			"doc": "Called when the table is ready to be shown",
+			"allowaccess": "enabled"
 		},
 		"onColumnFormEditStarted": {
 			"doc": "Called when the column's form editor is started",
@@ -189,7 +191,8 @@
 				"name": "sorts",
 				"type": "string[]",
 				"optional": true
-			}]
+			}],
+			"allowaccess": "enabled"
 		},
 		"onRowGroupOpened": {
 			"doc": "Called when group is opened/closed",
@@ -205,7 +208,8 @@
 				"name": "isopened",
 				"type": "boolean",
 				"optional": true
-			}]			
+			}],
+			"allowaccess": "enabled"
 		}
 	}, 
 	"api" : {
@@ -347,7 +351,8 @@
                 	"type" : "boolean",
                 	"optional" : true
                 }
-            ]
+            ],
+			"allowaccess" : "enabled"
         },
         "removeGroupedFoundsetUUID" : {
             "returns" : "boolean",
@@ -356,14 +361,15 @@
                     "type": "foundsetRef"
                 }
             ],
-			"allowaccess" : "visible"
+			"allowaccess" : "enabled,visible"
         },
 		"filterMyFoundset" : {
             "parameters" : [{
 					"name": "sFilterModel",
 					"type": "string"
 				}
-            ]
+            ],
+			"allowaccess" : "enabled"
 		}
 	},
 	"types" : {

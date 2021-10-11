@@ -204,6 +204,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
 //                suppressRowClickSelection: rowGroupColsDefault.length === 0 ? false : true,
                 suppressCellSelection: false, // TODO implement focus lost/gained
                 enableRangeSelection: false,
+                suppressRowClickSelection: !$scope.model.enabled,
 
                 stopEditingWhenGridLosesFocus: true,
                 singleClickEdit: true,
@@ -1064,12 +1065,12 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
 				 *
 				 * */
 				function onRowSelected(event) {
-					var node = event.node;
-					
-					if ($scope.handlers.onRowSelected && node && node.data) {
-						// var selectIndex = node.rowIndex + 1; Selected index doesn't make sense for a dataset since the grid may change the dataset internally
-						$scope.handlers.onRowSelected(node.data, node.selected, createJSEvent());
-					}
+                    var node = event.node;
+                    
+                    if ($scope.handlers.onRowSelected && node && node.data) {
+                        // var selectIndex = node.rowIndex + 1; Selected index doesn't make sense for a dataset since the grid may change the dataset internally
+                        $scope.handlers.onRowSelected(node.data, node.selected, createJSEvent());
+                    }
 				}
 				
 				function getDatasetIndex(rowData) {
@@ -1105,19 +1106,21 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
 				// grid handlers
 				var clickTimer;
 				function cellClickHandler(params) {
-					if ($scope.handlers.onCellDoubleClick) {
-						if (clickTimer) {
-							clearTimeout(clickTimer);
-							clickTimer = null;
-						} else {
-							clickTimer = setTimeout(function() {
-									clickTimer = null;
-									onCellClicked(params);
-								}, 250);
-						}
-					} else {
-						onCellClicked(params);
-					}
+                    if($scope.model.enabled) {
+                        if ($scope.handlers.onCellDoubleClick) {
+                            if (clickTimer) {
+                                clearTimeout(clickTimer);
+                                clickTimer = null;
+                            } else {
+                                clickTimer = setTimeout(function() {
+                                        clickTimer = null;
+                                        onCellClicked(params);
+                                    }, 250);
+                            }
+                        } else {
+                            onCellClicked(params);
+                        }
+                    }
 				}
 
 				/**
@@ -1126,20 +1129,25 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
 				 * @private
 				 * */
 				function onCellDoubleClicked(params) {
-                    var rowData = params.data || Object.assign(params.node.groupData, params.node.aggData);
-					if ($scope.handlers.onCellDoubleClick && rowData) {
-						$scope.handlers.onCellDoubleClick(rowData, params.colDef.colId != undefined ? params.colDef.colId : params.colDef.field, params.value, params.event);
-					}
+                    if($scope.model.enabled) {
+                        var rowData = params.data || Object.assign(params.node.groupData, params.node.aggData);
+                        if ($scope.handlers.onCellDoubleClick && rowData) {
+                            $scope.handlers.onCellDoubleClick(rowData, params.colDef.colId != undefined ? params.colDef.colId : params.colDef.field, params.value, params.event);
+                        }
+                    }
 				}
 				
                 function onCellContextMenu(params) {
-                    var rowData = params.data || Object.assign(params.node.groupData, params.node.aggData);
-					if ($scope.handlers.onCellRightClick && rowData) {
-						$scope.handlers.onCellRightClick(rowData, params.colDef.colId != undefined ? params.colDef.colId : params.colDef.field, params.value, params.event);
-					}                    
+                    if($scope.model.enabled) {
+                        var rowData = params.data || Object.assign(params.node.groupData, params.node.aggData);
+                        if ($scope.handlers.onCellRightClick && rowData) {
+                            $scope.handlers.onCellRightClick(rowData, params.colDef.colId != undefined ? params.colDef.colId : params.colDef.field, params.value, params.event);
+                        }
+                    }
                 }
 
 				function selectionChangeNavigation(params) {
+                    if(!$scope.model.enabled) return;
 					var previousCell = params.previousCellPosition;
 					var suggestedNextCell = params.nextCellPosition;
 				 
@@ -1202,6 +1210,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
 				}
 
 				function tabSelectionChangeNavigation(params) {
+                    if(!$scope.model.enabled) return;
 					var suggestedNextCell = params.nextCellPosition;
 					var isPinnedBottom = suggestedNextCell ? suggestedNextCell.rowPinned == "bottom" : false;
 

@@ -588,6 +588,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					rowDeselection: $scope.model.myFoundset && ($scope.model.myFoundset.multiSelect === true),
 					suppressCellSelection: true, // TODO implement focus lost/gained
 					enableRangeSelection: false,
+					suppressRowClickSelection: !$scope.model.enabled,
 
 					stopEditingWhenGridLosesFocus: true,
 					singleClickEdit: false,
@@ -917,31 +918,33 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				// grid handlers
 				var clickTimer;
 				function cellClickHandler(params) {
-					selectionEvent = { type: 'click', event: params.event, rowIndex: params.node.rowIndex };
-					if(params.node.rowPinned) {
-						if (params.node.rowPinned == "bottom" && $scope.handlers.onFooterClick) {
-							var columnIndex = getColumnIndex(params.column.colId);
-							$scope.handlers.onFooterClick(columnIndex, params.event);
-						}
-					}
-					else {
-						if($scope.handlers.onCellDoubleClick) {
-							if(clickTimer) {
-								clearTimeout(clickTimer);
-								clickTimer = null;
-							}
-							else {
-								clickTimer = setTimeout(function() {
-									clickTimer = null;
-									onCellClicked(params);
-								}, 350);
+					if($scope.model.enabled) {
+						selectionEvent = { type: 'click', event: params.event, rowIndex: params.node.rowIndex };
+						if(params.node.rowPinned) {
+							if (params.node.rowPinned == "bottom" && $scope.handlers.onFooterClick) {
+								var columnIndex = getColumnIndex(params.column.colId);
+								$scope.handlers.onFooterClick(columnIndex, params.event);
 							}
 						}
 						else {
-							// Added setTimeOut to enable onColumnDataChangeEvent to go first; must be over 250, so selection is sent first
-							setTimeout(function() {
-								onCellClicked(params);
-							}, 350);
+							if($scope.handlers.onCellDoubleClick) {
+								if(clickTimer) {
+									clearTimeout(clickTimer);
+									clickTimer = null;
+								}
+								else {
+									clickTimer = setTimeout(function() {
+										clickTimer = null;
+										onCellClicked(params);
+									}, 350);
+								}
+							}
+							else {
+								// Added setTimeOut to enable onColumnDataChangeEvent to go first; must be over 250, so selection is sent first
+								setTimeout(function() {
+									onCellClicked(params);
+								}, 350);
+							}
 						}
 					}
 				}
@@ -1276,10 +1279,12 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 * @private
 				 * */
 				function onCellDoubleClicked(params) {
-					// need timeout because the selection is also in a 250ms timeout
-					setTimeout(function() {
-						onCellDoubleClickedEx(params);
-					}, 250);
+					if($scope.model.enabled) {
+						// need timeout because the selection is also in a 250ms timeout
+						setTimeout(function() {
+							onCellDoubleClickedEx(params);
+						}, 250);
+					}
 				}
 				function onCellDoubleClickedEx(params) {
 					$log.debug(params);
@@ -1322,8 +1327,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 * @private
 				 * */
 				function onCellContextMenu(params) {
-					$log.debug(params);
-					if(!params.node.rowPinned && !params.node.group) {
+					if($scope.model.enabled && !params.node.rowPinned && !params.node.group) {
+						$log.debug(params);
 						selectionEvent = { type: 'click', event: params.event, rowIndex: params.node.rowIndex };
 						params.node.setSelected(true, true);
 						if ($scope.handlers.onCellRightClick) {	
@@ -1343,6 +1348,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				}
 
 				function keySelectionChangeNavigation(params) {
+					if(!$scope.model.enabled) return;
 					var previousCell = params.previousCellPosition;
 					var suggestedNextCell = params.nextCellPosition;
 					var isPinnedBottom = previousCell ? previousCell.rowPinned == "bottom" : false;
@@ -1401,6 +1407,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				}
 
 				function tabSelectionChangeNavigation(params) {
+					if(!$scope.model.enabled) return;
 					var suggestedNextCell = params.nextCellPosition;
 					var isPinnedBottom = suggestedNextCell ? suggestedNextCell.rowPinned == "bottom" : false;
 

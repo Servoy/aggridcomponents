@@ -238,6 +238,7 @@ export class PowerGrid extends NGGridDirective {
             //                suppressRowClickSelection: rowGroupColsDefault.length === 0 ? false : true,
             suppressCellSelection: false, // TODO implement focus lost/gained
             enableRangeSelection: false,
+            suppressRowClickSelection: !this.enabled,
 
             stopEditingWhenGridLosesFocus: true,
             singleClickEdit: true,
@@ -910,6 +911,7 @@ export class PowerGrid extends NGGridDirective {
     }
 
     selectionChangeNavigation(params: any) {
+        if(!this.enabled) return;
         const previousCell = params.previousCellPosition;
         const suggestedNextCell = params.nextCellPosition;
 
@@ -974,6 +976,7 @@ export class PowerGrid extends NGGridDirective {
     }
 
     tabSelectionChangeNavigation(params: any) {
+        if(!this.enabled) return;
         const suggestedNextCell = params.nextCellPosition;
         const isPinnedBottom = suggestedNextCell ? suggestedNextCell.rowPinned === 'bottom' : false;
 
@@ -1050,32 +1053,38 @@ export class PowerGrid extends NGGridDirective {
     }
 
     cellClickHandler(params: any) {
-        if (this.onCellDoubleClick) {
-            if (this.clickTimer) {
-                clearTimeout(this.clickTimer);
-                this.clickTimer = null;
-            } else {
-                this.clickTimer = setTimeout(() => {
+        if(this.enabled) {
+            if (this.onCellDoubleClick) {
+                if (this.clickTimer) {
+                    clearTimeout(this.clickTimer);
                     this.clickTimer = null;
-                    this.onCellClicked(params);
-                }, 250);
+                } else {
+                    this.clickTimer = setTimeout(() => {
+                        this.clickTimer = null;
+                        this.onCellClicked(params);
+                    }, 250);
+                }
+            } else {
+                this.onCellClicked(params);
             }
-        } else {
-            this.onCellClicked(params);
         }
     }
 
     onCellDoubleClicked(params: any) {
-        var rowData = params.data || Object.assign(params.node.groupData, params.node.aggData);
-        if (this.onCellDoubleClick && rowData) {
-            this.onCellDoubleClick(rowData, params.colDef.colId !== undefined ? params.colDef.colId : params.colDef.field, params.value, params.event);
+        if(this.enabled) {
+            var rowData = params.data || Object.assign(params.node.groupData, params.node.aggData);
+            if (this.onCellDoubleClick && rowData) {
+                this.onCellDoubleClick(rowData, params.colDef.colId !== undefined ? params.colDef.colId : params.colDef.field, params.value, params.event);
+            }
         }
     }
 
     onCellContextMenu(params: any) {
-        var rowData = params.data || Object.assign(params.node.groupData, params.node.aggData);
-        if (this.onCellRightClick && rowData) {
-            this.onCellRightClick(rowData, params.colDef.colId !== undefined ? params.colDef.colId : params.colDef.field, params.value, params.event);
+        if(this.enabled) {
+            var rowData = params.data || Object.assign(params.node.groupData, params.node.aggData);
+            if (this.onCellRightClick && rowData) {
+                this.onCellRightClick(rowData, params.colDef.colId !== undefined ? params.colDef.colId : params.colDef.field, params.value, params.event);
+            }
         }
     }
 
