@@ -861,6 +861,11 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                         colDef.filterParams = { applyButton: true, clearButton: true, newRowsAction: 'keep', suppressAndOrCondition: true, caseSensitive: false };
                     }
 
+                    var colMenuTabs = [];
+                    if (column.enableRowGroup) colMenuTabs.push('generalMenuTab');
+                    if (column.filterType) colMenuTabs.push('filterMenuTab');
+                    if(colMenuTabs.length === 0) colDef.suppressMenu = true;
+
                     if (column.editType) {
                         colDef.editable = $scope.model.enabled && !$scope.model.readOnly && (column.editType != 'CHECKBOX');
 

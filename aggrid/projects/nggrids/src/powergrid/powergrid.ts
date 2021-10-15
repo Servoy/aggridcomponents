@@ -660,6 +660,11 @@ export class PowerGrid extends NGGridDirective {
                     colDef.filterParams = { applyButton: true, clearButton: true, newRowsAction: 'keep', suppressAndOrCondition: true, caseSensitive: false };
                 }
 
+                const colMenuTabs = [];
+                if (column.enableRowGroup) colMenuTabs.push('generalMenuTab');
+                if (column.filterType) colMenuTabs.push('filterMenuTab');
+                if(colMenuTabs.length === 0) colDef.suppressMenu = true;
+
                 if (column.editType) {
                     colDef.editable = this.enabled && !this.readOnly && (column.editType !== 'CHECKBOX');
 
