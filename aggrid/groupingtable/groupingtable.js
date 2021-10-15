@@ -5118,12 +5118,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						if (column.enableSort === false) colDef.sortable = false;
 
 						// define the columnMenuTabs
-//						var colMenuTabs = [];
-//						// TODO shall always allow the column generalMenuTab, so it can have pinning auto-resize etc !?
-//						if (column.enableRowGroup) colMenuTabs.push('generalMenuTab');
-//						if (column.filterType) colMenuTabs.push('filterMenuTab');				
-//						column.menuTabs = colMenuTabs;
-						
+                        var colMenuTabs = [];
+                        if (column.enableRowGroup) colMenuTabs.push('generalMenuTab');
+                        if (column.filterType) colMenuTabs.push('filterMenuTab');
+                        if(colMenuTabs.length === 0) colDef.suppressMenu = true;
+
 						if (column.editType) {
 							colDef.editable = column.editType != 'CHECKBOX' ? isColumnEditable : false;
 
