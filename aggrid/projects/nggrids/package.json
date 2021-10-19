@@ -1,6 +1,6 @@
 {
   "name": "@servoy/nggrids",
-  "version": "2.8.1",
+  "version": "2.8.2",
   "peerDependencies": {
     "@angular/animations": ">=12",
     "@angular/common": ">=12",
