@@ -5117,11 +5117,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						// column sort
 						if (column.enableSort === false) colDef.sortable = false;
 
-						// define the columnMenuTabs
-                        var colMenuTabs = [];
-                        if (column.enableRowGroup) colMenuTabs.push('generalMenuTab');
-                        if (column.filterType) colMenuTabs.push('filterMenuTab');
-                        if(colMenuTabs.length === 0) colDef.suppressMenu = true;
+						colDef.suppressMenu = column.enableRowGroup === false && column.filterType == undefined;
 
 						if (column.editType) {
 							colDef.editable = column.editType != 'CHECKBOX' ? isColumnEditable : false;
