@@ -682,3 +682,70 @@ $scope.api.setFormEditorValue = function(value) {
 $scope.api.getExpandedGroups = function() {
 	return $scope.model._internalExpandedState;
 }
+
+/**
+ * Return the column index for the given column id.
+ * Can be used in combination with getColumnState to retrieve the column index for the column state with colId in the columnState object.
+ * 
+ * @param {String} colId
+ * 
+ * @return {Number}
+ * @example <pre>
+ * // get the state
+ * var state = elements.table.getColumnState();
+ * // parse the state of each column
+ * var columnsState = JSON.parse(state).columnState;
+ *
+ * for (var index = 0; index < columnsState.length; index++) {
+ * 
+ *   // skip column hidden by the user
+ *   if (!columnsState[index].hide) {
+ * 
+ * 	  // get the column using the colId of the columnState
+ * 	  var columnIndex = elements.table.getColumnIndex(columnsState[index].colId);
+ * 		if (columnIndex > -1) {
+ * 		  var column = elements.table.getColumn(columnIndex);
+ * 		  // do something with column				
+ * 		}
+ * 	}
+ * }
+ * </pre>
+ * @public
+ * */
+$scope.api.getColumnIndex = function(colId) {
+	if (!colId) {
+		// TODO shall log a warning for colId being null ?
+		return -1;
+	}
+	
+	var columns = $scope.model.columns;
+	for (var i = 0; i < columns.length; i++) {
+		var column = columns[i];
+		if (column.id === colId || getColumnID(column, i) == colId) {
+			return i;
+		}
+	}
+	
+	/**
+	 * Returns the column identifier
+	 * @param {Object} column
+	 * @param {Number} idx
+	 *
+	 * @return {String}
+	 *
+	 * @private
+	 * */
+	function getColumnID(col, idx) {					
+		if (col.dataprovider || col.styleClassDataprovider) {
+			// shall verify if idForFoundset is a match clientside
+			return null;
+		}
+		else {
+			return "col_" + idx;
+		}
+	}
+	
+	// if column column has not been found check if there is a match clientside for dataprovider.idForFoundset
+	return $scope.api.internalGetColumnIndex(colId);
+}
+

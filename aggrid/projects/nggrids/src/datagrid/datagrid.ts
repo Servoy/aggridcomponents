@@ -3258,6 +3258,10 @@ export class DataGrid extends NGGridDirective {
 
     }
 
+    getColumnIndex(field: any): number {
+        return this.internalGetColumnIndex(field);
+    }
+
     /***********************************************************************************************************************************
      ***********************************************************************************************************************************
     *
@@ -3295,7 +3299,7 @@ export class DataGrid extends NGGridDirective {
      * </pre>
      * @public
      */
-    getColumnIndex(field: any): number {
+    internalGetColumnIndex(field: any): number {
         let fieldToCompare = field;
         let fieldIdx = 0;
         if (field.indexOf('_') > 0) { // has index

@@ -5872,9 +5872,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 * 	}
 				 * }
 				 * </pre>
-				 * @public
+				 * @private 
 				 * */
-				$scope.api.getColumnIndex = function(colId) {
+				$scope.api.internalGetColumnIndex = function(colId) {
 					return getColumnIndex(colId);
 				}
 				
