@@ -989,10 +989,7 @@ export class DataGrid extends NGGridDirective {
             // column sort
             if (column.enableSort === false) colDef.sortable = false;
 
-            const colMenuTabs = [];
-            if (column.enableRowGroup) colMenuTabs.push('generalMenuTab');
-            if (column.filterType) colMenuTabs.push('filterMenuTab');
-            if(colMenuTabs.length === 0) colDef.suppressMenu = true;
+            colDef.suppressMenu = column.enableRowGroup === false && column.filterType == undefined;
 
             if (column.editType) {
                 colDef.editable = column.editType !== 'CHECKBOX' ? this.isColumnEditable : false;
