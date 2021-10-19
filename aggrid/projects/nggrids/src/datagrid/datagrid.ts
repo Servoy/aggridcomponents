@@ -3143,6 +3143,10 @@ export class DataGrid extends NGGridDirective {
         this.log.debug('Root change listener is called ' + this.state.waitFor.loadRecords);
         this.log.debug(changeEvent);
 
+        if(changeEvent.multiSelectChanged) {
+            this.agGridOptions.rowSelection =  changeEvent.multiSelectChanged.newValue ? 'multiple' : 'single';
+        }
+
         if(!this.isRootFoundsetLoaded) {
             if(changeEvent.viewportRowsCompletelyChanged || changeEvent.fullValueChanged) {
                 this.isRootFoundsetLoaded = true;
@@ -3153,10 +3157,6 @@ export class DataGrid extends NGGridDirective {
 
         // Floor
         const idRandom = Math.floor(1000 * Math.random());
-
-        if(changeEvent.multiSelectChanged) {
-            this.agGridOptions.rowSelection =  changeEvent.multiSelectChanged.newValue ? 'multiple' : 'single';
-        }
 
         if (changeEvent.sortColumnsChanged) {
             this.log.debug(idRandom + ' - 1. Sort');
