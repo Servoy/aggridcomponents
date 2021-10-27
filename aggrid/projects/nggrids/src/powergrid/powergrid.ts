@@ -84,6 +84,8 @@ export class PowerGrid extends NGGridDirective {
     @Input() pivotMode: boolean;
     @Input() useLazyLoading: boolean;
     @Input() data: any;
+    @Input() pks: string[];
+    @Input() updateData: any;
     @Input() lastRowIndex: number;
     @Input() readOnly: boolean;
     @Input() enabled: boolean;
@@ -487,8 +489,26 @@ export class PowerGrid extends NGGridDirective {
                         break;
                     case 'data':
                         if (this.agGrid) {
+                            if(this.pks) {
+                                this.agGridOptions.getRowNodeId = (data) =>  {
+                                    let rowNodeId = null;
+                                    if(this.pks && this.pks.length > 0) {
+                                        rowNodeId = '' + data[this.pks[0]];
+                                        for(let i = 1; i < this.pks.length; i++) {
+                                            rowNodeId += '_' + data[this.pks[i]]
+                                        }
+                                    }
+                                    return rowNodeId;
+                                }
+                            }
                             this.agGrid.api.setRowData(this.data);
                             this.applyExpandedState();
+                        }
+                        break;
+                    case 'updateData':
+                        if(change.currentValue) {
+                            this.agGrid.api.applyTransaction(change.currentValue);
+                            this.servoyApi.callServerSideApi('clearUpdateData', []);
                         }
                         break;
                     case 'columns':
