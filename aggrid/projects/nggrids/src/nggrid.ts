@@ -1,6 +1,6 @@
 import { AgGridAngular } from '@ag-grid-community/angular';
 import { ContentChild, Directive, Input, TemplateRef, ViewChild } from '@angular/core';
-import { FormattingService, ServoyBaseComponent } from '@servoy/public';
+import { BaseCustomObject, FormattingService, ServoyBaseComponent } from '@servoy/public';
 
 @Directive()
 export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement> {
@@ -28,4 +28,13 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
     abstract getColumnIndex(field: any): number;
 
     abstract getEditingRowIndex(param: any): number;
+}
+
+export class IconConfig extends BaseCustomObject {
+}
+
+export class ToolPanelConfig extends BaseCustomObject {
+}
+
+export class MainMenuItemsConfig extends BaseCustomObject {
 }

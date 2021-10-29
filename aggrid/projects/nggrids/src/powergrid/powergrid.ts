@@ -2,7 +2,7 @@ import { GridOptions, GroupCellRenderer } from '@ag-grid-community/core';
 import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Inject, Input, Output, Renderer2, SecurityContext, SimpleChanges, ViewChild } from '@angular/core';
 import { BaseCustomObject, Format, FormattingService } from '@servoy/public';
 import { LoggerFactory, LoggerService } from '@servoy/public';
-import { NGGridDirective } from '../nggrid';
+import { IconConfig, MainMenuItemsConfig, NGGridDirective, ToolPanelConfig } from '../nggrid';
 import { DatePicker } from '../editors/datepicker';
 import { FormEditor } from '../editors/formeditor';
 import { TextEditor } from '../editors/texteditor';
@@ -67,13 +67,13 @@ export class PowerGrid extends NGGridDirective {
 
     @ViewChild('element', { read: ElementRef }) agGridElementRef: ElementRef;
 
-    @Input() columns: any[];
+    @Input() columns: PowerGridColumn[];
     @Input() styleClass: string;
 
-    @Input() toolPanelConfig: any;
-    @Input() iconConfig: any;
+    @Input() toolPanelConfig: ToolPanelConfig;
+    @Input() iconConfig: IconConfig;
     @Input() localeText: any;
-    @Input() mainMenuItemsConfig: any;
+    @Input() mainMenuItemsConfig: MainMenuItemsConfig;
     @Input() gridOptions: any;
     @Input() showColumnsMenuTab: any;
     @Input() multiSelect: boolean;
@@ -234,7 +234,7 @@ export class PowerGrid extends NGGridDirective {
 
             // suppressMovingInCss: true,
             suppressColumnMoveAnimation: true,
-            suppressAnimationFrame: true,
+            suppressAnimationFrame: false,
 
             rowSelection: this.multiSelect === true ? 'multiple' : 'single',
             //                suppressRowClickSelection: rowGroupColsDefault.length === 0 ? false : true,
@@ -242,7 +242,7 @@ export class PowerGrid extends NGGridDirective {
             enableRangeSelection: false,
             suppressRowClickSelection: !this.enabled,
 
-            stopEditingWhenGridLosesFocus: true,
+            stopEditingWhenCellsLoseFocus: true,
             singleClickEdit: true,
             suppressClickEdit: false,
             enableGroupEdit: false,
@@ -824,7 +824,7 @@ export class PowerGrid extends NGGridDirective {
                 }
 
                 if (Array.isArray(columnStateJSON.sortingState) && columnStateJSON.sortingState.length > 0) {
-                    this.agGrid.api.setSortModel(columnStateJSON.sortingState);
+                    this.applySortModel(columnStateJSON.sortingState);
                 }
 
                 this.agGrid.api.setSideBarVisible(columnStateJSON.isSideBarVisible);
@@ -916,9 +916,8 @@ export class PowerGrid extends NGGridDirective {
             columnState: this.agGrid.columnApi.getColumnState(),
             rowGroupColumnsState: svyRowGroupColumnIds,
             isToolPanelShowing: this.agGrid.api.isToolPanelShowing(),
-            isSideBarVisible: this.agGrid.api.isSideBarVisible(),
+            isSideBarVisible: this.agGrid.api.isSideBarVisible()
             // filterState: gridOptions.api.getFilterModel(), TODO persist column states
-            sortingState: this.agGrid.api.getSortModel()
         };
 
         const newColumnState = JSON.stringify(columnState);
@@ -1675,6 +1674,20 @@ export class PowerGrid extends NGGridDirective {
     public getNativeElement(): HTMLDivElement {
         return this.agGridElementRef ? this.agGridElementRef.nativeElement : null;
     }
+
+    applySortModel(sortModel) {
+        const columnState = [];
+        if (sortModel) {
+            sortModel.forEach((item, index) => {
+                columnState.push({
+                    colId: item.colId,
+                    sort: item.sort,
+                    sortIndex: index
+                });
+            });
+        }
+        this.agGrid.columnApi.applyColumnState({ state: columnState, defaultState: { sort: null } });
+    }
 }
 
 class State {
@@ -1740,4 +1753,41 @@ class DatasetTableGroupCellRenderer extends GroupCellRenderer {
                 + '<span class="ag-group-child-count-suffix"></span>' : '';
         };
     }
+}
+
+export class PowerGridColumn extends BaseCustomObject {
+    headerGroup: string;
+    headerGroupStyleClass: string;
+    headerTitle: string;
+    headerStyleClass: string;
+    headerTooltip: string;
+    dataprovider: string;
+    tooltip: string;
+    styleClass: string;
+    visible: boolean;
+    width: number;
+    minWidth: number;
+    maxWidth: number;
+    enableRowGroup: boolean;
+    rowGroupIndex: number;
+    enablePivot: boolean;
+    pivotIndex: number;
+    aggFunc: string;
+    enableSort: boolean;
+    enableResize: boolean;
+    enableToolPanel: boolean;
+    autoResize: boolean;
+    cellStyleClassFunc: any;
+    cellRendererFunc: any;
+    format: string;
+    formatType: string;
+    editType: string;
+    editForm: any;
+    editFormSize: any;
+    filterType: string;
+    id: string;
+    columnDef: any;
+    showAs: string;
+    exportDisplayValue: boolean;
+    pivotComparatorFunc: any;
 }

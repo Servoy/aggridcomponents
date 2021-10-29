@@ -2,7 +2,7 @@ import { GridOptions } from '@ag-grid-community/core';
 import { ChangeDetectionStrategy, ChangeDetectorRef, ElementRef, EventEmitter, Inject, Input, Output, Renderer2, SecurityContext, SimpleChanges } from '@angular/core';
 import { Component, ViewChild } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
-import { LoggerFactory, LoggerService, ChangeType, IFoundset, FoundsetChangeEvent, Deferred, FormattingService, ServoyPublicService } from '@servoy/public';
+import { LoggerFactory, LoggerService, ChangeType, IFoundset, FoundsetChangeEvent, Deferred, FormattingService, ServoyPublicService, BaseCustomObject } from '@servoy/public';
 import { DatagridService } from './datagrid.service';
 import { DatePicker } from '../editors/datepicker';
 import { FormEditor } from '../editors/formeditor';
@@ -11,7 +11,7 @@ import { TextEditor } from '../editors/texteditor';
 import { TypeaheadEditor } from '../editors/typeaheadeditor';
 import { RadioFilter } from './filters/radiofilter';
 import { ValuelistFilter } from './filters/valuelistfilter';
-import { NGGridDirective } from '../nggrid';
+import { IconConfig, MainMenuItemsConfig, NGGridDirective, ToolPanelConfig } from '../nggrid';
 import { DOCUMENT } from '@angular/common';
 import { BlankLoadingCellRendrer } from './renderers/blankloadingcellrenderer';
 
@@ -73,10 +73,10 @@ export class DataGrid extends NGGridDirective {
     @ViewChild('element', { read: ElementRef }) agGridElementRef: ElementRef;
 
     @Input() myFoundset: IFoundset;
-    @Input() columns: any[];
+    @Input() columns: DataGridColumn[];
     @Input() readOnly: boolean;
     @Input() readOnlyColumnIds: any;
-    @Input() hashedFoundsets: any;
+    @Input() hashedFoundsets: HashedFoundset[];
     @Input() filterModel;
     @Input() rowStyleClassDataprovider: any;
     @Input() _internalExpandedState: any;
@@ -93,10 +93,10 @@ export class DataGrid extends NGGridDirective {
     @Input() responsiveHeight: number;
     @Input() enabled: boolean;
 
-    @Input() toolPanelConfig: any;
-    @Input() iconConfig: any;
+    @Input() toolPanelConfig: ToolPanelConfig;
+    @Input() iconConfig: IconConfig;
     @Input() localeText: any;
-    @Input() mainMenuItemsConfig: any;
+    @Input() mainMenuItemsConfig: MainMenuItemsConfig;
     @Input() gridOptions: any;
     @Input() showColumnsMenuTab: any;
     @Input() showLoadingIndicator: boolean;
@@ -339,8 +339,8 @@ export class DataGrid extends NGGridDirective {
             },
             columnDefs,
 
-            stopEditingWhenGridLosesFocus: true,
-            suppressAnimationFrame: true,
+            stopEditingWhenCellsLoseFocus: true,
+            suppressAnimationFrame: false,
             animateRows: false,
             suppressColumnMoveAnimation: true,
 
@@ -363,7 +363,7 @@ export class DataGrid extends NGGridDirective {
             suppressClickEdit: false,
             enableGroupEdit: false,
             groupUseEntireRow: this.groupUseEntireRow,
-            groupMultiAutoColumn: true,
+            groupDisplayType: 'multipleColumns',
             suppressAggFuncInHeader: true, // TODO support aggregations
 
             suppressColumnVirtualisation: false,
@@ -634,7 +634,7 @@ export class DataGrid extends NGGridDirective {
 
         // default sort order
         if(this.agGridOptions['enableServerSideSorting']) {
-            this.agGrid.api.setSortModel(this.getSortModel());
+            this.applySortModel(this.getSortModel());
         }
 
         // register listener for selection changed
@@ -1880,6 +1880,20 @@ export class DataGrid extends NGGridDirective {
         return sortModel;
     }
 
+    applySortModel(sortModel) {
+        const columnState = [];
+        if (sortModel) {
+            sortModel.forEach((item, index) => {
+                columnState.push({
+                    colId: item.colId,
+                    sort: item.sort,
+                    sortIndex: index
+                });
+            });
+        }
+        this.agGrid.columnApi.applyColumnState({ state: columnState, defaultState: { sort: null } });
+    }
+
     purge() {
         if(this.onSelectionChangedTimeout) {
             setTimeout(() => {
@@ -2063,13 +2077,11 @@ export class DataGrid extends NGGridDirective {
         }
 
         const filterModel = this.agGrid.api.getFilterModel();
-        const sortModel = this.getAgGridSortModel();
 
         const columnState = {
             columnState: agColumnState,
             rowGroupColumnsState: svyRowGroupColumnIds,
-            filterModel,
-            sortModel
+            filterModel
         };
         const newColumnState = JSON.stringify(columnState);
 
@@ -2166,7 +2178,7 @@ export class DataGrid extends NGGridDirective {
                 }
 
                 if(this.restoreStates && this.restoreStates.sort && Array.isArray(columnStateJSON.sortModel)) {
-                    this.agGrid.api.setSortModel(columnStateJSON.sortModel);
+                    this.applySortModel(columnStateJSON.sortModel);
                 }
             }
         }
@@ -2498,8 +2510,8 @@ export class DataGrid extends NGGridDirective {
         let iconConfig = this.datagridService.iconConfig ? this.datagridService.iconConfig : null;
         iconConfig = this.mergeConfig(iconConfig, this.iconConfig);
         const refreshEditorIconConfig = this.iconConfig ? this.iconConfig : null;
-        return refreshEditorIconConfig && refreshEditorIconConfig.iconRefreshData &&  refreshEditorIconConfig.iconRefreshData !== 'glyphicon glyphicon-refresh' ?
-            this.iconConfig.iconRefreshData : 'fa fa-sync';
+        return refreshEditorIconConfig && refreshEditorIconConfig['iconRefreshData'] &&  refreshEditorIconConfig['iconRefreshData'] !== 'glyphicon glyphicon-refresh' ?
+            this.iconConfig['iconRefreshData'] : 'fa fa-sync';
     }
 
     getIconCheckboxEditor(state: any) {
@@ -3180,7 +3192,7 @@ export class DataGrid extends NGGridDirective {
                 this.log.debug('myFoundset sort changed ' + newSort);
                 // could be already set when clicking sort on header and there is an onsort handler, so skip reseting it, to avoid a new onsort call
                 if(this.sortHandlerPromises.length === 0) {
-                    this.agGrid.api.setSortModel(this.getSortModel());
+                    this.applySortModel(this.getSortModel());
                 } else {
                     this.agGrid.api.refreshServerSideStore({purge: true});
                 }
@@ -3913,7 +3925,7 @@ class FoundsetServer {
                         this.dataGrid.sortPromise = null;
                     });
                 } else { // set the grid sorting if foundset sort changed from the grid initialization (like doing foundset sort on form's onShow)
-                    this.dataGrid.agGrid.api.setSortModel(this.dataGrid.getSortModel());
+                    this.dataGrid.applySortModel(this.dataGrid.getSortModel());
                     this.dataGrid.agGrid.api.refreshServerSideStore({purge: true});
                 }
             } else {
@@ -4920,4 +4932,53 @@ class GroupNode {
         });
         this.nodes = [];
     }
+}
+
+export class DataGridColumn extends BaseCustomObject {
+    footerText: string;
+    headerTitle: string;
+    footerStyleClass: string;
+    headerStyleClass: string;
+    headerTooltip: string;
+    headerGroup: string;
+    headerGroupStyleClass: string;
+    dataprovider: any
+    tooltip: any;
+    styleClass: string;
+    styleClassDataprovider: any;
+    format: any;
+    valuelist: any;
+    visible: boolean;
+    width: number;
+    minWidth: number;
+    maxWidth: number;
+    enableRowGroup: boolean;
+    enableSort: boolean;
+    enableResize: boolean;
+    enableToolPanel: boolean;
+    autoResize: boolean;
+    rowGroupIndex: number;
+    isEditableDataprovider: any;
+    editType: string;
+    editForm: any;
+    editFormSize: any;
+    filterType: string;
+    id: string;
+    columnDef: any;
+    showAs: string;
+}
+
+export class GroupedColumn extends BaseCustomObject {
+    dataprovider: any;
+    format: any;
+    valuelist: any;
+    id: string;
+    styleClassDataprovider: any;
+}
+
+export class HashedFoundset extends BaseCustomObject {
+    foundset: any;
+    foundsetUUID: any;
+    uuid: string;
+    columns: GroupedColumn[];
 }
