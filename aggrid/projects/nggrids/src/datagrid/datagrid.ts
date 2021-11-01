@@ -140,7 +140,7 @@ export class DataGrid extends NGGridDirective {
     dirtyCache: boolean;
 
     // set to true once the grid is rendered and the selection is set
-    isSelectionReady = false;
+    isRenderedAndSelectionReady = false;
 
     // set to true during data request from ag grid, from request-start until all data is loaded
     isDataLoading = false;
@@ -425,7 +425,7 @@ export class DataGrid extends NGGridDirective {
                     this.removeAllFoundsetRef = true;
                     this.agGrid.api.refreshServerSideStore({purge: true});
                 }
-                if(this.onSort) {
+                if(this.onSort && this.isRenderedAndSelectionReady) {
                     if(this.sortHandlerTimeout) {
                         clearTimeout(this.sortHandlerTimeout);
                     }
@@ -892,7 +892,7 @@ export class DataGrid extends NGGridDirective {
         const foundsetServer = new FoundsetServer(this, []);
         const datasource = new FoundsetDatasource(this, foundsetServer);
         if(this.myFoundset) this.agGrid.api.setServerSideDatasource(datasource);
-        this.isSelectionReady = false;
+        this.isRenderedAndSelectionReady = false;
     }
 
     refreshDatasource() {
@@ -904,7 +904,7 @@ export class DataGrid extends NGGridDirective {
         const foundsetServer = new FoundsetServer(this, []);
         const datasource = new FoundsetDatasource(this, foundsetServer);
         this.agGrid.api.setServerSideDatasource(datasource);
-        this.isSelectionReady = false;
+        this.isRenderedAndSelectionReady = false;
         this.scrollToSelectionWhenSelectionReady = true;
     }
 
@@ -1681,7 +1681,7 @@ export class DataGrid extends NGGridDirective {
                                 _this.invalidCellDataIndex.colKey = colId;
                             }
                             const editCells = _this.agGrid.api.getEditingCells();
-                            if(_this.isSelectionReady && (!editCells.length || (editCells[0].rowIndex !== rowIndex || editCells[0].column.colId !== colId))) {
+                            if(_this.isRenderedAndSelectionReady && (!editCells.length || (editCells[0].rowIndex !== rowIndex || editCells[0].column.colId !== colId))) {
                                 _this.agGrid.api.stopEditing();
                                 _this.agGrid.api.startEditingCell({
                                     rowIndex,
@@ -1700,7 +1700,7 @@ export class DataGrid extends NGGridDirective {
                             _this.invalidCellDataIndex.rowIndex = -1;
                             _this.invalidCellDataIndex.colKey = '';
                             const editCells = _this.agGrid.api.getEditingCells();
-                            if(_this.isSelectionReady && editCells.length === 0 && currentEditCells.length !== 0) {
+                            if(_this.isRenderedAndSelectionReady && editCells.length === 0 && currentEditCells.length !== 0) {
                                 _this.agGrid.api.startEditingCell({
                                     rowIndex: currentEditCells[0].rowIndex,
                                     colKey: currentEditCells[0].column.colId
@@ -1922,7 +1922,7 @@ export class DataGrid extends NGGridDirective {
 
         this.agGrid.api.refreshServerSideStore({purge: true});
         this.dirtyCache = false;
-        this.isSelectionReady = false;
+        this.isRenderedAndSelectionReady = false;
         this.scrollToSelectionWhenSelectionReady = true;
         this.columnsToFitAfterRowsRendered = true;
         // $log.warn('purge cache');
@@ -2617,7 +2617,7 @@ export class DataGrid extends NGGridDirective {
         }
 
         // set to true once the grid is ready and selection is set
-        this.isSelectionReady = true;
+        this.isRenderedAndSelectionReady = true;
 
         // rows are rendered, if there was an editCell request, now it is the time to apply it
         if(this.startEditFoundsetIndex > -1 && this.startEditColumnIndex > -1) {
@@ -3196,7 +3196,7 @@ export class DataGrid extends NGGridDirective {
                 } else {
                     this.agGrid.api.refreshServerSideStore({purge: true});
                 }
-                this.isSelectionReady = false;
+                this.isRenderedAndSelectionReady = false;
                 this.scrollToSelectionWhenSelectionReady = true;
 
                 // if sort has changed, return, skip handling any additional foundset change flags
@@ -3393,7 +3393,7 @@ export class DataGrid extends NGGridDirective {
         } else {
 
             // if is not ready to edit, wait for the row to be rendered
-            if(this.isSelectionReady && !this.isDataLoading) {
+            if(this.isRenderedAndSelectionReady && !this.isDataLoading) {
                 const column = this.columns[columnindex];
                 const colId = column.id ? column.id : this.getColumnID(column, columnindex);
                 setTimeout(() => {
@@ -3428,7 +3428,7 @@ export class DataGrid extends NGGridDirective {
         } else {
 
             // if is not ready to request focus, wait for the row to be rendered
-            if (this.isSelectionReady) {
+            if (this.isRenderedAndSelectionReady) {
                 if (this.myFoundset && this.myFoundset.viewPort.size && this.myFoundset.selectedRowIndexes.length ) {
                     const column = this.columns[columnindex];
                     const rowIndex = this.myFoundset.selectedRowIndexes[0];
@@ -3448,7 +3448,7 @@ export class DataGrid extends NGGridDirective {
      * Scroll to the selected row
      */
     scrollToSelection() {
-        if(this.isSelectionReady) {
+        if(this.isRenderedAndSelectionReady) {
             this.scrollToSelectionEx();
             this.scrollToSelectionWhenSelectionReady = false;
         } else {
@@ -3895,7 +3895,13 @@ class FoundsetServer {
 
         const currentGridSort = this.dataGrid.getFoundsetSortModel(this.dataGrid.getAgGridSortModel());
         const foundsetSort = this.dataGrid.stripUnsortableColumns(this.dataGrid.foundset.getSortColumns());
-        const isSortChanged = !this.dataGrid.onSort && foundsetRefManager.isRoot && sortString !== foundsetSort && currentGridSort.sortString !== foundsetSort;
+        let isSortChanged = foundsetRefManager.isRoot && sortString !== foundsetSort && currentGridSort.sortString !== foundsetSort;
+
+        // skip sort change if there is a sort handler (onsort) & the sort request is from the UI header (isRenderedAndSelectionReady == true)
+        // because the sort is defined then by the handler implementation not the foundset column sort setting
+        if(isSortChanged && this.dataGrid.onSort && this.dataGrid.isRenderedAndSelectionReady) {
+            isSortChanged = false;
+        }        
 
         if(isSortChanged) {
             this.dataGrid.log.debug('CHANGE SORT REQUEST');
@@ -3911,8 +3917,8 @@ class FoundsetServer {
             }
 
             if(isColumnSortable) {
-                // send sort request if header is clicked; skip if is is not from UI (isSelectionReady == false) or if it from a sort handler or a group column sort
-                if(this.dataGrid.isSelectionReady || sortString) {
+                // send sort request if header is clicked; skip if is is not from UI (isRenderedAndSelectionReady == false) or if it from a sort handler or a group column sort
+                if(this.dataGrid.isRenderedAndSelectionReady || sortString) {
                     foundsetSortModel = this.dataGrid.getFoundsetSortModel(sortModel);
                     this.dataGrid.sortPromise = foundsetRefManager.sort(foundsetSortModel.sortColumns);
                     this.dataGrid.sortPromise.then(() => {
@@ -4083,7 +4089,7 @@ class FoundsetDatasource {
                     _this.dataGrid.isDataLoading = false;
                     // if selection did not changed, mark the selection ready
                     if(!_this.dataGrid.selectedRowIndexesChanged()) {
-                        _this.dataGrid.isSelectionReady = true;
+                        _this.dataGrid.isRenderedAndSelectionReady = true;
                     }
                     // rows are rendered, if there was an editCell request, now it is the time to apply it
                     if(_this.dataGrid.startEditFoundsetIndex > -1 && _this.dataGrid.startEditColumnIndex > -1) {

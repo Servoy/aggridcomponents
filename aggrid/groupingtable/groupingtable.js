@@ -165,7 +165,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 					gridOptions.api.purgeServerSideCache();
 					$scope.dirtyCache = false;
-					isSelectionReady = false;
+					isRenderedAndSelectionReady = false;
 					scrollToSelectionWhenSelectionReady = true;
 					columnsToFitAfterRowsRendered = true;
 					// $log.warn('purge cache');
@@ -332,7 +332,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				var isGridReady = false;
 				
 				// set to true once the grid is rendered and the selection is set
-				var isSelectionReady = false;
+				var isRenderedAndSelectionReady = false;
 				
 				// set to true during data request from ag grid, from request-start until all data is loaded
 				var isDataLoading = false;
@@ -670,7 +670,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							removeAllFoundsetRef = true;
 							gridOptions.api.purgeServerSideCache();
 						}
-						if($scope.handlers.onSort) {
+						if($scope.handlers.onSort && isRenderedAndSelectionReady) {
 							if(sortHandlerTimeout) {
 								clearTimeout(sortHandlerTimeout);
 							}
@@ -989,7 +989,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 
 					// set to true once the grid is ready and selection is set
-				    isSelectionReady = true;
+				    isRenderedAndSelectionReady = true;
 				
 					// rows are rendered, if there was an editCell request, now it is the time to apply it
 					if(startEditFoundsetIndex > -1 && startEditColumnIndex > -1) {
@@ -1234,7 +1234,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 											invalidCellDataIndex.colKey = colId;
 										}
 										var editCells = gridOptions.api.getEditingCells();
-										if(isSelectionReady && (!editCells.length || (editCells[0].rowIndex != rowIndex || editCells[0].column.colId != colId))) {
+										if(isRenderedAndSelectionReady && (!editCells.length || (editCells[0].rowIndex != rowIndex || editCells[0].column.colId != colId))) {
 											gridOptions.api.stopEditing();
 											gridOptions.api.startEditingCell({
 												rowIndex: rowIndex,
@@ -1254,7 +1254,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 										invalidCellDataIndex.rowIndex = -1;
 										invalidCellDataIndex.colKey = '';
 										var editCells = gridOptions.api.getEditingCells();
-										if(isSelectionReady && editCells.length == 0 && currentEditCells.length != 0) {
+										if(isRenderedAndSelectionReady && editCells.length == 0 && currentEditCells.length != 0) {
 											gridOptions.api.startEditingCell({
 												rowIndex: currentEditCells[0].rowIndex,
 												colKey: currentEditCells[0].column.colId
@@ -2778,7 +2778,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								isDataLoading = false;
 								// if selection did not changed, mark the selection ready
 								if(!selectedRowIndexesChanged()) {
-									isSelectionReady = true;
+									isRenderedAndSelectionReady = true;
 								}
 								// rows are rendered, if there was an editCell request, now it is the time to apply it
 								if(startEditFoundsetIndex > -1 && startEditColumnIndex > -1) {
@@ -2984,8 +2984,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 						var currentGridSort = getFoundsetSortModel(gridOptions.api.getSortModel());
 						var foundsetSort = stripUnsortableColumns(foundset.getSortColumns());
-						var isSortChanged = !$scope.handlers.onSort && foundsetRefManager.isRoot && sortString != foundsetSort
+						var isSortChanged = foundsetRefManager.isRoot && sortString != foundsetSort
 						&& currentGridSort.sortString != foundsetSort;
+
+						// skip sort change if there is a sort handler (onsort) & the sort request is from the UI header (isSelectionReady == true)
+        				// because the sort is defined then by the handler implementation not the foundset column sort setting
+						if(isSortChanged && $scope.handlers.onSort && isRenderedAndSelectionReady) {
+							isSortChanged = false;
+						}
 
 						if(isSortChanged) {
 							$log.debug('CHANGE SORT REQUEST');
@@ -3001,8 +3007,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							}
 
 							if(isColumnSortable) {
-								// send sort request if header is clicked; skip if is is not from UI (isSelectionReady == false) or if it from a sort handler or a group column sort
-								if(isSelectionReady || sortString) {
+								// send sort request if header is clicked; skip if is is not from UI (isRenderedAndSelectionReady == false) or if it from a sort handler or a group column sort
+								if(isRenderedAndSelectionReady || sortString) {
 									foundsetSortModel = getFoundsetSortModel(sortModel)
 									sortPromise = foundsetRefManager.sort(foundsetSortModel.sortColumns);
 									sortPromise.then(function() {
@@ -3109,7 +3115,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					var foundsetServer = new FoundsetServer([]);
 					var datasource = new FoundsetDatasource(foundsetServer);
 					gridOptions.api.setServerSideDatasource(datasource);
-					isSelectionReady = false;
+					isRenderedAndSelectionReady = false;
 				}
 
 				function refreshDatasource() {
@@ -3121,7 +3127,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					var foundsetServer = new FoundsetServer([]);
 					var datasource = new FoundsetDatasource(foundsetServer);
 					gridOptions.api.setServerSideDatasource(datasource);
-					isSelectionReady = false;
+					isRenderedAndSelectionReady = false;
 					scrollToSelectionWhenSelectionReady = true;
 				}
 
@@ -4511,7 +4517,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							else {
 								gridOptions.api.purgeServerSideCache();
 							}
-							isSelectionReady = false;
+							isRenderedAndSelectionReady = false;
 							scrollToSelectionWhenSelectionReady = true;
 
 							// if sort has changed, return, skip handling any additional foundset change flags
@@ -5940,7 +5946,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					else {
 
 						// if is not ready to edit, wait for the row to be rendered
-						if(isSelectionReady && !isDataLoading) {
+						if(isRenderedAndSelectionReady && !isDataLoading) {
 							var column = $scope.model.columns[columnindex];
 							var	colId = column.id ? column.id : getColumnID(column, columnindex);
 							setTimeout(function() {
@@ -5975,7 +5981,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					} else {
 						
 						// if is not ready to request focus, wait for the row to be rendered
-						if (isSelectionReady) {
+						if (isRenderedAndSelectionReady) {
 							if ($scope.model.myFoundset && $scope.model.myFoundset.viewPort.size && $scope.model.myFoundset.selectedRowIndexes.length ) {								
 								var column = $scope.model.columns[columnindex];
 								var rowIndex = $scope.model.myFoundset.selectedRowIndexes[0];
@@ -5995,7 +6001,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 * Scroll to the selected row
 				 */				
 				$scope.api.scrollToSelection = function() {
-					if(isSelectionReady) {
+					if(isRenderedAndSelectionReady) {
 						scrollToSelection();
 						scrollToSelectionWhenSelectionReady = false;
 					}
