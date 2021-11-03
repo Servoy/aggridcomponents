@@ -105,9 +105,11 @@ $scope.api.getColumn = function(id, forChange) {
  * The column name from the dataset is used to match on the
  * component column id
  * 
- * @param {JSDataSet} dataset 
+ * @param {JSDataSet} dataset
+ * @param {Array<String>} [pks] list of dataprovider names; needed in case of using apis: updateRows and deleteRows
  */
-$scope.api.renderData = function(dataset) {
+$scope.api.renderData = function(dataset, pks) {
+    $scope.model.pks = pks;
     $scope.model.data = []
     var rowsCount = dataset.getMaxRowIndex();
 
@@ -116,24 +118,28 @@ $scope.api.renderData = function(dataset) {
         var rowData = {};
         for(var j = 0; j < row.length; j++) {
             var columnName = dataset.getColumnName(j + 1);
-            var value = row[j];
-        	if(value instanceof Date) {
-                var column = getColumnByDataprovider(columnName);
-                if(column && column.formatType == 'DATETIME' && column.format) {
-                    try {
-                        var formatJSON = JSON.parse(column.format);
-                        if(formatJSON.useLocalDateTime) {
-                            var tzoffset = value.getTimezoneOffset() * 60000; //offset in milliseconds
-                            value = (new Date(value.getTime() - tzoffset)).toISOString().slice(0, -1);
-                        }
-                    }
-                    catch(e) {}
-                }
-        	}
-            rowData[columnName] = value;
+            rowData[columnName] = convertData(row[j], columnName);
         }
         $scope.model.data.push(rowData);
     }     
+}
+
+function convertData(value, columnName) {
+    var convertedValue = value;
+    if(convertedValue instanceof Date) {
+        var column = getColumnByDataprovider(columnName);
+        if(column && column.formatType == 'DATETIME' && column.format) {
+            try {
+                var formatJSON = JSON.parse(column.format);
+                if(formatJSON.useLocalDateTime) {
+                    var tzoffset = convertedValue.getTimezoneOffset() * 60000; //offset in milliseconds
+                    convertedValue = (new Date(convertedValue.getTime() - tzoffset)).toISOString().slice(0, -1);
+                }
+            }
+            catch(e) {}
+        }
+    }
+    return convertedValue;
 }
 
 /**
@@ -183,4 +189,56 @@ function getColumnByDataprovider(dp) {
  */
 $scope.api.getExpandedGroups = function() {
 	return $scope.model._internalExpandedState;
+}
+
+$scope.clearUpdateData = function() {
+    $scope.model.updateData = null;
+}
+
+/**
+ * Create new rows
+ *
+ * @param {Array<Object>} rowsData new rows
+ * @param {Boolean} appendToBeginning if true rows will be added to the beginning of the table 
+ */
+$scope.api.newRows = function(rowsData, appendToBeginning) {
+    if(!$scope.model.updateData) $scope.model.updateData = {};
+    $scope.model.updateData['add'] = getConvertedRowData(rowsData);
+    $scope.model.updateData['addIndex'] = appendToBeginning ? 0 : null;
+}
+
+/**
+ * Update rows - in order to work, pks needs to be set using renderData, and the rowData objects needs to have pk
+ *
+ * @param {Array<Object>} rowsData update rows
+ */
+$scope.api.updateRows = function(rowsData) {
+    if(!$scope.model.updateData) $scope.model.updateData = {};
+    $scope.model.updateData['update'] = getConvertedRowData(rowsData);
+}
+
+/**
+ * Delete rows - in order to work, pks needs to be set using renderData, and the rowsKey objects needs to have pk
+ *
+ * @param {Array<Object>} rowsKey delete rows
+ */
+$scope.api.deleteRows = function(rowsKey) {
+    if(!$scope.model.updateData) $scope.model.updateData = {};
+    $scope.model.updateData['remove'] = getConvertedRowData(rowsKey);
+}
+
+function getConvertedRowData(rowsData) {
+    var convertedRowsData = [];
+    if(rowsData && rowsData.length) {
+        for(var i = 0; i < rowsData.length; i++) {
+            var rowDataCopy = {};
+            for (var prop in rowsData[i]) {
+                if (rowsData[i].hasOwnProperty(prop)) {
+                    rowDataCopy[prop] = convertData(rowsData[i][prop], prop);
+                }
+            }
+            convertedRowsData.push(rowDataCopy);
+        }
+    }
+    return convertedRowsData;
 }

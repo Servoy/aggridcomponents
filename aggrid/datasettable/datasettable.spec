@@ -13,6 +13,8 @@
 	"model":
 	{
 		"data": { "type": "object[]", "tags": {"scope" : "private"}},
+		"pks": { "type": "string[]", "tags": {"scope" : "private"}},
+		"updateData": { "type": "object", "tags": {"scope" : "private"}},
 		"columns": { "type": "column[]", "droppable" : true, "tags": {"doc": "List all columns to be used in table as dataprovider"}},
 		"columnState": { "type": "string", "tags": {"scope" : "private", "allowaccess": "enabled"}, "pushToServer": "allow"},
 		"_internalColumnState": { "type": "string", "tags": {"scope" : "private", "allowaccess": "enabled"}, "pushToServer": "allow"},
@@ -44,7 +46,7 @@
 		"arrowsUpDownMoveWhenEditing": {"type": "string", "values": [{"DEFAULT": null}, {"NONE":"NONE"}, {"NEXTCELL":"NEXTCELL"}, {"NEXTEDITABLECELL":"NEXTEDITABLECELL"}], "tags": {"doc": "Defines action on TEXTFIELD editor for up/down arrow keys"}},
 		"editNextCellOnEnter":  { "type": "boolean", "default": false },
 		"readOnly": {"type": "boolean", "default": false},
-		"enabled" : {"type": "enabled", "blockingOn": false, "default": true},
+		"enabled" : {"type": "enabled", "blockingOn": false, "default": true}
 	},
 	"handlers" : {
 		"onRowSelected": {
@@ -238,7 +240,8 @@
 	"api" : {
 		"renderData": {
 			"parameters": [
-				{ "name": "dataset", "type": {"type": "dataset"} }
+				{ "name": "dataset", "type": {"type": "dataset"} },
+				{ "name": "pks", "type" : "string[]", "optional": true }
 			]
 		},
 		"newColumn" : {
@@ -321,8 +324,29 @@
 			"parameters": [
 				{ "name": "groups", "type": "object"}
 			]
-		}		
+		},
+		"newRows": {
+			"parameters": [
+				{ "name": "rowsData", "type": "object[]"},
+				{ "name": "appendToBeginning", "type": "boolean", "optional": true}
+			]
+		},
+		"updateRows": {
+			"parameters": [
+				{ "name": "rowsData", "type": "object[]"}
+			]
+		},
+		"deleteRows": {
+			"parameters": [
+				{ "name": "rowsKey", "type": "object[]"}
+			]
+		}
 	},
+	"internalApi" : {
+		"clearUpdateData" : {
+			"allowaccess" : "enabled"
+		}
+    },	
 	"types" : {
 		"column" : {
 			"headerGroup": {"type" : "tagstring", "tags": {"doc": "Header group, that this column will be part of"}},

@@ -252,14 +252,6 @@
 			}],
 			"returns": "int"
 		},
-		"internalGetColumnIndex" : {
-			"parameters": [{
-				"name": "colId",
-				"type": "string"
-			}],
-			"returns": "int",
-			"private": true
-		},
 	    "newColumn": {
 		    "parameters": [{
 		      	"name": "dataprovider",
@@ -378,6 +370,13 @@
 				}
             ],
 			"allowaccess" : "enabled"
+		},
+		"internalGetColumnIndex" : {
+			"parameters": [{
+				"name": "colId",
+				"type": "string"
+			}],
+			"returns": "int"
 		}
 	},
 	"types" : {

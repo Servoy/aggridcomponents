@@ -2,7 +2,7 @@ import { GridOptions } from '@ag-grid-community/core';
 import { ChangeDetectionStrategy, ChangeDetectorRef, ElementRef, EventEmitter, Inject, Input, Output, Renderer2, SecurityContext, SimpleChanges } from '@angular/core';
 import { Component, ViewChild } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
-import { LoggerFactory, LoggerService, ChangeType, IFoundset, FoundsetChangeEvent, Deferred, FormattingService, ServoyPublicService } from '@servoy/public';
+import { LoggerFactory, LoggerService, ChangeType, IFoundset, FoundsetChangeEvent, Deferred, FormattingService, ServoyPublicService, BaseCustomObject } from '@servoy/public';
 import { DatagridService } from './datagrid.service';
 import { DatePicker } from '../editors/datepicker';
 import { FormEditor } from '../editors/formeditor';
@@ -11,7 +11,7 @@ import { TextEditor } from '../editors/texteditor';
 import { TypeaheadEditor } from '../editors/typeaheadeditor';
 import { RadioFilter } from './filters/radiofilter';
 import { ValuelistFilter } from './filters/valuelistfilter';
-import { NGGridDirective } from '../nggrid';
+import { IconConfig, MainMenuItemsConfig, NGGridDirective, ToolPanelConfig } from '../nggrid';
 import { DOCUMENT } from '@angular/common';
 import { BlankLoadingCellRendrer } from './renderers/blankloadingcellrenderer';
 
@@ -73,10 +73,10 @@ export class DataGrid extends NGGridDirective {
     @ViewChild('element', { read: ElementRef }) agGridElementRef: ElementRef;
 
     @Input() myFoundset: IFoundset;
-    @Input() columns: any[];
+    @Input() columns: DataGridColumn[];
     @Input() readOnly: boolean;
     @Input() readOnlyColumnIds: any;
-    @Input() hashedFoundsets: any;
+    @Input() hashedFoundsets: HashedFoundset[];
     @Input() filterModel;
     @Input() rowStyleClassDataprovider: any;
     @Input() _internalExpandedState: any;
@@ -93,10 +93,10 @@ export class DataGrid extends NGGridDirective {
     @Input() responsiveHeight: number;
     @Input() enabled: boolean;
 
-    @Input() toolPanelConfig: any;
-    @Input() iconConfig: any;
+    @Input() toolPanelConfig: ToolPanelConfig;
+    @Input() iconConfig: IconConfig;
     @Input() localeText: any;
-    @Input() mainMenuItemsConfig: any;
+    @Input() mainMenuItemsConfig: MainMenuItemsConfig;
     @Input() gridOptions: any;
     @Input() showColumnsMenuTab: any;
     @Input() showLoadingIndicator: boolean;
@@ -140,7 +140,7 @@ export class DataGrid extends NGGridDirective {
     dirtyCache: boolean;
 
     // set to true once the grid is rendered and the selection is set
-    isSelectionReady = false;
+    isRenderedAndSelectionReady = false;
 
     // set to true during data request from ag grid, from request-start until all data is loaded
     isDataLoading = false;
@@ -339,8 +339,8 @@ export class DataGrid extends NGGridDirective {
             },
             columnDefs,
 
-            stopEditingWhenGridLosesFocus: true,
-            suppressAnimationFrame: true,
+            stopEditingWhenCellsLoseFocus: true,
+            suppressAnimationFrame: false,
             animateRows: false,
             suppressColumnMoveAnimation: true,
 
@@ -363,7 +363,7 @@ export class DataGrid extends NGGridDirective {
             suppressClickEdit: false,
             enableGroupEdit: false,
             groupUseEntireRow: this.groupUseEntireRow,
-            groupMultiAutoColumn: true,
+            groupDisplayType: 'multipleColumns',
             suppressAggFuncInHeader: true, // TODO support aggregations
 
             suppressColumnVirtualisation: false,
@@ -425,7 +425,7 @@ export class DataGrid extends NGGridDirective {
                     this.removeAllFoundsetRef = true;
                     this.agGrid.api.refreshServerSideStore({purge: true});
                 }
-                if(this.onSort) {
+                if(this.onSort && this.isRenderedAndSelectionReady) {
                     if(this.sortHandlerTimeout) {
                         clearTimeout(this.sortHandlerTimeout);
                     }
@@ -634,7 +634,7 @@ export class DataGrid extends NGGridDirective {
 
         // default sort order
         if(this.agGridOptions['enableServerSideSorting']) {
-            this.agGrid.api.setSortModel(this.getSortModel());
+            this.applySortModel(this.getSortModel());
         }
 
         // register listener for selection changed
@@ -892,7 +892,7 @@ export class DataGrid extends NGGridDirective {
         const foundsetServer = new FoundsetServer(this, []);
         const datasource = new FoundsetDatasource(this, foundsetServer);
         if(this.myFoundset) this.agGrid.api.setServerSideDatasource(datasource);
-        this.isSelectionReady = false;
+        this.isRenderedAndSelectionReady = false;
     }
 
     refreshDatasource() {
@@ -904,7 +904,7 @@ export class DataGrid extends NGGridDirective {
         const foundsetServer = new FoundsetServer(this, []);
         const datasource = new FoundsetDatasource(this, foundsetServer);
         this.agGrid.api.setServerSideDatasource(datasource);
-        this.isSelectionReady = false;
+        this.isRenderedAndSelectionReady = false;
         this.scrollToSelectionWhenSelectionReady = true;
     }
 
@@ -1681,7 +1681,7 @@ export class DataGrid extends NGGridDirective {
                                 _this.invalidCellDataIndex.colKey = colId;
                             }
                             const editCells = _this.agGrid.api.getEditingCells();
-                            if(_this.isSelectionReady && (!editCells.length || (editCells[0].rowIndex !== rowIndex || editCells[0].column.colId !== colId))) {
+                            if(_this.isRenderedAndSelectionReady && (!editCells.length || (editCells[0].rowIndex !== rowIndex || editCells[0].column.colId !== colId))) {
                                 _this.agGrid.api.stopEditing();
                                 _this.agGrid.api.startEditingCell({
                                     rowIndex,
@@ -1700,7 +1700,7 @@ export class DataGrid extends NGGridDirective {
                             _this.invalidCellDataIndex.rowIndex = -1;
                             _this.invalidCellDataIndex.colKey = '';
                             const editCells = _this.agGrid.api.getEditingCells();
-                            if(_this.isSelectionReady && editCells.length === 0 && currentEditCells.length !== 0) {
+                            if(_this.isRenderedAndSelectionReady && editCells.length === 0 && currentEditCells.length !== 0) {
                                 _this.agGrid.api.startEditingCell({
                                     rowIndex: currentEditCells[0].rowIndex,
                                     colKey: currentEditCells[0].column.colId
@@ -1880,6 +1880,20 @@ export class DataGrid extends NGGridDirective {
         return sortModel;
     }
 
+    applySortModel(sortModel) {
+        const columnState = [];
+        if (sortModel) {
+            sortModel.forEach((item, index) => {
+                columnState.push({
+                    colId: item.colId,
+                    sort: item.sort,
+                    sortIndex: index
+                });
+            });
+        }
+        this.agGrid.columnApi.applyColumnState({ state: columnState, defaultState: { sort: null } });
+    }
+
     purge() {
         if(this.onSelectionChangedTimeout) {
             setTimeout(() => {
@@ -1908,7 +1922,7 @@ export class DataGrid extends NGGridDirective {
 
         this.agGrid.api.refreshServerSideStore({purge: true});
         this.dirtyCache = false;
-        this.isSelectionReady = false;
+        this.isRenderedAndSelectionReady = false;
         this.scrollToSelectionWhenSelectionReady = true;
         this.columnsToFitAfterRowsRendered = true;
         // $log.warn('purge cache');
@@ -2063,13 +2077,11 @@ export class DataGrid extends NGGridDirective {
         }
 
         const filterModel = this.agGrid.api.getFilterModel();
-        const sortModel = this.getAgGridSortModel();
 
         const columnState = {
             columnState: agColumnState,
             rowGroupColumnsState: svyRowGroupColumnIds,
-            filterModel,
-            sortModel
+            filterModel
         };
         const newColumnState = JSON.stringify(columnState);
 
@@ -2154,7 +2166,7 @@ export class DataGrid extends NGGridDirective {
 
             if(columnStateJSON != null) {
                 if(restoreColumns && Array.isArray(columnStateJSON.columnState) && columnStateJSON.columnState.length > 0) {
-                    this.agGrid.columnApi.setColumnState(columnStateJSON.columnState);
+                    this.agGrid.columnApi.applyColumnState({state: columnStateJSON.columnState, applyOrder: true});                    
                 }
 
                 if(restoreColumns && Array.isArray(columnStateJSON.rowGroupColumnsState) && columnStateJSON.rowGroupColumnsState.length > 0) {
@@ -2166,7 +2178,7 @@ export class DataGrid extends NGGridDirective {
                 }
 
                 if(this.restoreStates && this.restoreStates.sort && Array.isArray(columnStateJSON.sortModel)) {
-                    this.agGrid.api.setSortModel(columnStateJSON.sortModel);
+                    this.applySortModel(columnStateJSON.sortModel);
                 }
             }
         }
@@ -2498,8 +2510,8 @@ export class DataGrid extends NGGridDirective {
         let iconConfig = this.datagridService.iconConfig ? this.datagridService.iconConfig : null;
         iconConfig = this.mergeConfig(iconConfig, this.iconConfig);
         const refreshEditorIconConfig = this.iconConfig ? this.iconConfig : null;
-        return refreshEditorIconConfig && refreshEditorIconConfig.iconRefreshData &&  refreshEditorIconConfig.iconRefreshData !== 'glyphicon glyphicon-refresh' ?
-            this.iconConfig.iconRefreshData : 'fa fa-sync';
+        return refreshEditorIconConfig && refreshEditorIconConfig['iconRefreshData'] &&  refreshEditorIconConfig['iconRefreshData'] !== 'glyphicon glyphicon-refresh' ?
+            this.iconConfig['iconRefreshData'] : 'fa fa-sync';
     }
 
     getIconCheckboxEditor(state: any) {
@@ -2605,7 +2617,7 @@ export class DataGrid extends NGGridDirective {
         }
 
         // set to true once the grid is ready and selection is set
-        this.isSelectionReady = true;
+        this.isRenderedAndSelectionReady = true;
 
         // rows are rendered, if there was an editCell request, now it is the time to apply it
         if(this.startEditFoundsetIndex > -1 && this.startEditColumnIndex > -1) {
@@ -3180,11 +3192,11 @@ export class DataGrid extends NGGridDirective {
                 this.log.debug('myFoundset sort changed ' + newSort);
                 // could be already set when clicking sort on header and there is an onsort handler, so skip reseting it, to avoid a new onsort call
                 if(this.sortHandlerPromises.length === 0) {
-                    this.agGrid.api.setSortModel(this.getSortModel());
+                    this.applySortModel(this.getSortModel());
                 } else {
                     this.agGrid.api.refreshServerSideStore({purge: true});
                 }
-                this.isSelectionReady = false;
+                this.isRenderedAndSelectionReady = false;
                 this.scrollToSelectionWhenSelectionReady = true;
 
                 // if sort has changed, return, skip handling any additional foundset change flags
@@ -3381,7 +3393,7 @@ export class DataGrid extends NGGridDirective {
         } else {
 
             // if is not ready to edit, wait for the row to be rendered
-            if(this.isSelectionReady && !this.isDataLoading) {
+            if(this.isRenderedAndSelectionReady && !this.isDataLoading) {
                 const column = this.columns[columnindex];
                 const colId = column.id ? column.id : this.getColumnID(column, columnindex);
                 setTimeout(() => {
@@ -3416,7 +3428,7 @@ export class DataGrid extends NGGridDirective {
         } else {
 
             // if is not ready to request focus, wait for the row to be rendered
-            if (this.isSelectionReady) {
+            if (this.isRenderedAndSelectionReady) {
                 if (this.myFoundset && this.myFoundset.viewPort.size && this.myFoundset.selectedRowIndexes.length ) {
                     const column = this.columns[columnindex];
                     const rowIndex = this.myFoundset.selectedRowIndexes[0];
@@ -3436,7 +3448,7 @@ export class DataGrid extends NGGridDirective {
      * Scroll to the selected row
      */
     scrollToSelection() {
-        if(this.isSelectionReady) {
+        if(this.isRenderedAndSelectionReady) {
             this.scrollToSelectionEx();
             this.scrollToSelectionWhenSelectionReady = false;
         } else {
@@ -3883,7 +3895,13 @@ class FoundsetServer {
 
         const currentGridSort = this.dataGrid.getFoundsetSortModel(this.dataGrid.getAgGridSortModel());
         const foundsetSort = this.dataGrid.stripUnsortableColumns(this.dataGrid.foundset.getSortColumns());
-        const isSortChanged = !this.dataGrid.onSort && foundsetRefManager.isRoot && sortString !== foundsetSort && currentGridSort.sortString !== foundsetSort;
+        let isSortChanged = foundsetRefManager.isRoot && sortString !== foundsetSort && currentGridSort.sortString !== foundsetSort;
+
+        // skip sort change if there is a sort handler (onsort) & the sort request is from the UI header (isRenderedAndSelectionReady == true)
+        // because the sort is defined then by the handler implementation not the foundset column sort setting
+        if(isSortChanged && this.dataGrid.onSort && this.dataGrid.isRenderedAndSelectionReady) {
+            isSortChanged = false;
+        }        
 
         if(isSortChanged) {
             this.dataGrid.log.debug('CHANGE SORT REQUEST');
@@ -3899,8 +3917,8 @@ class FoundsetServer {
             }
 
             if(isColumnSortable) {
-                // send sort request if header is clicked; skip if is is not from UI (isSelectionReady == false) or if it from a sort handler or a group column sort
-                if(this.dataGrid.isSelectionReady || sortString) {
+                // send sort request if header is clicked; skip if is is not from UI (isRenderedAndSelectionReady == false) or if it from a sort handler or a group column sort
+                if(this.dataGrid.isRenderedAndSelectionReady || sortString) {
                     foundsetSortModel = this.dataGrid.getFoundsetSortModel(sortModel);
                     this.dataGrid.sortPromise = foundsetRefManager.sort(foundsetSortModel.sortColumns);
                     this.dataGrid.sortPromise.then(() => {
@@ -3913,7 +3931,7 @@ class FoundsetServer {
                         this.dataGrid.sortPromise = null;
                     });
                 } else { // set the grid sorting if foundset sort changed from the grid initialization (like doing foundset sort on form's onShow)
-                    this.dataGrid.agGrid.api.setSortModel(this.dataGrid.getSortModel());
+                    this.dataGrid.applySortModel(this.dataGrid.getSortModel());
                     this.dataGrid.agGrid.api.refreshServerSideStore({purge: true});
                 }
             } else {
@@ -4071,7 +4089,7 @@ class FoundsetDatasource {
                     _this.dataGrid.isDataLoading = false;
                     // if selection did not changed, mark the selection ready
                     if(!_this.dataGrid.selectedRowIndexesChanged()) {
-                        _this.dataGrid.isSelectionReady = true;
+                        _this.dataGrid.isRenderedAndSelectionReady = true;
                     }
                     // rows are rendered, if there was an editCell request, now it is the time to apply it
                     if(_this.dataGrid.startEditFoundsetIndex > -1 && _this.dataGrid.startEditColumnIndex > -1) {
@@ -4920,4 +4938,53 @@ class GroupNode {
         });
         this.nodes = [];
     }
+}
+
+export class DataGridColumn extends BaseCustomObject {
+    footerText: string;
+    headerTitle: string;
+    footerStyleClass: string;
+    headerStyleClass: string;
+    headerTooltip: string;
+    headerGroup: string;
+    headerGroupStyleClass: string;
+    dataprovider: any
+    tooltip: any;
+    styleClass: string;
+    styleClassDataprovider: any;
+    format: any;
+    valuelist: any;
+    visible: boolean;
+    width: number;
+    minWidth: number;
+    maxWidth: number;
+    enableRowGroup: boolean;
+    enableSort: boolean;
+    enableResize: boolean;
+    enableToolPanel: boolean;
+    autoResize: boolean;
+    rowGroupIndex: number;
+    isEditableDataprovider: any;
+    editType: string;
+    editForm: any;
+    editFormSize: any;
+    filterType: string;
+    id: string;
+    columnDef: any;
+    showAs: string;
+}
+
+export class GroupedColumn extends BaseCustomObject {
+    dataprovider: any;
+    format: any;
+    valuelist: any;
+    id: string;
+    styleClassDataprovider: any;
+}
+
+export class HashedFoundset extends BaseCustomObject {
+    foundset: any;
+    foundsetUUID: any;
+    uuid: string;
+    columns: GroupedColumn[];
 }
