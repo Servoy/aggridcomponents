@@ -1169,15 +1169,10 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
 
 							// set selected cell on next non-group row cells
 							if(nextRow) {
-								gridOptions.api.forEachNode( function(node) {
-									if (newIndex === node.rowIndex) {
-                                        if ($scope.model.multiSelect) {
-                                            // node.setSelected(true); // keep previus selection
-                                        } else {
-                                            node.setSelected(true, true);
-                                        }
-									}
-								});
+                                if(!nextRow.id) return null; // row cannot be selected (happens when arrow key is kept pressed, and the row is not yet rendered), skip suggestion
+                                if(!$scope.model.multiSelect) {
+                                    nextRow.setSelected(true, true);
+                                }
 								suggestedNextCell.rowIndex = newIndex;
 							}
 							return suggestedNextCell;
@@ -1191,15 +1186,10 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
 
 							// set selected cell on previous non-group row cells
 							if(nextRow) {
-								gridOptions.api.forEachNode( function(node) {
-									if (newIndex === node.rowIndex) {
-                                        if ($scope.model.multiSelect) {
-                                            // node.setSelected(true); // keep previus selection
-                                        } else {
-                                            node.setSelected(true, true);
-                                        }
-									}
-								});
+                                if(!nextRow.id) return null; // row cannot be selected (happens when arrow key is kept pressed, and the row is not yet rendered), skip suggestion
+                                if(!$scope.model.multiSelect) {
+                                    nextRow.setSelected(true, true);
+                                }
 								suggestedNextCell.rowIndex = newIndex;
 							}
 							return suggestedNextCell;

@@ -421,7 +421,7 @@ export class PowerGrid extends NGGridDirective {
             }
         }
 
-        if (this.agGridOptions.groupUseEntireRow) {
+        if (this.agGridOptions.groupUseEntireRow || this.agGridOptions.groupDisplayType === 'groupRows') {
             let groupRowRendererFunc = this.groupRowInnerRenderer;
             if (this.groupRowRendererFunc) {
                 groupRowRendererFunc = this.groupRowRendererFunc;
@@ -954,15 +954,10 @@ export class PowerGrid extends NGGridDirective {
 
                 // set selected cell on next non-group row cells
                 if (nextRow) {
-                    this.agGrid.api.forEachNode((node) => {
-                        if (newIndex === node.rowIndex) {
-                            if (this.multiSelect) {
-                                // node.setSelected(true); // keep previus selection
-                            } else {
-                                node.setSelected(true, true);
-                            }
-                        }
-                    });
+                    if(!nextRow.id) return null; // row cannot be selected (happens when arrow key is kept pressed, and the row is not yet rendered), skip suggestion
+                    if(!this.multiSelect) {
+                        nextRow.setSelected(true, true);
+                    }
                     suggestedNextCell.rowIndex = newIndex;
                 }
                 return suggestedNextCell;
@@ -976,15 +971,10 @@ export class PowerGrid extends NGGridDirective {
 
                 // set selected cell on previous non-group row cells
                 if (nextRow) {
-                    this.agGrid.api.forEachNode((node) => {
-                        if (newIndex === node.rowIndex) {
-                            if (this.multiSelect) {
-                                // node.setSelected(true); // keep previus selection
-                            } else {
-                                node.setSelected(true, true);
-                            }
-                        }
-                    });
+                    if(!nextRow.id) return null; // row cannot be selected (happens when arrow key is kept pressed, and the row is not yet rendered), skip suggestion
+                    if(!this.multiSelect) {
+                        nextRow.setSelected(true, true);
+                    }
                     suggestedNextCell.rowIndex = newIndex;
                 }
                 return suggestedNextCell;

@@ -362,8 +362,7 @@ export class DataGrid extends NGGridDirective {
             singleClickEdit: false,
             suppressClickEdit: false,
             enableGroupEdit: false,
-            groupUseEntireRow: this.groupUseEntireRow,
-            groupDisplayType: 'multipleColumns',
+            groupDisplayType: this.groupUseEntireRow ? 'groupRows' : 'multipleColumns',
             suppressAggFuncInHeader: true, // TODO support aggregations
 
             suppressColumnVirtualisation: false,
@@ -2251,12 +2250,9 @@ export class DataGrid extends NGGridDirective {
 
                 // set selected cell on next non-group row cells
                 if(nextRow && suggestedNextCell && !isPinnedBottom) {  	// don't change selection if row is pinned to the bottom (footer)
+                    if(!nextRow.id) return null; // row cannot be selected (happens when arrow key is kept pressed, and the row is not yet rendered), skip suggestion
                     this.selectionEvent = { type: 'key', event: params.event };
-                    this.agGrid.api.forEachNode( (node) => {
-                        if (newIndex === node.rowIndex) {
-                            node.setSelected(true, true);
-                        }
-                    });
+                    nextRow.setSelected(true, true);
                     suggestedNextCell.rowIndex = newIndex;
                 }
                 return suggestedNextCell;
@@ -2270,12 +2266,9 @@ export class DataGrid extends NGGridDirective {
 
                 // set selected cell on previous non-group row cells
                 if(nextRow && suggestedNextCell) {
+                    if(!nextRow.id) return null; // row cannot be selected (happens when arrow key is kept pressed, and the row is not yet rendered), skip suggestion
                     this.selectionEvent = { type: 'key', event: params.event };
-                    this.agGrid.api.forEachNode( (node) => {
-                        if (newIndex === node.rowIndex) {
-                            node.setSelected(true, true);
-                        }
-                    });
+                    nextRow.setSelected(true, true);
                     suggestedNextCell.rowIndex = newIndex;
                 }
                 return suggestedNextCell;
