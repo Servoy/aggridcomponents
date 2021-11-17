@@ -156,7 +156,6 @@ export class DataGrid extends NGGridDirective {
     // foundset sort promise
     sortPromise: any;
     sortHandlerPromises = new Array();
-    sortHandlerTimeout: any;
 
     // if row autoHeight, we need to do a refresh after first time data are displayed, to allow ag grid to re-calculate the heights
     isRefreshNeededForAutoHeight = false;
@@ -425,13 +424,7 @@ export class DataGrid extends NGGridDirective {
                     this.agGrid.api.refreshServerSideStore({purge: true});
                 }
                 if(this.onSort && this.isRenderedAndSelectionReady) {
-                    if(this.sortHandlerTimeout) {
-                        clearTimeout(this.sortHandlerTimeout);
-                    }
-                    this.sortHandlerTimeout = setTimeout(() =>{
-                        this.sortHandlerTimeout = null;
-                        this.onSortHandler();
-                    }, 250);
+                    this.onSortHandler();
                 }
             },
             onColumnResized: () => {
@@ -903,6 +896,7 @@ export class DataGrid extends NGGridDirective {
         const foundsetServer = new FoundsetServer(this, []);
         const datasource = new FoundsetDatasource(this, foundsetServer);
         this.agGrid.api.setServerSideDatasource(datasource);
+        this.agGrid.api.refreshServerSideStore({purge: true});
         this.isRenderedAndSelectionReady = false;
         this.scrollToSelectionWhenSelectionReady = true;
     }
@@ -2321,7 +2315,7 @@ export class DataGrid extends NGGridDirective {
                     sortColumnDirections.push(sortModel[i].sort);
                 }
             }
-
+            this.refreshDatasource();
             const sortHandlerPromise = this.onSort(sortColumns, sortColumnDirections);
             this.sortHandlerPromises.push(sortHandlerPromise);
             sortHandlerPromise.then(
@@ -3162,10 +3156,15 @@ export class DataGrid extends NGGridDirective {
             return;
         }
 
+        if(this.sortHandlerPromises.length > 0) {
+            this.log.debug('sortHandlers are still being executed, skip updates');
+            return;
+        }
+
         // Floor
         const idRandom = Math.floor(1000 * Math.random());
 
-        if (changeEvent.sortColumnsChanged) {
+        if (!this.onSort && changeEvent.sortColumnsChanged) { // ignore foundset sort when there is an onSort handler
             this.log.debug(idRandom + ' - 1. Sort');
 
             if (this.sortPromise && (JSON.stringify(this.getAgGridSortModel()) === JSON.stringify(this.getSortModel()))) {
@@ -3886,52 +3885,52 @@ class FoundsetServer {
             this.dataGrid.state.rootGroupSort = sortModel[0];
         }
 
-        const currentGridSort = this.dataGrid.getFoundsetSortModel(this.dataGrid.getAgGridSortModel());
-        const foundsetSort = this.dataGrid.stripUnsortableColumns(this.dataGrid.foundset.getSortColumns());
-        let isSortChanged = foundsetRefManager.isRoot && sortString !== foundsetSort && currentGridSort.sortString !== foundsetSort;
-
-        // skip sort change if there is a sort handler (onsort) & the sort request is from the UI header (isRenderedAndSelectionReady == true)
-        // because the sort is defined then by the handler implementation not the foundset column sort setting
-        if(isSortChanged && this.dataGrid.onSort && this.dataGrid.isRenderedAndSelectionReady) {
-            isSortChanged = false;
-        }        
-
-        if(isSortChanged) {
-            this.dataGrid.log.debug('CHANGE SORT REQUEST');
-            let isColumnSortable = false;
-            // check sort columns in both the reques and model, because it is disable in the grid, it will be only in the model
-            const sortColumns = sortModel.concat(this.dataGrid.getSortModel());
-            for(const sortCol of sortColumns) {
-                const col = this.dataGrid.agGridOptions.columnApi.getColumn(sortCol.colId);
-                if(col && col.getColDef().sortable) {
-                    isColumnSortable = true;
-                    break;
+        if(!this.dataGrid.onSort) {
+            // if there is no user defined onSort, set the sort from from foundset
+            const currentGridSort = this.dataGrid.getFoundsetSortModel(this.dataGrid.getAgGridSortModel());
+            const foundsetSort = this.dataGrid.stripUnsortableColumns(this.dataGrid.foundset.getSortColumns());
+            let isSortChanged = foundsetRefManager.isRoot && sortString !== foundsetSort && currentGridSort.sortString !== foundsetSort;
+        
+            if(isSortChanged) {
+                this.dataGrid.log.debug('CHANGE SORT REQUEST');
+                let isColumnSortable = false;
+                // check sort columns in both the reques and model, because it is disable in the grid, it will be only in the model
+                const sortColumns = sortModel.concat(this.dataGrid.getSortModel());
+                for(const sortCol of sortColumns) {
+                    const col = this.dataGrid.agGridOptions.columnApi.getColumn(sortCol.colId);
+                    if(col && col.getColDef().sortable) {
+                        isColumnSortable = true;
+                        break;
+                    }
                 }
-            }
-
-            if(isColumnSortable) {
-                // send sort request if header is clicked; skip if is is not from UI (isRenderedAndSelectionReady == false) or if it from a sort handler or a group column sort
-                if(this.dataGrid.isRenderedAndSelectionReady || sortString) {
-                    foundsetSortModel = this.dataGrid.getFoundsetSortModel(sortModel);
-                    this.dataGrid.sortPromise = foundsetRefManager.sort(foundsetSortModel.sortColumns);
-                    this.dataGrid.sortPromise.then(() => {
-                        this.getDataFromFoundset(foundsetRefManager, request, callback);
-                        // give time to the foundset change listener to know it was a client side requested sort
-                        setTimeout(() => {
+    
+                if(isColumnSortable) {
+                    // send sort request if header is clicked; skip if is is not from UI (isRenderedAndSelectionReady == false) or if it from a sort handler or a group column sort
+                    if(this.dataGrid.isRenderedAndSelectionReady || sortString) {
+                        foundsetSortModel = this.dataGrid.getFoundsetSortModel(sortModel);
+                        this.dataGrid.sortPromise = foundsetRefManager.sort(foundsetSortModel.sortColumns);
+                        this.dataGrid.sortPromise.then(() => {
+                            this.getDataFromFoundset(foundsetRefManager, request, callback);
+                            // give time to the foundset change listener to know it was a client side requested sort
+                            setTimeout(() => {
+                                this.dataGrid.sortPromise = null;
+                            }, 0);
+                        }).catch(() => {
                             this.dataGrid.sortPromise = null;
-                        }, 0);
-                    }).catch(() => {
-                        this.dataGrid.sortPromise = null;
-                    });
-                } else { // set the grid sorting if foundset sort changed from the grid initialization (like doing foundset sort on form's onShow)
-                    this.dataGrid.applySortModel(this.dataGrid.getSortModel());
-                    this.dataGrid.agGrid.api.refreshServerSideStore({purge: true});
+                        });
+                    } else { // set the grid sorting if foundset sort changed from the grid initialization (like doing foundset sort on form's onShow)
+                        this.dataGrid.applySortModel(this.dataGrid.getSortModel());
+                        this.dataGrid.agGrid.api.refreshServerSideStore({purge: true});
+                    }
+                } else {
+                    this.getDataFromFoundset(foundsetRefManager, request, callback);
                 }
             } else {
                 this.getDataFromFoundset(foundsetRefManager, request, callback);
             }
-        } else {
-            this.getDataFromFoundset(foundsetRefManager, request, callback);
+        }
+        else {
+            this.getDataFromFoundset(foundsetRefManager, request, callback);            
         }
     }
 
