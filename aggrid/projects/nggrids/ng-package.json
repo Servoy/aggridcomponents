@@ -5,19 +5,7 @@
      "assets"
     ],
   "lib": {
-    "entryFile": "src/public-api.ts",
-    "umdId": "servoy.nggrids",
-    "umdModuleIds": {
-      "@servoy/public": "servoy.public",
-      "@angular/core": "angular.core",
-      "luxon": "luxon",
-      "@ng-bootstrap/ng-bootstrap": "ng-bootstrap.ng-bootstrap",
-      "@ag-grid-community/angular": "ag-grid-community.angular",
-      "@ag-grid-community/core": "ag-grid-community.core",
-      "@ag-grid-enterprise/all-modules" : "ag-grid-enterprise.all-modules",
-      "@ag-grid-enterprise/core" : "ag-grid-enterprise.core",
-      "@danielmoncada/angular-datetime-picker": "danielmoncada.angular-datetime-picker"
-    }
+    "entryFile": "src/public-api.ts"
   },
   "allowedNonPeerDependencies": ["@danielmoncada/angular-datetime-picker", "@ng-bootstrap/ng-bootstrap", "@angular/cdk", "@ag-grid-community/angular", "@ag-grid-enterprise/all-modules"]
 }
