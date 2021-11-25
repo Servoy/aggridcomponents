@@ -366,6 +366,7 @@
 			"enablePivot":  {"type": "boolean", "default": false, "tags": {"doc": "If the column can be used as pivot"}},
 			"pivotIndex":  {"type": "int", "default": -1, "tags": {"doc": "Set this in columns you want to pivot by"}},
 			"aggFunc": {"type": "string", "values" : ["sum", "min", "max", "count", "avg", "first", "last"], "default": "", "tags": {"doc": "Name of function to use for aggregation"}},
+			"aggCustomFunc": {"type": "clientfunction", "tags": {"doc": "Custom aggregate function"}},
 			"enableSort" : {"type": "boolean", "default" : true},
 			"enableResize" : {"type": "boolean", "default" : true},
 			"enableToolPanel" : {"type": "boolean", "default" : true},
@@ -382,7 +383,8 @@
 			"columnDef": {"type" : "map", "tags": {"doc": "Map where additional column properties of ag-grid can be set"}},
 			"showAs": { "type": "string", "values": [{"text":null}, {"html":"html"}, {"sanitizedHtml":"sanitizedHtml"}] },
 			"exportDisplayValue": {"type": "boolean", "default" : false, "tags": {"doc": "If exportData api should export the display value (with format applied) instead of the raw data of the dataset"}},
-			"pivotComparatorFunc": {"type": "clientfunction", "tags": {"doc": "Function to sort the pivot columns"}}
+			"pivotComparatorFunc": {"type": "clientfunction", "tags": {"doc": "Function to sort the pivot columns"}},
+			"valueGetterFunc": {"type": "clientfunction", "tags": {"doc": "Proxy function for getting the cell value from the model"}}
 		},
         "iconConfig" : {
 			"iconMenu": { "type": "styleclass", "tags": {"scope": "design"}},

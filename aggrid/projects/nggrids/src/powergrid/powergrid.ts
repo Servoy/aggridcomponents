@@ -28,6 +28,7 @@ const COLUMN_PROPERTIES_DEFAULTS = {
     enablePivot: { colDefProperty: 'enablePivot', default: false },
     pivotIndex: { colDefProperty: 'pivotIndex', default: -1 },
     aggFunc: { colDefProperty: 'aggFunc', default: '' },
+    aggCustomFunc: { colDefProperty: 'aggFunc', default: '' },
     width: { colDefProperty: 'width', default: 0 },
     enableToolPanel: { colDefProperty: 'suppressToolPanel', default: true },
     maxWidth: { colDefProperty: 'maxWidth', default: null },
@@ -38,7 +39,8 @@ const COLUMN_PROPERTIES_DEFAULTS = {
     enableSort: { colDefProperty: 'sortable', default: true },
     cellStyleClassFunc: { colDefProperty: 'cellClass', default: null },
     cellRendererFunc: { colDefProperty: 'cellRenderer', default: null },
-    pivotComparatorFunc: { colDefProperty: "pivotComparator", default: null }
+    pivotComparatorFunc: { colDefProperty: "pivotComparator", default: null },
+    valueGetterFunc: { colDefProperty: "valueGetter", default: null }
 };
 
 const COLUMN_KEYS_TO_CHECK_FOR_CHANGES = [
@@ -615,7 +617,11 @@ export class PowerGrid extends NGGridDirective {
                 colDef.enablePivot = column.enablePivot;
                 if (column.pivotIndex >= 0) colDef.pivotIndex = column.pivotIndex;
 
-                if (column.aggFunc) colDef.aggFunc = column.aggFunc;
+                if(column.aggCustomFunc) {
+                    colDef.aggFunc = this.createAggCustomFunctionFromString(column.aggCustomFunc);
+                }
+                else if(column.aggFunc) colDef.aggFunc = column.aggFunc;
+
                 // tool panel
                 if (column.enableToolPanel === false) colDef.suppressToolPanel = !column.enableToolPanel;
 
@@ -665,6 +671,10 @@ export class PowerGrid extends NGGridDirective {
 
                 if(column.pivotComparatorFunc) {
                     colDef.pivotComparator = this.createPivotComparatorCallbackFunctionFromString(column.pivotComparatorFunc);
+                }
+
+                if(column.valueGetterFunc) {
+                    colDef.valueGetter = this.createColumnValueGetterCallbackFunctionFromString(column.valueGetterFunc);
                 }
 
                 if (column.filterType) {
@@ -1381,12 +1391,20 @@ export class PowerGrid extends NGGridDirective {
         };
     }
 
-    createColumnCallbackFunctionFromString(func: (rowIndex: number, data: any, colDef: string, value: any, event: any) => string) {
-        return (params: any) => func(params.rowIndex, params.data, params.colDef.colId !== undefined ? params.colDef.colId : params.colDef.field, params.value, params.event);
+    createColumnCallbackFunctionFromString(func: (rowIndex: number, data: any, colDef: string, value: any) => string) {
+        return (params: any) => func(params.rowIndex, params.data, params.colDef.colId !== undefined ? params.colDef.colId : params.colDef.field, params.value);
     }
 
     createPivotComparatorCallbackFunctionFromString(func: (valueA: string, valueB: string) => number) {
         return (valueA: string, valueB: string) => func(valueA, valueB);
+    }
+
+    createColumnValueGetterCallbackFunctionFromString(func: (rowIndex: number, data: any, colDef: string, params: any) => string) {
+        return (params: any) => func(params.node.rowIndex, params.data, params.colDef.colId !== undefined ? params.colDef.colId : params.colDef.field, params);
+    }
+
+    createAggCustomFunctionFromString(func: (values: any[]) => number) {
+        return (values: any[]) => func(values);
     }
 
     getDefaultCellRenderer(column: any) {
@@ -1762,7 +1780,8 @@ export class PowerGridColumn extends BaseCustomObject {
     rowGroupIndex: number;
     enablePivot: boolean;
     pivotIndex: number;
-    aggFunc: string;
+    aggFunc: any;
+    aggCustomFunc: any;
     enableSort: boolean;
     enableResize: boolean;
     enableToolPanel: boolean;
@@ -1780,4 +1799,5 @@ export class PowerGridColumn extends BaseCustomObject {
     showAs: string;
     exportDisplayValue: boolean;
     pivotComparatorFunc: any;
+    valueGetterFunc: any;
 }

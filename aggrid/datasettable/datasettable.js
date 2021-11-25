@@ -84,6 +84,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 enablePivot: { colDefProperty: "enablePivot", default: false },
                 pivotIndex: { colDefProperty: "pivotIndex", default: -1 },
                 aggFunc: { colDefProperty: "aggFunc", default: "" },
+                aggCustomFunc: { colDefProperty: "aggFunc", default: "" },
                 width: { colDefProperty: "width", default: 0 },
                 enableToolPanel: { colDefProperty: "suppressToolPanel", default: true },
                 maxWidth: { colDefProperty: "maxWidth", default: null },
@@ -94,7 +95,8 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 enableSort: { colDefProperty: "sortable", default: true },
                 cellStyleClassFunc: { colDefProperty: "cellClass", default: null },
                 cellRendererFunc: { colDefProperty: "cellRenderer", default: null },
-                pivotComparatorFunc: { colDefProperty: "pivotComparator", default: null }
+                pivotComparatorFunc: { colDefProperty: "pivotComparator", default: null },
+                valueGetterFunc: { colDefProperty: "valueGetter", default: null }
             }
 
             toolPanelConfig = mergeConfig(toolPanelConfig, config.toolPanelConfig);
@@ -785,7 +787,10 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     colDef.enablePivot = column.enablePivot;
                     if (column.pivotIndex >= 0) colDef.pivotIndex = column.pivotIndex;
 
-                    if(column.aggFunc) colDef.aggFunc = column.aggFunc;
+                    if(column.aggCustomFunc) {
+                        colDef.aggFunc = createAggCustomFunctionFromString(column.aggCustomFunc);
+                    }
+                    else if(column.aggFunc) colDef.aggFunc = column.aggFunc;
                     
                     // tool panel
                     if (column.enableToolPanel === false) colDef.suppressToolPanel = !column.enableToolPanel;
@@ -843,6 +848,10 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
 
                     if(column.pivotComparatorFunc) {
                         colDef.pivotComparator = createPivotComparatorFunctionFromString(column.pivotComparatorFunc);
+                    }
+
+                    if(column.valueGetterFunc) {
+                        colDef.valueGetter = createColumnValueGetterCallbackFunctionFromString(column.valueGetterFunc);
                     }
 
                     if (column.filterType) {
@@ -1003,7 +1012,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
             function createColumnCallbackFunctionFromString(functionAsString) {
                 var f = eval(functionAsString);
                 return function(params) {
-                    return f(params.rowIndex, params.data, params.colDef.colId != undefined ? params.colDef.colId : params.colDef.field, params.value, params.event);
+                    return f(params.rowIndex, params.data, params.colDef.colId != undefined ? params.colDef.colId : params.colDef.field, params.value);
                 };                
             }
 
@@ -1011,6 +1020,20 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 var f = eval(functionAsString);
                 return function(valueA, valueB) {
                     return f(valueA, valueB);
+                };                
+            }
+
+            function createColumnValueGetterCallbackFunctionFromString(functionAsString) {
+                var f = eval(functionAsString);
+                return function(params) {
+                    return f(params.node.rowIndex, params.data, params.colDef.colId != undefined ? params.colDef.colId : params.colDef.field, params);
+                };
+            }
+
+            function createAggCustomFunctionFromString(functionAsString) {
+                var f = eval(functionAsString);
+                return function(values) {
+                    return f(values);
                 };                
             }
 
