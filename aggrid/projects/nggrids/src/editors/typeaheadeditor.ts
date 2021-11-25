@@ -18,6 +18,7 @@ import { EditorDirective } from './editor';
         [ngbTypeahead]="filterValues"
         [resultFormatter]="resultFormatter"
 		    [inputFormatter]="inputFormatter"
+        (focus)="focus$.next('')"
         #instance="ngbTypeahead" #element>
     `
 })
@@ -28,7 +29,6 @@ export class TypeaheadEditor extends EditorDirective {
   @Input() maxLength = 524288;
 
   focus$ = new Subject<string>();
-  click$ = new Subject<string>();
 
   width: number;
   valuelist: any;
@@ -107,11 +107,9 @@ export class TypeaheadEditor extends EditorDirective {
 
   filterValues = (text$: Observable<string>) => {
     const debouncedText$ = text$.pipe(debounceTime(200), distinctUntilChanged());
-    const clicksWithClosedPopup$ = this.click$.pipe(filter(() => !this.instance.isPopupOpen()));
     const inputFocus$ = this.focus$;
 
-    return merge(debouncedText$, inputFocus$, clicksWithClosedPopup$).pipe( switchMap(term => (term === '' ? of(this.valuelist)
-    : this.valuelist.filterList(term)))) as Observable<readonly any[]>;
+    return merge(debouncedText$, inputFocus$).pipe( switchMap(term => this.valuelist.filterList(term))) as Observable<readonly any[]>;
   };
 
   // focus and select can be done after the gui is attached
@@ -126,6 +124,9 @@ export class TypeaheadEditor extends EditorDirective {
         //TODO: jquery mask
         //$(this.eInput).mask(editFormat, settings);
     }
+    setTimeout(() => {
+      this.elementRef.nativeElement.focus();
+    }, 0);
   }
 
   // returns the new value after editing
