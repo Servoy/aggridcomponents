@@ -46,7 +46,8 @@
 		"arrowsUpDownMoveWhenEditing": {"type": "string", "values": [{"DEFAULT": null}, {"NONE":"NONE"}, {"NEXTCELL":"NEXTCELL"}, {"NEXTEDITABLECELL":"NEXTEDITABLECELL"}], "tags": {"doc": "Defines action on TEXTFIELD editor for up/down arrow keys"}},
 		"editNextCellOnEnter":  { "type": "boolean", "default": false },
 		"readOnly": {"type": "boolean", "default": false},
-		"enabled" : {"type": "enabled", "blockingOn": false, "default": true}
+		"enabled" : {"type": "enabled", "blockingOn": false, "default": true},
+		"isEditableFunc": {"type": "clientfunction", "tags": {"doc": "Callback that returns the editable state of a cell."}}
 	},
 	"handlers" : {
 		"onRowSelected": {

@@ -92,6 +92,7 @@ export class PowerGrid extends NGGridDirective {
     @Input() readOnly: boolean;
     @Input() enabled: boolean;
     @Input() rowStyleClassFunc: any;
+    @Input() isEditableFunc: any;
     @Input() groupStyleClass: any;
     @Input() groupWidth: number;
     @Input() groupMinWidth: number;
@@ -140,6 +141,8 @@ export class PowerGrid extends NGGridDirective {
     hasAutoHeightColumn = false;
 
     previousColumns: any[];
+
+    isEditableCallback: any;
 
     constructor(renderer: Renderer2, cdRef: ChangeDetectorRef, logFactory: LoggerFactory,
         private powergridService: PowergridService, public formattingService: FormattingService,
@@ -377,6 +380,11 @@ export class PowerGrid extends NGGridDirective {
         if (this.rowStyleClassFunc) {
             const rowStyleClassFunc = this.rowStyleClassFunc;
             this.agGridOptions.getRowClass = (params) => rowStyleClassFunc(params.rowIndex, (params.data || Object.assign(params.node.groupData, params.node.aggData)), /* TODO CHECK params.event*/ null, params.node.group);
+        }
+
+        if(this.isEditableFunc) {
+            const isEditableFunc = this.isEditableFunc
+            this.isEditableCallback = (params: any) => isEditableFunc(params.node != undefined ? params.node.rowIndex : params.rowIndex, params.data, params.colDef.colId != undefined ? params.colDef.colId : params.colDef.field);
         }
 
         // set the icons
@@ -693,7 +701,7 @@ export class PowerGrid extends NGGridDirective {
                 colDef.suppressMenu = column.enableRowGroup === false && column.filterType == undefined;
 
                 if (column.editType) {
-                    colDef.editable = this.enabled && !this.readOnly && (column.editType !== 'CHECKBOX');
+                    colDef.editable = column.editType !== 'CHECKBOX' ? (params: any) => this.isColumnEditable(params) : false;
 
                     if (column.editType === 'TEXTFIELD') {
                         colDef.cellEditorFramework = TextEditor;
@@ -776,6 +784,18 @@ export class PowerGrid extends NGGridDirective {
             }
         }
         return mergeConfig;
+    }
+
+    isColumnEditable(args: any) {
+        if(this.enabled && !this.readOnly) {
+            if(this.isEditableCallback) {
+                return this.isEditableCallback(args);
+            }
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
     isFirstColumn(params: any) {
@@ -1061,7 +1081,7 @@ export class PowerGrid extends NGGridDirective {
 
     onCellClicked(params: any) {
         const col = params.colDef.field ? this.getColumn(params.colDef.field) : null;
-        if (col && col.editType === 'CHECKBOX' && params.event.target.tagName === 'I' && this.enabled && !this.readOnly) {
+        if (col && col.editType === 'CHECKBOX' && params.event.target.tagName === 'I' && this.isColumnEditable(params)) {
             let v = parseInt(params.value, 10);
             if (isNaN(v)) v = 0;
             params.node.setDataValue(params.column.colId, v ? 0 : 1);
@@ -1416,7 +1436,7 @@ export class PowerGrid extends NGGridDirective {
             }
 
             let value = params.value != null ? params.value : '';
-            const valueFormatted = params.valueFormatted != null ? params.valueFormatted : value;
+            const valueFormatted = params.valueFormatted != null ? params.valueFormatted : value && value.displayValue !== undefined ? value.displayValue : value
 
             let returnValueFormatted = false;
             if (column != null && column.showAs === 'html') {

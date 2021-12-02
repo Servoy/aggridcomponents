@@ -7,5 +7,5 @@
   "lib": {
     "entryFile": "src/public-api.ts"
   },
-  "allowedNonPeerDependencies": ["@danielmoncada/angular-datetime-picker", "@ng-bootstrap/ng-bootstrap", "@angular/cdk", "@ag-grid-community/angular", "@ag-grid-enterprise/all-modules"]
+  "allowedNonPeerDependencies": ["@danielmoncada/angular-datetime-picker", "@ng-bootstrap/ng-bootstrap", "@angular/cdk", "@ag-grid-community/angular", "@ag-grid-enterprise/all-modules", "bootstrap"]
 }

@@ -347,6 +347,14 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 };
             }
 
+            var isEditableFunc;
+            if($scope.model.isEditableFunc) {
+                var f = eval($scope.model.isEditableFunc);
+                isEditableFunc = function(params) {
+                    return f(params.node != undefined ? params.node.rowIndex : params.rowIndex, params.data, params.colDef.colId != undefined ? params.colDef.colId : params.colDef.field);
+                };
+            }
+
             // set the icons
             if(iconConfig) {
                 var icons = new Object();
@@ -873,7 +881,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     colDef.suppressMenu = column.enableRowGroup === false && column.filterType == undefined;
 
                     if (column.editType) {
-                        colDef.editable = $scope.model.enabled && !$scope.model.readOnly && (column.editType != 'CHECKBOX');
+                        colDef.editable = column.editType != 'CHECKBOX' ? isColumnEditable : false;
 
                         if(column.editType == 'TEXTFIELD') {
                             colDef.cellEditor = getTextEditor();
@@ -939,6 +947,18 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 }
 
                 return colDefs;
+            }
+
+            function isColumnEditable(args) {
+                if($scope.model.enabled && !$scope.model.readOnly) {
+                    if(isEditableFunc) {
+                        return isEditableFunc(args);
+                    }
+                    return true;
+                }
+                else {
+                    return false;
+                }
             }
 
             function isResponsive() {
@@ -1116,7 +1136,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
 
 				function onCellClicked(params) {
                     var col = params.colDef.field ? getColumn(params.colDef.field) : null;
-					if(col && col.editType == 'CHECKBOX' && params.event.target.tagName == 'I' && $scope.model.enabled && !$scope.model.readOnly) {
+					if(col && col.editType == 'CHECKBOX' && params.event.target.tagName == 'I' && isColumnEditable(params)) {
 						var v = parseInt(params.value);
 						if(v == NaN) v = 0;						
 						params.node.setDataValue(params.column.colId, v ? 0 : 1);
