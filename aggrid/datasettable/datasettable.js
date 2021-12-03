@@ -2121,7 +2121,30 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 if(isGridReady) {
                     applyExpandedState();
                 }
-            }            
+            }
+
+            /**
+             * Scroll viewport to matching row
+             * 
+             * @param rowData rowData with at least on attribute, used to find the viewport row to scroll to
+             */
+            $scope.api.scrollToRow = function (rowData) {            	
+            	var matchingRows = [];
+                gridOptions.api.forEachNode( function(node) {
+                    for (var dp in rowData) {
+                    	if (!node.data || rowData[dp] != node.data[dp]) {
+                    		return;
+                    	}
+                    }
+                    matchingRows.push(node.rowIndex)
+                });
+                
+                if (matchingRows.length) {
+                    setTimeout(function() {
+                    	gridOptions.api.ensureIndexVisible(matchingRows[0], 'middle');
+                    }, 0);
+                }
+            }
         },
         templateUrl: 'aggrid/datasettable/datasettable.html'
     };

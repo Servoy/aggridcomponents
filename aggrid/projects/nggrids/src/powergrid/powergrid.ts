@@ -1619,6 +1619,29 @@ export class PowerGrid extends NGGridDirective {
         }
     }
 
+    /**
+     * Scroll viewport to matching row
+     * 
+     * @param rowData rowData with at least on attribute, used to find the viewport row to scroll to
+     */    
+    scrollToRow(rowData: any) {
+        const matchingRows = [];
+        this.agGrid.api.forEachNode( (node) => {
+            for (let dp in rowData) {
+                if (!node.data || rowData[dp] != node.data[dp]) {
+                    return;
+                }
+            }
+            matchingRows.push(node.rowIndex)
+        });
+        
+        if (matchingRows.length) {
+            setTimeout(() => {
+                this.agGrid.api.ensureIndexVisible(matchingRows[0], 'middle');
+            }, 0);
+        }
+    }
+
     onCellValueChanged(params: any) {
         const rowIndex = params.node.rowIndex;
         const colId = params.column.colId;

@@ -326,6 +326,11 @@
 				{ "name": "groups", "type": "object"}
 			]
 		},
+		"scrollToRow": {
+			"parameters": [
+				{ "name": "rowData", "type": "object"}
+			]
+		},
 		"newRows": {
 			"parameters": [
 				{ "name": "rowsData", "type": "object[]"},
