@@ -161,6 +161,10 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
 
             var isGridReady = false;
 
+            var isDataRendering = false;
+
+            var scrollToRowAfterDataRendering = null;
+
             // AG grid definition
             var gridOptions = {
                 
@@ -485,10 +489,16 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
             }
             else {
                 $scope.$watchCollection("model.data", function(newValue, oldValue) {
-                    if(gridOptions) {
+                    if(gridOptions && newValue !== oldValue) {
+                        isDataRendering = true;
                         setTimeout(function() {
                           gridOptions.api.setRowData($scope.model.data);
+                          isDataRendering = false;
                           applyExpandedState();
+                          if(scrollToRowAfterDataRendering) {
+                              $scope.api.scrollToRow(scrollToRowAfterDataRendering);
+                              scrollToRowAfterDataRendering = null;
+                          }
                         },0);
                     }
                 });
@@ -2128,21 +2138,24 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
              * 
              * @param rowData rowData with at least on attribute, used to find the viewport row to scroll to
              */
-            $scope.api.scrollToRow = function (rowData) {            	
-            	var matchingRows = [];
-                gridOptions.api.forEachNode( function(node) {
-                    for (var dp in rowData) {
-                    	if (!node.data || rowData[dp] != node.data[dp]) {
-                    		return;
-                    	}
+            $scope.api.scrollToRow = function (rowData) {
+                if(isDataRendering) {
+                    scrollToRowAfterDataRendering = rowData;
+                }
+                else {
+                    var matchingRows = [];
+                    gridOptions.api.forEachNode( function(node) {
+                        for (var dp in rowData) {
+                            if (!node.data || rowData[dp] != node.data[dp]) {
+                                return;
+                            }
+                        }
+                        matchingRows.push(node.rowIndex)
+                    });
+                    
+                    if (matchingRows.length) {
+                        gridOptions.api.ensureIndexVisible(matchingRows[0], 'middle');
                     }
-                    matchingRows.push(node.rowIndex)
-                });
-                
-                if (matchingRows.length) {
-                    setTimeout(function() {
-                    	gridOptions.api.ensureIndexVisible(matchingRows[0], 'middle');
-                    }, 0);
                 }
             }
         },

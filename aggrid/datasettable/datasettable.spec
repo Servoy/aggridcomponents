@@ -329,7 +329,8 @@
 		"scrollToRow": {
 			"parameters": [
 				{ "name": "rowData", "type": "object"}
-			]
+			],
+			"async": true
 		},
 		"newRows": {
 			"parameters": [

@@ -1636,9 +1636,7 @@ export class PowerGrid extends NGGridDirective {
         });
         
         if (matchingRows.length) {
-            setTimeout(() => {
-                this.agGrid.api.ensureIndexVisible(matchingRows[0], 'middle');
-            }, 0);
+            this.agGrid.api.ensureIndexVisible(matchingRows[0], 'middle');
         }
     }
 
