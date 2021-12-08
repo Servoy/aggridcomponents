@@ -58,6 +58,14 @@ function setExpandedGroups(groups) {
 function scrollToRow(rowData) {
 }
 
+/** 
+ * Adds new column at specified index. Index is 0 based.
+ * 
+ * @param {String} id
+ * @param {Number} [index] 0-based index
+ * @return {column}
+ * 
+ */
 function newColumn(id, index) {
 }
 
@@ -120,9 +128,6 @@ function getColumn(id, forChange) {
 function renderData(dataset, pks) {
 }
 
-function convertData(value, columnName) {
-}
-
 /**
  * When useLazyLoading is set, this method is used to append the new rows
  * to the table from inside the onLazyLoadingGetRows callback.
@@ -143,9 +148,6 @@ function appendLazyRequestData(dataset, lastRowIndex) {
  * @param {Object} value form editor value
  */
 function setFormEditorValue(value) {
-}
-
-function getColumnByDataprovider(dp) {
 }
 
 /**
