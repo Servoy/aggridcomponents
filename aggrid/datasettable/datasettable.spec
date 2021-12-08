@@ -6,6 +6,7 @@
 	"icon" :"aggrid/datasettable/ag-dataset.png",
 	"definition": "aggrid/datasettable/datasettable.js",
 	"serverscript": "aggrid/datasettable/datasettable_server.js",
+	"doc": "aggrid/datasettable/datasettable_doc.js",
 	"libraries": [
 		{ "name": "datasettablegroupcellrenderer.js", "version": "1.0", "url": "aggrid/datasettable/datasettablegroupcellrenderer.js", "mimetype": "text/javascript" },
 		{ "name": "datasettable.css", "version": "1.0", "url": "aggrid/datasettable/datasettable.css", "mimetype": "text/css" }
