@@ -489,7 +489,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
             }
             else {
                 $scope.$watchCollection("model.data", function(newValue, oldValue) {
-                    if(gridOptions && newValue !== oldValue) {
+                    if(gridOptions) {
                         isDataRendering = true;
                         setTimeout(function() {
                           gridOptions.api.setRowData($scope.model.data);
