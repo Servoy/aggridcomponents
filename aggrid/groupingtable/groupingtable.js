@@ -4101,6 +4101,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					this.createOrReplaceFoundsetRef;
 					this.clearAll;
 
+					this.foundsetRefGetterQueue = [];
+					this.foundsetRefGetterPendingPromise = false;
+
 					//					this.updateGroupColumns = function(rowGroupCols) {
 					//
 					//						for (var i = 0; i < rowGroupCols.length; i++) {
@@ -4132,6 +4135,48 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					 * @return {PromiseType} returns a promise
 					 * */
 					this.getFoundsetRef = function(rowGroupCols, groupKeys, sort) {
+						var resultDeferred = $q.defer();
+						this.foundsetRefGetterQueue.push({
+							rowGroupCols,
+							groupKeys,
+							sort,
+							resultDeferred
+						});
+						this.dequeueFoundsetRefGetter();
+						return resultDeferred.promise;
+					}
+
+					this.dequeueFoundsetRefGetter = function() {
+						if (this.foundsetRefGetterPendingPromise) {
+							return false;
+						}
+						var item = this.foundsetRefGetterQueue.shift();
+						if (!item) {
+							return false;
+						}
+						try {
+							this.foundsetRefGetterPendingPromise = true;
+							var thisGroupManager = this;
+
+							this.getFoundsetRefInternal(item.rowGroupCols, item.groupKeys, item.sort).then(function(value){
+									thisGroupManager.foundsetRefGetterPendingPromise = false;
+									item.resultDeferred.resolve(value);
+									thisGroupManager.dequeueFoundsetRefGetter();
+								})
+								.catch(function(err) {
+									thisGroupManager.foundsetRefGetterPendingPromise = false;
+									item.resultDeferred.reject(err);
+									thisGroupManager.dequeueFoundsetRefGetter();
+								})
+						} catch (err) {
+							this.foundsetRefGetterPendingPromise = false;
+							item.resultDeferred.reject(err);
+							this.dequeueFoundsetRefGetter();
+						}
+						return true;
+					}
+
+					this.getFoundsetRefInternal = function(rowGroupCols, groupKeys, sort) {
 
 						// create a promise
 						/** @type {PromiseType} */
