@@ -2834,8 +2834,10 @@ export class DataGrid extends NGGridDirective {
     onCellContextMenu(params: any) {
         if(this.enabled && !params.node.rowPinned && !params.node.group) {
             this.log.debug(params);
-            this.selectionEvent = { type: 'click', event: params.event, rowIndex: params.node.rowIndex };
-            params.node.setSelected(true, true);
+            if(!params.node.isSelected()) {
+                this.selectionEvent = { type: 'click', event: params.event, rowIndex: params.node.rowIndex };
+                params.node.setSelected(true, true);
+            }
             if (this.onCellRightClick) {
                 // Added setTimeOut to enable onColumnDataChangeEvent to go first; must be over 250, so selection is sent first
                 setTimeout(() => {

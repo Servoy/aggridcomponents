@@ -1322,8 +1322,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				function onCellContextMenu(params) {
 					if($scope.model.enabled && !params.node.rowPinned && !params.node.group) {
 						$log.debug(params);
-						selectionEvent = { type: 'click', event: params.event, rowIndex: params.node.rowIndex };
-						params.node.setSelected(true, true);
+						if(!params.node.isSelected()) {
+							selectionEvent = { type: 'click', event: params.event, rowIndex: params.node.rowIndex };
+							params.node.setSelected(true, true);
+						}
 						if ($scope.handlers.onCellRightClick) {	
 							// Added setTimeOut to enable onColumnDataChangeEvent to go first; must be over 250, so selection is sent first
 							setTimeout(function() {
