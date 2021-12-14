@@ -2158,6 +2158,17 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     }
                 }
             }
+            
+            /**
+             * Auto-sizes all columns based on content.
+             * 
+             */
+             $scope.api.autoSizeAllColumns = function () {
+                if (isGridReady && gridOptions) {
+                    gridOptions.columnApi.autoSizeAllColumns(false);
+                }
+            }
+
         },
         templateUrl: 'aggrid/datasettable/datasettable.html'
     };

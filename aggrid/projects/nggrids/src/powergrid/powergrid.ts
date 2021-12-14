@@ -1640,6 +1640,16 @@ export class PowerGrid extends NGGridDirective {
         }
     }
 
+    /**
+    * Auto-sizes all columns based on content.
+    * 
+    */
+    autoSizeAllColumns() {
+        if (this.isGridReady && this.agGridOptions) {
+            this.agGridOptions.columnApi.autoSizeAllColumns(false);
+        }
+    }
+
     onCellValueChanged(params: any) {
         const rowIndex = params.node.rowIndex;
         const colId = params.column.colId;
