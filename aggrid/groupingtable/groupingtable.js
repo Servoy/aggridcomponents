@@ -3701,9 +3701,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							}
 
 						});
-						if ($scope.model.hashedFoundsets.length > 0) {
-							$log.error("Clear All was not successful, please debug");
-						}
+						// this check is not valid, as the hashedFoundset is cleared server side on a client request from foundset manager destroy
+						// if ($scope.model.hashedFoundsets.length > 0) {
+						// 	$log.error("Clear All was not successful, please debug");
+						// }
 					}
 
 					/**
