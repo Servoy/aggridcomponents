@@ -4185,6 +4185,9 @@ class GroupManager {
     groupedColumns: any = [];
     groupedValues = new Object();
 
+    foundsetRefGetterQueue = [];
+    foundsetRefGetterPendingPromise = false;
+
     constructor(public dataGrid: DataGrid) {
         this.hashTree = new GroupHashCache(this.dataGrid);
     }
@@ -4214,6 +4217,46 @@ class GroupManager {
      *
      */
     getFoundsetRef(rowGroupCols: any, groupKeys: any, sort?: any) {
+        const resultDeferred = new Deferred();
+        this.foundsetRefGetterQueue.push({
+            rowGroupCols,
+            groupKeys,
+            sort,
+            resultDeferred
+        });
+        this.dequeueFoundsetRefGetter();
+        return resultDeferred.promise;
+    }
+
+    dequeueFoundsetRefGetter () {
+        if (this.foundsetRefGetterPendingPromise) {
+            return false;
+        }
+        const item = this.foundsetRefGetterQueue.shift();
+        if (!item) {
+            return false;
+        }
+        try {
+            this.foundsetRefGetterPendingPromise = true;
+            this.getFoundsetRefInternal(item.rowGroupCols, item.groupKeys, item.sort).then((value) => {
+                    this.foundsetRefGetterPendingPromise = false;
+                    item.resultDeferred.resolve(value);
+                    this.dequeueFoundsetRefGetter();
+                })
+                .catch((err) => {
+                    this.foundsetRefGetterPendingPromise = false;
+                    item.resultDeferred.reject(err);
+                    this.dequeueFoundsetRefGetter();
+                })
+        } catch (err) {
+            this.foundsetRefGetterPendingPromise = false;
+            item.resultDeferred.reject(err);
+            this.dequeueFoundsetRefGetter();
+        }
+        return true;
+    }
+
+    getFoundsetRefInternal(rowGroupCols: any, groupKeys: any, sort?: any) {
 
         // create a promise
         const resultPromise = new Deferred();
