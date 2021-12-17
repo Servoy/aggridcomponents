@@ -2547,7 +2547,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							this.eFilterText.setAttribute("typeahead-wait-ms", "300");
 							this.eFilterText.setAttribute("typeahead-min-length", "0");
 							this.eFilterText.setAttribute("typeahead-append-to-body", "true");
-							this.eFilterText.setAttribute("ng-model", "typeaheadFilterValue");
+							this.eFilterText.setAttribute("ng-model", "typeaheadFilterValue" + this.columnIndex);
 
 							$compile(this.eFilterText)($scope);
 							$scope.$digest();
