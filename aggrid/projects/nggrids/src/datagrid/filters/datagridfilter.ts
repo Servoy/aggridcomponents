@@ -36,6 +36,7 @@ export class DatagridFilterDirective implements AgFilterComponent {
           if (this.valuelist) {
             this.valuelist.filterList('').subscribe((valuelistValues: any) => {
               this.valuelistValues = valuelistValues;
+              this.dataGrid.cdRef.detectChanges();
             });
           };
         }

@@ -14,6 +14,7 @@ import { ValuelistFilter } from './filters/valuelistfilter';
 import { IconConfig, MainMenuItemsConfig, NGGridDirective, ToolPanelConfig } from '../nggrid';
 import { DOCUMENT } from '@angular/common';
 import { BlankLoadingCellRendrer } from './renderers/blankloadingcellrenderer';
+import { NgbTypeaheadConfig } from '@ng-bootstrap/ng-bootstrap';
 
 const TABLE_PROPERTIES_DEFAULTS = {
     rowHeight: { gridOptionsProperty: 'rowHeight', default: 25 },
@@ -200,10 +201,11 @@ export class DataGrid extends NGGridDirective {
 
     previousColumns: any[];
 
-    constructor(renderer: Renderer2, cdRef: ChangeDetectorRef, logFactory: LoggerFactory,
-        private servoyService: ServoyPublicService, public formattingService: FormattingService,
+    constructor(renderer: Renderer2, public cdRef: ChangeDetectorRef, logFactory: LoggerFactory,
+        private servoyService: ServoyPublicService, public formattingService: FormattingService, public ngbTypeaheadConfig: NgbTypeaheadConfig,
         private datagridService: DatagridService, private sanitizer: DomSanitizer, @Inject(DOCUMENT) private doc: Document) {
         super(renderer, cdRef);
+        this.ngbTypeaheadConfig.container = 'body';
         this.log = logFactory.getLogger('DataGrid');
     }
 
@@ -492,6 +494,10 @@ export class DataGrid extends NGGridDirective {
                         this.sizeHeaderAndColumnsToFit();
                     }, 0);
                 }
+            },
+            frameworkComponents: {
+                valuelistFilter: ValuelistFilter,
+                radioFilter: RadioFilter
             }
         } as GridOptions;
 
@@ -1027,9 +1033,9 @@ export class DataGrid extends NGGridDirective {
                 } else if(column.filterType === 'DATE') {
                     colDef.filter = 'agDateColumnFilter';
                 } else if(column.filterType === 'VALUELIST') {
-                    colDef.filterFramework = ValuelistFilter;
+                    colDef.filter = 'valuelistFilter';
                 } else if(column.filterType === 'RADIO') {
-                    colDef.filterFramework = RadioFilter;
+                    colDef.filter = 'radioFilter';
                 }
             }
 

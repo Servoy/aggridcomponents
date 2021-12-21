@@ -34,6 +34,7 @@ export class TypeaheadEditor extends EditorDirective {
   valuelist: any;
   hasRealValues: boolean;
   format: any;
+  valuelistValues: any;
 
   constructor(private formatService: FormattingService, config: NgbTypeaheadConfig) {
     super();
@@ -70,6 +71,7 @@ export class TypeaheadEditor extends EditorDirective {
     this.valuelist = this.ngGrid.getValuelist(params);
     if (this.valuelist) {
       this.valuelist.filterList('').subscribe((valuelistValues: any) => {
+        this.valuelistValues = valuelistValues;
         let hasRealValues = false;
         for (const item of valuelistValues) {
           if (item.realValue !== item.displayValue) {
@@ -109,7 +111,9 @@ export class TypeaheadEditor extends EditorDirective {
     const debouncedText$ = text$.pipe(debounceTime(200), distinctUntilChanged());
     const inputFocus$ = this.focus$;
 
-    return merge(debouncedText$, inputFocus$).pipe( switchMap(term => this.valuelist.filterList(term))) as Observable<readonly any[]>;
+    return merge(debouncedText$, inputFocus$).pipe( switchMap(term =>
+      term === '' ? of(this.valuelistValues) : this.valuelist.filterList(term))) as Observable<readonly any[]>;
+
   };
 
   // focus and select can be done after the gui is attached
