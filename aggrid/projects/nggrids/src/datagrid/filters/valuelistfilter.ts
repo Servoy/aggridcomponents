@@ -35,8 +35,17 @@ export class ValuelistFilter extends DatagridFilterDirective {
     filterValues = (text$: Observable<string>) => {
         const debouncedText$ = text$.pipe(debounceTime(200), distinctUntilChanged());
         const inputFocus$ = this.focus$;
-        return merge(debouncedText$, inputFocus$).pipe( switchMap(term => (term === '' ? of(this.valuelistValues)
-        : this.valuelist.filterList(term)))) as Observable<readonly any[]>;
+        return merge(debouncedText$, inputFocus$).pipe( switchMap(term => {
+            const valuelist = this.getValuelistFromGrid();
+            let valuelistObs: Observable<readonly any[]>;
+            if(valuelist) {
+              valuelistObs = valuelist.filterList(term);
+              valuelistObs.subscribe(valuelistValues => this.valuelistValues = valuelistValues);
+            } else {
+              valuelistObs = of([]);
+            }
+            return valuelistObs;
+          }));
     };
 
     resultFormatter = (result: {displayValue: string; realValue: any}) => {
@@ -47,10 +56,10 @@ export class ValuelistFilter extends DatagridFilterDirective {
     inputFormatter = (result: any) => {
       if (result === null) return '';
       if (result.displayValue !== undefined) result = result.displayValue;
-      else if (this.valuelist.hasRealValues()) {
+      else if (this.valuelistValues.hasRealValues()) {
         // on purpose test with == so that "2" equals to 2
         // eslint-disable-next-line eqeqeq
-        const value = this.valuelist.find((item: any) => item.realValue == result);
+        const value = this.valuelistValues.find((item: any) => item.realValue == result);
         if (value) {
           result = value.displayValue;
         }

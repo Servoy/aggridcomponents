@@ -11,7 +11,6 @@ export class DatagridFilterDirective implements AgFilterComponent {
     params: IFilterParams;
     model: any;
     instance: any;
-    valuelist: any;
     valuelistValues: any;
     format: any;
     txtClearFilter: string;
@@ -30,20 +29,22 @@ export class DatagridFilterDirective implements AgFilterComponent {
         this.txtApplyFilter = this.dataGrid.agGridOptions['localeText'] && this.dataGrid.agGridOptions['localeText']['applyFilter'] ?
           this.dataGrid.agGridOptions['localeText'] && this.dataGrid.agGridOptions['localeText']['applyFilter'] : 'Apply Filter';
 
-        const rows = this.dataGrid.agGrid.api.getSelectedRows();
-        if(rows && rows.length > 0) {
-          this.valuelist = this.dataGrid.getValuelistEx(rows[0], params.column.getColId());
-          if (this.valuelist) {
-            this.valuelist.filterList('').subscribe((valuelistValues: any) => {
-              this.valuelistValues = valuelistValues;
-              this.dataGrid.cdRef.detectChanges();
-            });
-          };
+        const valuelist = this.getValuelistFromGrid();
+        if (valuelist) {
+          valuelist.filterList('').subscribe((valuelistValues) => {
+            this.valuelistValues = valuelistValues;
+            this.dataGrid.cdRef.detectChanges();
+          });
         }
         const column = this.dataGrid.getColumn(params.column.getColId());
         if(column && column.format) {
             this.format = column.format;
         }
+    }
+
+    getValuelistFromGrid(): any {
+      const rows = this.dataGrid.agGrid.api.getSelectedRows();
+      return rows && rows.length > 0 ? this.dataGrid.getValuelistEx(rows[0], this.params.column.getColId()) : null;
     }
 
     onClearFilter() {
