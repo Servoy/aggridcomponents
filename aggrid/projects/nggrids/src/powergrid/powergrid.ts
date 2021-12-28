@@ -629,6 +629,7 @@ export class PowerGrid extends NGGridDirective {
                     colDef.aggFunc = this.createAggCustomFunctionFromString(column.aggCustomFunc);
                 }
                 else if(column.aggFunc) colDef.aggFunc = column.aggFunc;
+                if(colDef.aggFunc) colDef.enableValue = true;
 
                 // tool panel
                 if (column.enableToolPanel === false) colDef.suppressToolPanel = !column.enableToolPanel;

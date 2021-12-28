@@ -809,6 +809,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                         colDef.aggFunc = createAggCustomFunctionFromString(column.aggCustomFunc);
                     }
                     else if(column.aggFunc) colDef.aggFunc = column.aggFunc;
+                    if(colDef.aggFunc) colDef.enableValue = true;
                     
                     // tool panel
                     if (column.enableToolPanel === false) colDef.suppressToolPanel = !column.enableToolPanel;
