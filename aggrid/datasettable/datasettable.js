@@ -84,6 +84,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 enablePivot: { colDefProperty: "enablePivot", default: false },
                 pivotIndex: { colDefProperty: "pivotIndex", default: -1 },
                 aggFunc: { colDefProperty: "aggFunc", default: "" },
+                aggCustomFunc: { colDefProperty: "aggFunc", default: "" },
                 width: { colDefProperty: "width", default: 0 },
                 enableToolPanel: { colDefProperty: "suppressToolPanel", default: true },
                 maxWidth: { colDefProperty: "maxWidth", default: null },
@@ -94,7 +95,8 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 enableSort: { colDefProperty: "sortable", default: true },
                 cellStyleClassFunc: { colDefProperty: "cellClass", default: null },
                 cellRendererFunc: { colDefProperty: "cellRenderer", default: null },
-                pivotComparatorFunc: { colDefProperty: "pivotComparator", default: null }
+                pivotComparatorFunc: { colDefProperty: "pivotComparator", default: null },
+                valueGetterFunc: { colDefProperty: "valueGetter", default: null }
             }
 
             toolPanelConfig = mergeConfig(toolPanelConfig, config.toolPanelConfig);
@@ -158,6 +160,10 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
             var contextMenuItems = [];
 
             var isGridReady = false;
+
+            var isDataRendering = false;
+
+            var scrollToRowAfterDataRendering = null;
 
             // AG grid definition
             var gridOptions = {
@@ -345,6 +351,14 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 };
             }
 
+            var isEditableFunc;
+            if($scope.model.isEditableFunc) {
+                var f = eval($scope.model.isEditableFunc);
+                isEditableFunc = function(params) {
+                    return f(params.node != undefined ? params.node.rowIndex : params.rowIndex, params.data, params.colDef.colId != undefined ? params.colDef.colId : params.colDef.field);
+                };
+            }
+
             // set the icons
             if(iconConfig) {
                 var icons = new Object();
@@ -476,9 +490,15 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
             else {
                 $scope.$watchCollection("model.data", function(newValue, oldValue) {
                     if(gridOptions) {
+                        isDataRendering = true;
                         setTimeout(function() {
                           gridOptions.api.setRowData($scope.model.data);
+                          isDataRendering = false;
                           applyExpandedState();
+                          if(scrollToRowAfterDataRendering) {
+                              $scope.api.scrollToRow(scrollToRowAfterDataRendering);
+                              scrollToRowAfterDataRendering = null;
+                          }
                         },0);
                     }
                 });
@@ -785,7 +805,11 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     colDef.enablePivot = column.enablePivot;
                     if (column.pivotIndex >= 0) colDef.pivotIndex = column.pivotIndex;
 
-                    if(column.aggFunc) colDef.aggFunc = column.aggFunc;
+                    if(column.aggCustomFunc) {
+                        colDef.aggFunc = createAggCustomFunctionFromString(column.aggCustomFunc);
+                    }
+                    else if(column.aggFunc) colDef.aggFunc = column.aggFunc;
+                    if(colDef.aggFunc) colDef.enableValue = true;
                     
                     // tool panel
                     if (column.enableToolPanel === false) colDef.suppressToolPanel = !column.enableToolPanel;
@@ -845,6 +869,10 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                         colDef.pivotComparator = createPivotComparatorFunctionFromString(column.pivotComparatorFunc);
                     }
 
+                    if(column.valueGetterFunc) {
+                        colDef.valueGetter = createColumnValueGetterCallbackFunctionFromString(column.valueGetterFunc);
+                    }
+
                     if (column.filterType) {
                         colDef.filter = true;
 
@@ -864,7 +892,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     colDef.suppressMenu = column.enableRowGroup === false && column.filterType == undefined;
 
                     if (column.editType) {
-                        colDef.editable = $scope.model.enabled && !$scope.model.readOnly && (column.editType != 'CHECKBOX');
+                        colDef.editable = column.editType != 'CHECKBOX' ? isColumnEditable : false;
 
                         if(column.editType == 'TEXTFIELD') {
                             colDef.cellEditor = getTextEditor();
@@ -930,6 +958,18 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 }
 
                 return colDefs;
+            }
+
+            function isColumnEditable(args) {
+                if($scope.model.enabled && !$scope.model.readOnly) {
+                    if(isEditableFunc) {
+                        return isEditableFunc(args);
+                    }
+                    return true;
+                }
+                else {
+                    return false;
+                }
             }
 
             function isResponsive() {
@@ -1003,7 +1043,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
             function createColumnCallbackFunctionFromString(functionAsString) {
                 var f = eval(functionAsString);
                 return function(params) {
-                    return f(params.rowIndex, params.data, params.colDef.colId != undefined ? params.colDef.colId : params.colDef.field, params.value, params.event);
+                    return f(params.rowIndex, params.data, params.colDef.colId != undefined ? params.colDef.colId : params.colDef.field, params.value);
                 };                
             }
 
@@ -1011,6 +1051,20 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 var f = eval(functionAsString);
                 return function(valueA, valueB) {
                     return f(valueA, valueB);
+                };                
+            }
+
+            function createColumnValueGetterCallbackFunctionFromString(functionAsString) {
+                var f = eval(functionAsString);
+                return function(params) {
+                    return f(params.node.rowIndex, params.data, params.colDef.colId != undefined ? params.colDef.colId : params.colDef.field, params);
+                };
+            }
+
+            function createAggCustomFunctionFromString(functionAsString) {
+                var f = eval(functionAsString);
+                return function(values) {
+                    return f(values);
                 };                
             }
 
@@ -1093,7 +1147,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
 
 				function onCellClicked(params) {
                     var col = params.colDef.field ? getColumn(params.colDef.field) : null;
-					if(col && col.editType == 'CHECKBOX' && params.event.target.tagName == 'I' && $scope.model.enabled && !$scope.model.readOnly) {
+					if(col && col.editType == 'CHECKBOX' && params.event.target.tagName == 'I' && isColumnEditable(params)) {
 						var v = parseInt(params.value);
 						if(v == NaN) v = 0;						
 						params.node.setDataValue(params.column.colId, v ? 0 : 1);
@@ -1169,15 +1223,10 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
 
 							// set selected cell on next non-group row cells
 							if(nextRow) {
-								gridOptions.api.forEachNode( function(node) {
-									if (newIndex === node.rowIndex) {
-                                        if ($scope.model.multiSelect) {
-                                            // node.setSelected(true); // keep previus selection
-                                        } else {
-                                            node.setSelected(true, true);
-                                        }
-									}
-								});
+                                if(!nextRow.id) return null; // row cannot be selected (happens when arrow key is kept pressed, and the row is not yet rendered), skip suggestion
+                                if(!$scope.model.multiSelect) {
+                                    nextRow.setSelected(true, true);
+                                }
 								suggestedNextCell.rowIndex = newIndex;
 							}
 							return suggestedNextCell;
@@ -1191,15 +1240,10 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
 
 							// set selected cell on previous non-group row cells
 							if(nextRow) {
-								gridOptions.api.forEachNode( function(node) {
-									if (newIndex === node.rowIndex) {
-                                        if ($scope.model.multiSelect) {
-                                            // node.setSelected(true); // keep previus selection
-                                        } else {
-                                            node.setSelected(true, true);
-                                        }
-									}
-								});
+                                if(!nextRow.id) return null; // row cannot be selected (happens when arrow key is kept pressed, and the row is not yet rendered), skip suggestion
+                                if(!$scope.model.multiSelect) {
+                                    nextRow.setSelected(true, true);
+                                }
 								suggestedNextCell.rowIndex = newIndex;
 							}
 							return suggestedNextCell;
@@ -2078,6 +2122,13 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
             }
 
             /**
+             * Returns pivot mode state
+             */
+             $scope.api.isPivotMode = function() {
+                return gridOptions.columnApi.isPivotMode();
+            }
+
+            /**
              * Sets expanded groups
              *
              * @param {Object} groups an object like {expandedGroupName1:{}, expandedGroupName2:{expandedSubGroupName2_1:{}, expandedSubGroupName2_2:{}}}
@@ -2088,7 +2139,44 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 if(isGridReady) {
                     applyExpandedState();
                 }
-            }            
+            }
+
+            /**
+             * Scroll viewport to matching row
+             * 
+             * @param rowData rowData with at least on attribute, used to find the viewport row to scroll to
+             */
+            $scope.api.scrollToRow = function (rowData) {
+                if(isDataRendering) {
+                    scrollToRowAfterDataRendering = rowData;
+                }
+                else {
+                    var matchingRows = [];
+                    gridOptions.api.forEachNode( function(node) {
+                        for (var dp in rowData) {
+                            if (!node.data || rowData[dp] != node.data[dp]) {
+                                return;
+                            }
+                        }
+                        matchingRows.push(node.rowIndex)
+                    });
+                    
+                    if (matchingRows.length) {
+                        gridOptions.api.ensureIndexVisible(matchingRows[0], 'middle');
+                    }
+                }
+            }
+            
+            /**
+             * Auto-sizes all columns based on content.
+             * 
+             */
+             $scope.api.autoSizeAllColumns = function () {
+                if (isGridReady && gridOptions) {
+                    gridOptions.columnApi.autoSizeAllColumns(false);
+                }
+            }
+
         },
         templateUrl: 'aggrid/datasettable/datasettable.html'
     };

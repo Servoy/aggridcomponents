@@ -355,7 +355,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				// foundset sort promise
 				var sortPromise;
 				var sortHandlerPromises = new Array();
-				var sortHandlerTimeout;
 				function onSortHandler() {
 					var sortModel = gridOptions.api.getSortModel();
 					if(sortModel) {
@@ -671,13 +670,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							gridOptions.api.purgeServerSideCache();
 						}
 						if($scope.handlers.onSort && isRenderedAndSelectionReady) {
-							if(sortHandlerTimeout) {
-								clearTimeout(sortHandlerTimeout);
-							}
-							sortHandlerTimeout = setTimeout(function() {
-								sortHandlerTimeout = null;
-								onSortHandler();
-							}, 250);
+							onSortHandler();
 						}
 					},
 //	                onColumnVisible: storeColumnsState,			 covered by onDisplayedColumnsChanged
@@ -1329,8 +1322,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				function onCellContextMenu(params) {
 					if($scope.model.enabled && !params.node.rowPinned && !params.node.group) {
 						$log.debug(params);
-						selectionEvent = { type: 'click', event: params.event, rowIndex: params.node.rowIndex };
-						params.node.setSelected(true, true);
+						if(!params.node.isSelected()) {
+							selectionEvent = { type: 'click', event: params.event, rowIndex: params.node.rowIndex };
+							params.node.setSelected(true, true);
+						}
 						if ($scope.handlers.onCellRightClick) {	
 							// Added setTimeOut to enable onColumnDataChangeEvent to go first; must be over 250, so selection is sent first
 							setTimeout(function() {
@@ -1370,12 +1365,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 							// set selected cell on next non-group row cells
 							if(nextRow && suggestedNextCell && !isPinnedBottom) {  	// don't change selection if row is pinned to the bottom (footer)
+								if(!nextRow.id) return null; // row cannot be selected (happens when arrow key is kept pressed, and the row is not yet rendered), skip suggestion
 								selectionEvent = { type: 'key', event: params.event };
-								gridOptions.api.forEachNode( function(node) {
-									if (newIndex === node.rowIndex) {
-										node.setSelected(true, true);
-									}
-								});
+								nextRow.setSelected(true, true);
 								suggestedNextCell.rowIndex = newIndex;
 							}
 							return suggestedNextCell;
@@ -1389,12 +1381,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 							// set selected cell on previous non-group row cells
 							if(nextRow && suggestedNextCell) {
+								if(!nextRow.id) return null; // row cannot be selected (happens when arrow key is kept pressed, and the row is not yet rendered), skip suggestion
 								selectionEvent = { type: 'key', event: params.event };
-								gridOptions.api.forEachNode( function(node) {
-									if (newIndex === node.rowIndex) {
-										node.setSelected(true, true);
-									}
-								});
+								nextRow.setSelected(true, true);
 								suggestedNextCell.rowIndex = newIndex;
 							}
 							return suggestedNextCell;
@@ -2558,7 +2547,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							this.eFilterText.setAttribute("typeahead-wait-ms", "300");
 							this.eFilterText.setAttribute("typeahead-min-length", "0");
 							this.eFilterText.setAttribute("typeahead-append-to-body", "true");
-							this.eFilterText.setAttribute("ng-model", "typeaheadFilterValue");
+							this.eFilterText.setAttribute("ng-model", "typeaheadFilterValue" + this.columnIndex);
 
 							$compile(this.eFilterText)($scope);
 							$scope.$digest();
@@ -2982,49 +2971,49 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							state.rootGroupSort = sortModel[0];
 						}
 
-						var currentGridSort = getFoundsetSortModel(gridOptions.api.getSortModel());
-						var foundsetSort = stripUnsortableColumns(foundset.getSortColumns());
-						var isSortChanged = foundsetRefManager.isRoot && sortString != foundsetSort
-						&& currentGridSort.sortString != foundsetSort;
-
-						// skip sort change if there is a sort handler (onsort) & the sort request is from the UI header (isSelectionReady == true)
-        				// because the sort is defined then by the handler implementation not the foundset column sort setting
-						if(isSortChanged && $scope.handlers.onSort && isRenderedAndSelectionReady) {
-							isSortChanged = false;
-						}
-
-						if(isSortChanged) {
-							$log.debug('CHANGE SORT REQUEST');
-							var isColumnSortable = false;
-							// check sort columns in both the reques and model, because it is disable in the grid, it will be only in the model
-							var sortColumns = sortModel.concat(getSortModel());
-							for(var i = 0; i < sortColumns.length; i++) {
-								var col = gridOptions.columnApi.getColumn(sortColumns[i].colId);
-								if(col && col.getColDef().sortable) {
-									isColumnSortable = true;
-									break;
+						if(!$scope.handlers.onSort) {
+							// if there is no user defined onSort, set the sort from from foundset
+							var currentGridSort = getFoundsetSortModel(gridOptions.api.getSortModel());
+							var foundsetSort = stripUnsortableColumns(foundset.getSortColumns());
+							var isSortChanged = foundsetRefManager.isRoot && sortString != foundsetSort
+							&& currentGridSort.sortString != foundsetSort;
+	
+							if(isSortChanged) {
+								$log.debug('CHANGE SORT REQUEST');
+								var isColumnSortable = false;
+								// check sort columns in both the reques and model, because it is disable in the grid, it will be only in the model
+								var sortColumns = sortModel.concat(getSortModel());
+								for(var i = 0; i < sortColumns.length; i++) {
+									var col = gridOptions.columnApi.getColumn(sortColumns[i].colId);
+									if(col && col.getColDef().sortable) {
+										isColumnSortable = true;
+										break;
+									}
 								}
-							}
-
-							if(isColumnSortable) {
-								// send sort request if header is clicked; skip if is is not from UI (isRenderedAndSelectionReady == false) or if it from a sort handler or a group column sort
-								if(isRenderedAndSelectionReady || sortString) {
-									foundsetSortModel = getFoundsetSortModel(sortModel)
-									sortPromise = foundsetRefManager.sort(foundsetSortModel.sortColumns);
-									sortPromise.then(function() {
-										getDataFromFoundset(foundsetRefManager);
-										// give time to the foundset change listener to know it was a client side requested sort
-										setTimeout(function() {
-											sortPromise = null;
-										}, 0);
-									}).catch(function(e) {
-										sortPromise = null
-									});
+	
+								if(isColumnSortable) {
+									// send sort request if header is clicked; skip if is is not from UI (isRenderedAndSelectionReady == false) or if it from a sort handler or a group column sort
+									if(isRenderedAndSelectionReady || sortString) {
+										foundsetSortModel = getFoundsetSortModel(sortModel)
+										sortPromise = foundsetRefManager.sort(foundsetSortModel.sortColumns);
+										sortPromise.then(function() {
+											getDataFromFoundset(foundsetRefManager);
+											// give time to the foundset change listener to know it was a client side requested sort
+											setTimeout(function() {
+												sortPromise = null;
+											}, 0);
+										}).catch(function(e) {
+											sortPromise = null
+										});
+									}
+									// set the grid sorting if foundset sort changed from the grid initialization (like doing foundset sort on form's onShow)
+									else {
+										gridOptions.api.setSortModel(getSortModel());
+										gridOptions.api.purgeServerSideCache();
+									}
 								}
-								// set the grid sorting if foundset sort changed from the grid initialization (like doing foundset sort on form's onShow)
 								else {
-									gridOptions.api.setSortModel(getSortModel());
-									gridOptions.api.purgeServerSideCache();
+									getDataFromFoundset(foundsetRefManager);
 								}
 							}
 							else {
@@ -3127,6 +3116,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					var foundsetServer = new FoundsetServer([]);
 					var datasource = new FoundsetDatasource(foundsetServer);
 					gridOptions.api.setServerSideDatasource(datasource);
+					gridOptions.api.purgeServerSideCache();
 					isRenderedAndSelectionReady = false;
 					scrollToSelectionWhenSelectionReady = true;
 				}
@@ -3711,9 +3701,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							}
 
 						});
-						if ($scope.model.hashedFoundsets.length > 0) {
-							$log.error("Clear All was not successful, please debug");
-						}
+						// this check is not valid, as the hashedFoundset is cleared server side on a client request from foundset manager destroy
+						// if ($scope.model.hashedFoundsets.length > 0) {
+						// 	$log.error("Clear All was not successful, please debug");
+						// }
 					}
 
 					/**
@@ -4111,6 +4102,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					this.createOrReplaceFoundsetRef;
 					this.clearAll;
 
+					this.foundsetRefGetterQueue = [];
+					this.foundsetRefGetterPendingPromise = false;
+
 					//					this.updateGroupColumns = function(rowGroupCols) {
 					//
 					//						for (var i = 0; i < rowGroupCols.length; i++) {
@@ -4142,6 +4136,48 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					 * @return {PromiseType} returns a promise
 					 * */
 					this.getFoundsetRef = function(rowGroupCols, groupKeys, sort) {
+						var resultDeferred = $q.defer();
+						this.foundsetRefGetterQueue.push({
+							rowGroupCols,
+							groupKeys,
+							sort,
+							resultDeferred
+						});
+						this.dequeueFoundsetRefGetter();
+						return resultDeferred.promise;
+					}
+
+					this.dequeueFoundsetRefGetter = function() {
+						if (this.foundsetRefGetterPendingPromise) {
+							return false;
+						}
+						var item = this.foundsetRefGetterQueue.shift();
+						if (!item) {
+							return false;
+						}
+						try {
+							this.foundsetRefGetterPendingPromise = true;
+							var thisGroupManager = this;
+
+							this.getFoundsetRefInternal(item.rowGroupCols, item.groupKeys, item.sort).then(function(value){
+									thisGroupManager.foundsetRefGetterPendingPromise = false;
+									item.resultDeferred.resolve(value);
+									thisGroupManager.dequeueFoundsetRefGetter();
+								})
+								.catch(function(err) {
+									thisGroupManager.foundsetRefGetterPendingPromise = false;
+									item.resultDeferred.reject(err);
+									thisGroupManager.dequeueFoundsetRefGetter();
+								})
+						} catch (err) {
+							this.foundsetRefGetterPendingPromise = false;
+							item.resultDeferred.reject(err);
+							this.dequeueFoundsetRefGetter();
+						}
+						return true;
+					}
+
+					this.getFoundsetRefInternal = function(rowGroupCols, groupKeys, sort) {
 
 						// create a promise
 						/** @type {PromiseType} */
@@ -4489,10 +4525,15 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						return;
 					}
 
+					if(sortHandlerPromises.length > 0) {
+						$log.debug('sortHandlers are still being executed, skip updates');
+						return;
+					}
+
 					// Floor
 					var idRandom = Math.floor(1000 * Math.random());
 
-					if (change[$foundsetTypeConstants.NOTIFY_SORT_COLUMNS_CHANGED]) {
+					if (!$scope.handlers.onSort && change[$foundsetTypeConstants.NOTIFY_SORT_COLUMNS_CHANGED]) { // ignore foundset sort when there is an onSort handler
 						$log.debug(idRandom + ' - 1. Sort');
 
 						if (sortPromise && (JSON.stringify(gridOptions.api.getSortModel()) == JSON.stringify(getSortModel()))) {
@@ -4510,13 +4551,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						/** TODO check with R&D, sortColumns is updated only after the viewPort is update or there could be a concurrency race. When i would know when sort is completed ? */
 						if (newSort != oldSort) {
 							$log.debug('myFoundset sort changed ' + newSort);
-							// could be already set when clicking sort on header and there is an onsort handler, so skip reseting it, to avoid a new onsort call
-							if(sortHandlerPromises.length == 0) {
-								gridOptions.api.setSortModel(getSortModel());
-							}
-							else {
-								gridOptions.api.purgeServerSideCache();
-							}
+							gridOptions.api.setSortModel(getSortModel());
 							isRenderedAndSelectionReady = false;
 							scrollToSelectionWhenSelectionReady = true;
 

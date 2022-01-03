@@ -6,6 +6,7 @@
 	"icon" :"aggrid/datasettable/ag-dataset.png",
 	"definition": "aggrid/datasettable/datasettable.js",
 	"serverscript": "aggrid/datasettable/datasettable_server.js",
+	"doc": "aggrid/datasettable/datasettable_doc.js",
 	"libraries": [
 		{ "name": "datasettablegroupcellrenderer.js", "version": "1.0", "url": "aggrid/datasettable/datasettablegroupcellrenderer.js", "mimetype": "text/javascript" },
 		{ "name": "datasettable.css", "version": "1.0", "url": "aggrid/datasettable/datasettable.css", "mimetype": "text/css" }
@@ -46,7 +47,8 @@
 		"arrowsUpDownMoveWhenEditing": {"type": "string", "values": [{"DEFAULT": null}, {"NONE":"NONE"}, {"NEXTCELL":"NEXTCELL"}, {"NEXTEDITABLECELL":"NEXTEDITABLECELL"}], "tags": {"doc": "Defines action on TEXTFIELD editor for up/down arrow keys"}},
 		"editNextCellOnEnter":  { "type": "boolean", "default": false },
 		"readOnly": {"type": "boolean", "default": false},
-		"enabled" : {"type": "enabled", "blockingOn": false, "default": true}
+		"enabled" : {"type": "enabled", "blockingOn": false, "default": true},
+		"isEditableFunc": {"type": "clientfunction", "tags": {"doc": "Callback that returns the editable state of a cell."}}
 	},
 	"handlers" : {
 		"onRowSelected": {
@@ -325,6 +327,18 @@
 				{ "name": "groups", "type": "object"}
 			]
 		},
+		"scrollToRow": {
+			"parameters": [
+				{ "name": "rowData", "type": "object"}
+			],
+			"async": true
+		},
+        "autoSizeAllColumns" : {
+            "delayUntilFormLoads": true,
+            "discardPreviouslyQueuedSimilarCalls": true,
+            "parameters": [
+            ]
+        },
 		"newRows": {
 			"parameters": [
 				{ "name": "rowsData", "type": "object[]"},
@@ -340,6 +354,9 @@
 			"parameters": [
 				{ "name": "rowsKey", "type": "object[]"}
 			]
+		},
+		"isPivotMode" : {
+			"returns": "boolean"
 		}
 	},
 	"internalApi" : {
@@ -366,6 +383,7 @@
 			"enablePivot":  {"type": "boolean", "default": false, "tags": {"doc": "If the column can be used as pivot"}},
 			"pivotIndex":  {"type": "int", "default": -1, "tags": {"doc": "Set this in columns you want to pivot by"}},
 			"aggFunc": {"type": "string", "values" : ["sum", "min", "max", "count", "avg", "first", "last"], "default": "", "tags": {"doc": "Name of function to use for aggregation"}},
+			"aggCustomFunc": {"type": "clientfunction", "tags": {"doc": "Custom aggregate function"}},
 			"enableSort" : {"type": "boolean", "default" : true},
 			"enableResize" : {"type": "boolean", "default" : true},
 			"enableToolPanel" : {"type": "boolean", "default" : true},
@@ -382,7 +400,8 @@
 			"columnDef": {"type" : "map", "tags": {"doc": "Map where additional column properties of ag-grid can be set"}},
 			"showAs": { "type": "string", "values": [{"text":null}, {"html":"html"}, {"sanitizedHtml":"sanitizedHtml"}] },
 			"exportDisplayValue": {"type": "boolean", "default" : false, "tags": {"doc": "If exportData api should export the display value (with format applied) instead of the raw data of the dataset"}},
-			"pivotComparatorFunc": {"type": "clientfunction", "tags": {"doc": "Function to sort the pivot columns"}}
+			"pivotComparatorFunc": {"type": "clientfunction", "tags": {"doc": "Function to sort the pivot columns"}},
+			"valueGetterFunc": {"type": "clientfunction", "tags": {"doc": "Proxy function for getting the cell value from the model"}}
 		},
         "iconConfig" : {
 			"iconMenu": { "type": "styleclass", "tags": {"scope": "design"}},

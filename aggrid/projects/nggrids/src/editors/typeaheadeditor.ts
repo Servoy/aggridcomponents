@@ -18,6 +18,7 @@ import { EditorDirective } from './editor';
         [ngbTypeahead]="filterValues"
         [resultFormatter]="resultFormatter"
 		    [inputFormatter]="inputFormatter"
+        (focus)="focus$.next('')"
         #instance="ngbTypeahead" #element>
     `
 })
@@ -28,12 +29,12 @@ export class TypeaheadEditor extends EditorDirective {
   @Input() maxLength = 524288;
 
   focus$ = new Subject<string>();
-  click$ = new Subject<string>();
 
   width: number;
-  valuelist: any;
   hasRealValues: boolean;
   format: any;
+  initParams: any;
+  valuelistValues: any;
 
   constructor(private formatService: FormattingService, config: NgbTypeaheadConfig) {
     super();
@@ -62,14 +63,16 @@ export class TypeaheadEditor extends EditorDirective {
 
   agInit(params: any): void {
     super.agInit(params);
+    this.initParams = params;
 
     if(params.column.actualWidth) {
       this.width = params.column.actualWidth;
     }
 
-    this.valuelist = this.ngGrid.getValuelist(params);
-    if (this.valuelist) {
-      this.valuelist.filterList('').subscribe((valuelistValues: any) => {
+    const valuelist = this.ngGrid.getValuelist(params);
+    if (valuelist) {
+      valuelist.filterList('').subscribe((valuelistValues: any) => {
+        this.valuelistValues = valuelistValues;
         let hasRealValues = false;
         for (const item of valuelistValues) {
           if (item.realValue !== item.displayValue) {
@@ -107,11 +110,19 @@ export class TypeaheadEditor extends EditorDirective {
 
   filterValues = (text$: Observable<string>) => {
     const debouncedText$ = text$.pipe(debounceTime(200), distinctUntilChanged());
-    const clicksWithClosedPopup$ = this.click$.pipe(filter(() => !this.instance.isPopupOpen()));
     const inputFocus$ = this.focus$;
 
-    return merge(debouncedText$, inputFocus$, clicksWithClosedPopup$).pipe( switchMap(term => (term === '' ? of(this.valuelist)
-    : this.valuelist.filterList(term)))) as Observable<readonly any[]>;
+    return merge(debouncedText$, inputFocus$).pipe( switchMap(term => {
+      const valuelist = this.ngGrid.getValuelist(this.initParams);
+      let valuelistObs: Observable<readonly any[]>;
+      if(valuelist) {
+        valuelistObs = valuelist.filterList(term);
+        valuelistObs.subscribe(valuelistValues => this.valuelistValues = valuelistValues);
+      } else {
+        valuelistObs = of([]);
+      }
+      return valuelistObs;
+    }));
   };
 
   // focus and select can be done after the gui is attached
@@ -126,6 +137,9 @@ export class TypeaheadEditor extends EditorDirective {
         //TODO: jquery mask
         //$(this.eInput).mask(editFormat, settings);
     }
+    setTimeout(() => {
+      this.elementRef.nativeElement.focus();
+    }, 0);
   }
 
   // returns the new value after editing
@@ -144,9 +158,9 @@ export class TypeaheadEditor extends EditorDirective {
     }
     let realValue = displayValue;
 
-    if (this.valuelist) {
+    if (this.valuelistValues) {
       let hasMatchingDisplayValue = false;
-      const fDisplayValue = this.findDisplayValue(this.valuelist, displayValue);
+      const fDisplayValue = this.findDisplayValue(this.valuelistValues, displayValue);
       if(fDisplayValue != null) {
         hasMatchingDisplayValue = fDisplayValue['hasMatchingDisplayValue'];
         realValue = fDisplayValue['realValue'];
@@ -157,7 +171,7 @@ export class TypeaheadEditor extends EditorDirective {
           // if we still have old value do not set it to null or try to  get it from the list.
           if (this.initialValue != null && this.initialValue !== displayValue) {
             // so invalid thing is typed in the list and we are in real/display values, try to search the real value again to set the display value back.
-            for (const vvalue of this.valuelist) {
+            for (const vvalue of this.valuelistValues) {
               //TODO: compare trimmed values, typeahead will trim the selected value
               if (this.initialValue === vvalue.displayValue) {
                 realValue = vvalue.realValue;
@@ -182,10 +196,10 @@ export class TypeaheadEditor extends EditorDirective {
   inputFormatter = (result: any) => {
     if (result === null) return '';
     if (result.displayValue !== undefined) result = result.displayValue;
-    else if (this.valuelist.hasRealValues()) {
+    else if (this.valuelistValues.hasRealValues()) {
       // on purpose test with == so that "2" equals to 2
       // eslint-disable-next-line eqeqeq
-      const value = this.valuelist.find((item: any) => item.realValue == result);
+      const value = this.valuelistValues.find((item: any) => item.realValue == result);
       if (value) {
         result = value.displayValue;
       }

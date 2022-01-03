@@ -2,7 +2,6 @@ import { Component, ViewChild } from '@angular/core';
 import { NgbTypeahead, NgbTypeaheadConfig } from '@ng-bootstrap/ng-bootstrap';
 import { merge, Observable, of, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, switchMap } from 'rxjs/operators';
-import { FormattingService } from '@servoy/public';
 import { DatagridFilterDirective } from './datagridfilter';
 
 @Component({
@@ -14,6 +13,7 @@ import { DatagridFilterDirective } from './datagridfilter';
                 [ngbTypeahead]="filterValues"
                 [resultFormatter]="resultFormatter"
                 [inputFormatter]="inputFormatter"
+                (focus)="focus$.next('')"
                 [resultTemplate]="rt"
                 #instance="ngbTypeahead" #element>
         </div></div></div>
@@ -31,38 +31,40 @@ export class ValuelistFilter extends DatagridFilterDirective {
 
     @ViewChild('instance') instance: NgbTypeahead;
     focus$ = new Subject<string>();
-    click$ = new Subject<string>();
-
-    constructor(private formatService: FormattingService, config: NgbTypeaheadConfig) {
-      super();
-      config.container = 'body';
-    }
 
     filterValues = (text$: Observable<string>) => {
         const debouncedText$ = text$.pipe(debounceTime(200), distinctUntilChanged());
-        const clicksWithClosedPopup$ = this.click$.pipe(filter(() => !this.instance.isPopupOpen()));
         const inputFocus$ = this.focus$;
-        return merge(debouncedText$, inputFocus$, clicksWithClosedPopup$).pipe( switchMap(term => (term === '' ? of(this.valuelist)
-        : this.valuelist.filterList(term)))) as Observable<readonly any[]>;
+        return merge(debouncedText$, inputFocus$).pipe( switchMap(term => {
+            const valuelist = this.getValuelistFromGrid();
+            let valuelistObs: Observable<readonly any[]>;
+            if(valuelist) {
+              valuelistObs = valuelist.filterList(term);
+              valuelistObs.subscribe(valuelistValues => this.valuelistValues = valuelistValues);
+            } else {
+              valuelistObs = of([]);
+            }
+            return valuelistObs;
+          }));
     };
 
     resultFormatter = (result: {displayValue: string; realValue: any}) => {
       if (result.displayValue === null) return '';
-      return this.formatService.format(result.displayValue, this.format, false);
+      return this.dataGrid.formattingService.format(result.displayValue, this.format, false);
     };
 
     inputFormatter = (result: any) => {
       if (result === null) return '';
       if (result.displayValue !== undefined) result = result.displayValue;
-      else if (this.valuelist.hasRealValues()) {
+      else if (this.valuelistValues.hasRealValues()) {
         // on purpose test with == so that "2" equals to 2
         // eslint-disable-next-line eqeqeq
-        const value = this.valuelist.find((item: any) => item.realValue == result);
+        const value = this.valuelistValues.find((item: any) => item.realValue == result);
         if (value) {
           result = value.displayValue;
         }
       }
-      return this.formatService.format(result, this.format, false);
+      return this.dataGrid.formattingService.format(result, this.format, false);
     };
 
     getFilterUIValue(): any {
