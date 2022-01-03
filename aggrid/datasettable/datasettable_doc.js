@@ -43,6 +43,12 @@ function stopCellEditing(cancel) {
 }
 
 /**
+ * Returns pivot mode state
+ */
+function isPivotMode() {    
+}
+
+/**
  * Sets expanded groups
  *
  * @param {Object} groups an object like {expandedGroupName1:{}, expandedGroupName2:{expandedSubGroupName2_1:{}, expandedSubGroupName2_2:{}}}

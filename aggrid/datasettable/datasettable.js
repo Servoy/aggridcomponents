@@ -2122,6 +2122,13 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
             }
 
             /**
+             * Returns pivot mode state
+             */
+             $scope.api.isPivotMode = function() {
+                return gridOptions.columnApi.isPivotMode();
+            }
+
+            /**
              * Sets expanded groups
              *
              * @param {Object} groups an object like {expandedGroupName1:{}, expandedGroupName2:{expandedSubGroupName2_1:{}, expandedSubGroupName2_2:{}}}

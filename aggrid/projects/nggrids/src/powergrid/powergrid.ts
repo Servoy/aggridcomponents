@@ -1608,6 +1608,13 @@ export class PowerGrid extends NGGridDirective {
     }
 
     /**
+     * Returns pivot mode state
+     */
+    isPivotMode(): boolean {
+        return this.agGrid.columnApi.isPivotMode();
+    }
+
+    /**
      * Sets expanded groups
      *
      * @param groups an object like {expandedGroupName1:{}, expandedGroupName2:{expandedSubGroupName2_1:{}, expandedSubGroupName2_2:{}}}

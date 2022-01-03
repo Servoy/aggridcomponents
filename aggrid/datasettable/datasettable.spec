@@ -354,6 +354,9 @@
 			"parameters": [
 				{ "name": "rowsKey", "type": "object[]"}
 			]
+		},
+		"isPivotMode" : {
+			"returns": "boolean"
 		}
 	},
 	"internalApi" : {
