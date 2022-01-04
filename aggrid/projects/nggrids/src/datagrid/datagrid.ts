@@ -2740,7 +2740,7 @@ export class DataGrid extends NGGridDirective {
     }
 
     cellClickHandler(params: any) {
-        console.log('cellClickHandler; enabled: ' + this.enabled)
+        console.log('cellClickHandler; enabled property: ' + this.enabled)
         if(this.enabled) {
             this.selectionEvent = { type: 'click', event: params.event, rowIndex: params.node.rowIndex };
             if(params.node.rowPinned) {
