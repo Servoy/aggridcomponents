@@ -637,21 +637,26 @@ export class DataGrid extends NGGridDirective {
 
         // register listener for selection changed
         this.agGrid.api.addEventListener('selectionChanged', () => {
+            console.log('eventListener selectionChanged');
          this.onSelectionChanged();
         });
 
         this.agGrid.api.addEventListener('cellClicked', (params: any) => {
+            console.log('eventListener cellClicked');
          this.cellClickHandler(params);
         });
         this.agGrid.api.addEventListener('cellDoubleClicked', (params: any) => {
+            console.log('eventListener cellDblClick');
          this.onCellDoubleClicked(params);
         });
         this.agGrid.api.addEventListener('cellContextMenu', (params: any) => {
+            console.log('eventListener cellContextMenu');
          this.onCellContextMenu(params);
         });
 
         // // listen to group changes
         this.agGrid.api.addEventListener('columnRowGroupChanged', (params: any) => {
+            console.log('eventListener columnGroupRowCh');
          this.onColumnRowGroupChanged(params);
         });
 
@@ -1418,6 +1423,7 @@ export class DataGrid extends NGGridDirective {
     }
 
     selectedRowIndexesChanged(foundsetManager?: any): boolean {
+        console.log('selectedRowIndexesChanged');
         // FIXME can't select the record when is not in viewPort. Need to synchornize with viewPort record selection
         this.log.debug(' - 2.1 Request selection changes');
 
@@ -2588,6 +2594,7 @@ export class DataGrid extends NGGridDirective {
     }
 
     onSelectionChanged() {
+        console.log('onSelectionChanged');
         if(this.onSelectionChangedTimeout) {
             clearTimeout(this.onSelectionChangedTimeout);
         }
@@ -2598,6 +2605,7 @@ export class DataGrid extends NGGridDirective {
     }
 
     onSelectionChangedEx() {
+        console.log('onSelectionChangedEx');
         // Don't trigger foundset selection if table is grouping
         if (this.isTableGrouped()) {
 
@@ -2670,6 +2678,7 @@ export class DataGrid extends NGGridDirective {
                 }
             }
 
+            console.log('foundsetIndexes: ' + foundsetIndexes);
             if(foundsetIndexes.length > 0) {
                 foundsetIndexes.sort((a: any, b: any) => a - b);
                 // if single select don't send the old selection along with the new one, to the server
@@ -2681,10 +2690,12 @@ export class DataGrid extends NGGridDirective {
                             foundsetIndexes = foundsetIndexes.slice(0, 1);
                         }
                 }
+                console.log('requestSelectionPromise: ' + foundsetIndexes);
                 const requestSelectionPromise = this.foundset.foundset.requestSelectionUpdate(foundsetIndexes);
                 this.requestSelectionPromises.push(requestSelectionPromise);
                 requestSelectionPromise.then(
                     () => {
+                        console.log('requestSelectionPromise resolved');
                         if(this.requestSelectionPromises.shift() !== requestSelectionPromise) {
                             this.log.error('requestSelectionPromises out of sync');
                         }
@@ -2692,6 +2703,7 @@ export class DataGrid extends NGGridDirective {
                             this.scrollToSelection();
                         }
                         // Trigger event on selection change
+                        console.log('requestSelectionPromise selectedrowschanged');
                         if (this.onSelectedRowsChanged) {
                             this.onSelectedRowsChanged();
                         }
@@ -2699,14 +2711,17 @@ export class DataGrid extends NGGridDirective {
                         //success
                     },
                     (serverRows) => {
+                        console.log('requestSelectionPromise out of sync');
                         if(this.requestSelectionPromises.shift() !== requestSelectionPromise) {
                             this.log.error('requestSelectionPromises out of sync');
                         }
                         //canceled
                         if (typeof serverRows === 'string'){
+                            console.log('requestSelectionPromise cancelled');
                             return;
                         }
                         //reject
+                        console.log('requestSelectionPromise reject');
                         this.selectedRowIndexesChanged();
                         if(this.scrollToSelectionWhenSelectionReady) {
                             this.scrollToSelection();
@@ -2754,6 +2769,7 @@ export class DataGrid extends NGGridDirective {
     }
 
     onCellClicked(params: any) {
+        console.log('onCellClicked');
         this.log.debug(params);
         const col = params.colDef.field ? this.getColumn(params.colDef.field) : null;
         if(col && col.editType === 'CHECKBOX' && params.event.target.tagName === 'I' && this.isColumnEditable(params)) {
@@ -2794,6 +2810,7 @@ export class DataGrid extends NGGridDirective {
     }
 
     onCellDoubleClicked(params: any) {
+        console.log('onCellDblClicked');
         if(this.enabled) {
             // need timeout because the selection is also in a 250ms timeout
             setTimeout(() => {
@@ -2803,6 +2820,7 @@ export class DataGrid extends NGGridDirective {
     }
 
     onCellDoubleClickedEx(params: any) {
+        console.log('onCellDblClickedEx');
         this.log.debug(params);
         if (this.onCellDoubleClick && !params.node.rowPinned) {
             //						var row = params.data;
@@ -2838,6 +2856,7 @@ export class DataGrid extends NGGridDirective {
     }
 
     onCellContextMenu(params: any) {
+        console.log('onCellContextMenu');
         if(this.enabled && !params.node.rowPinned && !params.node.group) {
             this.log.debug(params);
             if(!params.node.isSelected()) {
