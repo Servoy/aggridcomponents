@@ -358,7 +358,7 @@ export class DataGrid extends NGGridDirective {
             rowSelection: this.myFoundset && (this.myFoundset.multiSelect === true) ? 'multiple' : 'single',
             suppressCellSelection: true,
             enableRangeSelection: false,
-            suppressRowClickSelection: !this.enabled,
+            suppressRowClickSelection: false,
 
             singleClickEdit: false,
             suppressClickEdit: false,
@@ -2232,7 +2232,6 @@ export class DataGrid extends NGGridDirective {
     }
 
     keySelectionChangeNavigation(params: any) {
-        if(!this.enabled) return;
         const previousCell = params.previousCellPosition;
         const suggestedNextCell = params.nextCellPosition;
         const isPinnedBottom = previousCell ? previousCell.rowPinned === 'bottom' : false;
@@ -2287,7 +2286,6 @@ export class DataGrid extends NGGridDirective {
     }
 
     tabSelectionChangeNavigation(params: any) {
-        if(!this.enabled) return;
         const suggestedNextCell = params.nextCellPosition;
         const isPinnedBottom = suggestedNextCell ? suggestedNextCell.rowPinned === 'bottom' : false;
 
@@ -2740,8 +2738,6 @@ export class DataGrid extends NGGridDirective {
     }
 
     cellClickHandler(params: any) {
-        console.log('cellClickHandler; enabled property: ' + this.enabled)
-        if(this.enabled) {
             this.selectionEvent = { type: 'click', event: params.event, rowIndex: params.node.rowIndex };
             if(params.node.rowPinned) {
                 if (params.node.rowPinned === 'bottom' && this.onFooterClick) {
@@ -2766,7 +2762,6 @@ export class DataGrid extends NGGridDirective {
                     }, 350);
                 }
             }
-        }
     }
 
     onCellClicked(params: any) {
@@ -2812,12 +2807,10 @@ export class DataGrid extends NGGridDirective {
 
     onCellDoubleClicked(params: any) {
         console.log('onCellDblClicked');
-        if(this.enabled) {
             // need timeout because the selection is also in a 250ms timeout
             setTimeout(() => {
                 this.onCellDoubleClickedEx(params);
             }, 250);
-        }
     }
 
     onCellDoubleClickedEx(params: any) {
@@ -2858,7 +2851,7 @@ export class DataGrid extends NGGridDirective {
 
     onCellContextMenu(params: any) {
         console.log('onCellContextMenu');
-        if(this.enabled && !params.node.rowPinned && !params.node.group) {
+        if(!params.node.rowPinned && !params.node.group) {
             this.log.debug(params);
             if(!params.node.isSelected()) {
                 this.selectionEvent = { type: 'click', event: params.event, rowIndex: params.node.rowIndex };
