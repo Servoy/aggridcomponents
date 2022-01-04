@@ -1599,7 +1599,10 @@ export class DataGrid extends NGGridDirective {
 
                     // restart the editing
                     if(isRowChanged && editingColumnId) {
-                        this.agGrid.api.startEditingCell({rowIndex: index, colKey: editingColumnId});
+                        const editingColumn = this.getColumn(editingColumnId);
+                        if(editingColumn && !editingColumn.stopEditingOnChange) {
+                            this.agGrid.api.startEditingCell({rowIndex: index, colKey: editingColumnId});
+                        }
                     }
                 }
             }

@@ -4861,7 +4861,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 								// restart the editing
 								if(isRowChanged && editingColumnId) {
-									gridOptions.api.startEditingCell({rowIndex: index, colKey: editingColumnId});
+									var editingColumn = getColumn(editingColumnId);
+									if(editingColumn && !editingColumn.stopEditingOnChange) {
+										gridOptions.api.startEditingCell({rowIndex: index, colKey: editingColumnId});
+									}
 								}
 							}
 						}
