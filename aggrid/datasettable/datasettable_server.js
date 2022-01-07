@@ -242,3 +242,20 @@ function getConvertedRowData(rowsData) {
     }
     return convertedRowsData;
 }
+
+/**
+ * Add custom aggregate functions.
+ * Ex.: addAggCustomFuncs({ myAggregate: '(function (valuesArray) { return myAggValueNumber })'})
+ *
+ * @param {Object} aggFuncs object with properties names the aggregates name, and values the custom function as string
+ */
+$scope.api.addAggCustomFuncs = function(aggFuncs) {
+    $scope.model._internalAggCustomFuncs = [];
+
+    for(var aggFuncName in aggFuncs) {
+        $scope.model._internalAggCustomFuncs.push({
+            name: aggFuncName,
+            aggFunc: aggFuncs[aggFuncName]
+        });
+    }
+}

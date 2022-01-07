@@ -48,7 +48,8 @@
 		"editNextCellOnEnter":  { "type": "boolean", "default": false },
 		"readOnly": {"type": "boolean", "default": false},
 		"enabled" : {"type": "enabled", "blockingOn": false, "default": true},
-		"isEditableFunc": {"type": "clientfunction", "tags": {"doc": "Callback that returns the editable state of a cell."}}
+		"isEditableFunc": {"type": "clientfunction", "tags": {"doc": "Callback that returns the editable state of a cell."}},
+		"_internalAggCustomFuncs": { "type": "aggFuncInfo[]", "tags": {"scope" : "private"}}
 	},
 	"handlers" : {
 		"onRowSelected": {
@@ -357,6 +358,11 @@
 		},
 		"isPivotMode" : {
 			"returns": "boolean"
+		},
+		"addAggCustomFuncs": {
+			"parameters": [
+				{ "name": "aggFuncs", "type": "map"}
+			]
 		}
 	},
 	"internalApi" : {
@@ -383,7 +389,6 @@
 			"enablePivot":  {"type": "boolean", "default": false, "tags": {"doc": "If the column can be used as pivot"}},
 			"pivotIndex":  {"type": "int", "default": -1, "tags": {"doc": "Set this in columns you want to pivot by"}},
 			"aggFunc": {"type": "string", "values" : ["sum", "min", "max", "count", "avg", "first", "last"], "default": "", "tags": {"doc": "Name of function to use for aggregation"}},
-			"aggCustomFunc": {"type": "clientfunction", "tags": {"doc": "Custom aggregate function"}},
 			"enableSort" : {"type": "boolean", "default" : true},
 			"enableResize" : {"type": "boolean", "default" : true},
 			"enableToolPanel" : {"type": "boolean", "default" : true},
@@ -488,6 +493,10 @@
 			"resetColumns": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},
 			"expandAll": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},
 			"contractAll": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}}
+		},
+		"aggFuncInfo": {
+			"name" : "string",
+			"aggFunc" : "clientfunction"
 		}		
 	}
 }

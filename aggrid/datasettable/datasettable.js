@@ -66,6 +66,14 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 return mergeConfig;
             }
 
+            function getAggCustomFuncs() {
+                var aggFuncs = {};
+                for(var i = 0; i < $scope.model._internalAggCustomFuncs.length; i++) {
+                    aggFuncs[$scope.model._internalAggCustomFuncs[i]['name']] = createAggCustomFunctionFromString($scope.model._internalAggCustomFuncs[i]['aggFunc']);
+                }
+                return aggFuncs;
+            }
+
             // defaults
             var TABLE_PROPERTIES_DEFAULTS = {
                 rowHeight: { gridOptionsProperty: "rowHeight", default: 25 },
@@ -84,7 +92,6 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 enablePivot: { colDefProperty: "enablePivot", default: false },
                 pivotIndex: { colDefProperty: "pivotIndex", default: -1 },
                 aggFunc: { colDefProperty: "aggFunc", default: "" },
-                aggCustomFunc: { colDefProperty: "aggFunc", default: "" },
                 width: { colDefProperty: "width", default: 0 },
                 enableToolPanel: { colDefProperty: "suppressToolPanel", default: true },
                 maxWidth: { colDefProperty: "maxWidth", default: null },
@@ -359,6 +366,10 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 };
             }
 
+            if($scope.model._internalAggCustomFuncs) {
+                gridOptions.aggFuncs = getAggCustomFuncs();
+            }
+
             // set the icons
             if(iconConfig) {
                 var icons = new Object();
@@ -574,6 +585,11 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     // and that will broke our getColumn()
                     gridOptions.api.setColumnDefs([]);
 
+                    // make sure custom agg functions are added before setting the column defs, as the aggs may already
+                    // been referenced in the columns
+                    if($scope.model._internalAggCustomFuncs) {
+                        gridOptions.api.addAggFuncs(getAggCustomFuncs()); 
+                    }
                     gridOptions.api.setColumnDefs(getColumnDefs());
                 }
             }
@@ -640,6 +656,12 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     else {
                         gridOptions.columnApi.resetColumnState();
                     }
+                }
+            });
+
+            $scope.$watch("model._internalAggCustomFuncs", function() {
+                if(gridOptions && gridOptions.api && $scope.model._internalAggCustomFuncs) {
+                    gridOptions.api.addAggFuncs(getAggCustomFuncs()); 
                 }
             });
 
@@ -805,10 +827,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     colDef.enablePivot = column.enablePivot;
                     if (column.pivotIndex >= 0) colDef.pivotIndex = column.pivotIndex;
 
-                    if(column.aggCustomFunc) {
-                        colDef.aggFunc = createAggCustomFunctionFromString(column.aggCustomFunc);
-                    }
-                    else if(column.aggFunc) colDef.aggFunc = column.aggFunc;
+                    if(column.aggFunc) colDef.aggFunc = column.aggFunc;
                     if(colDef.aggFunc) colDef.enableValue = true;
                     
                     // tool panel

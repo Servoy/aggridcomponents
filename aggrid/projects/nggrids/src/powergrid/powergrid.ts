@@ -28,7 +28,6 @@ const COLUMN_PROPERTIES_DEFAULTS = {
     enablePivot: { colDefProperty: 'enablePivot', default: false },
     pivotIndex: { colDefProperty: 'pivotIndex', default: -1 },
     aggFunc: { colDefProperty: 'aggFunc', default: '' },
-    aggCustomFunc: { colDefProperty: 'aggFunc', default: '' },
     width: { colDefProperty: 'width', default: 0 },
     enableToolPanel: { colDefProperty: 'suppressToolPanel', default: true },
     maxWidth: { colDefProperty: 'maxWidth', default: null },
@@ -117,6 +116,8 @@ export class PowerGrid extends NGGridDirective {
     @Input() onRowSelected: any;
     @Input() onReady: any;
     @Input() onColumnStateChanged: any;
+    @Input() _internalAggCustomFuncs: AggFuncInfo[];
+
 
     log: LoggerService;
     agGridOptions: GridOptions;
@@ -387,6 +388,10 @@ export class PowerGrid extends NGGridDirective {
             this.isEditableCallback = (params: any) => isEditableFunc(params.node != undefined ? params.node.rowIndex : params.rowIndex, params.data, params.colDef.colId != undefined ? params.colDef.colId : params.colDef.field);
         }
 
+        if(this._internalAggCustomFuncs) {
+            this.agGridOptions.aggFuncs = this.getAggCustomFuncs();
+        }
+
         // set the icons
         if (iconConfig) {
             type FunctionType = () => string;
@@ -575,6 +580,11 @@ export class PowerGrid extends NGGridDirective {
                             }
                         }
                         break;
+                    case '_internalAggCustomFuncs':
+                        if(this.agGrid && this._internalAggCustomFuncs) {
+                            this.agGrid.api.addAggFuncs(this.getAggCustomFuncs());
+                        }
+                        break;
                 }
             }
         }
@@ -625,10 +635,7 @@ export class PowerGrid extends NGGridDirective {
                 colDef.enablePivot = column.enablePivot;
                 if (column.pivotIndex >= 0) colDef.pivotIndex = column.pivotIndex;
 
-                if(column.aggCustomFunc) {
-                    colDef.aggFunc = this.createAggCustomFunctionFromString(column.aggCustomFunc);
-                }
-                else if(column.aggFunc) colDef.aggFunc = column.aggFunc;
+                if(column.aggFunc) colDef.aggFunc = column.aggFunc;
                 if(colDef.aggFunc) colDef.enableValue = true;
 
                 // tool panel
@@ -785,6 +792,14 @@ export class PowerGrid extends NGGridDirective {
             }
         }
         return mergeConfig;
+    }
+
+    getAggCustomFuncs(): any {
+        const aggFuncs = {};
+        for(const aggFuncInfo of this._internalAggCustomFuncs) {
+            aggFuncs[aggFuncInfo.name] = this.createAggCustomFunctionFromString(aggFuncInfo.aggFunc);
+        }
+        return aggFuncs;
     }
 
     isColumnEditable(args: any) {
@@ -1313,6 +1328,11 @@ export class PowerGrid extends NGGridDirective {
             // and that will broke our getColumn()
             this.agGrid.api.setColumnDefs([]);
 
+            // make sure custom agg functions are added before setting the column defs, as the aggs may already
+            // been referenced in the columns
+            if(this._internalAggCustomFuncs) {
+                this.agGrid.api.addAggFuncs(this.getAggCustomFuncs());
+            }
             this.agGrid.api.setColumnDefs(this.getColumnDefs());
         }
     }
@@ -1859,4 +1879,9 @@ export class PowerGridColumn extends BaseCustomObject {
     exportDisplayValue: boolean;
     pivotComparatorFunc: any;
     valueGetterFunc: any;
+}
+
+export class AggFuncInfo extends BaseCustomObject {
+    name: string;
+    aggFunc: any;
 }

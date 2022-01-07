@@ -190,3 +190,12 @@ function updateRows(rowsData) {
  */
 function deleteRows(rowsKey) {
 }
+
+/**
+ * Add custom aggregate functions.
+ * Ex.: addAggCustomFuncs({ myAggregate: '(function (valuesArray) { return myAggValueNumber })'})
+ *
+ * @param {Object} aggFuncs object with properties names the aggregates name, and values the custom function as string
+ */
+function addAggCustomFuncs(aggFuncs) {
+}
