@@ -3260,8 +3260,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					if(columnsArray1 != collumnsArray2) {
 						var n = [];
 						if(columnsArray1) {
-							for(var i of columnsArray1) {
-								var ob = Object.assign({}, i);
+							for(var i = 0; i < columnsArray1.length; i++) {
+								var ob = Object.assign({}, columnsArray1[i]);
 								// skip entries with data
 								delete ob['dataprovider']; 
 								delete ob['valuelist'];
@@ -3270,8 +3270,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						}
 						var o = [];
 						if(collumnsArray2) {
-							for(var i of collumnsArray2) {
-								var ob = Object.assign({}, i);
+							for(var i = 0; i < collumnsArray2.length; i++) {
+								var ob = Object.assign({}, collumnsArray2[i]);
 								// skip entries with data
 								delete ob['dataprovider'];
 								delete ob['valuelist'];
@@ -4138,10 +4138,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					this.getFoundsetRef = function(rowGroupCols, groupKeys, sort) {
 						var resultDeferred = $q.defer();
 						this.foundsetRefGetterQueue.push({
-							rowGroupCols,
-							groupKeys,
-							sort,
-							resultDeferred
+							rowGroupCols: rowGroupCols,
+							groupKeys: groupKeys,
+							sort: sort,
+							resultDeferred: resultDeferred
 						});
 						this.dequeueFoundsetRefGetter();
 						return resultDeferred.promise;
