@@ -1,5 +1,5 @@
-angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('aggridGroupingtable', ['$sabloApplication', '$sabloConstants', '$log', '$q', '$foundsetTypeConstants', '$filter', '$compile', '$formatterUtils', '$sabloConverters', '$injector', '$services', "$sanitize", '$window', "$applicationService", "$windowService",
-	function($sabloApplication, $sabloConstants, $log, $q, $foundsetTypeConstants, $filter, $compile, $formatterUtils, $sabloConverters, $injector, $services, $sanitize, $window, $applicationService, $windowService) {
+angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('aggridGroupingtable', ['$sabloApplication', '$sabloConstants', '$log', '$q', '$foundsetTypeConstants', '$filter', '$compile', '$formatterUtils', '$sabloConverters', '$injector', '$services', "$sanitize", '$window', "$applicationService", "$windowService", "$webSocket",
+	function($sabloApplication, $sabloConstants, $log, $q, $foundsetTypeConstants, $filter, $compile, $formatterUtils, $sabloConverters, $injector, $services, $sanitize, $window, $applicationService, $windowService, $webSocket) {
 		return {
 			restrict: 'E',
 			scope: {
@@ -2903,7 +2903,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						else {
 							filterMyFoundsetArg.push(sUpdatedFilterModel);
 						}
-						allPromises.push($scope.svyServoyapi.callServerSideApi("filterMyFoundset", filterMyFoundsetArg));
+						var filterPromise = $scope.svyServoyapi.callServerSideApi("filterMyFoundset", filterMyFoundsetArg);
+						filterPromise.requestInfo = "filterMyFoundset";
+						allPromises.push(filterPromise);
 					}
 
 					var sortModel = gridOptions.api.getSortModel();
@@ -4510,6 +4512,13 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				function changeListener(change) {
 					$log.debug("Root change listener is called " + state.waitfor.loadRecords);
 					$log.debug(change);
+
+					var currentRequestInfo = $webSocket.getCurrentRequestInfo();
+
+					if(currentRequestInfo == 'filterMyFoundset') {
+						$log.debug("currentRequestInfo is " + currentRequestInfo + " skip root foundset change handler");
+						return;
+					}
 
 					if(change[$foundsetTypeConstants.NOTIFY_MULTI_SELECT_CHANGED])
 					{
