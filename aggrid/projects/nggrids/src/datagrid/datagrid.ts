@@ -3155,6 +3155,13 @@ export class DataGrid extends NGGridDirective {
         this.log.debug('Root change listener is called ' + this.state.waitFor.loadRecords);
         this.log.debug(changeEvent);
 
+        const currentRequestInfo = this.servoyService.getCurrentRequestInfo();
+
+        if(currentRequestInfo === 'filterMyFoundset') {
+            this.log.debug('currentRequestInfo is ' + currentRequestInfo + ' skip root foundset change handler');
+            return;
+        }
+
         if(changeEvent.multiSelectChanged) {
             this.agGridOptions.rowSelection =  changeEvent.multiSelectChanged.newValue ? 'multiple' : 'single';
         }
@@ -3829,7 +3836,10 @@ class FoundsetServer {
             } else {
                 filterMyFoundsetArg.push(sUpdatedFilterModel);
             }
-            allPromises.push(this.dataGrid.servoyApi.callServerSideApi('filterMyFoundset', filterMyFoundsetArg));
+
+            const filterPromise = this.dataGrid.servoyApi.callServerSideApi('filterMyFoundset', filterMyFoundsetArg);
+            filterPromise['requestInfo'] = 'filterMyFoundset';
+            allPromises.push(filterPromise);
         }
 
         let sortModel =  this.dataGrid.getAgGridSortModel();
