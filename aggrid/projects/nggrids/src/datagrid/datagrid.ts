@@ -3152,7 +3152,10 @@ export class DataGrid extends NGGridDirective {
 
     /** Listener for the root foundset */
     changeListener(changeEvent: FoundsetChangeEvent) {
-        this.log.debug('Root change listener is called ' + this.state.waitFor.loadRecords);
+        if (changeEvent.requestInfos && changeEvent.requestInfos.includes('getDataFromFoundset')) {
+            // changes originate from our 'getDataFromFoundset', skip handling
+            return;
+        }
         this.log.debug(changeEvent);
 
         const currentRequestInfo = this.servoyService.getCurrentRequestInfo();
@@ -3218,7 +3221,7 @@ export class DataGrid extends NGGridDirective {
         }
 
         // if viewPort changes and startIndex does not change is the result of a sort or of a loadRecords
-        if ((changeEvent.foundsetDefinitionChanged || changeEvent.viewportRowsCompletelyChanged || changeEvent.fullValueChanged) && !this.state.waitFor.loadRecords) {
+        if (changeEvent.foundsetDefinitionChanged || changeEvent.viewportRowsCompletelyChanged || changeEvent.fullValueChanged) {
             this.log.debug(idRandom + ' - 2. Change foundset serverside');
             this.log.debug('Foundset changed serverside ');
 
@@ -3258,8 +3261,6 @@ export class DataGrid extends NGGridDirective {
                 }
             }
             return;
-        } else {
-            this.log.debug('wait for loadRecords request ' + this.state.waitFor.loadRecords);
         }
 
         if (changeEvent.viewportRowsUpdated) {
@@ -3535,7 +3536,6 @@ export class DataGrid extends NGGridDirective {
 }
 
 class State {
-    waitFor: WaitForInfo = new WaitForInfo();
     /** column mapping by field name e.g. state.columns[field] */
     columns = {};
     foundsetManagers = {};
@@ -3550,11 +3550,6 @@ class State {
     groupKeys: any = [];
     /** Sort state of the root group */
     rootGroupSort: any = null;
-}
-
-class WaitForInfo {
-    sort = 0;
-    loadRecords = 0;
 }
 
 class ExpandedInfo {
@@ -3590,6 +3585,10 @@ class FoundsetManager {
             // add the change listener to the component
             const _this = this;
             this.removeListenerFunction = foundset.addChangeListener((change: FoundsetChangeEvent) => {
+                if (change.requestInfos && change.requestInfos.includes('getDataFromFoundset')) {
+                    // changes originate from our 'getDataFromFoundset', skip handling
+                    return;
+                }
                 dataGrid.log.debug('child foundset changed listener ' + foundset);
 
                 if (change.sortColumnsChanged) {
@@ -3722,29 +3721,7 @@ class FoundsetManager {
             size = 0;
         }
 
-        // Wait for response
-        const isRootFoundset = this.isRoot;
-        const requestId = 1 + Math.random();
-        this.dataGrid.state.waitFor.loadRecords = isRootFoundset ? requestId : 0; // we use state.waitfor.loadRecords only in the root foundset change listener
-        // TODO can it handle multiple requests ?
-        const promise = this.foundset.loadRecordsAsync(startIndex, size);
-        promise.finally(() => {
-            // foundset change listener that checks for 'state.waitfor.loadRecords' is executed later,
-            // as last step when the response is processed, so postpone clearing the flag
-            if(isRootFoundset) {
-                setTimeout(() => {
-                    if (this.dataGrid.state.waitFor.loadRecords !== requestId) {
-                        // FIXME if this happen reduce parallel async requests to 1
-                        this.dataGrid.log.warn('Load record request id \'' +
-                        this.dataGrid.state.waitFor.loadRecords +
-                        '\' is different from the resolved promise \'' + requestId + '\'; this should not happen !!!');
-                    }
-                    this.dataGrid.state.waitFor.loadRecords = 0;
-                }, 0);
-            }
-        });
-
-        return promise;
+        return this.foundset.loadRecordsAsync(startIndex, size);
     }
 
     getSortColumns() {
@@ -3993,6 +3970,7 @@ class FoundsetServer {
 
             this.dataGrid.log.debug('Load async ' + requestViewPortStartIndex + ' - ' + requestViewPortEndIndex + ' with size ' + size);
             const promise = foundsetManager.loadExtraRecordsAsync(requestViewPortStartIndex, size);
+            promise.requestInfo = 'getDataFromFoundset';
             promise.then(() => {
 
                 // load complete

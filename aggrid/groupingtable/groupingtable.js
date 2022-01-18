@@ -283,10 +283,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				 * Store the state of the table. TODO to be persisted
 				 * */
 				var state = {
-					waitfor: {
-						sort: 0,
-						loadRecords: 0
-					},
 					/** column mapping by field name e.g. state.columns[field] */
 					columns: { },
 					foundsetManagers: { },
@@ -3065,6 +3061,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 							$log.debug('Load async ' + requestViewPortStartIndex + ' - ' + requestViewPortEndIndex + ' with size ' + size);
 							var promise = foundsetManager.loadExtraRecordsAsync(requestViewPortStartIndex, size, false);
+							promise.requestInfo = "getDataFromFoundset";
 							promise.then(function() {
 
 								// load complete
@@ -3438,28 +3435,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							size = 0;
 						}
 
-						// Wait for response
-						var isRootFoundset = thisInstance.isRoot;
-						var requestId = 1 + Math.random();
-						state.waitfor.loadRecords = isRootFoundset ? requestId : 0; // we use state.waitfor.loadRecords only in the root foundset change listener
-						// TODO can it handle multiple requests ?
-						var promise = this.foundset.loadRecordsAsync(startIndex, size);
-						//var promise = this.foundset.loadExtraRecordsAsync(size);
-						promise.finally(function(e) {
-							// foundset change listener that checks for 'state.waitfor.loadRecords' is executed later,
-							// as last step when the response is processed, so postpone clearing the flag
-							if(isRootFoundset) {
-								setTimeout(function() {
-									if (state.waitfor.loadRecords !== requestId) {
-										// FIXME if this happen reduce parallel async requests to 1
-										$log.warn("Load record request id '" + state.waitfor.loadRecords + "' is different from the resolved promise '" + requestId + "'; this should not happen !!!");
-									}		
-									state.waitfor.loadRecords = 0;							
-								}, 0);
-							}
-						});
-
-						return promise;
+						return this.foundset.loadRecordsAsync(startIndex, size);
 					}
 
 					var getSortColumns = function() {
@@ -3488,6 +3464,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 
 					var foundsetListener = function(change) {
+						if (change.requestInfos && change.requestInfos.includes('getDataFromFoundset')) {
+							// changes originate from our 'getDataFromFoundset', skip handling
+							return;
+						}
 						$log.debug('child foundset changed listener ' + thisInstance.foundset);
 
 						if (change[$foundsetTypeConstants.NOTIFY_SORT_COLUMNS_CHANGED]) {
@@ -4510,7 +4490,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 				/** Listener for the root foundset */
 				function changeListener(change) {
-					$log.debug("Root change listener is called " + state.waitfor.loadRecords);
+					if (change.requestInfos && change.requestInfos.includes('getDataFromFoundset')) {
+						// changes originate from our 'getDataFromFoundset', skip handling
+						return;
+					}
 					$log.debug(change);
 
 					var currentRequestInfo = $webSocket.getCurrentRequestInfo();
@@ -4573,9 +4556,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 
 					// if viewPort changes and startIndex does not change is the result of a sort or of a loadRecords
-					if ((change[$foundsetTypeConstants.NOTIFY_FOUNDSET_DEFINITION_CHANGE] ||
+					if (change[$foundsetTypeConstants.NOTIFY_FOUNDSET_DEFINITION_CHANGE] ||
 						change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROWS_COMPLETELY_CHANGED] ||
-						change[$foundsetTypeConstants.NOTIFY_FULL_VALUE_CHANGED]) && !state.waitfor.loadRecords) {
+						change[$foundsetTypeConstants.NOTIFY_FULL_VALUE_CHANGED]) {
 						$log.debug(idRandom + ' - 2. Change foundset serverside');
 						$log.debug("Foundset changed serverside ");
 
@@ -4615,8 +4598,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							}
 						}
 						return;
-					} else {
-						$log.debug("wait for loadRecords request " + state.waitfor.loadRecords);
 					}
 
 					if (change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROW_UPDATES_RECEIVED]) {
