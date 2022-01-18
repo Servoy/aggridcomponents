@@ -3218,7 +3218,7 @@ export class DataGrid extends NGGridDirective {
         }
 
         // if viewPort changes and startIndex does not change is the result of a sort or of a loadRecords
-        if ((changeEvent.viewportRowsCompletelyChanged || changeEvent.fullValueChanged) && !this.state.waitFor.loadRecords) {
+        if ((changeEvent.foundsetDefinitionChanged || changeEvent.viewportRowsCompletelyChanged || changeEvent.fullValueChanged) && !this.state.waitFor.loadRecords) {
             this.log.debug(idRandom + ' - 2. Change foundset serverside');
             this.log.debug('Foundset changed serverside ');
 
@@ -3234,17 +3234,17 @@ export class DataGrid extends NGGridDirective {
                     this.initRootFoundset();
                 });
             } else {
-                let viewportChangedRows: any;
+                let viewportChangedRows: any = null;
                 if(changeEvent.viewportRowsCompletelyChanged) {
                     viewportChangedRows = changeEvent.viewportRowsCompletelyChanged;
-                } else { // $foundsetTypeConstants.NOTIFY_FULL_VALUE_CHANGED
+                } else if(changeEvent.fullValueChanged) {
                     viewportChangedRows = {
                         newValue: changeEvent.fullValueChanged.newValue.viewPort.rows,
                         oldValue: changeEvent.fullValueChanged.oldValue.viewPort.rows
-                    }
+                    };
                 }
 
-                if(this.isSameViewportRows(viewportChangedRows.newValue, viewportChangedRows.oldValue)) {
+                if(viewportChangedRows !== null && this.isSameViewportRows(viewportChangedRows.newValue, viewportChangedRows.oldValue)) {
                     const updates = [];
                     updates.push({
                         "startIndex": 0,

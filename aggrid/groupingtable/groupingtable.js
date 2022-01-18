@@ -4573,7 +4573,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 
 					// if viewPort changes and startIndex does not change is the result of a sort or of a loadRecords
-					if ((change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROWS_COMPLETELY_CHANGED] ||
+					if ((change[$foundsetTypeConstants.NOTIFY_FOUNDSET_DEFINITION_CHANGE] ||
+						change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROWS_COMPLETELY_CHANGED] ||
 						change[$foundsetTypeConstants.NOTIFY_FULL_VALUE_CHANGED]) && !state.waitfor.loadRecords) {
 						$log.debug(idRandom + ' - 2. Change foundset serverside');
 						$log.debug("Foundset changed serverside ");
@@ -4590,17 +4591,17 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								initRootFoundset();
 							});
 						} else {
-							var viewportChangedRows;
+							var viewportChangedRows = null;
 							if(change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROWS_COMPLETELY_CHANGED]) {
 								viewportChangedRows = change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROWS_COMPLETELY_CHANGED];
-							} else { // $foundsetTypeConstants.NOTIFY_FULL_VALUE_CHANGED
+							} else if(change[$foundsetTypeConstants.NOTIFY_FULL_VALUE_CHANGED]) {
 								viewportChangedRows = {
 									newValue: change[$foundsetTypeConstants.NOTIFY_FULL_VALUE_CHANGED].newValue.viewPort.rows,
 									oldValue: change[$foundsetTypeConstants.NOTIFY_FULL_VALUE_CHANGED].oldValue.viewPort.rows
 								};
 							}
 
-							if(isSameViewportRows(viewportChangedRows.newValue, viewportChangedRows.oldValue)) {
+							if(viewportChangedRows && isSameViewportRows(viewportChangedRows.newValue, viewportChangedRows.oldValue)) {
 								var updates = [];
 								updates.push({
 									"startIndex": 0,
