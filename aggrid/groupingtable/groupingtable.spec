@@ -411,7 +411,7 @@
 			"editFormSize": {"type": "dimension", "default" : {"width":300, "height":200}},
 			"filterType": {"type": "string", "values": [{"NONE":null}, {"TEXT":"TEXT"}, {"NUMBER":"NUMBER"}, {"DATE":"DATE"}, {"VALUELIST":"VALUELIST"}, {"RADIO":"RADIO"}]},
 			"id": {"type" : "string", "tags": {"showInOutlineView": true, "doc": "Used to set the column id (colId) property in the serialized column state json string of getColumnState and onColumnStateChanged" }},
-			"columnDef": {"type" : "map", "tags": {"doc": "Map where additional column properties of ag-grid can be set"}},
+			"columnDef": {"type" : "oject", "tags": {"doc": "Map where additional column properties of ag-grid can be set"}},
 			"showAs": { "type": "string", "values": [{"text":null}, {"html":"html"}, {"sanitizedHtml":"sanitizedHtml"}] }
 		},
 		"groupedColumn" : {
