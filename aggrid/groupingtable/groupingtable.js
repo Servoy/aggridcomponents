@@ -315,6 +315,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					rootGroupSort: null
 				}
 				
+				// currently set aggrid-filter
+				$scope.filterModel = null;
+
 				// used in HTML template to toggle sync button
 				$scope.isGroupView = false;
 
@@ -2887,8 +2890,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 					var sUpdatedFilterModel = JSON.stringify(updatedFilterModel);
 					// if filter is changed, apply it on the root foundset, and clear the foundset cache if grouped
-					if (sUpdatedFilterModel != $scope.model.filterModel && !(sUpdatedFilterModel == "{}" && $scope.model.filterModel == undefined)) {
-						$scope.model.filterModel = sUpdatedFilterModel;
+					if (sUpdatedFilterModel != $scope.filterModel && !(sUpdatedFilterModel == "{}" && $scope.filterModel == null)) {
+						$scope.filterModel = sUpdatedFilterModel;
 						var filterMyFoundsetArg = [];
 						filterMyFoundsetArg.push(sUpdatedFilterModel);
 
@@ -3155,7 +3158,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				});
 				$scope.$watchCollection("model.myFoundset", function(newValue, oldValue) {
 					if(newValue && oldValue && newValue.foundsetId !== oldValue.foundsetId) {
-						delete $scope.model.filterModel;
+						$scope.filterModel = null;
 					}					
 				});
 				var columnWatches = [];
@@ -4307,7 +4310,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						}
 
 						childFoundsetPromise = $scope.svyServoyapi.callServerSideApi("getGroupedFoundsetUUID",
-							[groupColumns, groupKeys, idForFoundsets, sort, $scope.model.filterModel, hasRowStyleClassDataprovider, sortColumn, sortColumnDirection]);
+							[groupColumns, groupKeys, idForFoundsets, sort, $scope.filterModel, hasRowStyleClassDataprovider, sortColumn, sortColumnDirection]);
 
 						childFoundsetPromise.then(function(childFoundsetUUID) {
 								$log.debug(childFoundsetUUID);

@@ -37,7 +37,6 @@
 		"iconConfig": { "type": "iconConfig", "tags": { "scope": "design" } },
 		"gridOptions": {"type": "map", "tags": {"doc": "Map where additional grid properties of ag-grid can be set"}},
 		"localeText": {"type": "map", "tags": {"doc": "Map where locales of ag-grid can be set"}},
-		"filterModel": {"type": "string", "tags": {"scope": "private"}},
 		"readOnly": {"type": "boolean", "default": false},
 		"enabled" : {"type": "enabled", "blockingOn": false, "default": true},
 		"readOnlyColumnIds": {"type": "object", "tags": {"scope" : "private"} },

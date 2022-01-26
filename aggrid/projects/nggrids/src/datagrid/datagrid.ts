@@ -78,7 +78,6 @@ export class DataGrid extends NGGridDirective {
     @Input() readOnly: boolean;
     @Input() readOnlyColumnIds: any;
     @Input() hashedFoundsets: HashedFoundset[];
-    @Input() filterModel;
     @Input() rowStyleClassDataprovider: any;
     @Input() _internalExpandedState: any;
     @Output() _internalExpandedStateChange = new EventEmitter();
@@ -200,6 +199,9 @@ export class DataGrid extends NGGridDirective {
     myFoundsetId: any;
 
     previousColumns: any[];
+
+    // currently set aggrid-filter
+    filterModel = null;
 
     constructor(renderer: Renderer2, public cdRef: ChangeDetectorRef, logFactory: LoggerFactory,
         private servoyService: ServoyPublicService, public formattingService: FormattingService, public ngbTypeaheadConfig: NgbTypeaheadConfig,
@@ -3801,8 +3803,7 @@ class FoundsetServer {
         }
         const sUpdatedFilterModel = JSON.stringify(updatedFilterModel);
         // if filter is changed, apply it on the root foundset, and clear the foundset cache if grouped
-        if (sUpdatedFilterModel !== this.dataGrid.filterModel && !(sUpdatedFilterModel === '{}' &&
-            (this.dataGrid.filterModel === null || this.dataGrid.filterModel === undefined))) {
+        if (sUpdatedFilterModel !== this.dataGrid.filterModel && !(sUpdatedFilterModel === '{}' && this.dataGrid.filterModel === null)) {
             this.dataGrid.filterModel = sUpdatedFilterModel;
             const filterMyFoundsetArg = [];
             filterMyFoundsetArg.push(sUpdatedFilterModel);
