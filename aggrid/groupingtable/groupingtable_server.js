@@ -186,7 +186,7 @@ $scope.getGroupedFoundsetUUID = function(
 
 $scope.filterMyFoundset = function(sFilterModel) {
 	if (sFilterModel) filterFoundset($scope.model.myFoundset.foundset, sFilterModel);
-	$scope.model.myFoundset.foundset.loadAllRecords();
+	$scope.model.myFoundset.foundset.reloadWithFilters();
 }
 
 $scope.removeGroupedFoundsetUUID = function(parentFoundset) {
