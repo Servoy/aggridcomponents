@@ -474,6 +474,10 @@ export class PowerGrid extends NGGridDirective {
             return;
         }
 
+        this.agGridElementRef.nativeElement.addEventListener('contextmenu', (e: any) => {
+            e.preventDefault();
+        });
+
         this.agGridOptions.popupParent = this.agGridElementRef.nativeElement;
         // register listener for selection changed
         this.agGrid.api.addEventListener('rowSelected', (event: any) => this.onRowSelectedHandler(event));

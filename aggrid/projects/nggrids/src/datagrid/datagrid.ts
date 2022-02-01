@@ -626,6 +626,10 @@ export class DataGrid extends NGGridDirective {
             }
         });
 
+        this.agGridElementRef.nativeElement.addEventListener('contextmenu', (e: any) => {
+            e.preventDefault();
+        });
+
         // init the root foundset manager
         this.initRootFoundset();
 
