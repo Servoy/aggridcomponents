@@ -3158,18 +3158,11 @@ export class DataGrid extends NGGridDirective {
 
     /** Listener for the root foundset */
     changeListener(changeEvent: FoundsetChangeEvent) {
-        if (changeEvent.requestInfos && changeEvent.requestInfos.includes('getDataFromFoundset')) {
-            // changes originate from our 'getDataFromFoundset', skip handling
+        if (changeEvent.requestInfos && (changeEvent.requestInfos.includes('getDataFromFoundset') || changeEvent.requestInfos.includes('filterMyFoundset'))) {
+            this.log.debug('changes originate from our "getDataFromFoundset" or "filterMyFoundset", skip root foundset change handler');
             return;
         }
         this.log.debug(changeEvent);
-
-        const currentRequestInfo = this.servoyService.getCurrentRequestInfo();
-
-        if(currentRequestInfo === 'filterMyFoundset') {
-            this.log.debug('currentRequestInfo is ' + currentRequestInfo + ' skip root foundset change handler');
-            return;
-        }
 
         if(changeEvent.multiSelectChanged) {
             this.agGridOptions.rowSelection =  changeEvent.multiSelectChanged.newValue ? 'multiple' : 'single';

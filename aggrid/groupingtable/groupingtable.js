@@ -1,5 +1,5 @@
-angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('aggridGroupingtable', ['$sabloApplication', '$sabloConstants', '$log', '$q', '$foundsetTypeConstants', '$filter', '$compile', '$formatterUtils', '$sabloConverters', '$injector', '$services', "$sanitize", '$window', "$applicationService", "$windowService", "$webSocket",
-	function($sabloApplication, $sabloConstants, $log, $q, $foundsetTypeConstants, $filter, $compile, $formatterUtils, $sabloConverters, $injector, $services, $sanitize, $window, $applicationService, $windowService, $webSocket) {
+angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('aggridGroupingtable', ['$sabloApplication', '$sabloConstants', '$log', '$q', '$foundsetTypeConstants', '$filter', '$compile', '$formatterUtils', '$sabloConverters', '$injector', '$services', "$sanitize", '$window', "$applicationService", "$windowService",
+	function($sabloApplication, $sabloConstants, $log, $q, $foundsetTypeConstants, $filter, $compile, $formatterUtils, $sabloConverters, $injector, $services, $sanitize, $window, $applicationService, $windowService) {
 		return {
 			restrict: 'E',
 			scope: {
@@ -4493,18 +4493,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 				/** Listener for the root foundset */
 				function changeListener(change) {
-					if (change.requestInfos && change.requestInfos.includes('getDataFromFoundset')) {
-						// changes originate from our 'getDataFromFoundset', skip handling
+					if (change.requestInfos && (change.requestInfos.includes('getDataFromFoundset') || change.requestInfos.includes('filterMyFoundset'))) {
+						$log.debug("changes originate from our 'getDataFromFoundset' or 'filterMyFoundset', skip root foundset change handler");
 						return;
 					}
 					$log.debug(change);
-
-					var currentRequestInfo = $webSocket.getCurrentRequestInfo();
-
-					if(currentRequestInfo == 'filterMyFoundset') {
-						$log.debug("currentRequestInfo is " + currentRequestInfo + " skip root foundset change handler");
-						return;
-					}
 
 					if(change[$foundsetTypeConstants.NOTIFY_MULTI_SELECT_CHANGED])
 					{
