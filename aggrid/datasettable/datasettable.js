@@ -502,6 +502,8 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 $scope.$watchCollection("model.data", function(newValue, oldValue) {
                     if(gridOptions) {
                         isDataRendering = true;
+                        // make sure we clear any settings ag-grid holds on with the previous row data
+                        if(newValue) gridOptions.api.setRowData(null);
                         setTimeout(function() {
                           gridOptions.api.setRowData($scope.model.data);
                           isDataRendering = false;
