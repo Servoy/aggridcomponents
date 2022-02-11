@@ -1,6 +1,6 @@
 {
   "name": "@servoy/nggrids",
-  "version": "2.9.2",
+  "version": "2022.3.0",
   "peerDependencies": {
     "@angular/animations": "^13",
     "@angular/common": "^13",
@@ -10,9 +10,9 @@
   },
   "dependencies": {
     "bootstrap": "^5",
-    "@ng-bootstrap/ng-bootstrap": "^10",
-    "@ag-grid-community/angular": "^26",
-    "@ag-grid-enterprise/all-modules": "^26",
+    "@ng-bootstrap/ng-bootstrap": "^11",
+    "@ag-grid-community/angular": "^27",
+    "@ag-grid-enterprise/all-modules": "^27",
     "@eonasdan/tempus-dominus": "*",
     "@angular/cdk": "^13",
     "tslib": "*"
