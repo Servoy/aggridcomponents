@@ -22,7 +22,7 @@
     "@angular/common": "13.0.2",
     "@angular/core": "13.0.2",
     "@angular/forms": "13.0.2",
-    "@danielmoncada/angular-datetime-picker": "12.2.0",
+    "@eonasdan/tempus-dominus": "^6.0.0-beta1",
     "@ng-bootstrap/ng-bootstrap": "10.0.0",
     "@servoy/public": "2021.12.0",
     "luxon": "2.1.1",

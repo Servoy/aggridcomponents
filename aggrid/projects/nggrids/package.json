@@ -13,7 +13,7 @@
     "@ng-bootstrap/ng-bootstrap": "^10",
     "@ag-grid-community/angular": "^26",
     "@ag-grid-enterprise/all-modules": "^26",
-    "@danielmoncada/angular-datetime-picker": "^12",
+    "@eonasdan/tempus-dominus": "*",
     "@angular/cdk": "^13",
     "tslib": "*"
   },

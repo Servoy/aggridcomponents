@@ -1,6 +1,5 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
-import { OwlDateTimeModule } from '@danielmoncada/angular-datetime-picker';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { ServoyPublicModule, SpecTypesService } from '@servoy/public';
 import { DataGrid, DataGridColumn, GroupedColumn, HashedFoundset } from './datagrid/datagrid';
@@ -37,7 +36,6 @@ import { IconConfig, MainMenuItemsConfig, ToolPanelConfig } from './nggrid';
         CommonModule,
         FormsModule,
         ServoyPublicModule,
-        OwlDateTimeModule,
         NgbModule,
         AgGridModule.withComponents([])
     ],
