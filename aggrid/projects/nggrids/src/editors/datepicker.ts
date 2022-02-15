@@ -67,7 +67,7 @@ export class DatePicker extends EditorDirective {
            this.config.hooks = {
             inputFormat: (_context: TempusDominus, date: DateTime) => formattingService.format(date, this.format, false),
             inputParse: (_context: TempusDominus, value: any) => {
-                const parsed  = formattingService.parse(value, this.format, false, this.selectedValue);
+                const parsed  = formattingService.parse(value, this.format, true, this.selectedValue);
                 if (parsed instanceof Date) return  new DateTime(parsed);
                 return null;
             }
