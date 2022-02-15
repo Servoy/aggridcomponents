@@ -1973,7 +1973,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 									thisEditor.hasRealValues = hasRealValues;	
 									// make sure initial value has the "realValue" set, so when oncolumndatachange is called
 									// the previous value has the "realValue"
-									if(hasRealValues && params.value && (params.value["realValue"] == undefined)) {
+									if(hasRealValues && params.value && (params.value["realValue"] === undefined)) {
 										var rv = params.value;
 										var rvFound = false;
 										for (var i = 0; i < thisEditor.valuelist.length; i++) {
