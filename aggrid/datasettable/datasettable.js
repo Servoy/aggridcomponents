@@ -45,6 +45,41 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
 
             var config = $scope.model;
 
+            $scope.$watchCollection("model.iconConfig", function(newValue, oldValue) {
+                $log.debug('iconConfig changed');
+                if(newValue && newValue != oldValue) {
+                	if($injector.has('ngPowerGrid')) {
+                		 var datasettableDefaultConfig = $services.getServiceScope('ngPowerGrid').model;
+                		 if(datasettableDefaultConfig.iconConfig) {
+                			 iconConfig = datasettableDefaultConfig.iconConfig;
+                		 }
+                	}
+                	iconConfig = mergeConfig(iconConfig, newValue);
+                    initializeIconConfig(iconConfig);
+                }
+            });
+            
+            // set the icons
+            function initializeIconConfig(iconConfig){
+            	if(iconConfig) {
+            		var icons = new Object();
+            		
+            		for (var iconName in iconConfig) {
+            			if (iconName == "iconRefreshData") continue;
+                	
+            			var aggridIcon = iconName.slice(4);
+            			aggridIcon = aggridIcon[0].toLowerCase() + aggridIcon.slice(1);
+            			icons[aggridIcon] = getIconElement(iconConfig[iconName]);
+            		}
+                
+            		// TODO expose property
+            		// icons.rowGroupPanel = " "
+            		// icons.pivotPanel = " "
+            		// icons.valuePanel = " "
+            		gridOptions.icons = icons
+            	}
+            }
+                    
             function mergeConfig(target, source) {
 				// clone target to avoid side effects
 				var mergeConfig = {};
@@ -370,25 +405,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 gridOptions.aggFuncs = getAggCustomFuncs();
             }
 
-            // set the icons
-            if(iconConfig) {
-                var icons = new Object();
-                
-                for (var iconName in iconConfig) {
-                	if (iconName == "iconRefreshData") continue;
-                	
-                	var aggridIcon = iconName.slice(4);
-                	aggridIcon = aggridIcon[0].toLowerCase() + aggridIcon.slice(1);
-                	icons[aggridIcon] = getIconElement(iconConfig[iconName]);
-                }
-                
-                // TODO expose property
-//                icons.rowGroupPanel = " "
-//                icons.pivotPanel = " "
-//                icons.valuePanel = " "
-                
-                gridOptions.icons = icons
-            }
+            initializeIconConfig(iconConfig);
 
             setHeight();
 
