@@ -12,8 +12,6 @@
     "bootstrap": "^5",
     "@ng-bootstrap/ng-bootstrap": "^12",
     "@popperjs/core": "^2",
-    "@ag-grid-community/angular": "^27",
-    "@ag-grid-enterprise/all-modules": "^27",
     "@eonasdan/tempus-dominus": "*",
     "@angular/cdk": "^13",
     "tslib": "*"
