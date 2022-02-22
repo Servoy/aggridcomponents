@@ -623,7 +623,8 @@ export class PowerGrid extends NGGridDirective {
                 }
 
                 // styleClass
-                colDef.headerClass = 'ag-table-header ' + column.headerStyleClass;
+                colDef.headerClass = ['ag-table-header'];
+                if(column.headerStyleClass) colDef.headerClass.push(column.headerStyleClass);
                 colDef.cellClass = ['ag-table-cell'];
                 if (column.formatType === 'TEXT') {
                     colDef.cellClass.push('stringType');
@@ -1498,7 +1499,7 @@ export class PowerGrid extends NGGridDirective {
             let needsSeparator = false;
             for (const agg in params.node.aggData) {
                 if (params.node.aggData.hasOwnProperty(agg)) {
-                    const column = this.agGrid.columnApi.getColumn(agg);
+                    const column = params.columnApi.getColumn(agg);
                     const columnText = column['aggFunc'] + '(' + column.getColDef().headerName + ')';
                     const value = params.node.aggData[agg];
                     if (column['aggFunc'] !== 'count' && column.getColDef().valueFormatter) {

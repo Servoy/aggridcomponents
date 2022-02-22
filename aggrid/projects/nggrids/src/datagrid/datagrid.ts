@@ -967,7 +967,8 @@ export class DataGrid extends NGGridDirective {
             }
 
             // styleClass
-            colDef.headerClass = 'ag-table-header' + (column.headerStyleClass ? ' ' + column.headerStyleClass : '');
+            colDef.headerClass = ['ag-table-header'];
+            if(column.headerStyleClass) colDef.headerClass.push(column.headerStyleClass);
             if (column.styleClassDataprovider) {
                 colDef.cellClass = this.getCellClass;
             } else {
