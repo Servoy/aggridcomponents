@@ -3213,7 +3213,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							if(isGridReady) {
 								if(property != "footerText" && property != "headerTitle") {
 									updateColumnDefs();
-									if(property != "visible" && property != "width") {
+									if(property != "visible" && property != "width" && property != "enableToolPanel") {
 										restoreColumnsState();
 									}
 								}

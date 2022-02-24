@@ -582,7 +582,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                         if(isGridReady) {
                             if(property != "headerTitle") {
                                 updateColumnDefs();
-                                if(property != "visible" && property != "width") {
+                                if(property != "visible" && property != "width" && property != "enableToolPanel") {
                                     restoreColumnsState();
                                 }
                             }
