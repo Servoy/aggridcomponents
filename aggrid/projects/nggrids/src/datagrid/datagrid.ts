@@ -728,7 +728,7 @@ export class DataGrid extends NGGridDirective {
                                                 if(prop !== 'footerText' && prop !== 'headerTitle') {
                                                     this.updateColumnDefs();
                                                 }
-                                                if(prop !== 'visible' && prop !== 'width') {
+                                                if(prop !== 'visible' && prop !== 'width' && prop !== 'enableToolPanel') {
                                                     this.restoreColumnsState();
                                                 }
                                             } else {

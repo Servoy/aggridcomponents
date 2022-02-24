@@ -542,7 +542,7 @@ export class PowerGrid extends NGGridDirective {
                                             if (this.isGridReady) {
                                                 if(prop !== 'headerTitle') {
                                                     this.updateColumnDefs();
-                                                    if (prop !== 'visible' && prop !== 'width') {
+                                                    if (prop !== 'visible' && prop !== 'width' && prop !== 'enableToolPanel') {
                                                         this.restoreColumnsState();
                                                     }
                                                 }
