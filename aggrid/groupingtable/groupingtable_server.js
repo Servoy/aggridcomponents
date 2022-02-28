@@ -22,6 +22,8 @@ $scope.getGroupedFoundsetUUID = function(
 	var groupColumnType;
 	var groupDataprovider;
 
+	var allGroupDataproviders = [];
+
 	// TODO it cannot be empty !?!
 	if (!groupColumns) groupColumns = [];
 	if (!groupKeys) groupKeys = [];
@@ -35,6 +37,7 @@ $scope.getGroupedFoundsetUUID = function(
 
 		// retrieve the grouping column
 		groupDataprovider = $scope.model.columns[groupColumnIndex].dataprovider;
+		allGroupDataproviders.push(groupDataprovider);
 		log("Group on groupDataprovider " + groupDataprovider + " at index " + groupColumnIndex, LOG_LEVEL.WARN);
 		//		console.log('group on ' + groupDataprovider);
 
@@ -148,21 +151,37 @@ $scope.getGroupedFoundsetUUID = function(
 
 
 	var columns = [];
-	for (var idx = 0; idx < $scope.model.columns.length; idx++) {
-		columns.push({
-			dataprovider: $scope.model.columns[idx].dataprovider,
-			format: $scope.model.columns[idx].format,
-			valuelist: $scope.model.columns[idx].valuelist,
-			id: $scope.model.columns[idx].id,
-			styleClassDataprovider: $scope.model.columns[idx].styleClassDataprovider
-		});
-	}
-
-	if (isGroupQuery) {
+	if(isGroupQuery) {
+		for (var idx = 0; idx < $scope.model.columns.length; idx++) {
+			if(allGroupDataproviders.indexOf($scope.model.columns[idx].dataprovider) != -1) {
+				columns.push({
+					dataprovider: $scope.model.columns[idx].dataprovider,
+					format: $scope.model.columns[idx].format,
+					valuelist: $scope.model.columns[idx].valuelist,
+					id: $scope.model.columns[idx].id,
+					styleClassDataprovider: $scope.model.columns[idx].styleClassDataprovider
+				});
+			} else {
+				columns.push({
+					dataprovider: $scope.model.columns[idx].dataprovider,
+					id: $scope.model.columns[idx].id,
+				});
+			}
+		}
 		columns.push({
 			dataprovider: 'svycount',
 			id: 'svycount'
 		});
+	} else {
+		for (var idx = 0; idx < $scope.model.columns.length; idx++) {
+			columns.push({
+				dataprovider: $scope.model.columns[idx].dataprovider,
+				format: $scope.model.columns[idx].format,
+				valuelist: $scope.model.columns[idx].valuelist,
+				id: $scope.model.columns[idx].id,
+				styleClassDataprovider: $scope.model.columns[idx].styleClassDataprovider
+			});
+		}
 	}
 
 	// TODO perhaps R&D can improve this

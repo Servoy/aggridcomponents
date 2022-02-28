@@ -2712,6 +2712,16 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						}
 					}
 
+					var filterPromisesFction = function(vl, idx) {
+						filterPromises.push(vl.filterList(groupKeys[idx]));
+						filterPromises[filterPromises.length - 1].then(function(valuelistValues) {
+							handleFilterCallback(groupKeys, idx, valuelistValues);
+							if(removeAllFoundsetRef) {
+								groupManager.removeFoundsetRefAtLevel(0);
+							}
+						});
+						removeAllFoundsetRefPostponed = true;
+					}
 					var removeAllFoundsetRefPostponed = false;
 					for (var i = 0; i < groupKeys.length; i++) {
 						if (groupKeys[i] == NULL_VALUE) {
@@ -2720,15 +2730,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						else {
 							var vl = getValuelistEx(params.parentNode.data, rowGroupCols[i]['id'], false);
 							if(vl) {
-								filterPromises.push(vl.filterList(groupKeys[i]));
-								var idx = i;
-								filterPromises[filterPromises.length - 1].then(function(valuelistValues) {
-									handleFilterCallback(groupKeys, idx, valuelistValues);
-									if(removeAllFoundsetRef) {
-										groupManager.removeFoundsetRefAtLevel(0);
-									}
-								});
-								removeAllFoundsetRefPostponed = true;
+								filterPromisesFction(vl, i);
 							}
 						}
 					}
