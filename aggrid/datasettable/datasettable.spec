@@ -11,6 +11,10 @@
 		{ "name": "datasettablegroupcellrenderer.js", "version": "1.0", "url": "aggrid/datasettable/datasettablegroupcellrenderer.js", "mimetype": "text/javascript" },
 		{ "name": "datasettable.css", "version": "1.0", "url": "aggrid/datasettable/datasettable.css", "mimetype": "text/css" }
 	],
+    "ng2Config": {
+        "dependencies": {
+           "csslibrary": ["~@servoy/tempus-dominus/dist/css/tempus-dominus.css;priority=5"]
+        }
 	"model":
 	{
 		"data": { "type": "object[]", "tags": {"scope" : "private"}},

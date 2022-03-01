@@ -7,6 +7,6 @@
   "lib": {
     "entryFile": "src/public-api.ts"
   },
-  "allowedNonPeerDependencies": ["@eonasdan/tempus-dominus", "@ng-bootstrap/ng-bootstrap","@popperjs/core", 
+  "allowedNonPeerDependencies": ["@servoy/tempus-dominus", "@ng-bootstrap/ng-bootstrap","@popperjs/core", 
                                                             "@angular/cdk", "@ag-grid-community/angular", "@ag-grid-enterprise/all-modules", "bootstrap"]
 }

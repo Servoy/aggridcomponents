@@ -8,8 +8,13 @@
 	"serverscript": "aggrid/groupingtable/groupingtable_server.js",
 	"doc": "aggrid/groupingtable/groupingtable_doc.js",
 	"libraries": [
-		{ "name": "groupingtable.css", "version": "1.0", "url": "aggrid/groupingtable/groupingtable.css", "mimetype": "text/css" }
+		{ "name": "groupingtable.css", "version": "1.0", "url": "aggrid/groupingtable/groupingtable.css", "mimetype": "text/css" },
 	],
+    "ng2Config": {
+        "dependencies": {
+           "csslibrary": ["~@servoy/tempus-dominus/dist/css/tempus-dominus.css;priority=5"]
+        }
+    },
 	"model":
 	{
 		"myFoundset": {"type": "foundset", "default" : {"foundsetSelector":""}, "pushToServer" : "allow" , "foundsetDefinitionListener": true,"initialPreferredViewPortSize": 50, "sendSelectionViewportInitially": true, "tags": {"allowaccess": "enabled", "doc": "The foundset where data are fetched from"} },

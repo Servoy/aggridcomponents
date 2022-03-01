@@ -9,11 +9,11 @@
     "luxon": "*"
   },
   "dependencies": {
-    "bootstrap": "^5",
+    "@angular/cdk": "^13",
     "@ng-bootstrap/ng-bootstrap": "^12",
     "@popperjs/core": "^2",
-    "@eonasdan/tempus-dominus": "*",
-    "@angular/cdk": "^13",
+    "@servoy/tempus-dominus": "6.0.0-beta4",
+    "bootstrap": "^5",
     "tslib": "*"
   },
   "license": "MIT",

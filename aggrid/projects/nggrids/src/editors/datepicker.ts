@@ -4,8 +4,8 @@ import { ICellEditorParams } from '@ag-grid-community/core';
 import { DOCUMENT } from '@angular/common';
 import { Format, FormattingService, getFirstDayOfWeek, ServoyPublicService } from '@servoy/public';
 import { DateTime as DateTimeLuxon} from 'luxon';
-import { DateTime, Namespace, Options, TempusDominus } from '@eonasdan/tempus-dominus';
-import { ChangeEvent } from '@eonasdan/tempus-dominus/types/event-types';
+import { DateTime, Namespace, Options, TempusDominus } from '@servoy/tempus-dominus';
+import { ChangeEvent } from '@servoy/tempus-dominus/types/utilities/event-types';
 
 @Component({
     selector: 'aggrid-datepicker',
@@ -20,13 +20,13 @@ export class DatePicker extends EditorDirective {
 
     @ViewChild('inputElement') inputElementRef: ElementRef;
 
-    @Input() selectedValue: any;
+    @Input() selectedValue: Date;
 
 
     picker: TempusDominus;
 
     readonly config: Options = {
-        allowInputToggle: false,
+        allowInputToggle: true,
         useCurrent: false,
         display: {
             components: {
@@ -49,8 +49,8 @@ export class DatePicker extends EditorDirective {
         },
         restrictions: {
         },
-        hooks: {
-        },
+//        hooks: {
+//        },
         localization: {
             startOfTheWeek: 1,
             locale: 'en'
@@ -64,9 +64,12 @@ export class DatePicker extends EditorDirective {
         this.config.localization.startOfTheWeek = getFirstDayOfWeek(servoyService.getLocale());
         const lts = DateTimeLuxon.now().setLocale(servoyService.getLocale()).toLocaleString(DateTimeLuxon.DATETIME_FULL).toUpperCase();
         this.config.display.components.useTwentyfourHour = lts.indexOf('AM') >= 0 || lts.indexOf('PM') >= 0;
-           this.config.hooks = {
-            inputFormat: (_context: TempusDominus, date: DateTime) => formattingService.format(date, this.format, false),
-            inputParse: (_context: TempusDominus, value: any) => {
+        this.config.localization.locale = servoyService.getLocale();
+        this.loadCalendarLocale(this.config.localization.locale);
+
+         this.config.hooks = {
+            inputFormat: (date: DateTime) => formattingService.format(date, this.format, false),
+            inputParse: (value: any) => {
                 const parsed  = formattingService.parse(value, this.format, true, this.selectedValue);
                 if (parsed instanceof Date) return  new DateTime(parsed);
                 return null;
@@ -116,9 +119,9 @@ export class DatePicker extends EditorDirective {
     }
 
     ngAfterViewInit(): void {
-        if (this.selectedValue) this.config.viewDate = this.selectedValue;
+        if (this.selectedValue) this.config.viewDate = DateTime.convert(this.selectedValue);
         this.picker = new TempusDominus(this.inputElementRef.nativeElement, this.config);
-        if (this.selectedValue) this.picker.dates.set(this.selectedValue);
+        if ( this.config.viewDate ) this.picker.dates.setValue( this.config.viewDate );
         this.picker.subscribe(Namespace.events.change, (event) => this.dateChanged(event));
         setTimeout(() => {
             this.inputElementRef.nativeElement.select();
@@ -128,6 +131,7 @@ export class DatePicker extends EditorDirective {
             dateContainer[0].classList.add('ag-custom-component-popup');
         }
         }, 0);
+         this.picker.subscribe(Namespace.events.hide, () => this.params.stopEditing());
     }
 
     ngOnDestroy() {
@@ -139,8 +143,10 @@ export class DatePicker extends EditorDirective {
     }
 
     // returns the new value after editing
-    getValue(): any {
-        return this.selectedValue;
+    getValue(): Date {
+        const value = this.inputElementRef.nativeElement.value;
+        if (value) return this.config.hooks.inputParse(value);
+        return null;
     }
 
     public dateChanged(event: ChangeEvent) {
@@ -149,5 +155,22 @@ export class DatePicker extends EditorDirective {
                 (!event.date && !this.selectedValue)) return;
             this.selectedValue = event.date;
         } else this.selectedValue = null;
+    }
+
+     private loadCalendarLocale(locale: string) {
+        const index = locale.indexOf('-');
+        let language = locale;
+        if (index > 0) {
+            language = locale.substring(0, index);
+        }
+        language = language.toLowerCase();
+        import(`@servoy/tempus-dominus/dist/locales/${language}.js`).then(
+            (module: { localization: { [key: string]: string } }) => {
+                this.config.localization = module.localization;
+                if (this.picker !== null) this.picker.updateOptions(this.config);
+            },
+            () => {
+                // ignore
+            });
     }
 }
