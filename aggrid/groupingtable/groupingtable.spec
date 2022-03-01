@@ -393,7 +393,7 @@
 			"headerTooltip" : {"type" : "tagstring"},
 			"headerGroup": {"type" : "tagstring", "tags": {"doc": "Header group, that this column will be part of"}},
 			"headerGroupStyleClass" : {"type" : "styleclass"},
-			"dataprovider": { "type": "dataprovider", "forFoundset": "myFoundset", "resolveValuelist" : true},
+			"dataprovider": { "type": "dataprovider", "forFoundset": "myFoundset", "resolveValuelist" : true, "pushToServer" : "allow"},
 			"tooltip": { "type": "dataprovider", "forFoundset": "myFoundset"},
 			"styleClass" : {"type" : "styleclass"},
 			"styleClassDataprovider": { "type": "dataprovider", "forFoundset": "myFoundset", "tags": {"doc": "Use a Servoy calculation as styleClassDataprovider to set styleClass conditionally to the table cell"}},
@@ -420,7 +420,7 @@
 			"showAs": { "type": "string", "values": [{"text":null}, {"html":"html"}, {"sanitizedHtml":"sanitizedHtml"}] }
 		},
 		"groupedColumn" : {
-            "dataprovider": { "type": "dataprovider", "forFoundset": "foundset", "resolveValuelist": true },
+            "dataprovider": { "type": "dataprovider", "forFoundset": "foundset", "resolveValuelist": true, "pushToServer" : "allow"},
             "format" : { "type": "format",  "for": [ "valuelist", "dataprovider" ]},
 			"valuelist": { "type": "valuelist", "for": "dataprovider", "forFoundset": "foundset" },
 			"id": {"type" : "string"},

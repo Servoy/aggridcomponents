@@ -1656,7 +1656,19 @@ export class DataGrid extends NGGridDirective {
         let oldValueStr = oldValue;
         if(oldValueStr == null) oldValueStr = '';
 
-        const col = _this.getColumn(params.colDef.field);
+        let col: any;
+        let groupFoundsetIndex: number;
+        if(foundsetManager.isRoot) {
+            col = _this.getColumn(params.colDef.field);
+        } else {
+            for (let i = 0; i < _this.hashedFoundsets.length; i++) {
+                if (_this.hashedFoundsets[i].foundsetUUID === foundsetManager.foundsetUUID) {
+                    col = _this.getColumn(params.colDef.field, _this.hashedFoundsets[i].columns);
+                    groupFoundsetIndex = i;
+                    break;
+                }
+            }
+        }
         // ignore types in compare only for non null values ("200"/200 are equals, but ""/0 is not)
         let isValueChanged = newValue !== oldValueStr || (!newValue && newValue !== oldValueStr);
         if(isValueChanged && newValue instanceof Date && oldValue instanceof Date) {
@@ -1664,7 +1676,14 @@ export class DataGrid extends NGGridDirective {
         }
         if(col && col.dataprovider && col.dataprovider.idForFoundset && (isValueChanged || _this.invalidCellDataIndex.rowIndex !== -1)) {
             if(isValueChanged) {
-                foundsetRef.updateViewportRecord(row._svyRowId, col.dataprovider.idForFoundset, newValue, oldValue);
+                const dpIdx = foundsetManager.getRowIndex(row) - foundsetManager.foundset.viewPort.startIndex;
+                let applyProperty: string;
+                if(foundsetManager.isRoot) {
+                    applyProperty = 'columns[' + _this.getColumnIndex(params.column.colId) + '].dataprovider[' + dpIdx+ ']';
+                } else {
+                    applyProperty = 'hashedFoundsets[' + groupFoundsetIndex + '].columns[' + _this.getColumnIndex(params.column.colId) + '].dataprovider[' + dpIdx+ ']';
+                }
+                _this.servoyApi.apply(applyProperty, newValue);
                 if(_this.onColumnDataChange) {
                     const currentEditCells =  _this.agGrid.api.getEditingCells();
                     _this.onColumnDataChangePromise = _this.onColumnDataChange(

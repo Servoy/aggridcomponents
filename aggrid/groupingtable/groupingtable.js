@@ -1191,7 +1191,19 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					var oldValueStr = oldValue;
 					if(oldValueStr == null) oldValueStr = "";
 
-					var col = getColumn(params.colDef.field);
+					var col;
+					var groupFoundsetIndex;
+					if(foundsetManager.isRoot) {
+						col = getColumn(params.colDef.field);
+					} else {
+						for (var i = 0; i < $scope.model.hashedFoundsets.length; i++) {
+							if ($scope.model.hashedFoundsets[i].foundsetUUID == foundsetManager.foundsetUUID) {
+								col = getColumn(params.colDef.field, $scope.model.hashedFoundsets[i].columns);
+								groupFoundsetIndex = i;
+								break;
+							}
+						}
+					}
 					// ignore types in compare only for non null values ("200"/200 are equals, but ""/0 is not)
 					var isValueChanged = newValue != oldValueStr || (!newValue && newValue !== oldValueStr);
 					if(isValueChanged && newValue instanceof Date && oldValue instanceof Date) {
@@ -1199,7 +1211,15 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 					if(col && col.dataprovider && col.dataprovider.idForFoundset && (isValueChanged || invalidCellDataIndex.rowIndex != -1)) {
 						if(isValueChanged) {
-							foundsetRef.updateViewportRecord(row._svyRowId, col.dataprovider.idForFoundset, newValue, oldValue);
+							var dpIdx = foundsetManager.getRowIndex(row) - foundsetManager.foundset.viewPort.startIndex;
+							var applyProperty;
+							if(foundsetManager.isRoot) {
+								applyProperty = "columns[" + getColumnIndex(params.column.colId) + "].dataprovider[" + dpIdx+ "]";
+							} else {
+								applyProperty = "hashedFoundsets[" + groupFoundsetIndex + "].columns[" + getColumnIndex(params.column.colId) + "].dataprovider[" + dpIdx+ "]";
+							}
+							col.dataprovider[dpIdx] = newValue;
+							$scope.svyServoyapi.apply(applyProperty);
 							if($scope.handlers.onColumnDataChange) {
 								var currentEditCells = gridOptions.api.getEditingCells();
 								onColumnDataChangePromise = $scope.handlers.onColumnDataChange(
