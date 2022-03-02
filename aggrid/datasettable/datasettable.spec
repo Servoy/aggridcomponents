@@ -14,7 +14,7 @@
     "ng2Config": {
         "dependencies": {
            "csslibrary": ["~@servoy/tempus-dominus/dist/css/tempus-dominus.css;priority=5"]
-        }
+    },
 	"model":
 	{
 		"data": { "type": "object[]", "tags": {"scope" : "private"}},
