@@ -244,7 +244,6 @@ export class PowerGrid extends NGGridDirective {
 
             rowSelection: this.multiSelect === true ? 'multiple' : 'single',
             //                suppressRowClickSelection: rowGroupColsDefault.length === 0 ? false : true,
-            suppressCellSelection: false, // TODO implement focus lost/gained
             enableRangeSelection: false,
             suppressRowClickSelection: !this.enabled,
 
@@ -436,7 +435,7 @@ export class PowerGrid extends NGGridDirective {
             }
         }
 
-        if (this.agGridOptions.groupUseEntireRow || this.agGridOptions.groupDisplayType === 'groupRows') {
+        if (this.agGridOptions.groupDisplayType === 'groupRows') {
             let groupRowRendererFunc = this.groupRowInnerRenderer;
             if (this.groupRowRendererFunc) {
                 groupRowRendererFunc = this.groupRowRendererFunc;
@@ -624,7 +623,9 @@ export class PowerGrid extends NGGridDirective {
 
                 // styleClass
                 colDef.headerClass = ['ag-table-header'];
-                if(column.headerStyleClass) colDef.headerClass.push(column.headerStyleClass);
+                if(column.headerStyleClass) {
+                    colDef.headerClass = colDef.headerClass.concat(column.headerStyleClass.split(' '));
+                }
                 colDef.cellClass = ['ag-table-cell'];
                 if (column.formatType === 'TEXT') {
                     colDef.cellClass.push('stringType');
@@ -644,7 +645,9 @@ export class PowerGrid extends NGGridDirective {
                 if(colDef.aggFunc) colDef.enableValue = true;
 
                 // tool panel
-                if (column.enableToolPanel === false) colDef.suppressToolPanel = !column.enableToolPanel;
+                if (column.enableToolPanel === false) {
+                    colDef.suppressColumnsToolPanel = colDef.suppressFiltersToolPanel = !column.enableToolPanel;
+                }
 
                 // column sizing
                 if (column.width) colDef.width = column.width;

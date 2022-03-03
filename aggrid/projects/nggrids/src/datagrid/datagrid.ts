@@ -238,7 +238,7 @@ export class DataGrid extends NGGridDirective {
         }
         if(this.editNextCellOnEnter) {
             this.agEditNextCellOnEnter = this.editNextCellOnEnter;
-        }        
+        }
 
         const vMenuTabs = ['generalMenuTab', 'filterMenuTab'];
         if(this.showColumnsMenuTab) vMenuTabs.push('columnsMenuTab');
@@ -358,7 +358,7 @@ export class DataGrid extends NGGridDirective {
             rowHeight: this.rowHeight,
 
             rowSelection: this.myFoundset && (this.myFoundset.multiSelect === true) ? 'multiple' : 'single',
-            suppressCellSelection: true,
+            suppressCellFocus: true,
             enableRangeSelection: false,
             suppressRowClickSelection: !this.enabled,
 
@@ -497,7 +497,7 @@ export class DataGrid extends NGGridDirective {
                     }, 0);
                 }
             },
-            frameworkComponents: {
+            components: {
                 valuelistFilter: ValuelistFilter,
                 radioFilter: RadioFilter
             }
@@ -968,11 +968,16 @@ export class DataGrid extends NGGridDirective {
 
             // styleClass
             colDef.headerClass = ['ag-table-header'];
-            if(column.headerStyleClass) colDef.headerClass.push(column.headerStyleClass);
+            if(column.headerStyleClass) {
+                colDef.headerClass = colDef.headerClass.concat(column.headerStyleClass.split(' '));
+            }
             if (column.styleClassDataprovider) {
                 colDef.cellClass = this.getCellClass;
             } else {
-                colDef.cellClass = 'ag-table-cell' + (column.styleClass ? ' ' + column.styleClass : '');
+                colDef.cellClass =['ag-table-cell'];
+                if(column.styleClass) {
+                    colDef.cellClass = colDef.cellClass.concat(column.styleClass.split(' '));
+                }
             }
 
             // column grouping
@@ -981,7 +986,9 @@ export class DataGrid extends NGGridDirective {
             if (column.width) colDef.width = column.width;
 
             // tool panel
-            if (column.enableToolPanel === false) colDef.suppressToolPanel = !column.enableToolPanel;
+            if (column.enableToolPanel === false) {
+                colDef.suppressColumnsToolPanel = colDef.suppressFiltersToolPanel = !column.enableToolPanel;
+            }
 
             // column sizing
             if (column.maxWidth) colDef.maxWidth = column.maxWidth;
@@ -1316,8 +1323,10 @@ export class DataGrid extends NGGridDirective {
         const dataGrid = params.context.componentParent;
         const column = dataGrid.getColumn(params.colDef.field);
 
-        let cellClass = 'ag-table-cell';
-        if(column.styleClass) cellClass += ' ' + column.styleClass;
+        let cellClass = ['ag-table-cell'];
+        if(column.styleClass) {
+            cellClass = cellClass.concat(column.styleClass.split(' '));
+        }
 
         return cellClass;
     }
