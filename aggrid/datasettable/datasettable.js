@@ -240,11 +240,11 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                             // need to clear it, so the watch can be used, if columnState changes, and we want to apply the same _internalColumnState again
                             $scope.model._internalColumnState = "_empty";
                             $scope.svyServoyapi.apply('_internalColumnState');
+                            if($scope.model.columnState) {
+                                restoreColumnsState();
+                            }
                         }
-                        if($scope.model.columnState) {
-                            restoreColumnsState();
-                        }
-                        else {
+                        if(!$scope.model.columnState) {
                             storeColumnsState(true);
                         }
                         applyExpandedState();
@@ -443,6 +443,9 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
             } else {
                 // init the grid
                 new agGrid.Grid(gridDiv, gridOptions);
+                if($scope.model.visible) {
+                    restoreColumnsState();
+                }
             }
 
 			// register listener for selection changed
@@ -500,10 +503,10 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
             }
             else {
                 $scope.$watchCollection("model.data", function(newValue, oldValue) {
-                    if(gridOptions) {
+                    if(gridOptions && (newValue !== oldValue)) {
                         isDataRendering = true;
                         // make sure we clear any settings ag-grid holds on with the previous row data
-                        if(newValue) gridOptions.api.setRowData(null);
+                        gridOptions.api.setRowData(null);
                         setTimeout(function() {
                           gridOptions.api.setRowData($scope.model.data);
                           isDataRendering = false;
