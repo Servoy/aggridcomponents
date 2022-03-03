@@ -8,7 +8,7 @@
 	"serverscript": "aggrid/groupingtable/groupingtable_server.js",
 	"doc": "aggrid/groupingtable/groupingtable_doc.js",
 	"libraries": [
-		{ "name": "groupingtable.css", "version": "1.0", "url": "aggrid/groupingtable/groupingtable.css", "mimetype": "text/css" },
+		{ "name": "groupingtable.css", "version": "1.0", "url": "aggrid/groupingtable/groupingtable.css", "mimetype": "text/css" }
 	],
     "ng2Config": {
         "dependencies": {
