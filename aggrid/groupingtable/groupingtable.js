@@ -2901,7 +2901,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 					var allPromises = [];
 
-					var filterModel = gridOptions.api.getFilterModel();
+					var filterModel = request.filterModel;
 					// create filter model with column indexes that we can send to the server
 					var updatedFilterModel = {};
 					for(var c in filterModel) {
@@ -2915,7 +2915,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					if (sUpdatedFilterModel != $scope.filterModel && !(sUpdatedFilterModel == "{}" && $scope.filterModel == null)) {
 						$scope.filterModel = sUpdatedFilterModel;
 						var filterMyFoundsetArg = [];
-						filterMyFoundsetArg.push(sUpdatedFilterModel);
 
 						if(rowGroupCols.length) {
 							groupManager.removeFoundsetRefAtLevel(0);
@@ -6113,6 +6112,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						// clear all foundsets
 						groupManager.removeFoundsetRefAtLevel(0);
 						$scope.model.myFoundset.removeChangeListener(changeListener);
+						$scope.svyServoyapi.callServerSideApi("filterMyFoundset", ["{}"]);
 
 						// remove model change notifier
 						destroyListenerUnreg();

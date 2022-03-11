@@ -374,7 +374,7 @@
 					"type": "string"
 				}
             ],
-			"allowaccess" : "enabled"
+			"allowaccess" : "enabled,visible"
 		},
 		"internalGetColumnIndex" : {
 			"parameters": [{

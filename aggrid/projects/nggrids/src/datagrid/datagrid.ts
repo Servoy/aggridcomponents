@@ -794,6 +794,7 @@ export class DataGrid extends NGGridDirective {
         // clear all foundsets
         this.groupManager.removeFoundsetRefAtLevel(0);
         if(this.removeChangeListenerFunction) this.removeChangeListenerFunction();
+        this.servoyApi.callServerSideApi('filterMyFoundset', ['{}']);
 
         // release grid resources
         this.agGrid.api.destroy();
@@ -3816,7 +3817,7 @@ class FoundsetServer {
 
         const allPromises = [];
 
-        const filterModel = this.dataGrid.agGrid.api.getFilterModel();
+        const filterModel = request.filterModel;
         // create filter model with column indexes that we can send to the server
         const updatedFilterModel = {};
         for(const c in filterModel) {
