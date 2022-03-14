@@ -308,8 +308,7 @@ export class DataGrid extends NGGridDirective {
                     }
                     if(this.columnState) {
                         this.restoreColumnsState();
-                    }
-                    else {
+                    } else {
                         this.storeColumnsState(true);
                     }
 
@@ -776,8 +775,7 @@ export class DataGrid extends NGGridDirective {
                             for(const column of change.currentValue) {
                                 this.previousColumns.push(Object.assign({}, column));
                             }
-                        }
-                        else {
+                        } else {
                             this.previousColumns = null;
                         }
                         break;
@@ -1023,7 +1021,7 @@ export class DataGrid extends NGGridDirective {
             // column sort
             if (column.enableSort === false) colDef.sortable = false;
 
-            colDef.suppressMenu = column.enableRowGroup === false && column.filterType == undefined;
+            colDef.suppressMenu = column.enableRowGroup === false && column.filterType === undefined;
 
             if (column.editType) {
                 colDef.editable = column.editType !== 'CHECKBOX' ? this.isColumnEditable : false;
@@ -2224,7 +2222,7 @@ export class DataGrid extends NGGridDirective {
 
             if(columnStateJSON != null) {
                 if(restoreColumns && Array.isArray(columnStateJSON.columnState) && columnStateJSON.columnState.length > 0) {
-                    this.agGrid.columnApi.applyColumnState({state: columnStateJSON.columnState, applyOrder: true});                    
+                    this.agGrid.columnApi.applyColumnState({state: columnStateJSON.columnState, applyOrder: true});
                 }
 
                 if(restoreColumns && Array.isArray(columnStateJSON.rowGroupColumnsState) && columnStateJSON.rowGroupColumnsState.length > 0) {
@@ -2624,20 +2622,20 @@ export class DataGrid extends NGGridDirective {
     }
 
     isSameColumns(columnsArray1: any[], collumnsArray2: any[]): boolean {
-        if(columnsArray1 != collumnsArray2) {
+        if(columnsArray1 !== collumnsArray2) {
             const n = [];
             if(columnsArray1) {
-                for(let i of columnsArray1) {
+                for(const i of columnsArray1) {
                     const ob = Object.assign({}, i);
                     // skip entries with data
-                    delete ob['dataprovider']; 
+                    delete ob['dataprovider'];
                     delete ob['valuelist'];
                     n.push(ob);
                 }
             }
             const o = [];
             if(collumnsArray2) {
-                for(let i of collumnsArray2) {
+                for(const i of collumnsArray2) {
                     const ob = Object.assign({}, i);
                     // skip entries with data
                     delete ob['dataprovider'];
@@ -2648,7 +2646,7 @@ export class DataGrid extends NGGridDirective {
             const nS = JSON.stringify(n);
             const oS = JSON.stringify(o);
             return nS === oS;
-        }					
+        }
         return true;
     }
 
@@ -3305,13 +3303,12 @@ export class DataGrid extends NGGridDirective {
                 if(viewportChangedRows !== null && this.isSameViewportRows(viewportChangedRows.newValue, viewportChangedRows.oldValue)) {
                     const updates = [];
                     updates.push({
-                        "startIndex": 0,
-                        "endIndex": viewportChangedRows.newValue.length - 1,
-                        "type": ChangeType.ROWS_CHANGED
+                        startIndex: 0,
+                        endIndex: viewportChangedRows.newValue.length - 1,
+                        type: ChangeType.ROWS_CHANGED
                     });
                     this.updateRows(updates, this.foundset);
-                }
-                else {
+                } else {
                     this.refreshDatasource();
                 }
             }
@@ -3669,15 +3666,15 @@ class FoundsetManager {
                         change.viewportRowsCompletelyChanged.oldValue)) {
                         const updates = [];
                         updates.push({
-                            "startIndex": 0,
-                            "endIndex": change.viewportRowsCompletelyChanged.newValue.length - 1,
-                            "type": ChangeType.ROWS_CHANGED
+                            startIndex: 0,
+                            endIndex: change.viewportRowsCompletelyChanged.newValue.length - 1,
+                            type: ChangeType.ROWS_CHANGED
                         });
                         dataGrid.updateRows(updates, _this);
                     } else {
                         dataGrid.refreshDatasource();
                     }
-                }                
+                }
             });
         }
     }
@@ -3941,8 +3938,8 @@ class FoundsetServer {
             // if there is no user defined onSort, set the sort from from foundset
             const currentGridSort = this.dataGrid.getFoundsetSortModel(this.dataGrid.getAgGridSortModel());
             const foundsetSort = this.dataGrid.stripUnsortableColumns(this.dataGrid.foundset.getSortColumns());
-            let isSortChanged = foundsetRefManager.isRoot && sortString !== foundsetSort && currentGridSort.sortString !== foundsetSort;
-        
+            const isSortChanged = foundsetRefManager.isRoot && sortString !== foundsetSort && currentGridSort.sortString !== foundsetSort;
+
             if(isSortChanged) {
                 this.dataGrid.log.debug('CHANGE SORT REQUEST');
                 let isColumnSortable = false;
@@ -3955,7 +3952,7 @@ class FoundsetServer {
                         break;
                     }
                 }
-    
+
                 if(isColumnSortable) {
                     // send sort request if header is clicked; skip if is is not from UI (isRenderedAndSelectionReady == false) or if it from a sort handler or a group column sort
                     if(this.dataGrid.isRenderedAndSelectionReady || sortString) {
@@ -3980,9 +3977,8 @@ class FoundsetServer {
             } else {
                 this.getDataFromFoundset(foundsetRefManager, request, callback);
             }
-        }
-        else {
-            this.getDataFromFoundset(foundsetRefManager, request, callback);            
+        } else {
+            this.getDataFromFoundset(foundsetRefManager, request, callback);
         }
     }
 
@@ -4279,7 +4275,7 @@ class GroupManager {
         return resultDeferred.promise;
     }
 
-    dequeueFoundsetRefGetter () {
+    dequeueFoundsetRefGetter() {
         if (this.foundsetRefGetterPendingPromise) {
             return false;
         }
@@ -4298,7 +4294,7 @@ class GroupManager {
                     this.foundsetRefGetterPendingPromise = false;
                     item.resultDeferred.reject(err);
                     this.dequeueFoundsetRefGetter();
-                })
+                });
         } catch (err) {
             this.foundsetRefGetterPendingPromise = false;
             item.resultDeferred.reject(err);
@@ -5037,7 +5033,7 @@ export class DataGridColumn extends BaseCustomObject {
     headerTooltip: string;
     headerGroup: string;
     headerGroupStyleClass: string;
-    dataprovider: any
+    dataprovider: any;
     tooltip: any;
     styleClass: string;
     styleClassDataprovider: any;
