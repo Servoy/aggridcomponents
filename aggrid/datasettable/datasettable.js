@@ -482,6 +482,23 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
             gridOptions.api.addEventListener('rowGroupOpened', onRowGroupOpened);
 
 
+            gridDiv.addEventListener("focus", function(e) {
+                if(gridOptions.api && gridOptions.columnApi) {
+                    var allDisplayedColumns = gridOptions.columnApi.getAllDisplayedColumns()
+                    if(allDisplayedColumns && allDisplayedColumns.length) {
+                        var focuseFromEl = e.relatedTarget;
+                        if(focuseFromEl && (focuseFromEl.classList.contains('ag-cell') || focuseFromEl.classList.contains('ag-header-cell'))) { // focuse out from the grid
+                            gridOptions.api.clearFocusedCell();
+                        } else {
+                            gridOptions.api.ensureIndexVisible(0);
+                            gridOptions.api.ensureColumnVisible(allDisplayedColumns[0]);
+                            $scope.api.setSelectedRows([0]);
+                            gridOptions.api.setFocusedCell(0, allDisplayedColumns[0]);                            
+                        }
+                    }
+                }
+            });
+
             if(!$scope.svyServoyapi.isInDesigner() && $scope.model.useLazyLoading) {
 
                 function RemoteDatasource() {
@@ -1321,6 +1338,12 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
 							});
 						}
 					}
+
+                    if(!suggestedNextCell) {
+                        setTimeout(function() {
+                            gridDiv.focus();
+                        }, 0);
+                    }
 
 					return suggestedNextCell;
 				}

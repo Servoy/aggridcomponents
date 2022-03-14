@@ -54,7 +54,8 @@
 		"readOnly": {"type": "boolean", "default": false},
 		"enabled" : {"type": "enabled", "blockingOn": false, "default": true},
 		"isEditableFunc": {"type": "clientfunction", "tags": {"doc": "Callback that returns the editable state of a cell."}},
-		"_internalAggCustomFuncs": { "type": "aggFuncInfo[]", "tags": {"scope" : "private"}}
+		"_internalAggCustomFuncs": { "type": "aggFuncInfo[]", "tags": {"scope" : "private"}},
+		"tabSeq": { "type": "tabseq", "tags": { "scope": "design" } }
 	},
 	"handlers" : {
 		"onRowSelected": {

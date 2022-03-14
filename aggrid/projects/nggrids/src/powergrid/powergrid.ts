@@ -70,6 +70,7 @@ export class PowerGrid extends NGGridDirective {
 
     @Input() columns: PowerGridColumn[];
     @Input() styleClass: string;
+    @Input() tabSeq: number;
 
     @Input() toolPanelConfig: ToolPanelConfig;
     @Input() iconConfig: IconConfig;
@@ -475,6 +476,23 @@ export class PowerGrid extends NGGridDirective {
 
         this.agGridElementRef.nativeElement.addEventListener('contextmenu', (e: any) => {
             e.preventDefault();
+        });
+
+        this.agGridElementRef.nativeElement.addEventListener('focus', (e: any) => {
+            if(this.agGrid.api && this.agGrid.columnApi) {
+                const allDisplayedColumns = this.agGrid.columnApi.getAllDisplayedColumns();
+                if(allDisplayedColumns && allDisplayedColumns.length) {
+                    const focuseFromEl = e.relatedTarget;
+                    if(focuseFromEl && (focuseFromEl.classList.contains('ag-cell') || focuseFromEl.classList.contains('ag-header-cell'))) { // focuse out from the grid
+                        this.agGrid.api.clearFocusedCell();
+                    } else{
+                        this.agGrid.api.ensureIndexVisible(0);
+                        this.agGrid.api.ensureColumnVisible(allDisplayedColumns[0]);
+                        this.setSelectedRows([0]);
+                        this.agGrid.api.setFocusedCell(0, allDisplayedColumns[0]);
+                    }
+                }
+            }
         });
 
         this.agGridOptions.popupParent = this.agGridElementRef.nativeElement;
@@ -1064,6 +1082,12 @@ export class PowerGrid extends NGGridDirective {
                     }
                 });
             }
+        }
+
+        if(!suggestedNextCell) {
+            setTimeout(() => {
+                this.agGridElementRef.nativeElement.focus();
+            }, 0);
         }
 
         return suggestedNextCell;

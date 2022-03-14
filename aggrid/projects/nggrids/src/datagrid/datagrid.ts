@@ -90,6 +90,7 @@ export class DataGrid extends NGGridDirective {
     @Input() groupUseEntireRow: boolean;
     @Input() showGroupCount: boolean;
     @Input() styleClass: string;
+    @Input() tabSeq: number;
     @Input() responsiveHeight: number;
     @Input() enabled: boolean;
 
@@ -358,7 +359,7 @@ export class DataGrid extends NGGridDirective {
             rowHeight: this.rowHeight,
 
             rowSelection: this.myFoundset && (this.myFoundset.multiSelect === true) ? 'multiple' : 'single',
-            suppressCellFocus: true,
+            //suppressCellFocus: true,
             enableRangeSelection: false,
             suppressRowClickSelection: !this.enabled,
 
@@ -628,6 +629,25 @@ export class DataGrid extends NGGridDirective {
 
         this.agGridElementRef.nativeElement.addEventListener('contextmenu', (e: any) => {
             e.preventDefault();
+        });
+
+        this.agGridElementRef.nativeElement.addEventListener('focus', (e: any) => {
+            if(this.agGrid.api && this.agGrid.columnApi) {
+                const allDisplayedColumns = this.agGrid.columnApi.getAllDisplayedColumns();
+                if(allDisplayedColumns && allDisplayedColumns.length) {
+                    const focuseFromEl = e.relatedTarget;
+                    if(focuseFromEl && (focuseFromEl.classList.contains('ag-cell') || focuseFromEl.classList.contains('ag-header-cell'))) { // focuse out from the grid
+                        this.agGrid.api.clearFocusedCell();
+                    } else {
+                        if(this.foundset.foundset.selectedRowIndexes[0] === 0) {
+                            this.agGrid.api.setFocusedCell(0, allDisplayedColumns[0]);
+                        } else {
+                            this.requestFocusColumnIndex = this.getColumnIndex(allDisplayedColumns[0].getColId());
+                            this.foundset.foundset.requestSelectionUpdate([0]);
+                        }
+                    }
+                }
+            }
         });
 
         // init the root foundset manager
@@ -2343,6 +2363,12 @@ export class DataGrid extends NGGridDirective {
                     }
                 });
             }
+        }
+
+        if(!suggestedNextCell) {
+            setTimeout(() => {
+                this.agGridElementRef.nativeElement.focus();
+            }, 0);
         }
 
         return suggestedNextCell;

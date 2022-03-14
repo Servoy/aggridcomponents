@@ -4,6 +4,7 @@
     style="height: 100%;"
     class="ag-table"
     [ngClass]="styleClass"
+    [sabloTabseq]="tabSeq"
     [gridOptions]="agGridOptions">
     </ag-grid-angular>
 	<span *ngIf="isGroupView" class="ag-table-info" [ngClass]="dirtyCache ? 'ag-table-info-notify' : ''" [svyTooltip]="tooltipTextRefreshData">

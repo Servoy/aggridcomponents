@@ -401,6 +401,26 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 				});
 				  
+				gridDiv.addEventListener("focus", function(e) {
+					if(gridOptions.api && gridOptions.columnApi) {
+						var allDisplayedColumns = gridOptions.columnApi.getAllDisplayedColumns()
+						if(allDisplayedColumns && allDisplayedColumns.length) {
+							var focuseFromEl = e.relatedTarget;
+							if(focuseFromEl && (focuseFromEl.classList.contains('ag-cell') || focuseFromEl.classList.contains('ag-header-cell'))) { // focuse out from the grid
+								gridOptions.api.clearFocusedCell();
+							} else {
+								if(foundset.foundset.selectedRowIndexes[0] == 0) {
+									gridOptions.api.setFocusedCell(0, allDisplayedColumns[0]);
+								}
+								else {
+									requestFocusColumnIndex = getColumnIndex(allDisplayedColumns[0].colId);
+									foundset.foundset.requestSelectionUpdate([0]);
+								}
+							}
+						}
+					}
+				});
+
 				var columnDefs = getColumnDefs();
 				var maxBlocksInCache = CACHED_CHUNK_BLOCKS;
 
@@ -1439,6 +1459,12 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							});
 						}
 					}
+
+                    if(!suggestedNextCell) {
+                        setTimeout(function() {
+                            gridDiv.focus();
+                        }, 0);
+                    }
 
 					return suggestedNextCell;
 				}

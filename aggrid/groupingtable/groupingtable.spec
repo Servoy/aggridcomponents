@@ -51,7 +51,8 @@
 		"columnsAutoSizing": {"type": "string", "default" : null, "values": [{"SIZE_COLUMNS_TO_FIT":null}, {"AUTO_SIZE":"AUTO_SIZE"}, {"NONE":"NONE"}], "tags": {"doc": "Auto sizing for columns. SIZE_COLUMNS_TO_FIT: make the currently visible columns fit the screen. AUTO_SIZE: the grid will work out the best width to fit the contents of the 'visible' cells in the column. NONE: no auto sizing action performed"}},
 		"showGroupCount" : {"type": "boolean", "default" : false, "tags" : {"scope": "design", "doc": "When true the number of rows for groups is shown, beside the name"}},
 		"showLoadingIndicator":  { "type": "boolean", "default": true },
-		"editNextCellOnEnter":  { "type": "boolean", "default": false }
+		"editNextCellOnEnter":  { "type": "boolean", "default": false },
+		"tabSeq": { "type": "tabseq", "tags": { "scope": "design" } }
 	},
 	"handlers" : {
     	"onSelectedRowsChanged": {
