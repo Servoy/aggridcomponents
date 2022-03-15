@@ -614,8 +614,7 @@ export class DataGrid extends NGGridDirective {
 
         this.agGridElementRef.nativeElement.addEventListener('click', (e: any) => {
             if(e.target.parentNode && e.target.parentNode.classList &&
-                (e.target.parentNode.classList.contains('ag-selection-checkbox') 
-                || e.target.parentNode.classList.contains('ag-checkbox-input-wrapper'))) {
+                e.target.parentNode.classList.contains('ag-checkbox-input-wrapper')) {
                 let t = e.target.parentNode;
                 while(t && !t.hasAttribute('row-index')) t = t.parentNode;
                 if(t) {
