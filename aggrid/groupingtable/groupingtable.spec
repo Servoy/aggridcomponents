@@ -388,13 +388,13 @@
 	"types" : {
 		"column" : {
 			"footerText" : {"type" : "tagstring"},
-			"headerTitle": {"type" : "titlestring", "for": "dataprovider"},
+			"headerTitle": {"type" : "titlestring", "for": "dataprovider", "tags": { "useAsCaptionInDeveloper" : true, "captionPriority" : 1, "showInOutlineView": true }},
 			"footerStyleClass" : {"type" : "styleclass"},
 			"headerStyleClass" : {"type" : "styleclass"},
 			"headerTooltip" : {"type" : "tagstring"},
 			"headerGroup": {"type" : "tagstring", "tags": {"doc": "Header group, that this column will be part of"}},
 			"headerGroupStyleClass" : {"type" : "styleclass"},
-			"dataprovider": { "type": "dataprovider", "forFoundset": "myFoundset", "resolveValuelist" : true, "pushToServer" : "allow"},
+			"dataprovider": { "type": "dataprovider", "forFoundset": "myFoundset", "resolveValuelist" : true, "pushToServer" : "allow", "tags": { "useAsCaptionInDeveloper" : true, "captionPriority" : 2 }},
 			"tooltip": { "type": "dataprovider", "forFoundset": "myFoundset"},
 			"styleClass" : {"type" : "styleclass"},
 			"styleClassDataprovider": { "type": "dataprovider", "forFoundset": "myFoundset", "tags": {"doc": "Use a Servoy calculation as styleClassDataprovider to set styleClass conditionally to the table cell"}},

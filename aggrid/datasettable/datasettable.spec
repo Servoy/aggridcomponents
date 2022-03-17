@@ -380,7 +380,7 @@
 		"column" : {
 			"headerGroup": {"type" : "tagstring", "tags": {"doc": "Header group, that this column will be part of"}},
 			"headerGroupStyleClass" : {"type" : "styleclass"},
-			"headerTitle": {"type" : "tagstring"},
+			"headerTitle": {"type" : "tagstring", "tags": { "useAsCaptionInDeveloper" : true, "captionPriority" : 1, "showInOutlineView": true }},
 			"headerStyleClass" : {"type" : "styleclass"},
 			"headerTooltip": {"type" : "tagstring"},
 			"dataprovider": { "type": "string"},
