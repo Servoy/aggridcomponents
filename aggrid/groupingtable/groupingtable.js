@@ -570,6 +570,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				}
 
 				var contextMenuItems = [];
+				var sizeHeaderAndColumnsToFitTimeout = null;
 
 				var gridOptions = {
 
@@ -694,9 +695,19 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					},
 //	                onColumnVisible: storeColumnsState,			 covered by onDisplayedColumnsChanged
 //	                onColumnPinned: storeColumnsState,			 covered by onDisplayedColumnsChanged
-					onColumnResized: function() {				 // NOT covered by onDisplayedColumnsChanged
-						sizeHeader();
-						storeColumnsState();
+					onColumnResized: function(e) {				 // NOT covered by onDisplayedColumnsChanged
+						if(e.source === 'uiColumnDragged') {
+							if(sizeHeaderAndColumnsToFitTimeout === null) {
+								sizeHeaderAndColumnsToFitTimeout = setTimeout(function() {
+									sizeHeaderAndColumnsToFitTimeout = null;
+									sizeHeaderAndColumnsToFit();
+									storeColumnsState();
+								}, 500);
+							}
+						} else {
+							sizeHeader();
+							storeColumnsState();
+						}
 					},
 					onColumnVisible: function(event) {
 						// workaround for ag-grid issue, when unchecking/checking all columns

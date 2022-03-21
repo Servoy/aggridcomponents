@@ -193,6 +193,8 @@ export class DataGrid extends NGGridDirective {
 
     clickTimer: any;
 
+    sizeHeaderAndColumnsToFitTimeout = null;
+
     // root foundset change listener remover
     removeChangeListenerFunction: any = null;
 
@@ -431,9 +433,19 @@ export class DataGrid extends NGGridDirective {
                     this.onSortHandler();
                 }
             },
-            onColumnResized: () => {
-                this.sizeHeader();
-                this.storeColumnsState();
+            onColumnResized: (e) => {
+                if(e.source === 'uiColumnDragged') {
+                    if(this.sizeHeaderAndColumnsToFitTimeout === null) {
+                        this.sizeHeaderAndColumnsToFitTimeout = setTimeout(() => {
+                            this.sizeHeaderAndColumnsToFitTimeout = null;
+                            this.sizeHeaderAndColumnsToFit();
+                            this.storeColumnsState();
+                        }, 500);
+                    }
+                } else {
+                    this.sizeHeader();
+                    this.storeColumnsState();
+                }
             },
             onColumnVisible: (event) => {
                 // workaround for ag-grid issue, when unchecking/checking all columns
