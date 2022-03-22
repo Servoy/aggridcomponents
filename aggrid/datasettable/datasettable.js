@@ -601,9 +601,9 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                         if(newValue != oldValue) {
                             $log.debug('column property changed');
                             if(isGridReady) {
-                                if(property != "headerTitle") {
+                                if(property != "headerTitle" && property != "visible" && property != "width") {
                                     updateColumnDefs();
-                                    if(property != "visible" && property != "width" && property != "enableToolPanel") {
+                                    if(property != "enableToolPanel") {
                                         restoreColumnsState();
                                     }
                                 }
@@ -612,6 +612,25 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                             if(property == "headerTitle") {
                                 handleColumnHeaderTitle(index, newValue, oldValue);
                             }
+							else if(property == "visible" || property == "width") {
+                                // column id is either the id of the column
+                                var column = $scope.model.columns[index];
+                                var colId = column.id;
+                                if (!colId) {
+                                    colId = column["dataprovider"];
+                                }
+                                if (!colId) {
+                                    $log.warn("cannot update '" + property + "' property on column at position index " + index);
+                                    return;
+                                }
+
+								if(property == "visible") {
+									gridOptions.columnApi.setColumnVisible(colId, newValue);
+								} else {
+									gridOptions.columnApi.setColumnWidth(colId, newValue);
+									sizeColumnsToFit();
+								}
+							}                            
                         }
                     });
                     return columnWatch;

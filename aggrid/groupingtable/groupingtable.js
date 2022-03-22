@@ -3269,9 +3269,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						if(newValue != oldValue) {
 							$log.debug('column property changed');
 							if(isGridReady) {
-								if(property != "footerText" && property != "headerTitle") {
+								if(property != "footerText" && property != "headerTitle" && property != "visible" && property != "width") {
 									updateColumnDefs();
-									if(property != "visible" && property != "width" && property != "enableToolPanel") {
+									if(property != "enableToolPanel") {
 										restoreColumnsState();
 									}
 								}
@@ -3285,6 +3285,25 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							}
 							else if (property == "footerText") {
 								handleColumnFooterText(newValue, oldValue);
+							}
+							else if(property == "visible" || property == "width") {
+								// column id is either the id of the column
+								var column = $scope.model.columns[index];
+								var colId = column.id;
+								if (!colId) {	// or column is retrieved by getColumnID !?
+									colId = getColumnID(column, index);
+								}
+								
+								if (!colId) {
+									$log.warn("cannot update '" + property + "' property on column at position index " + index);
+									return;
+								}
+								if(property == "visible") {
+									gridOptions.columnApi.setColumnVisible(colId, newValue);
+								} else {
+									gridOptions.columnApi.setColumnWidth(colId, newValue);
+									sizeHeaderAndColumnsToFit();
+								}
 							}
 						}
 					});

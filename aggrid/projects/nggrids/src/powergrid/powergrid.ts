@@ -563,9 +563,9 @@ export class PowerGrid extends NGGridDirective {
                                         if (newPropertyValue !== oldPropertyValue) {
                                             this.log.debug('column property changed');
                                             if (this.isGridReady) {
-                                                if(prop !== 'headerTitle') {
+                                                if(prop !== 'headerTitle' && prop !== 'visible' && prop !== 'width') {
                                                     this.updateColumnDefs();
-                                                    if (prop !== 'visible' && prop !== 'width' && prop !== 'enableToolPanel') {
+                                                    if (prop !== 'enableToolPanel') {
                                                         this.restoreColumnsState();
                                                     }
                                                 }
@@ -573,6 +573,25 @@ export class PowerGrid extends NGGridDirective {
 
                                             if (prop === 'headerTitle') {
                                                 this.handleColumnHeaderTitle(i, newPropertyValue);
+                                            }
+                                            else if(prop === 'visible' || prop === 'width') {
+                                                // column id is either the id of the column
+                                                const column = this.columns[i];
+                                                let colId = column.id;
+                                                if (!colId) {
+                                                    colId = column['dataprovider'];
+                                                }
+                                                if (!colId) {
+                                                    this.log.warn('cannot update "' + property + '" property on column at position index ' + i);
+                                                    return;
+                                                }
+
+                                                if(prop === 'visible') {
+                                                    this.agGridOptions.columnApi.setColumnVisible(colId, newPropertyValue);
+                                                } else {
+                                                    this.agGridOptions.columnApi.setColumnWidth(colId, newPropertyValue);
+                                                    this.sizeColumnsToFit();
+                                                }
                                             }
                                         }
                                     }
