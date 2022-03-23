@@ -464,7 +464,7 @@ function filterFoundset(foundset, sFilterModel) {
 				}
 			}
 			else if(filter["filterType"] == "date") {
-				value = filter["dateFrom"];
+				value = filter["dateFrom"].split(" ")[0];
 				switch(filter["type"]) {
 					case "notEqual":
 						useNot = true;
@@ -489,8 +489,8 @@ function filterFoundset(foundset, sFilterModel) {
 					case "inRange":
 						op = "between";
 						value = new Array();
-						value.push(filter["dateFrom"]);
-						value.push(filter["dateTo"]);
+						value.push(filter["dateFrom"].split(" ")[0]);
+						value.push(filter["dateTo"].split(" ")[0]);
 					break;
 				}
 			}
