@@ -18,7 +18,7 @@
 	"model":
 	{
 		"myFoundset": {"type": "foundset", "default" : {"foundsetSelector":""}, "pushToServer" : "allow" , "foundsetDefinitionListener": true,"initialPreferredViewPortSize": 50, "sendSelectionViewportInitially": true, "tags": {"allowaccess": "enabled", "doc": "The foundset where data are fetched from"} },
-		"columns": { "type": "column[]", "droppable" : true, "pushToServer": "shallow", "tags": {"allowaccess": "enabled", "doc": "List all columns to be used in table as dataprovider"}},
+		"columns": { "type": "column[]", "droppable" : true, "pushToServer": "shallow", "tags": {"wizard": "autoshow", "allowaccess": "enabled", "doc": "List all columns to be used in table as dataprovider"}},
 		"columnState": { "type": "string", "tags": {"scope" : "private", "allowaccess": "enabled"}, "pushToServer": "allow"},
 		"columnStateOnError": { "type": "function", "tags": {"scope" : "private", "allowaccess": "enabled"}},
 		"_internalAutoSizeState": { "type": "boolean", "tags": {"scope" : "private", "allowaccess": "enabled"}, "pushToServer": "allow"},
@@ -394,7 +394,7 @@
 			"headerTooltip" : {"type" : "tagstring"},
 			"headerGroup": {"type" : "tagstring", "tags": {"doc": "Header group, that this column will be part of"}},
 			"headerGroupStyleClass" : {"type" : "styleclass"},
-			"dataprovider": { "type": "dataprovider", "forFoundset": "myFoundset", "resolveValuelist" : true, "pushToServer" : "allow", "tags": { "useAsCaptionInDeveloper" : true, "captionPriority" : 2 }},
+			"dataprovider": { "type": "dataprovider", "forFoundset": "myFoundset", "resolveValuelist" : true, "pushToServer" : "allow", "tags": { "wizard": "dataprovider", "useAsCaptionInDeveloper" : true, "captionPriority" : 2 }},
 			"tooltip": { "type": "dataprovider", "forFoundset": "myFoundset"},
 			"styleClass" : {"type" : "styleclass"},
 			"styleClassDataprovider": { "type": "dataprovider", "forFoundset": "myFoundset", "tags": {"doc": "Use a Servoy calculation as styleClassDataprovider to set styleClass conditionally to the table cell"}},
