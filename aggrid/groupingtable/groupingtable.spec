@@ -397,7 +397,7 @@
 			"dataprovider": { "type": "dataprovider", "forFoundset": "myFoundset", "resolveValuelist" : true, "pushToServer" : "allow", "tags": { "wizard": "dataprovider", "useAsCaptionInDeveloper" : true, "captionPriority" : 2 }},
 			"tooltip": { "type": "dataprovider", "forFoundset": "myFoundset"},
 			"styleClass" : {"type" : "styleclass"},
-			"styleClassDataprovider": { "type": "dataprovider", "forFoundset": "myFoundset", "tags": {"doc": "Use a Servoy calculation as styleClassDataprovider to set styleClass conditionally to the table cell"}},
+			"styleClassDataprovider": { "type": "dataprovider", "forFoundset": "myFoundset", "tags": {"wizard": "dataprovider", "doc": "Use a Servoy calculation as styleClassDataprovider to set styleClass conditionally to the table cell"}},
 			"format" : {"type" : "format",  "for": ["valuelist", "dataprovider"]},
 			"valuelist": { "type": "valuelist", "for": "dataprovider", "forFoundset": "myFoundset"},
 			"visible":  { "type": "boolean", "default": true},
