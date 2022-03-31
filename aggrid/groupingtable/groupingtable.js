@@ -1593,14 +1593,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					if (enabled) {
 						// enable selection
 						gridOptions.suppressRowClickSelection = false;
-						selectedRowIndexesChanged(foundset);
+						//selectedRowIndexesChanged(foundset);
 					} else {
 						// disable selection
 						gridOptions.suppressRowClickSelection = true;
-						var selectedNodes = gridOptions.api.getSelectedNodes();
-						for (i = 0; i < selectedNodes.length; i++) {
-							selectedNodes[i].setSelected(false);
-						}
+						// var selectedNodes = gridOptions.api.getSelectedNodes();
+						// for (i = 0; i < selectedNodes.length; i++) {
+						// 	selectedNodes[i].setSelected(false);
+						// }
 					}
 				}
 
@@ -3388,6 +3388,12 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						gridOptions.columnApi.autoSizeAllColumns(false);
 					}
 				});	
+
+				$scope.$watch("model.enabled", function(newValue, oldValue) {
+					if(isGridReady) {
+						enableRowSelection(newValue);
+					}
+				});
 
 				/**************************************************************************************************
 				 **************************************************************************************************

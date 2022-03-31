@@ -724,6 +724,12 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     }
                 });
 
+				$scope.$watch("model.enabled", function(newValue, oldValue) {
+					if(isGridReady) {
+						gridOptions.suppressRowClickSelection = !newValue;
+					}
+				});
+
                 function getIconCheckboxEditor(state) {
                     var checkboxEditorIconConfig = iconConfig ? iconConfig : $scope.model.iconConfig;
                     

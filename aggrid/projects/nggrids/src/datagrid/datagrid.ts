@@ -360,7 +360,7 @@ export class DataGrid extends NGGridDirective {
             rowHeight: this.rowHeight,
 
             rowSelection: this.myFoundset && (this.myFoundset.multiSelect === true) ? 'multiple' : 'single',
-            //suppressCellFocus: true,
+            //suppressCellFocus: !this.enabled,
             enableRangeSelection: false,
             suppressRowClickSelection: !this.enabled,
 
@@ -830,6 +830,11 @@ export class DataGrid extends NGGridDirective {
                             this._internalAutoSizeState = false;
                             this._internalAutoSizeStateChange.emit(this._internalAutoSizeState);
                             this.agGridOptions.columnApi.autoSizeAllColumns(false);
+                        }
+                        break;
+                    case 'enabled':
+                        if(this.isGridReady) {
+                            this.agGridOptions.suppressRowClickSelection = !change.currentValue;
                         }
                         break;
                 }

@@ -626,6 +626,11 @@ export class PowerGrid extends NGGridDirective {
                             this.agGrid.api.addAggFuncs(this.getAggCustomFuncs());
                         }
                         break;
+                    case 'enabled':
+                        if(this.isGridReady) {
+                            this.agGridOptions.suppressRowClickSelection = !change.currentValue;
+                        }
+                        break;
                 }
             }
         }
