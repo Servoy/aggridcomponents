@@ -147,6 +147,14 @@ function removeAllColumns() {
 }
 
 /**
+ * Move column
+ * @param id column id
+ * @param index new position (0-based)
+ */
+function moveColumn(id, index) {
+}
+
+/**
  * Restore columns state to a previously save one, using getColumnState.
  * If no argument is used, it restores the columns to designe time state.
  * If the columns from columnState does not match with the columns of the component,

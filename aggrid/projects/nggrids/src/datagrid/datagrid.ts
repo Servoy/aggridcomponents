@@ -776,8 +776,7 @@ export class DataGrid extends NGGridDirective {
                                                 this.handleColumnHeaderTitle(i, newPropertyValue);
                                             } else if (prop === 'footerText') {
                                                 this.handleColumnFooterText();
-                                            }
-                                            else if(prop === 'visible' || prop === 'width') {
+                                            } else if(prop === 'visible' || prop === 'width') {
                                                 // column id is either the id of the column
                                                 const column = this.columns[i];
                                                 let colId = column.id;
@@ -3597,6 +3596,16 @@ export class DataGrid extends NGGridDirective {
      */
     isToolPanelShowing() {
         return this.agGrid.api.getOpenedToolPanel();
+    }
+
+    /**
+     * Move column
+     *
+     * @param id column id
+     * @param index new position (0-based)
+     */
+    moveColumn(id: string, index: number) {
+        this.agGrid.columnApi.moveColumn(id, index);
     }
 
     getAgGridSortModel() {

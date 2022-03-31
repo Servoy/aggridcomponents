@@ -6162,6 +6162,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					return gridOptions.api.getOpenedToolPanel();
 				}
 
+                /**
+                 * Move column
+                 * @param id column id
+                 * @param index new position (0-based)
+                 */
+                $scope.api.moveColumn = function(id, index) {
+                	gridOptions.columnApi.moveColumn(id, index);
+                }
 
 				// FIXME how to force re-fit when table is shown for the first time
 

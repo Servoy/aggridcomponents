@@ -199,3 +199,11 @@ function deleteRows(rowsKey) {
  */
 function addAggCustomFuncs(aggFuncs) {
 }
+
+/**
+ * Move column
+ * @param id column id
+ * @param index new position (0-based)
+ */
+function moveColumn(id, index) {
+}

@@ -331,6 +331,12 @@
 		},
 		"isToolPanelShowing": {
 			"returns": "boolean"
+		},
+		"moveColumn" : {
+			"parameters": [
+				{ "name": "id", "type": "string" },
+				{ "name": "index", "type": "int"}
+			]
 		}
     },
 	"internalApi" : {

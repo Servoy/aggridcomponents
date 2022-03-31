@@ -2219,6 +2219,15 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 }
 
                 /**
+                 * Move column
+                 * @param id column id
+                 * @param index new position (0-based)
+                 */
+                 $scope.api.moveColumn = function(id, index) {
+                    gridOptions.columnApi.moveColumn(id, index);
+                }
+
+                /**
                  * Sets expanded groups
                  *
                  * @param {Object} groups an object like {expandedGroupName1:{}, expandedGroupName2:{expandedSubGroupName2_1:{}, expandedSubGroupName2_2:{}}}
