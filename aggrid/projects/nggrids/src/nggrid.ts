@@ -19,8 +19,21 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
     formattingService: FormattingService;
     selectionEvent: any;
 
+    private destroyed = false;
+
     getValuelist(params: any): any {
         return null;
+    }
+
+    destroy(): any {
+        this.agGrid.api.destroy();
+        this.destroyed = true;
+    }
+
+    setTimeout(func: () => void, millis: number) {
+        return setTimeout(() =>  {
+            if (!this.destroyed) func();
+        } , millis);
     }
 
     abstract getColumn(field: any, columnsModel?: any): any;

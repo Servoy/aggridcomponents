@@ -286,7 +286,7 @@ export class PowerGrid extends NGGridDirective {
                     this.onReady();
                 }
                 // without timeout the column don't fit automatically
-                setTimeout(() => {
+                this.setTimeout(() => {
                     this.sizeColumnsToFit();
                 }, 150);
             },
@@ -299,7 +299,7 @@ export class PowerGrid extends NGGridDirective {
                 cellClass: this.groupStyleClass
             },
             onGridSizeChanged: () => {
-                setTimeout(() => {
+                this.setTimeout(() => {
                     // if not yet destroyed
                     if (this.agGrid.gridOptions.onGridSizeChanged) {
                         this.sizeColumnsToFit();
@@ -639,7 +639,7 @@ export class PowerGrid extends NGGridDirective {
     ngOnDestroy() {
         super.ngOnDestroy();
         // release grid resources
-        this.agGrid.api.destroy();
+        this.destroy();
     }
 
     getColumnDefs() {
@@ -1108,7 +1108,7 @@ export class PowerGrid extends NGGridDirective {
         }
 
         if(!suggestedNextCell) {
-            setTimeout(() => {
+            this.setTimeout(() => {
                 this.agGridElementRef.nativeElement.focus();
             }, 0);
         }
@@ -1171,7 +1171,7 @@ export class PowerGrid extends NGGridDirective {
                     clearTimeout(this.clickTimer);
                     this.clickTimer = null;
                 } else {
-                    this.clickTimer = setTimeout(() => {
+                    this.clickTimer = this.setTimeout(() => {
                         this.clickTimer = null;
                         this.onCellClicked(params);
                     }, 250);
@@ -1664,7 +1664,7 @@ export class PowerGrid extends NGGridDirective {
         } else {
             const column = this.columns[columnindex];
             const colId = column['id'] ? column['id'] : column['dataprovider'];
-            setTimeout(() => {
+            this.setTimeout(() => {
                 this.agGrid.api.startEditingCell({
                     rowIndex: rowindex,
                     colKey: colId
@@ -1792,7 +1792,7 @@ export class PowerGrid extends NGGridDirective {
                                 rowIndex,
                                 colKey: colId
                             });
-                            setTimeout(() => {
+                            this.setTimeout(() => {
                                 this.agGrid.api.forEachNode((node) => {
                                     if (node.rowIndex === rowIndex) {
                                         node.setSelected(true, true);

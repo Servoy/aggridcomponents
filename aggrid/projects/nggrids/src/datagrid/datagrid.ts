@@ -206,8 +206,6 @@ export class DataGrid extends NGGridDirective {
     // currently set aggrid-filter
     filterModel = null;
 
-    private destroyed = false;
-
     constructor(renderer: Renderer2, public cdRef: ChangeDetectorRef, logFactory: LoggerFactory,
         private servoyService: ServoyPublicService, public formattingService: FormattingService, public ngbTypeaheadConfig: NgbTypeaheadConfig,
         private datagridService: DatagridService, private sanitizer: DomSanitizer, @Inject(DOCUMENT) private doc: Document) {
@@ -853,9 +851,7 @@ export class DataGrid extends NGGridDirective {
         this.servoyApi.callServerSideApi('filterMyFoundset', ['{}']);
 
         // release grid resources
-        this.agGrid.api.destroy();
-
-        this.destroyed = true;
+        this.destroy();
     }
 
     displayValueGetter(params: any) {
@@ -3620,12 +3616,6 @@ export class DataGrid extends NGGridDirective {
      */
     public getNativeChild(): any {
         return this.agGridElementRef.nativeElement;
-    }
-
-    private setTimeout(func: () => void, millis: number) {
-        return setTimeout(() =>  {
-            if (!this.destroyed) func()
-        } , millis);
     }
 }
 
