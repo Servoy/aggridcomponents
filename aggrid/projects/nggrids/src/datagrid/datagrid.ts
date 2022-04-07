@@ -435,13 +435,14 @@ export class DataGrid extends NGGridDirective {
             },
             onColumnResized: (e) => {
                 if(e.source === 'uiColumnDragged') {
-                    if(this.sizeHeaderAndColumnsToFitTimeout === null) {
-                        this.sizeHeaderAndColumnsToFitTimeout = setTimeout(() => {
-                            this.sizeHeaderAndColumnsToFitTimeout = null;
-                            this.sizeHeaderAndColumnsToFit();
-                            this.storeColumnsState();
-                        }, 500);
+                    if(this.sizeHeaderAndColumnsToFitTimeout !== null) {
+                        clearTimeout(this.sizeHeaderAndColumnsToFitTimeout);
                     }
+                    this.sizeHeaderAndColumnsToFitTimeout = setTimeout(() => {
+                        this.sizeHeaderAndColumnsToFitTimeout = null;
+                        this.sizeHeaderAndColumnsToFit();
+                        this.storeColumnsState();
+                    }, 500);
                 } else {
                     this.sizeHeader();
                     this.storeColumnsState();
