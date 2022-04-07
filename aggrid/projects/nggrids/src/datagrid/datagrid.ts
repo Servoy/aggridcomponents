@@ -3414,23 +3414,10 @@ export class DataGrid extends NGGridDirective {
      * @public
      */
     internalGetColumnIndex(field: any): number {
-        let fieldToCompare = field;
-        let fieldIdx = 0;
-        if (field.indexOf('_') > 0) { // has index
-            const fieldParts = field.split('_');
-            if('col' !== fieldParts[0] && !isNaN(fieldParts[1])) {
-                fieldToCompare = fieldParts[0];
-                fieldIdx = parseInt(fieldParts[1], 10);
-            }
-        }
-
         for (let i = 0; i < this.columns.length; i++) {
             const column = this.columns[i];
-            if (column.id === fieldToCompare || this.getColumnID(column, i) === fieldToCompare) {
-                if(fieldIdx < 1) {
-                    return i;
-                }
-                fieldIdx--;
+            if (column.id === field || this.getColumnID(column, i) === field) {
+                return i;
             }
         }
         return -1;
