@@ -206,6 +206,8 @@ export class DataGrid extends NGGridDirective {
     // currently set aggrid-filter
     filterModel = null;
 
+    private destroyed = false;
+
     constructor(renderer: Renderer2, public cdRef: ChangeDetectorRef, logFactory: LoggerFactory,
         private servoyService: ServoyPublicService, public formattingService: FormattingService, public ngbTypeaheadConfig: NgbTypeaheadConfig,
         private datagridService: DatagridService, private sanitizer: DomSanitizer, @Inject(DOCUMENT) private doc: Document) {
@@ -328,7 +330,7 @@ export class DataGrid extends NGGridDirective {
                     this.updateColumnDefs();
                 } else {
                     // without timeout the column don't fit automatically
-                    setTimeout(() =>{
+                    this.setTimeout(() =>{
                         this.sizeHeaderAndColumnsToFit();
                         this.scrollToSelectionEx();
                         }, 150);
@@ -386,7 +388,7 @@ export class DataGrid extends NGGridDirective {
             enableBrowserTooltips: true,
             getRowNodeId: (data) =>  data._svyFoundsetUUID + '_' + data._svyFoundsetIndex,
             onGridSizeChanged: () => {
-                setTimeout(() => {
+                this.setTimeout(() => {
                     // if not yet destroyed
                     if(this.agGrid.gridOptions.onGridSizeChanged) {
                         this.sizeHeaderAndColumnsToFit();
@@ -438,7 +440,7 @@ export class DataGrid extends NGGridDirective {
                     if(this.sizeHeaderAndColumnsToFitTimeout !== null) {
                         clearTimeout(this.sizeHeaderAndColumnsToFitTimeout);
                     }
-                    this.sizeHeaderAndColumnsToFitTimeout = setTimeout(() => {
+                    this.sizeHeaderAndColumnsToFitTimeout = this.setTimeout(() => {
                         this.sizeHeaderAndColumnsToFitTimeout = null;
                         this.sizeHeaderAndColumnsToFit();
                         this.storeColumnsState();
@@ -496,7 +498,7 @@ export class DataGrid extends NGGridDirective {
                     const focusedRow = params.node;
                     this.postFocusCell = null;;
                     // need a timeout 0 because we can't call grid api during row creation
-                    setTimeout(() => {
+                    this.setTimeout(() => {
                         this.agGrid.api.clearFocusedCell(); // start clean, this will force setting the focus on the postFocusCell
                         this.selectionEvent = { type: 'key' };
                         focusedRow.setSelected(true, true);
@@ -505,7 +507,7 @@ export class DataGrid extends NGGridDirective {
                 }
                 if(this.columnsToFitAfterRowsRendered) {
                     this.columnsToFitAfterRowsRendered = false;
-                    setTimeout(()  =>{
+                    this.setTimeout(()  =>{
                         this.sizeHeaderAndColumnsToFit();
                     }, 0);
                 }
@@ -852,6 +854,8 @@ export class DataGrid extends NGGridDirective {
 
         // release grid resources
         this.agGrid.api.destroy();
+
+        this.destroyed = true;
     }
 
     displayValueGetter(params: any) {
@@ -1531,7 +1535,6 @@ export class DataGrid extends NGGridDirective {
                 // TODO selected record is not in viewPort: how to render it ?
             }
         }
-
         for (const oldSelectedNode of oldSelectedNodes) {
             if(selectedNodes.indexOf(oldSelectedNode) === -1) {
                 this.selectionEvent = null;
@@ -1779,7 +1782,7 @@ export class DataGrid extends NGGridDirective {
                                     rowIndex,
                                     colKey: colId
                                 });
-                                setTimeout(() => {
+                                this.setTimeout(() => {
                                     _this.selectionEvent = null;
                                     _this.agGrid.api.forEachNode( (node: any) => {
                                         if (node.rowIndex === rowIndex) {
@@ -1988,7 +1991,7 @@ export class DataGrid extends NGGridDirective {
 
     purge() {
         if(this.onSelectionChangedTimeout) {
-            setTimeout(() => {
+            this.setTimeout(() => {
                 this.purgeImpl();
             }, 250);
         } else {
@@ -2137,7 +2140,7 @@ export class DataGrid extends NGGridDirective {
         if(this.editCellAtTimeout) {
             clearTimeout(this.editCellAtTimeout);
         }
-        this.editCellAtTimeout = setTimeout(() => {
+        this.editCellAtTimeout = this.setTimeout(() => {
             this.editCellAtTimeout = null;
             this.editCellAt(this.startEditFoundsetIndex, this.startEditColumnIndex);
         }, 200);
@@ -2400,7 +2403,7 @@ export class DataGrid extends NGGridDirective {
         }
 
         if(!suggestedNextCell) {
-            setTimeout(() => {
+            this.setTimeout(() => {
                 this.agGridElementRef.nativeElement.focus();
             }, 0);
         }
@@ -2690,9 +2693,9 @@ export class DataGrid extends NGGridDirective {
         if(this.onSelectionChangedTimeout) {
             clearTimeout(this.onSelectionChangedTimeout);
         }
-        this.onSelectionChangedTimeout = setTimeout(() => {
-            this.onSelectionChangedTimeout = null;
-            this.onSelectionChangedEx();
+        this.onSelectionChangedTimeout = this.setTimeout(() => {
+                this.onSelectionChangedTimeout = null;
+                this.onSelectionChangedEx();
         }, 250);
     }
 
@@ -2837,14 +2840,14 @@ export class DataGrid extends NGGridDirective {
                         clearTimeout(this.clickTimer);
                         this.clickTimer = null;
                     } else {
-                        this.clickTimer = setTimeout(() => {
+                        this.clickTimer = this.setTimeout(() => {
                             this.clickTimer = null;
                             this.onCellClicked(params);
                         }, 350);
                     }
                 } else {
                     // Added setTimeOut to enable onColumnDataChangeEvent to go first; must be over 250, so selection is sent first
-                    setTimeout(() => {
+                    this.setTimeout(() => {
                         this.onCellClicked(params);
                     }, 350);
                 }
@@ -2895,7 +2898,7 @@ export class DataGrid extends NGGridDirective {
     onCellDoubleClicked(params: any) {
         if(this.enabled) {
             // need timeout because the selection is also in a 250ms timeout
-            setTimeout(() => {
+            this.setTimeout(() => {
                 this.onCellDoubleClickedEx(params);
             }, 250);
         }
@@ -2945,7 +2948,7 @@ export class DataGrid extends NGGridDirective {
             }
             if (this.onCellRightClick) {
                 // Added setTimeOut to enable onColumnDataChangeEvent to go first; must be over 250, so selection is sent first
-                setTimeout(() => {
+                this.setTimeout(() => {
                     this.onCellRightClick(this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), params.event);
                 }, 350);
             }
@@ -3040,13 +3043,13 @@ export class DataGrid extends NGGridDirective {
         this.setStateGroupedColumns(event.columns);
 
         // resize the columns
-        setTimeout(() => {
+        this.setTimeout(() => {
             this.sizeHeaderAndColumnsToFit();
         }, 50);
 
         // scroll to the selected row when switching from Group to plain view.
         // without timeout the column don't fit automatically
-        setTimeout(() => {
+        this.setTimeout(() => {
             this.scrollToSelection();
         }, 150);
 
@@ -3495,7 +3498,7 @@ export class DataGrid extends NGGridDirective {
             if(this.isRenderedAndSelectionReady && !this.isDataLoading) {
                 const column = this.columns[columnindex];
                 const colId = column.id ? column.id : this.getColumnID(column, columnindex);
-                setTimeout(() => {
+                this.setTimeout(() => {
                     this.agGrid.api.startEditingCell({
                         rowIndex: foundsetindex - 1,
                         colKey: colId
@@ -3630,6 +3633,12 @@ export class DataGrid extends NGGridDirective {
      */
     public getNativeChild(): any {
         return this.agGridElementRef.nativeElement;
+    }
+
+    private setTimeout(func: () => void, millis: number) {
+        return setTimeout(() =>  {
+            if (!this.destroyed) func()
+        } , millis);
     }
 }
 
