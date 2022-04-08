@@ -140,6 +140,8 @@ export class PowerGrid extends NGGridDirective {
 
     clickTimer: any = null;
 
+    sizeColumnsToFitTimeout = null;
+
     hasAutoHeightColumn = false;
 
     previousColumns: any[];
@@ -311,7 +313,20 @@ export class PowerGrid extends NGGridDirective {
             //                onFilterChanged: storeColumnsState,			 disable filter sets for now
             //                onColumnVisible: storeColumnsState,			 covered by onDisplayedColumnsChanged
             //                onColumnPinned: storeColumnsState,			 covered by onDisplayedColumnsChanged
-            onColumnResized: () => this.storeColumnsState(),				// NOT covered by onDisplayedColumnsChanged
+            onColumnResized: (e) => {   // NOT covered by onDisplayedColumnsChanged
+                if(e.source === 'uiColumnDragged') {
+                    if(this.sizeColumnsToFitTimeout !== null) {
+                        clearTimeout(this.sizeColumnsToFitTimeout);
+                    }
+                    this.sizeColumnsToFitTimeout = this.setTimeout(() => {
+                        this.sizeColumnsToFitTimeout = null;
+                        this.sizeColumnsToFit();
+                        this.storeColumnsState();
+                    }, 500);
+                } else {
+                    this.storeColumnsState();
+                }
+            },
             //                onColumnRowGroupChanged: storeColumnsState,	 covered by onDisplayedColumnsChanged
             //                onColumnValueChanged: storeColumnsState,
             //                onColumnMoved: storeColumnsState,              covered by onDisplayedColumnsChanged

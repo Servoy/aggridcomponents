@@ -208,6 +208,8 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
 
                 var scrollToRowAfterDataRendering = null;
 
+                var sizeColumnsToFitTimeout = null;
+
                 // AG grid definition
                 var gridOptions = {
                     
@@ -317,7 +319,20 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
     //                onFilterChanged: storeColumnsState,			 disable filter sets for now
     //                onColumnVisible: storeColumnsState,			 covered by onDisplayedColumnsChanged
     //                onColumnPinned: storeColumnsState,			 covered by onDisplayedColumnsChanged
-                    onColumnResized: storeColumnsState,				// NOT covered by onDisplayedColumnsChanged
+                    onColumnResized: function(e) {				 // NOT covered by onDisplayedColumnsChanged
+						if(e.source === 'uiColumnDragged') {
+							if(sizeColumnsToFitTimeout !== null) {
+								clearTimeout(sizeColumnsToFitTimeout);
+							}
+							sizeColumnsToFitTimeout = setTimeout(function() {
+								sizeColumnsToFitTimeout = null;
+								sizeColumnsToFit();
+								storeColumnsState();
+							}, 500);
+						} else {
+							storeColumnsState();
+						}
+					},
     //                onColumnRowGroupChanged: storeColumnsState,	 covered by onDisplayedColumnsChanged
     //                onColumnValueChanged: storeColumnsState,
     //                onColumnMoved: storeColumnsState,              covered by onDisplayedColumnsChanged
