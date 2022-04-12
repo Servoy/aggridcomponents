@@ -2588,7 +2588,7 @@ export class DataGrid extends NGGridDirective {
                 if (!parentNode.field && !parentNode.data) {
                     _this.log.warn('cannot resolve rowStyleClassDataprovider for row at rowIndex ' + rowIndex);
                     // exit
-                    return styleClassProvider;
+                    return '';
                 }
 
                 // is reverse order
@@ -2615,6 +2615,9 @@ export class DataGrid extends NGGridDirective {
             } else {
                 _this.log.debug('Something went wrong for foundset hash ' + foundsetUUID);
             }
+        }
+        if(styleClassProvider) {
+            styleClassProvider = styleClassProvider.split(' ');
         }
         return styleClassProvider;
     }
