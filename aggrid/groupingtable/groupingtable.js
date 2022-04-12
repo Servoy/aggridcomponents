@@ -656,9 +656,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							sizeHeaderAndColumnsToFit(GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED);
 							storeColumnsState();
 						};
-						if($scope.handlers.onReady) {
-							$scope.handlers.onReady();
-						}
 
 						if(isColumnModelChangedBeforeGridReady) {
 							updateColumnDefs();	
@@ -669,6 +666,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 									if(gridOptions.api) { // make sure the grid is still present/not destroyed
 										sizeHeaderAndColumnsToFit(GRID_EVENT_TYPES.GRID_READY);
 										scrollToSelection();
+									}
+									if($scope.handlers.onReady) {
+										$scope.handlers.onReady();
 									}
 								}, 150);
 						}
@@ -6171,6 +6171,13 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
                 $scope.api.moveColumn = function(id, index) {
                 	gridOptions.columnApi.moveColumn(id, index);
                 }
+
+				/**
+				 * Resize columns to fit the table's width
+				 */
+				$scope.api.sizeColumnsToFit = function() {
+					gridOptions.api.sizeColumnsToFit();
+				}
 
 				// FIXME how to force re-fit when table is shown for the first time
 

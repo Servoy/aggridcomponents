@@ -64,6 +64,11 @@ const COLUMN_KEYS_TO_CHECK_FOR_CHANGES = [
     'id'
 ];
 
+const GRID_EVENT_TYPES = {
+    GRID_READY: 'gridReady',
+    DISPLAYED_COLUMNS_CHANGED : 'displayedColumnsChanged',
+    GRID_COLUMNS_CHANGED: 'gridColumnsChanged'
+};
 @Component({
     selector: 'aggrid-groupingtable',
     templateUrl: './datagrid.html',
@@ -93,6 +98,7 @@ export class DataGrid extends NGGridDirective {
     @Input() tabSeq: number;
     @Input() responsiveHeight: number;
     @Input() enabled: boolean;
+    @Input() columnsAutoSizing: string;
 
     @Input() toolPanelConfig: ToolPanelConfig;
     @Input() iconConfig: IconConfig;
@@ -317,21 +323,21 @@ export class DataGrid extends NGGridDirective {
                     this.restoreColumnsState();
                 }
                 this.agGridOptions.onDisplayedColumnsChanged = ()=> {
-                    this.sizeHeaderAndColumnsToFit();
+                    this.sizeHeaderAndColumnsToFit(GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED);
                     this.storeColumnsState();
                 };
-                if(this.onReady) {
-                    this.onReady();
-                }
 
                 if(this.isColumnModelChangedBeforeGridReady) {
                     this.updateColumnDefs();
                 } else {
                     // without timeout the column don't fit automatically
                     this.setTimeout(() =>{
-                        this.sizeHeaderAndColumnsToFit();
+                        this.sizeHeaderAndColumnsToFit(GRID_EVENT_TYPES.GRID_READY);
                         this.scrollToSelectionEx();
-                        }, 150);
+                        if(this.onReady) {
+                            this.onReady();
+                        }
+                    }, 150);
                 }
             },
             defaultColDef: {
@@ -897,9 +903,29 @@ export class DataGrid extends NGGridDirective {
     /**`
      * Resize header and all columns so they can fit the horizontal space
      *  */
-    sizeHeaderAndColumnsToFit() {
-        this.agGrid.api.sizeColumnsToFit();
-        this.sizeHeader();
+    sizeHeaderAndColumnsToFit(eventType?: string) {
+        // only if visible and grid is/still ready
+        if(this.agGrid.api) {
+            switch (this.columnsAutoSizing) {
+                case 'NONE':
+                    break;
+                case 'AUTO_SIZE':
+                    // calling auto-size upon displayedColumnsChanged runs in an endless loop 
+                    const skipEvents = [GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED];
+                    // call auto-size only upon certain events
+                    const autoSizeOnEvents = [GRID_EVENT_TYPES.GRID_READY];
+                    if (eventType && autoSizeOnEvents.indexOf(eventType) > -1) {
+                        const skipHeader = this.agGridOptions.skipHeaderOnAutoSize === true ? true : false;
+                        this.agGrid.columnApi.autoSizeAllColumns(skipHeader);
+                    }
+                    break;
+                case 'SIZE_COLUMNS_TO_FIT':
+                default:
+                    this.agGrid.api.sizeColumnsToFit();
+
+            }
+            this.sizeHeader();
+        }
     }
 
     /**
@@ -3593,6 +3619,13 @@ export class DataGrid extends NGGridDirective {
      */
     moveColumn(id: string, index: number) {
         this.agGrid.columnApi.moveColumn(id, index);
+    }
+
+    /**
+     * Resize columns to fit the table's width
+     */
+    sizeColumnsToFit() {
+        this.agGrid.api.sizeColumnsToFit();
     }
 
     getAgGridSortModel() {

@@ -241,6 +241,10 @@
 			"parameters": [
 			]
 		},
+		"sizeColumnsToFit" : {
+			"parameters": [
+			]
+		},
 		"getColumnsCount": {
 	        "returns": "int"
 	    },
