@@ -910,7 +910,7 @@ export class DataGrid extends NGGridDirective {
                 case 'NONE':
                     break;
                 case 'AUTO_SIZE':
-                    // calling auto-size upon displayedColumnsChanged runs in an endless loop 
+                    // calling auto-size upon displayedColumnsChanged runs in an endless loop
                     const skipEvents = [GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED];
                     // call auto-size only upon certain events
                     const autoSizeOnEvents = [GRID_EVENT_TYPES.GRID_READY];
