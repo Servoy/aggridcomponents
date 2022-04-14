@@ -696,7 +696,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 //	                onColumnVisible: storeColumnsState,			 covered by onDisplayedColumnsChanged
 //	                onColumnPinned: storeColumnsState,			 covered by onDisplayedColumnsChanged
 					onColumnResized: function(e) {				 // NOT covered by onDisplayedColumnsChanged
-						if(e.source === 'uiColumnDragged') {
+						if($scope.model.continuousColumnsAutoSizing && e.source === 'uiColumnDragged') {
 							if(sizeHeaderAndColumnsToFitTimeout !== null) {
 								clearTimeout(sizeHeaderAndColumnsToFitTimeout);
 							}
@@ -6171,13 +6171,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
                 $scope.api.moveColumn = function(id, index) {
                 	gridOptions.columnApi.moveColumn(id, index);
                 }
-
-				/**
-				 * Resize columns to fit the table's width
-				 */
-				$scope.api.sizeColumnsToFit = function() {
-					gridOptions.api.sizeColumnsToFit();
-				}
 
 				// FIXME how to force re-fit when table is shown for the first time
 

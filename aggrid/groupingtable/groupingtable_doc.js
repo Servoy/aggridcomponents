@@ -155,12 +155,6 @@ function moveColumn(id, index) {
 }
 
 /**
- * Resize columns to fit the table's width
- */
-function sizeColumnsToFit() {
-}
-
-/**
  * Restore columns state to a previously save one, using getColumnState.
  * If no argument is used, it restores the columns to designe time state.
  * If the columns from columnState does not match with the columns of the component,

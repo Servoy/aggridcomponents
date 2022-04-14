@@ -99,6 +99,7 @@ export class DataGrid extends NGGridDirective {
     @Input() responsiveHeight: number;
     @Input() enabled: boolean;
     @Input() columnsAutoSizing: string;
+    @Input() continuousColumnsAutoSizing: boolean;
 
     @Input() toolPanelConfig: ToolPanelConfig;
     @Input() iconConfig: IconConfig;
@@ -440,7 +441,7 @@ export class DataGrid extends NGGridDirective {
                 }
             },
             onColumnResized: (e) => {
-                if(e.source === 'uiColumnDragged') {
+                if(this.continuousColumnsAutoSizing && e.source === 'uiColumnDragged') {
                     if(this.sizeHeaderAndColumnsToFitTimeout !== null) {
                         clearTimeout(this.sizeHeaderAndColumnsToFitTimeout);
                     }
@@ -3622,13 +3623,6 @@ export class DataGrid extends NGGridDirective {
      */
     moveColumn(id: string, index: number) {
         this.agGrid.columnApi.moveColumn(id, index);
-    }
-
-    /**
-     * Resize columns to fit the table's width
-     */
-    sizeColumnsToFit() {
-        this.agGrid.api.sizeColumnsToFit();
     }
 
     getAgGridSortModel() {

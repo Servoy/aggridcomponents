@@ -99,6 +99,7 @@ export class PowerGrid extends NGGridDirective {
     @Input() groupMaxWidth: number;
     @Input() groupRowRendererFunc: any;
     @Input() responsiveHeight: number;
+    @Input() continuousColumnsAutoSizing: boolean;
 
     @Input() _internalColumnState: any;
     @Output() _internalColumnStateChange = new EventEmitter();
@@ -314,7 +315,7 @@ export class PowerGrid extends NGGridDirective {
             //                onColumnVisible: storeColumnsState,			 covered by onDisplayedColumnsChanged
             //                onColumnPinned: storeColumnsState,			 covered by onDisplayedColumnsChanged
             onColumnResized: (e) => {   // NOT covered by onDisplayedColumnsChanged
-                if(e.source === 'uiColumnDragged') {
+                if(this.continuousColumnsAutoSizing && e.source === 'uiColumnDragged') {
                     if(this.sizeColumnsToFitTimeout !== null) {
                         clearTimeout(this.sizeColumnsToFitTimeout);
                     }
