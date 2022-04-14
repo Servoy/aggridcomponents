@@ -320,7 +320,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
     //                onColumnVisible: storeColumnsState,			 covered by onDisplayedColumnsChanged
     //                onColumnPinned: storeColumnsState,			 covered by onDisplayedColumnsChanged
                     onColumnResized: function(e) {				 // NOT covered by onDisplayedColumnsChanged
-						if(e.source === 'uiColumnDragged') {
+						if($scope.model.continuousColumnsAutoSizing && e.source === 'uiColumnDragged') {
 							if(sizeColumnsToFitTimeout !== null) {
 								clearTimeout(sizeColumnsToFitTimeout);
 							}

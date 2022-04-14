@@ -55,7 +55,8 @@
 		"enabled" : {"type": "enabled", "blockingOn": false, "default": true},
 		"isEditableFunc": {"type": "clientfunction", "tags": {"doc": "Callback that returns the editable state of a cell."}},
 		"_internalAggCustomFuncs": { "type": "aggFuncInfo[]", "tags": {"scope" : "private"}},
-		"tabSeq": { "type": "tabseq", "tags": { "scope": "design" } }
+		"tabSeq": { "type": "tabseq", "tags": { "scope": "design" } },
+		"continuousColumnsAutoSizing":  { "type": "boolean", "default": false, "tags": {"doc": "Size columns to fit whenever columns width are changed"} }
 	},
 	"handlers" : {
 		"onRowSelected": {
