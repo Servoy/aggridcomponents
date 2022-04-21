@@ -9,4 +9,4 @@ zip.addLocalFolder("./datasettable/", "/datasettable/");
 zip.addLocalFolder("./groupingtable/", "/groupingtable/");
 zip.addLocalFolder("./lib/", "/lib/");
 
-zip.writeZip("aggrid.zip");
+zip.writeZip("nggrids.zip");
