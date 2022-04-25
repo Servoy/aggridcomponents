@@ -6,6 +6,7 @@ import { Format, FormattingService, getFirstDayOfWeek, ServoyPublicService } fro
 import { DateTime as DateTimeLuxon} from 'luxon';
 import { DateTime, Namespace, Options, TempusDominus } from '@servoy/tempus-dominus';
 import { ChangeEvent } from '@servoy/tempus-dominus/types/utilities/event-types';
+import { NULL_VALUE } from '../datagrid/datagrid';
 
 @Component({
     selector: 'aggrid-datepicker',
@@ -59,27 +60,18 @@ export class DatePicker extends EditorDirective {
 
     format: Format;
 
-    constructor(servoyService: ServoyPublicService,  @Inject(DOCUMENT) private doc: Document, formattingService: FormattingService,) {
+    constructor(servoyService: ServoyPublicService,  @Inject(DOCUMENT) private doc: Document, private formattingService: FormattingService,) {
         super();
         this.config.localization.startOfTheWeek = getFirstDayOfWeek(servoyService.getLocale());
         const lts = DateTimeLuxon.now().setLocale(servoyService.getLocale()).toLocaleString(DateTimeLuxon.DATETIME_FULL).toUpperCase();
         this.config.display.components.useTwentyfourHour = lts.indexOf('AM') >= 0 || lts.indexOf('PM') >= 0;
         this.config.localization.locale = servoyService.getLocale();
         this.loadCalendarLocale(this.config.localization.locale);
-
-         this.config.hooks = {
-            inputFormat: (date: DateTime) => formattingService.format(date, this.format, false),
-            inputParse: (value: any) => {
-                const parsed  = formattingService.parse(value, this.format, true, this.selectedValue);
-                if (parsed instanceof Date) return  new DateTime(parsed);
-                return null;
-            }
-        };
     }
 
     agInit(params: ICellEditorParams): void {
         super.agInit(params);
-        this.selectedValue = this.initialValue;
+        this.selectedValue = this.initialValue === NULL_VALUE?null:this.initialValue;
 
         const column = this.ngGrid.getColumn(params.column.getColId());
         if (column && column.format && typeof column.format !== 'string') {
@@ -121,6 +113,12 @@ export class DatePicker extends EditorDirective {
     ngAfterViewInit(): void {
         if (this.selectedValue) this.config.viewDate = DateTime.convert(this.selectedValue);
         this.picker = new TempusDominus(this.inputElementRef.nativeElement, this.config);
+        this.picker.dates.formatInput =  (date: DateTime) => this.formattingService.format(date, this.format, false);
+        this.picker.dates.parseInput =  (value: string) => {
+            const parsed = this.formattingService.parse(value?value.trim():null, this.format, true, this.selectedValue);
+            if (parsed instanceof Date && !isNaN(parsed.getTime())) return  new DateTime(parsed);
+            return null;
+        };
         if ( this.config.viewDate ) this.picker.dates.setValue( this.config.viewDate );
         this.picker.subscribe(Namespace.events.change, (event) => this.dateChanged(event));
         setTimeout(() => {
@@ -144,8 +142,8 @@ export class DatePicker extends EditorDirective {
 
     // returns the new value after editing
     getValue(): Date {
-        const value = this.inputElementRef.nativeElement.value;
-        if (value) return this.config.hooks.inputParse(value);
+        const parsed = this.formattingService.parse(this.inputElementRef.nativeElement.value, this.format, true, this.selectedValue);
+        if (parsed instanceof Date && !isNaN(parsed.getTime())) return parsed;
         return null;
     }
 
