@@ -3630,10 +3630,10 @@ export class DataGrid extends NGGridDirective {
         const columnsState = this.agGrid.columnApi.getColumnState();
         for(const columnState of columnsState) {
             if(columnState['sort'] != null) {
-                agGridSortModel.push({colId: columnState['colId'], sort: columnState['sort']});
+                agGridSortModel.push({colId: columnState['colId'], sort: columnState['sort'], sortIndex: columnState['sortIndex']});
             }
         }
-        return agGridSortModel;
+        return agGridSortModel.sort((c1, c2) => c1['sortIndex'] - c2['sortIndex']);
     }
 
     public getNativeElement(): HTMLDivElement {
