@@ -6,6 +6,7 @@ import { Format, FormattingService, getFirstDayOfWeek, ServoyPublicService } fro
 import { DateTime as DateTimeLuxon} from 'luxon';
 import { DateTime, Namespace, Options, TempusDominus } from '@servoy/tempus-dominus';
 import { ChangeEvent } from '@servoy/tempus-dominus/types/utilities/event-types';
+import { NULL_VALUE } from '../datagrid/datagrid';
 
 @Component({
     selector: 'aggrid-datepicker',
@@ -79,7 +80,8 @@ export class DatePicker extends EditorDirective {
 
     agInit(params: ICellEditorParams): void {
         super.agInit(params);
-        this.selectedValue = this.initialValue;
+        this.selectedValue = this.initialValue === NULL_VALUE ? null :
+            this.initialValue && this.initialValue.displayValue !== undefined ? this.initialValue.displayValue : this.initialValue;
 
         const column = this.ngGrid.getColumn(params.column.getColId());
         if (column && column.format && typeof column.format !== 'string') {

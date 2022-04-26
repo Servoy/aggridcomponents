@@ -43,7 +43,7 @@ const COLUMN_PROPERTIES_DEFAULTS = {
 const CHUNK_SIZE = 50;
 const CACHED_CHUNK_BLOCKS = 2;
 
-const NULL_VALUE = {displayValue: '', realValue: null};
+export const NULL_VALUE = {displayValue: '', realValue: null};
 
 const COLUMN_KEYS_TO_CHECK_FOR_CHANGES = [
     'headerTitle',
