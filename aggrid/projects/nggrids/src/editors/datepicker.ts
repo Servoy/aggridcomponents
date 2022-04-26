@@ -71,7 +71,8 @@ export class DatePicker extends EditorDirective {
 
     agInit(params: ICellEditorParams): void {
         super.agInit(params);
-        this.selectedValue = this.initialValue === NULL_VALUE?null:this.initialValue;
+        this.selectedValue = this.initialValue === NULL_VALUE ? null :
+            this.initialValue && this.initialValue.displayValue !== undefined ? this.initialValue.displayValue : this.initialValue;
 
         const column = this.ngGrid.getColumn(params.column.getColId());
         if (column && column.format && typeof column.format !== 'string') {
