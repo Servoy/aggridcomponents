@@ -395,7 +395,7 @@
 	"types" : {
 		"column" : {
 			"footerText" : {"type" : "tagstring"},
-			"headerTitle": {"type" : "titlestring", "for": "dataprovider", "tags": { "wizard": "i18n", "useAsCaptionInDeveloper" : true, "captionPriority" : 1, "showInOutlineView": true }},
+			"headerTitle": {"type" : "titlestring", "for": "dataprovider", "tags": { "wizard": "4", "useAsCaptionInDeveloper" : true, "captionPriority" : 1, "showInOutlineView": true }},
 			"footerStyleClass" : {"type" : "styleclass"},
 			"headerStyleClass" : {"type" : "styleclass"},
 			"headerTooltip" : {"type" : "tagstring"},
@@ -403,7 +403,7 @@
 			"headerGroupStyleClass" : {"type" : "styleclass"},
 			"dataprovider": { "type": "dataprovider", "forFoundset": "myFoundset", "resolveValuelist" : true, "pushToServer" : "allow", "tags": { "wizard": "1", "useAsCaptionInDeveloper" : true, "captionPriority" : 2 }},
 			"tooltip": { "type": "dataprovider", "forFoundset": "myFoundset"},
-			"styleClass" : {"type" : "styleclass","tags": {"wizard": [{"name": "Pencil icon", "cls": "fa fa-pencil"}, {"name": "Trash icon", "cls": "fa fa-trash"}, {"name": "Eye icon", "cls": "fa fa-eye"}, {"name": "Gear icon", "cls": "fa fa-gear"}] } },
+			"styleClass" : {"type" : "styleclass","tags": {"wizard": {"order": "3", "values":[{"name": "Pencil icon", "cls": "fa fa-pencil"}, {"name": "Trash icon", "cls": "fa fa-trash"}, {"name": "Eye icon", "cls": "fa fa-eye"}, {"name": "Gear icon", "cls": "fa fa-gear"}] }} },
 			"styleClassDataprovider": { "type": "dataprovider", "forFoundset": "myFoundset", "tags": {"wizard": "2", "doc": "Use a Servoy calculation as styleClassDataprovider to set styleClass conditionally to the table cell"}},
 			"format" : {"type" : "format",  "for": ["valuelist", "dataprovider"]},
 			"valuelist": { "type": "valuelist", "for": "dataprovider", "forFoundset": "myFoundset"},
