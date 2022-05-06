@@ -380,6 +380,11 @@
             "parameters" : [{
 					"name": "sFilterModel",
 					"type": "string"
+				},
+				{
+					"name": "myFoundset",
+					"type": "foundsetRef",
+					"optional": true
 				}
             ],
 			"allowaccess" : "enabled,visible"

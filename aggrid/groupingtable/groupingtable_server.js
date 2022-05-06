@@ -203,9 +203,10 @@ $scope.getGroupedFoundsetUUID = function(
 	return childFoundset; // return the UUID that points to this foundset (return type will make it UUID)
 };
 
-$scope.filterMyFoundset = function(sFilterModel) {
-	if (sFilterModel) filterFoundset($scope.model.myFoundset.foundset, sFilterModel);
-	$scope.model.myFoundset.foundset.reloadWithFilters();
+$scope.filterMyFoundset = function(sFilterModel, foundset) {
+	var myFoundset = foundset ? foundset : $scope.model.myFoundset.foundset;
+	if (sFilterModel) filterFoundset(myFoundset, sFilterModel);
+	myFoundset.reloadWithFilters();
 }
 
 $scope.removeGroupedFoundsetUUID = function(parentFoundset) {
