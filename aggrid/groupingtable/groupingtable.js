@@ -3200,6 +3200,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					$scope.$watchCollection("model.myFoundset", function(newValue, oldValue) {
 						if(newValue && oldValue && newValue.foundsetId !== oldValue.foundsetId) {
 							$scope.filterModel = null;
+							// remove ng grid filter from the previous foundset
+							var filterMyFoundsetArg = [];
+							filterMyFoundsetArg.push("{}");
+							filterMyFoundsetArg.push(oldValue.foundsetId);
+							$scope.svyServoyapi.callServerSideApi("filterMyFoundset", filterMyFoundsetArg);
 						}					
 					});
 					var columnWatches = [];
