@@ -15,6 +15,7 @@ import { DatagridFilterDirective } from './datagridfilter';
                 [inputFormatter]="inputFormatter"
                 (focus)="focus$.next('')"
                 [resultTemplate]="rt"
+                [popupClass]="'ag-custom-component-popup'"
                 #instance="ngbTypeahead" #element>
         </div></div></div>
         <div class="ag-filter-apply-panel">
@@ -23,7 +24,7 @@ import { DatagridFilterDirective } from './datagridfilter';
         </div>
       </div>
       <ng-template #rt let-r="result" let-t="term">
-        <div class="ag-custom-component-popup"><ngb-highlight [result]="r.displayValue" [term]="t"></ngb-highlight></div>
+        <ngb-highlight [result]="r.displayValue" [term]="t"></ngb-highlight>
       </ng-template>
     `
 })
