@@ -3205,6 +3205,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							filterMyFoundsetArg.push("{}");
 							filterMyFoundsetArg.push(oldValue.foundsetId);
 							$scope.svyServoyapi.callServerSideApi("filterMyFoundset", filterMyFoundsetArg);
+							gridOptions.api.setFilterModel(null);
+							storeColumnsState();
 						}					
 					});
 					var columnWatches = [];

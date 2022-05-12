@@ -733,9 +733,11 @@ export class DataGrid extends NGGridDirective {
                                 this.filterModel = null;
                                 // remove ng grid filter from the previous foundset
                                 const filterMyFoundsetArg = [];
-                                filterMyFoundsetArg.push("{}");
+                                filterMyFoundsetArg.push('{}');
                                 filterMyFoundsetArg.push(this.myFoundsetId);
                                 this.servoyApi.callServerSideApi('filterMyFoundset', filterMyFoundsetArg);
+                                this.agGrid.api.setFilterModel(null);
+                                this.storeColumnsState();
                             } else {
                                 // there is actually no foundset change!
                                 return;
