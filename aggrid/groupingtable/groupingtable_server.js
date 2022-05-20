@@ -204,7 +204,21 @@ $scope.getGroupedFoundsetUUID = function(
 };
 
 $scope.filterMyFoundset = function(sFilterModel, foundset) {
-	var myFoundset = foundset ? foundset : $scope.model.myFoundset.foundset;
+	var myFoundset;
+
+	if(foundset) {
+		myFoundset = foundset;
+	} else {
+		myFoundset = $scope.model.myFoundset.foundset;
+		if(myFoundset.getRelationName()) {
+			myFoundset = myFoundset.unrelate();
+			$scope.model._internalUnrelatedMyFoundsetForFilter = {
+				foundset: myFoundset
+			}
+			$scope.model.myFoundset.foundset = myFoundset;
+		}
+	}
+
 	if (sFilterModel) filterFoundset(myFoundset, sFilterModel);
 	myFoundset.reloadWithFilters();
 }

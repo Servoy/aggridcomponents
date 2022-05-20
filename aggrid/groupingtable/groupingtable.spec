@@ -53,7 +53,8 @@
 		"showGroupCount" : {"type": "boolean", "default" : false, "tags" : {"scope": "design", "doc": "When true the number of rows for groups is shown, beside the name"}},
 		"showLoadingIndicator":  { "type": "boolean", "default": true },
 		"editNextCellOnEnter":  { "type": "boolean", "default": false },
-		"tabSeq": { "type": "tabseq", "tags": { "scope": "design" } }
+		"tabSeq": { "type": "tabseq", "tags": { "scope": "design" } },
+		"_internalUnrelatedMyFoundsetForFilter": {"type": "foundset", "tags": {"scope" : "private", "allowaccess": "enabled"}}
 	},
 	"handlers" : {
     	"onSelectedRowsChanged": {

@@ -3144,6 +3144,13 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 						foundset = new FoundSetManager($scope.model.myFoundset, 'root', true);
 
+						$scope.filterModel = null;
+						var currentAGGridFilterModel = gridOptions.api.getFilterModel();
+						if(currentAGGridFilterModel && !$.isEmptyObject(currentAGGridFilterModel)) {
+							gridOptions.api.setFilterModel(null);
+							storeColumnsState();
+						}
+
 						var foundsetServer = new FoundsetServer([]);
 						var datasource = new FoundsetDatasource(foundsetServer);
 						gridOptions.api.setServerSideDatasource(datasource);
@@ -3155,6 +3162,12 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						if(currentEditCells.length != 0) {
 							startEditFoundsetIndex = currentEditCells[0].rowIndex + 1;
 							startEditColumnIndex = getColumnIndex(currentEditCells[0].column.colId);
+						}
+						$scope.filterModel = null;
+						var currentAGGridFilterModel = gridOptions.api.getFilterModel();
+						if(currentAGGridFilterModel && !$.isEmptyObject(currentAGGridFilterModel)) {
+							gridOptions.api.setFilterModel(null);
+							storeColumnsState();
 						}
 						var foundsetServer = new FoundsetServer([]);
 						var datasource = new FoundsetDatasource(foundsetServer);
@@ -3198,15 +3211,15 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 					});
 					$scope.$watchCollection("model.myFoundset", function(newValue, oldValue) {
-						if(newValue && oldValue && newValue.foundsetId !== oldValue.foundsetId) {
-							$scope.filterModel = null;
+						if(newValue && oldValue &&
+							newValue.foundsetId !== oldValue.foundsetId &&
+							(!$scope.model._internalUnrelatedMyFoundsetForFilter || (newValue.foundsetId !== $scope.model._internalUnrelatedMyFoundsetForFilter.foundsetId &&
+								oldValue.foundsetId !== $scope.model._internalUnrelatedMyFoundsetForFilter.foundsetId))) {
 							// remove ng grid filter from the previous foundset
 							var filterMyFoundsetArg = [];
 							filterMyFoundsetArg.push("{}");
 							filterMyFoundsetArg.push(oldValue.foundsetId);
 							$scope.svyServoyapi.callServerSideApi("filterMyFoundset", filterMyFoundsetArg);
-							gridOptions.api.setFilterModel(null);
-							storeColumnsState();
 						}					
 					});
 					var columnWatches = [];
