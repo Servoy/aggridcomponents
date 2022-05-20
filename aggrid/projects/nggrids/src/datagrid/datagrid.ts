@@ -129,6 +129,7 @@ export class DataGrid extends NGGridDirective {
     @Input() tooltipTextRefreshData: any;
     // used in HTML template to toggle sync button
     @Output() isGroupView = false;
+    @Input() _internalUnrelatedMyFoundsetForFilter;
 
     log: LoggerService;
     agGridOptions: GridOptions;
@@ -729,39 +730,39 @@ export class DataGrid extends NGGridDirective {
 							return;
 						}
                         if(change.currentValue && this.myFoundsetId ) {
-                            if(change.currentValue.foundsetId !== this.myFoundsetId) {
-                                this.filterModel = null;
+                            if(change.currentValue.foundsetId !== this.myFoundsetId &&
+                                (!this._internalUnrelatedMyFoundsetForFilter || (change.currentValue.foundsetId !== this._internalUnrelatedMyFoundsetForFilter.foundsetId &&
+                                    this.myFoundsetId !== this._internalUnrelatedMyFoundsetForFilter.foundsetId))) {
                                 // remove ng grid filter from the previous foundset
                                 const filterMyFoundsetArg = [];
                                 filterMyFoundsetArg.push('{}');
                                 filterMyFoundsetArg.push(this.myFoundsetId);
                                 this.servoyApi.callServerSideApi('filterMyFoundset', filterMyFoundsetArg);
-                                this.agGrid.api.setFilterModel(null);
-                                this.storeColumnsState();
                             } else {
                                 // there is actually no foundset change!
                                 return;
                             }
                         }
+
                         if(this.isTableGrouped()) {
-							this.purge();
-						}
+                            this.purge();
+                        }
 
                         this.myFoundsetId = change.currentValue.foundsetId;
-						const isChangedToEmpty = change.currentValue && change.previousValue && change.previousValue.serverSize === 0 && change.previousValue.serverSize > 0;
-						if(this.myFoundset.viewPort.size > 0 || isChangedToEmpty) {
-							// browser refresh
+                        const isChangedToEmpty = change.currentValue && change.previousValue && change.previousValue.serverSize === 0 && change.previousValue.serverSize > 0;
+                        if(this.myFoundset.viewPort.size > 0 || isChangedToEmpty) {
+                            // browser refresh
                             this.isRootFoundsetLoaded = true;
                             this.initRootFoundset();
-						} else {
-							// newly set foundset
-							this.isRootFoundsetLoaded = false;
-						}
+                        } else {
+                            // newly set foundset
+                            this.isRootFoundsetLoaded = false;
+                        }
                         // TODO ASK R&D should i remove and add the previous listener ?
                         if(this.removeChangeListenerFunction) this.removeChangeListenerFunction();
                         this.myFoundset.removeChangeListener(this.changeListener);
-						this.removeChangeListenerFunction = this.myFoundset.addChangeListener((ch) => {
-                         this.changeListener(ch);
+                        this.removeChangeListenerFunction = this.myFoundset.addChangeListener((ch) => {
+                        this.changeListener(ch);
                         });
                         break;
                     case 'columns':
@@ -982,6 +983,13 @@ export class DataGrid extends NGGridDirective {
 
         this.foundset = new FoundsetManager(this, this.myFoundset, 'root', true);
 
+        this.filterModel = null;
+        const currentAGGridFilterModel = this.agGrid.api.getFilterModel();
+        if(currentAGGridFilterModel && Object.keys(currentAGGridFilterModel).length !== 0) {
+            this.agGrid.api.setFilterModel(null);
+            this.storeColumnsState();
+        }
+
         const foundsetServer = new FoundsetServer(this, []);
         const datasource = new FoundsetDatasource(this, foundsetServer);
         if(this.myFoundset) this.agGrid.api.setServerSideDatasource(datasource);
@@ -993,6 +1001,12 @@ export class DataGrid extends NGGridDirective {
         if(currentEditCells.length !== 0) {
             this.startEditFoundsetIndex = currentEditCells[0].rowIndex + 1;
             this.startEditColumnIndex = this.getColumnIndex(currentEditCells[0].column.getColId());
+        }
+        this.filterModel = null;
+        const currentAGGridFilterModel = this.agGrid.api.getFilterModel();
+        if(currentAGGridFilterModel && Object.keys(currentAGGridFilterModel).length !== 0) {
+            this.agGrid.api.setFilterModel(null);
+            this.storeColumnsState();
         }
         const foundsetServer = new FoundsetServer(this, []);
         const datasource = new FoundsetDatasource(this, foundsetServer);
