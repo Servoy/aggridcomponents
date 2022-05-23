@@ -204,23 +204,26 @@ $scope.getGroupedFoundsetUUID = function(
 };
 
 $scope.filterMyFoundset = function(sFilterModel, foundset) {
-	var myFoundset;
+	if(sFilterModel) {
+		var myFoundset;
 
-	if(foundset) {
-		myFoundset = foundset;
-	} else {
-		myFoundset = $scope.model.myFoundset.foundset;
-		if(myFoundset.getRelationName()) {
-			myFoundset = myFoundset.unrelate();
-			$scope.model._internalUnrelatedMyFoundsetForFilter = {
-				foundset: myFoundset
+		if(foundset) {
+			myFoundset = foundset;
+		} else {
+			myFoundset = $scope.model.myFoundset.foundset;
+			if(myFoundset.getRelationName()) {
+				myFoundset = myFoundset.unrelate();
+				$scope.model._internalUnrelatedMyFoundsetForFilter = {
+					foundset: myFoundset
+				}
+				$scope.model.myFoundset.foundset = myFoundset;
 			}
-			$scope.model.myFoundset.foundset = myFoundset;
+		}
+	
+		if (filterFoundset(myFoundset, sFilterModel)) {
+			myFoundset.reloadWithFilters();
 		}
 	}
-
-	if (sFilterModel) filterFoundset(myFoundset, sFilterModel);
-	myFoundset.reloadWithFilters();
 }
 
 $scope.removeGroupedFoundsetUUID = function(parentFoundset) {
@@ -393,9 +396,13 @@ function log(msg, level) {
 }
 
 function filterFoundset(foundset, sFilterModel) {
+	var shouldReloadWithFilters = false;
+
 	var filterModel = JSON.parse(sFilterModel);
 
-	foundset.removeFoundSetFilterParam("ag-groupingtable");
+	if(foundset.removeFoundSetFilterParam("ag-groupingtable")) {
+		shouldReloadWithFilters = true;
+	}
 	var isFilterSet = false;
 	
 	var query;
@@ -535,7 +542,10 @@ function filterFoundset(foundset, sFilterModel) {
 
 	if(isFilterSet) {
 		foundset.addFoundSetFilterParam(query, "ag-groupingtable");
+		shouldReloadWithFilters = true;
 	}
+
+	return shouldReloadWithFilters;
 }
 
 /**
