@@ -2170,6 +2170,25 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							}
 						};
 
+						TextEditor.prototype.isCancelAfterEnd = function() {
+							if(this.editType == 'TYPEAHEAD') {
+								var displayValue = this.eInput.value;
+								var ariaId = $(this.eInput).attr('aria-owns');
+								var activeItem = $('#' + ariaId).find("li.active");
+								if(activeItem.length) {
+									var activeAnchor = activeItem.find('a');
+									if(activeAnchor.is(":hover")) {
+										displayValue = activeAnchor.text();
+									}
+								}
+								if(displayValue == this.initialDisplayValue) {
+									// typeahed closed by clicking outside
+									return true;
+								}
+							}
+							return false;
+						}
+
 						// returns the new value after editing
 						TextEditor.prototype.getValue = function() {
 							var displayValue = this.eInput.value;
