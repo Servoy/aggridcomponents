@@ -3931,6 +3931,16 @@ class FoundsetServer {
                 const columnIndex = this.dataGrid.getColumnIndex(c);
                 if(columnIndex !== -1) {
                     updatedFilterModel[columnIndex] = filterModel[c];
+                    if(updatedFilterModel[columnIndex]['filterType'] === 'date') {
+                        if(updatedFilterModel[columnIndex]['dateFrom']) {
+                            const dateFromSplit = updatedFilterModel[columnIndex]['dateFrom'].split(' ')[0].split('-');
+                            updatedFilterModel[columnIndex]['dateFromMs'] = new Date(dateFromSplit[0], dateFromSplit[1] - 1, dateFromSplit[2]).getTime();
+                        }
+                        if(updatedFilterModel[columnIndex]['dateTo']) {
+                            const dateFromSplit = updatedFilterModel[columnIndex]['dateTo'].split(' ')[0].split('-');
+                            updatedFilterModel[columnIndex]['dateToMs'] = new Date(dateFromSplit[0], dateFromSplit[1] - 1, dateFromSplit[2]).getTime();
+                        }
+                    }
                 }
             }
         }

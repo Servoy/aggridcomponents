@@ -2947,6 +2947,16 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							var columnIndex = getColumnIndex(c);
 							if(columnIndex != -1) {
 								updatedFilterModel[columnIndex] = filterModel[c];
+								if(updatedFilterModel[columnIndex]['filterType'] == 'date') {
+									if(updatedFilterModel[columnIndex]['dateFrom']) {
+										var dateFromSplit = updatedFilterModel[columnIndex]['dateFrom'].split("-");
+										updatedFilterModel[columnIndex]['dateFromMs'] = new Date(dateFromSplit[0], dateFromSplit[1] - 1, dateFromSplit[2]).getTime();
+									}
+									if(updatedFilterModel[columnIndex]['dateTo']) {
+										var dateFromSplit = updatedFilterModel[columnIndex]['dateTo'].split("-");
+										updatedFilterModel[columnIndex]['dateToMs'] = new Date(dateFromSplit[0], dateFromSplit[1] - 1, dateFromSplit[2]).getTime();
+									}									
+								}
 							}
 						}
 						var sUpdatedFilterModel = JSON.stringify(updatedFilterModel);
