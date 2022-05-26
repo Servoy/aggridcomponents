@@ -486,7 +486,7 @@ function filterFoundset(foundset, sFilterModel) {
 				}
 			}
 			else if(filter["filterType"] == "date") {
-				value = filter["dateFrom"].split(" ")[0];
+				value = getConvertedDate(filter["dateFrom"].split(" ")[0], filter["dateFromMs"], $scope.model.columns[i].format);
 				switch(filter["type"]) {
 					case "notEqual":
 						useNot = true;
@@ -510,9 +510,10 @@ function filterFoundset(foundset, sFilterModel) {
 						break;
 					case "inRange":
 						op = "between";
-						value = new Array();
-						value.push(filter["dateFrom"].split(" ")[0]);
-						value.push(filter["dateTo"].split(" ")[0]);
+						var valueA = new Array();
+						valueA.push(value);
+						valueA.push(getConvertedDate(filter["dateTo"].split(" ")[0], filter["dateToMs"], $scope.model.columns[i].format));
+						value = valueA;
 					break;
 				}
 			}
@@ -546,6 +547,23 @@ function filterFoundset(foundset, sFilterModel) {
 	}
 
 	return shouldReloadWithFilters;
+}
+
+function getConvertedDate(clientDateAsString, clientDateAsMs, columnFormat) {
+	var useLocalDateTime = false;
+	if(columnFormat) {
+		try {
+			var formatJSON = JSON.parse(columnFormat);
+			useLocalDateTime = formatJSON.useLocalDateTime;
+		}
+		catch(e) {}
+	}
+	if(useLocalDateTime) {
+		return clientDateAsString;
+	} else {
+		var valueMs = new Date(clientDateAsMs);
+		return valueMs.getFullYear() + "-" + (valueMs.getMonth() + 1) + "-" + valueMs.getDate();
+	}
 }
 
 /**
