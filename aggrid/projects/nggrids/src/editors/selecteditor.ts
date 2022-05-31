@@ -44,10 +44,9 @@ export class SelectEditor extends EditorDirective {
                     option.text = value.displayValue;
                     if (v != null && v.toString() === value.displayValue) {
                         option.selected = true;
-                        //TODO: init node data with select editor
-                        // if(value.realValue != undefined && params.value["realValue"] == undefined) {
-                        //     params.node["data"][params.column.colDef["field"]] = {realValue: value.realValue, displayValue: v};
-                        // }
+                        if(value.realValue !== undefined && params.value['realValue'] === undefined) {
+                            params.node['data'][params.column.getColDef()['field']] = {realValue: value.realValue, displayValue: v};
+                        }
                     }
                     this.elementRef.nativeElement.appendChild(option);
                 });
