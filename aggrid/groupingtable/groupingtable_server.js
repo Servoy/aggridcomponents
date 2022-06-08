@@ -534,9 +534,25 @@ function filterFoundset(foundset, sFilterModel) {
 				if(useNot) {
 					whereClause = whereClause["not"];
 				}
-				whereClause = op == "between" ? whereClause[op](value[0], value[1]) : whereClause[op](value);
+				var whereClause2 = null;
+				if(value === '^') {
+					whereClause = whereClause["isNull"];
+				} else if(value === '^=') {
+					whereClause2 = whereClause["eq"]('');
+					whereClause = whereClause["isNull"];
+				} else {
+					whereClause = op == "between" ? whereClause[op](value[0], value[1]) : whereClause[op](value);
+				}
 				if(!isFilterSet) isFilterSet = true;
-				query.where.add(whereClause);
+				if(whereClause2) {
+					if(useNot) {
+						query.where.add(query.and.add(whereClause).add(whereClause2));
+					} else {
+						query.where.add(query.or.add(whereClause).add(whereClause2));
+					}
+				} else {
+					query.where.add(whereClause);
+				}
 			}
 		}
 	}
