@@ -211,7 +211,7 @@ $scope.filterMyFoundset = function(sFilterModel, foundset) {
 			myFoundset = foundset;
 		} else {
 			myFoundset = $scope.model.myFoundset.foundset;
-			if(myFoundset.getRelationName()) {
+			if(myFoundset.getRelationName && myFoundset.getRelationName()) {
 				myFoundset = myFoundset.unrelate();
 				$scope.model._internalUnrelatedMyFoundsetForFilter = {
 					foundset: myFoundset
