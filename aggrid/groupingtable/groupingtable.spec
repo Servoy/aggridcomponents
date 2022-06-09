@@ -396,7 +396,8 @@
 				"type": "string"
 			}],
 			"returns": "int"
-		}
+		},
+		"onHide" : {}
 	},
 	"types" : {
 		"column" : {

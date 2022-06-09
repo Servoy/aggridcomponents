@@ -6213,7 +6213,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							// clear all foundsets
 							groupManager.removeFoundsetRefAtLevel(0);
 							$scope.model.myFoundset.removeChangeListener(changeListener);
-							$scope.svyServoyapi.callServerSideApi("filterMyFoundset", ["{}"]);
 
 							// remove model change notifier
 							destroyListenerUnreg();

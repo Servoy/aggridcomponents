@@ -863,7 +863,6 @@ export class DataGrid extends NGGridDirective {
         // clear all foundsets
         this.groupManager.removeFoundsetRefAtLevel(0);
         if(this.removeChangeListenerFunction) this.removeChangeListenerFunction();
-        this.servoyApi.callServerSideApi('filterMyFoundset', ['{}']);
 
         // release grid resources
         this.destroy();

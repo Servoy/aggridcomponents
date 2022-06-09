@@ -581,6 +581,12 @@ function getConvertedDate(clientDateAsString, clientDateAsMs, columnFormat) {
 		return valueMs.getFullYear() + "-" + (valueMs.getMonth() + 1) + "-" + valueMs.getDate();
 	}
 }
+/**
+ * Servoy component lifecycle callback
+ */
+$scope.onHide = function() {
+	$scope.filterMyFoundset("{}");
+}
 
 /**
  * Table column API
