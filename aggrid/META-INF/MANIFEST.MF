@@ -6,7 +6,7 @@ Entry-Point: dist/servoy/nggrids
 CSS-ClientLibs: aggrid/lib/styles/ag-grid-custom.css;name=ag-grid-custom.css;version=1.0.0,aggrid/lib/webfont/agGridClassicFont.css;name=agGridClassicFont.css;version=21.2.2,aggrid/lib/bootstrap-datetimepicker/css/bootstrap-datetimepicker.css;name=bootstrap-datetimepicker;version=4.7.47
 CSS-DesignLibs: aggrid/lib/styles/aggrid_design.css
 Bundle-SymbolicName: aggrid
-Bundle-Version: 2022.6.0
+Bundle-Version: 2022.6.1
 Bundle-Name: Servoy NG-Grids
 Package-Type: Web-Component
 JS-ClientLibs: aggrid/lib/ag-grid-enterprise.js;name=ag-grid-enterprise;version=21.2.2,aggrid/lib/bootstrap-datetimepicker/js/moment-with-locales.min.js;name=moment;version=2.29.3,aggrid/lib/bootstrap-datetimepicker/js/moment-jdateformatparser.js;name=moment-jdateformatparser;version=0.1.1,aggrid/lib/bootstrap-datetimepicker/js/bootstrap-datetimepicker.js;name=bootstrap-datetimepicker;version=4.7.47
