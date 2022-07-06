@@ -585,7 +585,11 @@ function getConvertedDate(clientDateAsString, clientDateAsMs, columnFormat) {
  * Servoy component lifecycle callback
  */
 $scope.onHide = function() {
-	$scope.filterMyFoundset("{}");
+	// related foundsets does not have filters, so only clear/remove filters from unrelated
+	var myFoundset = $scope.model.myFoundset.foundset;
+	if(!myFoundset.getRelationName || !myFoundset.getRelationName()) {
+		$scope.filterMyFoundset("{}");
+	}
 }
 
 /**
