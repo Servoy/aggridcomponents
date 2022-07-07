@@ -2,14 +2,14 @@
   "name": "@servoy/nggrids",
   "version": "2022.6.1",
   "peerDependencies": {
-    "@angular/animations": "^13",
-    "@angular/common": "^13",
-    "@angular/core": "^13",
-    "@angular/forms": "^13",
+    "@angular/animations": "^14",
+    "@angular/common": "^14",
+    "@angular/core": "^14",
+    "@angular/forms": "^14",
     "luxon": "*"
   },
   "dependencies": {
-    "@angular/cdk": "<14",
+    "@angular/cdk": "<15",
     "@ng-bootstrap/ng-bootstrap": "<13",
     "@popperjs/core": "<3",
     "@servoy/tempus-dominus": "6.0.0-beta5.1",
