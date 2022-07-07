@@ -2378,7 +2378,7 @@ export class DataGrid extends NGGridDirective {
 
         let newIndex: any; let nextRow: any;
 
-        switch (params.key) {
+        switch (params.event.keyCode) {
             case KEY_DOWN:
                 newIndex = previousCell.rowIndex + 1;
                 nextRow = this.agGrid.api.getDisplayedRowAtIndex(newIndex);
