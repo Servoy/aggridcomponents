@@ -420,139 +420,30 @@ function filterFoundset(foundset, sFilterModel) {
 		var dp = $scope.model.columns[i].dataprovider;
 		var filter = filterModel[i];
 		if(filter) {
-			var op, value;
-			var useNot = false;
-			var useIgnoreCase = false;
-
-			if(filter["filterType"] == "text") {
-				useIgnoreCase = true;
-				switch(filter["type"]) {
-					case "equals":
-						op = "eq";
-						value = filter["filter"];
-						break;
-					case "notEqual":
-						useNot = true;
-						op = "eq";
-						value = filter["filter"];
-						break;
-					case "startsWith":
-						op = "like";
-						value = filter["filter"] + "%";
-						break;
-					case "endsWith":
-						op = "like";
-						value = "%" + filter["filter"];
-						break;				
-					case "contains":
-						op = "like";
-						value = "%" + filter["filter"] + "%";
-						break;		
-					case "notContains":
-						useNot = true;
-						op = "like";
-						value = "%" + filter["filter"] + "%";
-						break;	
+			var whereClauseForDP = null;
+			if(filter["operator"]) {
+				var whereClause1ForDP = null;
+				var whereClause2ForDP = null;
+				if(filter["condition1"]) {
+					whereClause1ForDP = getFilterWhereClauseForDataprovider(query, filter["condition1"], dp, $scope.model.columns[i].format);
 				}
-			}
-			else if(filter["filterType"] == "number") {
-				value = filter["filter"];
-				switch(filter["type"]) {
-					case "equals":
-						op = "eq";
-						break;
-					case "notEqual":
-						useNot = true;
-						op = "eq";
-						break;
-					case "greaterThan":
-						op = "gt";
-						break;
-					case "greaterThanOrEqual":
-						op = "ge";
-						break;
-					case "lessThan":
-						op = "lt";
-						break;
-					case "lessThanOrEqual":
-						op = "le";
-						break;
-					case "inRange":
-						op = "between";
-						value = new Array();
-						value.push(filter["filter"]);
-						value.push(filter["filterTo"]);
-						break;
+				if(filter["condition2"]) {
+					whereClause2ForDP = getFilterWhereClauseForDataprovider(query, filter["condition2"], dp, $scope.model.columns[i].format);
 				}
-			}
-			else if(filter["filterType"] == "date") {
-				value = getConvertedDate(filter["dateFrom"].split(" ")[0], filter["dateFromMs"], $scope.model.columns[i].format);
-				switch(filter["type"]) {
-					case "notEqual":
-						useNot = true;
-					case "equals":
-						op = "between";
-						var dateFromSplit = value.split("-");
-						var dateFromD = new Date(dateFromSplit[0], dateFromSplit[1] - 1, dateFromSplit[2]);
-						var dateToD = new Date(dateFromD.getTime());
-						dateToD.setDate(dateToD.getDate() + 1);
-						var dateToDTime = dateToD.getTime();
-						dateToD.setTime(dateToDTime - 1);
-						value = new Array();
-						value.push(dateFromD);
-						value.push(dateToD);
-						break;
-					case "greaterThan":
-						op = "gt";
-						break;
-					case "lessThan":
-						op = "lt";
-						break;
-					case "inRange":
-						op = "between";
-						var valueA = new Array();
-						valueA.push(value);
-						valueA.push(getConvertedDate(filter["dateTo"].split(" ")[0], filter["dateToMs"], $scope.model.columns[i].format));
-						value = valueA;
-					break;
-				}
-			}
-
-			if(op != undefined && value != undefined) {
-				var whereClause = null;
-				var aDP = dp.split('.');
-				for(var j = 0; j < aDP.length - 1; j++) {
-					whereClause = whereClause == null ? query.joins[aDP[j]] : whereClause.joins[aDP[j]];
-				}
-
-				whereClause = whereClause == null ? query.columns[aDP[aDP.length - 1]] : whereClause.columns[aDP[aDP.length - 1]];
-
-				if(useIgnoreCase) {
-					whereClause = whereClause["lower"];
-					value = value.toLowerCase();
-				}
-				if(useNot) {
-					whereClause = whereClause["not"];
-				}
-				var whereClause2 = null;
-				if(value === '^') {
-					whereClause = whereClause["isNull"];
-				} else if(value === '^=') {
-					whereClause2 = whereClause["eq"]('');
-					whereClause = whereClause["isNull"];
-				} else {
-					whereClause = op == "between" ? whereClause[op](value[0], value[1]) : whereClause[op](value);
-				}
-				if(!isFilterSet) isFilterSet = true;
-				if(whereClause2) {
-					if(useNot) {
-						query.where.add(query.and.add(whereClause).add(whereClause2));
-					} else {
-						query.where.add(query.or.add(whereClause).add(whereClause2));
+				if(whereClause1ForDP && whereClause2ForDP) {
+					if(filter["operator"] == "AND") {
+						whereClauseForDP = query.and.add(whereClause1ForDP).add(whereClause2ForDP);
+					} else if(filter["operator"] == "OR") {
+						whereClauseForDP = query.or.add(whereClause1ForDP).add(whereClause2ForDP);
 					}
-				} else {
-					query.where.add(whereClause);
 				}
+			} else {
+				whereClauseForDP = getFilterWhereClauseForDataprovider(query, filter, dp, $scope.model.columns[i].format);
+			}
+
+			if(whereClauseForDP) {
+				if(!isFilterSet) isFilterSet = true;
+				query.where.add(whereClauseForDP);
 			}
 		}
 	}
@@ -563,6 +454,141 @@ function filterFoundset(foundset, sFilterModel) {
 	}
 
 	return shouldReloadWithFilters;
+}
+
+function getFilterWhereClauseForDataprovider(query, filter, dp, columnFormat) {
+	var whereClause = null;
+	var op, value;
+	var useNot = false;
+	var useIgnoreCase = false;
+
+	if(filter["filterType"] == "text") {
+		useIgnoreCase = true;
+		switch(filter["type"]) {
+			case "equals":
+				op = "eq";
+				value = filter["filter"];
+				break;
+			case "notEqual":
+				useNot = true;
+				op = "eq";
+				value = filter["filter"];
+				break;
+			case "startsWith":
+				op = "like";
+				value = filter["filter"] + "%";
+				break;
+			case "endsWith":
+				op = "like";
+				value = "%" + filter["filter"];
+				break;				
+			case "contains":
+				op = "like";
+				value = "%" + filter["filter"] + "%";
+				break;		
+			case "notContains":
+				useNot = true;
+				op = "like";
+				value = "%" + filter["filter"] + "%";
+				break;	
+		}
+	}
+	else if(filter["filterType"] == "number") {
+		value = filter["filter"];
+		switch(filter["type"]) {
+			case "equals":
+				op = "eq";
+				break;
+			case "notEqual":
+				useNot = true;
+				op = "eq";
+				break;
+			case "greaterThan":
+				op = "gt";
+				break;
+			case "greaterThanOrEqual":
+				op = "ge";
+				break;
+			case "lessThan":
+				op = "lt";
+				break;
+			case "lessThanOrEqual":
+				op = "le";
+				break;
+			case "inRange":
+				op = "between";
+				value = new Array();
+				value.push(filter["filter"]);
+				value.push(filter["filterTo"]);
+				break;
+		}
+	}
+	else if(filter["filterType"] == "date") {
+		value = getConvertedDate(filter["dateFrom"].split(" ")[0], filter["dateFromMs"], columnFormat);
+		switch(filter["type"]) {
+			case "notEqual":
+				useNot = true;
+			case "equals":
+				op = "between";
+				var dateFromSplit = value.split("-");
+				var dateFromD = new Date(dateFromSplit[0], dateFromSplit[1] - 1, dateFromSplit[2]);
+				var dateToD = new Date(dateFromD.getTime());
+				dateToD.setDate(dateToD.getDate() + 1);
+				var dateToDTime = dateToD.getTime();
+				dateToD.setTime(dateToDTime - 1);
+				value = new Array();
+				value.push(dateFromD);
+				value.push(dateToD);
+				break;
+			case "greaterThan":
+				op = "gt";
+				break;
+			case "lessThan":
+				op = "lt";
+				break;
+			case "inRange":
+				op = "between";
+				var valueA = new Array();
+				valueA.push(value);
+				valueA.push(getConvertedDate(filter["dateTo"].split(" ")[0], filter["dateToMs"], columnFormat));
+				value = valueA;
+			break;
+		}
+	}
+
+	if(op != undefined && value != undefined) {
+		var aDP = dp.split('.');
+		for(var j = 0; j < aDP.length - 1; j++) {
+			whereClause = whereClause == null ? query.joins[aDP[j]] : whereClause.joins[aDP[j]];
+		}
+
+		whereClause = whereClause == null ? query.columns[aDP[aDP.length - 1]] : whereClause.columns[aDP[aDP.length - 1]];
+
+		if(useIgnoreCase) {
+			whereClause = whereClause["lower"];
+			value = value.toLowerCase();
+		}
+		if(useNot) {
+			whereClause = whereClause["not"];
+		}
+		var whereClause2 = null;
+		if(value === '^') {
+			whereClause = whereClause["isNull"];
+		} else if(value === '^=') {
+			whereClause2 = whereClause["eq"]('');
+			whereClause = whereClause["isNull"];
+		} else {
+			whereClause = op == "between" ? whereClause[op](value[0], value[1]) : whereClause[op](value);
+		}
+		if(whereClause2) {
+			if(useNot) {
+				whereClause = query.and.add(whereClause).add(whereClause2);
+			} else {
+				whereClause = query.or.add(whereClause).add(whereClause2);
+			}
+		}
+	}
+	return whereClause;
 }
 
 function getConvertedDate(clientDateAsString, clientDateAsMs, columnFormat) {

@@ -985,7 +985,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                                 colDef.filter = 'agDateColumnFilter';
                             }
                             
-                            colDef.filterParams = { applyButton: true, clearButton: true, newRowsAction: 'keep', suppressAndOrCondition: true, caseSensitive: false };
+                            colDef.filterParams = { applyButton: true, clearButton: true, newRowsAction: 'keep', suppressAndOrCondition: false, caseSensitive: false };
                         }
 
                         colDef.suppressMenu = column.enableRowGroup === false && column.filterType == undefined;

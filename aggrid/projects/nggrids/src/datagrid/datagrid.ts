@@ -1140,7 +1140,7 @@ export class DataGrid extends NGGridDirective {
             }
 
             if (column.filterType) {
-                colDef.filterParams = { applyButton: true, clearButton: true, newRowsAction: 'keep', suppressAndOrCondition: true, caseSensitive: false };
+                colDef.filterParams = { buttons: ['apply', 'clear'], newRowsAction: 'keep', suppressAndOrCondition: false, caseSensitive: false };
 
                 if(column.filterType === 'TEXT') {
                     colDef.filter = 'agTextColumnFilter';
@@ -3931,13 +3931,32 @@ class FoundsetServer {
                 if(columnIndex !== -1) {
                     updatedFilterModel[columnIndex] = filterModel[c];
                     if(updatedFilterModel[columnIndex]['filterType'] === 'date') {
-                        if(updatedFilterModel[columnIndex]['dateFrom']) {
-                            const dateFromSplit = updatedFilterModel[columnIndex]['dateFrom'].split(' ')[0].split('-');
-                            updatedFilterModel[columnIndex]['dateFromMs'] = new Date(dateFromSplit[0], dateFromSplit[1] - 1, dateFromSplit[2]).getTime();
-                        }
-                        if(updatedFilterModel[columnIndex]['dateTo']) {
-                            const dateFromSplit = updatedFilterModel[columnIndex]['dateTo'].split(' ')[0].split('-');
-                            updatedFilterModel[columnIndex]['dateToMs'] = new Date(dateFromSplit[0], dateFromSplit[1] - 1, dateFromSplit[2]).getTime();
+                        if(updatedFilterModel[columnIndex]['operator']) {
+                            if(updatedFilterModel[columnIndex]['condition1'] && updatedFilterModel[columnIndex]['condition1']['dateFrom']) {
+                                const dateFromSplit = updatedFilterModel[columnIndex]['condition1']['dateFrom'].split(' ')[0].split('-');
+                                updatedFilterModel[columnIndex]['condition1']['dateFromMs'] = new Date(dateFromSplit[0], dateFromSplit[1] - 1, dateFromSplit[2]).getTime();
+                            }
+                            if(updatedFilterModel[columnIndex]['condition1'] && updatedFilterModel[columnIndex]['condition1']['dateTo']) {
+                                const dateFromSplit = updatedFilterModel[columnIndex]['condition1']['dateTo'].split(' ')[0].split('-');
+                                updatedFilterModel[columnIndex]['condition1']['dateToMs'] = new Date(dateFromSplit[0], dateFromSplit[1] - 1, dateFromSplit[2]).getTime();
+                            }
+                            if(updatedFilterModel[columnIndex]['condition2'] && updatedFilterModel[columnIndex]['condition2']['dateFrom']) {
+                                const dateFromSplit = updatedFilterModel[columnIndex]['condition2']['dateFrom'].split(' ')[0].split('-');
+                                updatedFilterModel[columnIndex]['condition2']['dateFromMs'] = new Date(dateFromSplit[0], dateFromSplit[1] - 1, dateFromSplit[2]).getTime();
+                            }
+                            if(updatedFilterModel[columnIndex]['condition2'] && updatedFilterModel[columnIndex]['condition2']['dateTo']) {
+                                const dateFromSplit = updatedFilterModel[columnIndex]['condition2']['dateTo'].split(' ')[0].split('-');
+                                updatedFilterModel[columnIndex]['condition2']['dateToMs'] = new Date(dateFromSplit[0], dateFromSplit[1] - 1, dateFromSplit[2]).getTime();
+                            }
+                        } else {
+                            if(updatedFilterModel[columnIndex]['dateFrom']) {
+                                const dateFromSplit = updatedFilterModel[columnIndex]['dateFrom'].split(' ')[0].split('-');
+                                updatedFilterModel[columnIndex]['dateFromMs'] = new Date(dateFromSplit[0], dateFromSplit[1] - 1, dateFromSplit[2]).getTime();
+                            }
+                            if(updatedFilterModel[columnIndex]['dateTo']) {
+                                const dateFromSplit = updatedFilterModel[columnIndex]['dateTo'].split(' ')[0].split('-');
+                                updatedFilterModel[columnIndex]['dateToMs'] = new Date(dateFromSplit[0], dateFromSplit[1] - 1, dateFromSplit[2]).getTime();
+                            }
                         }
                     }
                 }

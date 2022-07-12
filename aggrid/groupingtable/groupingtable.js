@@ -2948,14 +2948,33 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							if(columnIndex != -1) {
 								updatedFilterModel[columnIndex] = filterModel[c];
 								if(updatedFilterModel[columnIndex]['filterType'] == 'date') {
-									if(updatedFilterModel[columnIndex]['dateFrom']) {
-										var dateFromSplit = updatedFilterModel[columnIndex]['dateFrom'].split("-");
-										updatedFilterModel[columnIndex]['dateFromMs'] = new Date(dateFromSplit[0], dateFromSplit[1] - 1, dateFromSplit[2]).getTime();
+									if(updatedFilterModel[columnIndex]['operator']) {
+										if(updatedFilterModel[columnIndex]['condition1'] && updatedFilterModel[columnIndex]['condition1']['dateFrom']) {
+											var dateFromSplit = updatedFilterModel[columnIndex]['condition1']['dateFrom'].split("-");
+											updatedFilterModel[columnIndex]['condition1']['dateFromMs'] = new Date(dateFromSplit[0], dateFromSplit[1] - 1, dateFromSplit[2]).getTime();
+										}
+										if(updatedFilterModel[columnIndex]['condition1'] && updatedFilterModel[columnIndex]['condition1']['dateTo']) {
+											var dateFromSplit = updatedFilterModel[columnIndex]['condition1']['dateTo'].split("-");
+											updatedFilterModel[columnIndex]['condition1']['dateToMs'] = new Date(dateFromSplit[0], dateFromSplit[1] - 1, dateFromSplit[2]).getTime();
+										}
+										if(updatedFilterModel[columnIndex]['condition2'] && updatedFilterModel[columnIndex]['condition2']['dateFrom']) {
+											var dateFromSplit = updatedFilterModel[columnIndex]['condition2']['dateFrom'].split("-");
+											updatedFilterModel[columnIndex]['condition2']['dateFromMs'] = new Date(dateFromSplit[0], dateFromSplit[1] - 1, dateFromSplit[2]).getTime();
+										}
+										if(updatedFilterModel[columnIndex]['condition2'] && updatedFilterModel[columnIndex]['condition2']['dateTo']) {
+											var dateFromSplit = updatedFilterModel[columnIndex]['condition2']['dateTo'].split("-");
+											updatedFilterModel[columnIndex]['condition2']['dateToMs'] = new Date(dateFromSplit[0], dateFromSplit[1] - 1, dateFromSplit[2]).getTime();
+										}										
+									} else {
+										if(updatedFilterModel[columnIndex]['dateFrom']) {
+											var dateFromSplit = updatedFilterModel[columnIndex]['dateFrom'].split("-");
+											updatedFilterModel[columnIndex]['dateFromMs'] = new Date(dateFromSplit[0], dateFromSplit[1] - 1, dateFromSplit[2]).getTime();
+										}
+										if(updatedFilterModel[columnIndex]['dateTo']) {
+											var dateFromSplit = updatedFilterModel[columnIndex]['dateTo'].split("-");
+											updatedFilterModel[columnIndex]['dateToMs'] = new Date(dateFromSplit[0], dateFromSplit[1] - 1, dateFromSplit[2]).getTime();
+										}
 									}
-									if(updatedFilterModel[columnIndex]['dateTo']) {
-										var dateFromSplit = updatedFilterModel[columnIndex]['dateTo'].split("-");
-										updatedFilterModel[columnIndex]['dateToMs'] = new Date(dateFromSplit[0], dateFromSplit[1] - 1, dateFromSplit[2]).getTime();
-									}									
 								}
 							}
 						}
@@ -5302,7 +5321,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 							if (column.filterType) {
 								colDef.suppressFilter = false;
-								colDef.filterParams = { applyButton: true, clearButton: true, newRowsAction: 'keep', suppressAndOrCondition: true, caseSensitive: false };
+								colDef.filterParams = { applyButton: true, clearButton: true, newRowsAction: 'keep', suppressAndOrCondition: false, caseSensitive: false };
 
 								if(column.filterType == 'TEXT') {
 									colDef.filter = 'agTextColumnFilter';
