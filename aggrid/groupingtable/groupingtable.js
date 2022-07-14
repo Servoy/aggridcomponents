@@ -575,7 +575,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							valueFormatter: displayValueFormatter,
 							menuTabs: vMenuTabs,
 							sortable: config.enableSorting,
-							resizable: config.enableColumnResize
+							resizable: config.enableColumnResize,
+							tooltipComponent: getHtmlTooltip()
 						},
 						columnDefs: columnDefs,
 						getMainMenuItems: getMainMenuItems,
@@ -757,7 +758,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								}
 							}
 						},
-						enableBrowserTooltips: true,
+						enableBrowserTooltips: false,
 						onToolPanelVisibleChanged : function(event) {
 							sizeHeaderAndColumnsToFit();
 						},
@@ -2732,6 +2733,46 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						}
 
 						return ValuelistFilter;
+					}
+
+					function getHtmlTooltip() {
+						function HtmlTooltip() {}
+
+						HtmlTooltip.prototype.init = function(params) {
+							this.eGui = document.createElement("div");
+							this.eGui.style = "position: absolute;"
+							this.eGui.className = "tooltip-inner";
+
+							// AG-GRID always escapes tooltip values, with no option do disable that,
+							// so we need to unescape here ...
+							this.eGui.innerHTML = params.value ? this.unescape(params.value) : '';
+
+						};
+
+						HtmlTooltip.prototype.getGui = function() {
+							return this.eGui;
+						};
+
+						HtmlTooltip.prototype.unescape = function(s) {
+							var re = /&(?:amp|#38|lt|#60|gt|#62|apos|#39|quot|#34);/g;
+							var unescaped = {
+							  '&amp;': '&',
+							  '&#38;': '&',
+							  '&lt;': '<',
+							  '&#60;': '<',
+							  '&gt;': '>',
+							  '&#62;': '>',
+							  '&apos;': "'",
+							  '&#39;': "'",
+							  '&quot;': '"',
+							  '&#34;': '"'
+							};
+							return s.replace(re, function (m) {
+							  return unescaped[m];
+							});
+						}
+
+						return HtmlTooltip;
 					}
 
 					/**************************************************************************************************
@@ -5337,10 +5378,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 									colDef.filterParams.svyFilterType = column.filterType;
 								}	
 							}
-
-							if(true) {
-								colDef.tooltipValueGetter = getTooltip;
-							}
+							colDef.tooltipValueGetter = getTooltip;
 
 							var columnOptions = {};
 							if($injector.has('ngDataGrid')) {

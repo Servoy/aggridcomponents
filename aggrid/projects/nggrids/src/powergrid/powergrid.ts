@@ -9,6 +9,7 @@ import { TextEditor } from '../editors/texteditor';
 import { PowergridService } from './powergrid.service';
 import { DomSanitizer } from '@angular/platform-browser';
 import { DOCUMENT } from '@angular/common';
+import { CustomTooltip } from '../datagrid/commons/tooltip';
 
 const TABLE_PROPERTIES_DEFAULTS = {
     rowHeight: { gridOptionsProperty: 'rowHeight', default: 25 },
@@ -220,7 +221,8 @@ export class PowerGrid extends NGGridDirective {
                 headerCheckboxSelection: false, //$scope.model.multiSelect === true ? isFirstColumn : false,	// FIXME triggers a long loop of onRowSelection event when a new selection is made.
                 checkboxSelection: (params) => this.multiSelect === true ? this.isFirstColumn(params) : false,
                 sortable: this.enableSorting,
-                resizable: this.enableColumnResize
+                resizable: this.enableColumnResize,
+                tooltipComponent: CustomTooltip
             },
             excelStyles: [
                 {
@@ -336,7 +338,7 @@ export class PowerGrid extends NGGridDirective {
             navigateToNextCell: (params) => this.selectionChangeNavigation(params),
             tabToNextCell: (params) => this.tabSelectionChangeNavigation(params),
             sideBar,
-            enableBrowserTooltips: true,
+            enableBrowserTooltips: false,
             onToolPanelVisibleChanged: () => this.sizeColumnsToFit(),
             onCellEditingStopped: (event) => {
                 // don't allow escape if cell data is invalid

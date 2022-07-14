@@ -224,7 +224,8 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                         headerCheckboxSelection: false, //$scope.model.multiSelect === true ? isFirstColumn : false,	// FIXME triggers a long loop of onRowSelection event when a new selection is made.
                         checkboxSelection: $scope.model.multiSelect === true ? isFirstColumn : false,
                         sortable: config.enableSorting,
-                        resizable: config.enableColumnResize
+                        resizable: config.enableColumnResize,
+                        tooltipComponent: getHtmlTooltip()
                     },
                     excelStyles: [
                         {
@@ -342,7 +343,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     tabToNextCell: tabSelectionChangeNavigation,
                     sideBar : sideBar,
                     popupParent: gridDiv,
-                    enableBrowserTooltips: true,
+                    enableBrowserTooltips: false,
                     onToolPanelVisibleChanged : function(event) {
                         sizeColumnsToFit();
                     },
@@ -2106,6 +2107,46 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     };
 
                     return FormEditor;
+                }
+
+                function getHtmlTooltip() {
+                    function HtmlTooltip() {}
+
+                    HtmlTooltip.prototype.init = function(params) {
+                        this.eGui = document.createElement("div");
+                        this.eGui.style = "position: absolute;"
+                        this.eGui.className = "tooltip-inner";
+
+                        // AG-GRID always escapes tooltip values, with no option do disable that,
+                        // so we need to unescape here ...
+                        this.eGui.innerHTML = params.value ? this.unescape(params.value) : '';
+
+                    };
+
+                    HtmlTooltip.prototype.getGui = function() {
+                        return this.eGui;
+                    };
+
+                    HtmlTooltip.prototype.unescape = function(s) {
+                        var re = /&(?:amp|#38|lt|#60|gt|#62|apos|#39|quot|#34);/g;
+                        var unescaped = {
+                          '&amp;': '&',
+                          '&#38;': '&',
+                          '&lt;': '<',
+                          '&#60;': '<',
+                          '&gt;': '>',
+                          '&#62;': '>',
+                          '&apos;': "'",
+                          '&#39;': "'",
+                          '&quot;': '"',
+                          '&#34;': '"'
+                        };
+                        return s.replace(re, function (m) {
+                          return unescaped[m];
+                        });
+                    }
+
+                    return HtmlTooltip;
                 }
 
                 /**

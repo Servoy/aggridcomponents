@@ -15,6 +15,7 @@ import { IconConfig, MainMenuItemsConfig, NGGridDirective, ToolPanelConfig } fro
 import { DOCUMENT } from '@angular/common';
 import { BlankLoadingCellRendrer } from './renderers/blankloadingcellrenderer';
 import { NgbTypeaheadConfig } from '@ng-bootstrap/ng-bootstrap';
+import { CustomTooltip } from './commons/tooltip';
 
 const TABLE_PROPERTIES_DEFAULTS = {
     rowHeight: { gridOptionsProperty: 'rowHeight', default: 25 },
@@ -348,7 +349,8 @@ export class DataGrid extends NGGridDirective {
                 valueGetter: this.displayValueGetter,
                 valueFormatter: this.displayValueFormatter,
                 sortable: this.enableSorting,
-                resizable: this.enableColumnResize
+                resizable: this.enableColumnResize,
+                tooltipComponent: CustomTooltip
             },
             columnDefs,
 
@@ -391,7 +393,7 @@ export class DataGrid extends NGGridDirective {
             infiniteInitialRowCount: CHUNK_SIZE, // TODO should be the foundset default (also for grouping ?)
             maxBlocksInCache,
             purgeClosedRowNodes: true,
-            enableBrowserTooltips: true,
+            enableBrowserTooltips: false,
             getRowNodeId: (data) =>  data._svyFoundsetUUID + '_' + data._svyFoundsetIndex,
             onGridSizeChanged: () => {
                 this.setTimeout(() => {
