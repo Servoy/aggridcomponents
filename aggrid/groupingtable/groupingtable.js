@@ -3301,9 +3301,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					});
 					$scope.$watchCollection("model.myFoundset", function(newValue, oldValue) {
 						if(newValue && oldValue &&
-							newValue.foundsetId !== oldValue.foundsetId &&
-							(!$scope.model._internalUnrelatedMyFoundsetForFilter || (newValue.foundsetId !== $scope.model._internalUnrelatedMyFoundsetForFilter.foundsetId &&
-								oldValue.foundsetId !== $scope.model._internalUnrelatedMyFoundsetForFilter.foundsetId))) {
+							newValue.foundsetId !== oldValue.foundsetId) {
 							// remove ng grid filter from the previous foundset
 							var filterMyFoundsetArg = [];
 							filterMyFoundsetArg.push("{}");

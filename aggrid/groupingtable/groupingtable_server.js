@@ -205,20 +205,7 @@ $scope.getGroupedFoundsetUUID = function(
 
 $scope.filterMyFoundset = function(sFilterModel, foundset) {
 	if(sFilterModel) {
-		var myFoundset;
-
-		if(foundset) {
-			myFoundset = foundset;
-		} else {
-			myFoundset = $scope.model.myFoundset.foundset;
-			if(myFoundset.getRelationName && myFoundset.getRelationName()) {
-				myFoundset = myFoundset.unrelate();
-				$scope.model._internalUnrelatedMyFoundsetForFilter = {
-					foundset: myFoundset
-				}
-				$scope.model.myFoundset.foundset = myFoundset;
-			}
-		}
+		var myFoundset = foundset ? foundset : $scope.model.myFoundset.foundset;
 	
 		if (filterFoundset(myFoundset, sFilterModel)) {
 			myFoundset.reloadWithFilters();
@@ -449,7 +436,7 @@ function filterFoundset(foundset, sFilterModel) {
 	}
 
 	if(isFilterSet) {
-		foundset.addFoundSetFilterParam(query, "ag-groupingtable");
+		servoyApi.addFoundSetFilterParam(foundset, query, "ag-groupingtable");
 		shouldReloadWithFilters = true;
 	}
 

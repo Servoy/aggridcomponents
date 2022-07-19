@@ -130,7 +130,6 @@ export class DataGrid extends NGGridDirective {
     @Input() tooltipTextRefreshData: any;
     // used in HTML template to toggle sync button
     @Output() isGroupView = false;
-    @Input() _internalUnrelatedMyFoundsetForFilter;
 
     log: LoggerService;
     agGridOptions: GridOptions;
@@ -732,9 +731,7 @@ export class DataGrid extends NGGridDirective {
 							return;
 						}
                         if(change.currentValue && this.myFoundsetId ) {
-                            if(change.currentValue.foundsetId !== this.myFoundsetId &&
-                                (!this._internalUnrelatedMyFoundsetForFilter || (change.currentValue.foundsetId !== this._internalUnrelatedMyFoundsetForFilter.foundsetId &&
-                                    this.myFoundsetId !== this._internalUnrelatedMyFoundsetForFilter.foundsetId))) {
+                            if(change.currentValue.foundsetId !== this.myFoundsetId) {
                                 // remove ng grid filter from the previous foundset
                                 const filterMyFoundsetArg = [];
                                 filterMyFoundsetArg.push('{}');
