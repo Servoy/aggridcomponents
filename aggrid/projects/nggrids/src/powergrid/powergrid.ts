@@ -1,4 +1,4 @@
-import { GridOptions, GroupCellRenderer } from '@ag-grid-community/core';
+import { GridOptions, GroupCellRenderer, GetRowIdParams } from '@ag-grid-community/core';
 import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Inject, Input, Output, Renderer2, SecurityContext, SimpleChanges, ViewChild } from '@angular/core';
 import { BaseCustomObject, Format, FormattingService } from '@servoy/public';
 import { LoggerFactory, LoggerService } from '@servoy/public';
@@ -546,16 +546,17 @@ export class PowerGrid extends NGGridDirective {
                     case 'data':
                         if (this.agGrid) {
                             if(this.pks) {
-                                this.agGridOptions.getRowNodeId = (data) =>  {
+                                this.agGridOptions.getRowId = (param: GetRowIdParams) =>  {
                                     let rowNodeId = null;
                                     if(this.pks && this.pks.length > 0) {
-                                        rowNodeId = '' + data[this.pks[0]];
+                                        rowNodeId = '' + param.data[this.pks[0]];
                                         for(let i = 1; i < this.pks.length; i++) {
-                                            rowNodeId += '_' + data[this.pks[i]];
+                                            rowNodeId += '_' + param.data[this.pks[i]];
                                         }
                                     }
                                     return rowNodeId;
                                 };
+                                this.agGridOptions.resetRowDataOnUpdate = true;
                             }
                             this.agGrid.api.setRowData(this.data);
                             this.applyExpandedState();

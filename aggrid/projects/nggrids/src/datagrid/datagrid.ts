@@ -1,4 +1,4 @@
-import { GridOptions } from '@ag-grid-community/core';
+import { GridOptions, GetRowIdParams } from '@ag-grid-community/core';
 import { ChangeDetectionStrategy, ChangeDetectorRef, ElementRef, EventEmitter, Inject, Input, Output, Renderer2, SecurityContext, SimpleChanges } from '@angular/core';
 import { Component, ViewChild } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
@@ -393,7 +393,7 @@ export class DataGrid extends NGGridDirective {
             maxBlocksInCache,
             purgeClosedRowNodes: true,
             enableBrowserTooltips: false,
-            getRowNodeId: (data) =>  data._svyFoundsetUUID + '_' + data._svyFoundsetIndex,
+            getRowId: (param: GetRowIdParams) =>  param.data._svyFoundsetUUID + '_' + param.data._svyFoundsetIndex,
             onGridSizeChanged: () => {
                 this.setTimeout(() => {
                     // if not yet destroyed
