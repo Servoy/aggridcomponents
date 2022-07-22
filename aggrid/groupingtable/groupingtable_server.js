@@ -211,7 +211,7 @@ $scope.filterMyFoundset = function(sFilterModel, foundset) {
 			myFoundset = foundset;
 		} else {
 			myFoundset = $scope.model.myFoundset.foundset;
-			if(myFoundset.getRelationName && myFoundset.getRelationName()) {
+			if(myFoundset.getRelationName && myFoundset.getRelationName() && !servoyApi.addFoundSetFilterParam) {
 				myFoundset = myFoundset.unrelate();
 				$scope.model._internalUnrelatedMyFoundsetForFilter = {
 					foundset: myFoundset
@@ -558,7 +558,7 @@ function filterFoundset(foundset, sFilterModel) {
 	}
 
 	if(isFilterSet) {
-		foundset.addFoundSetFilterParam(query, "ag-groupingtable");
+		servoyApi.addFoundSetFilterParam ? servoyApi.addFoundSetFilterParam(foundset, query, "ag-groupingtable") : foundset.addFoundSetFilterParam(query, "ag-groupingtable");
 		shouldReloadWithFilters = true;
 	}
 
