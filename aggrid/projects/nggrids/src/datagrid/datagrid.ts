@@ -1120,6 +1120,11 @@ export class DataGrid extends NGGridDirective {
                     colDef.cellEditorFramework = SelectEditor;
                 } else if(column.editType === 'FORM') {
                     colDef.cellEditorFramework = FormEditor;
+                    colDef.suppressKeyboardEvent = (params: any) => {
+                        // grid should do nothing on ENTER and TAB
+                        const gridShouldDoNothing = params.editing && (params.event.keyCode === 9 || params.event.keyCode === 13);
+                        return gridShouldDoNothing;
+                    };
                 }
 
                 // const _this = this;
