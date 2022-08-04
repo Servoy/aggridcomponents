@@ -786,6 +786,11 @@ export class PowerGrid extends NGGridDirective {
                         colDef.cellEditorFramework = DatePicker;
                     } else if (column.editType === 'FORM') {
                         colDef.cellEditorFramework = FormEditor;
+                        colDef.suppressKeyboardEvent = (params: any) => {
+                            // grid should do nothing on ENTER and TAB
+                            const gridShouldDoNothing = params.editing && (params.event.keyCode === 9 || params.event.keyCode === 13);
+                            return gridShouldDoNothing;
+                        };
                     }
 
                     colDef.onCellValueChanged = (param: any) => this.onCellValueChanged(param);

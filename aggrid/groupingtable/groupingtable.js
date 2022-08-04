@@ -5340,6 +5340,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								}
 								else if(column.editType == 'FORM') {
 									colDef.cellEditor = getFormEditor();
+									colDef.suppressKeyboardEvent = function(params) {
+										// grid should do nothing on ENTER and TAB
+										var gridShouldDoNothing = params.editing && (params.event.keyCode === 9 || params.event.keyCode === 13);
+										return gridShouldDoNothing;
+									}
 								}
 
 								colDef.onCellValueChanged = function(params) {
