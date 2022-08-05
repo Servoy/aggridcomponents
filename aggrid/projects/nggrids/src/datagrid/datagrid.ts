@@ -171,6 +171,7 @@ export class DataGrid extends NGGridDirective {
 
     onSelectionChangedTimeout: any = null;
     requestSelectionPromises = new Array();
+    multipleSelectionEvents = new Array();
 
 
     agMainMenuItemsConfig: any;
@@ -2742,16 +2743,27 @@ export class DataGrid extends NGGridDirective {
     }
 
     onSelectionChanged() {
-        if(this.onSelectionChangedTimeout) {
-            clearTimeout(this.onSelectionChangedTimeout);
+        if(this.agGridOptions.rowSelection === 'multiple') {
+            this.multipleSelectionEvents.push(this.selectionEvent);
+            this.onMultipleSelectionChangedEx();
+        } else {
+            if(this.onSelectionChangedTimeout) {
+                clearTimeout(this.onSelectionChangedTimeout);
+            }
+            this.onSelectionChangedTimeout = this.setTimeout(() => {
+                    this.onSelectionChangedTimeout = null;
+                    this.onSelectionChangedEx(this.selectionEvent);
+            }, 250);
         }
-        this.onSelectionChangedTimeout = this.setTimeout(() => {
-                this.onSelectionChangedTimeout = null;
-                this.onSelectionChangedEx();
-        }, 250);
     }
 
-    onSelectionChangedEx() {
+    onMultipleSelectionChangedEx() {
+        if(!this.requestSelectionPromises.length && this.multipleSelectionEvents.length) {
+            this.onSelectionChangedEx(this.multipleSelectionEvents.shift());
+        }
+    }
+
+    onSelectionChangedEx(selectionEvent: any) {
         // Don't trigger foundset selection if table is grouping
         if (this.isTableGrouped()) {
 
@@ -2776,28 +2788,28 @@ export class DataGrid extends NGGridDirective {
             this.requestFocus(this.requestFocusColumnIndex);
         }
 
-        if(this.selectionEvent) {
+        if(selectionEvent) {
             let foundsetIndexes: any;
-            if(this.foundset.foundset.multiSelect && this.selectionEvent.type === 'click' && this.selectionEvent.event &&
-                (this.selectionEvent.event.ctrlKey || this.selectionEvent.event.shiftKey)) {
+            if(this.foundset.foundset.multiSelect && selectionEvent.type === 'click' && selectionEvent.event &&
+                (selectionEvent.event.ctrlKey || selectionEvent.event.shiftKey)) {
                 foundsetIndexes = this.foundset.foundset.selectedRowIndexes.slice();
 
-                if(this.selectionEvent.event.shiftKey) { // shifkey, select range of rows in multiselect
+                if(selectionEvent.event.shiftKey) { // shifkey, select range of rows in multiselect
                     const firstRow = foundsetIndexes[0];
                     const lastRow = foundsetIndexes.length > 1 ? foundsetIndexes[foundsetIndexes.length - 1] : firstRow;
 
                     let fillStart: any; let fillEnd: any;
-                    if(this.selectionEvent.rowIndex < firstRow) {
-                        fillStart = this.selectionEvent.rowIndex;
+                    if(selectionEvent.rowIndex < firstRow) {
+                        fillStart = selectionEvent.rowIndex;
                         fillEnd = firstRow - 1;
 
-                    } else if(this.selectionEvent.rowIndex < lastRow) {
-                        fillStart = this.selectionEvent.rowIndex;
+                    } else if(selectionEvent.rowIndex < lastRow) {
+                        fillStart = selectionEvent.rowIndex;
                         fillEnd = lastRow - 1;
 
                     } else {
                         fillStart = lastRow + 1;
-                        fillEnd = this.selectionEvent.rowIndex;
+                        fillEnd = selectionEvent.rowIndex;
                     }
                     for(let i = fillStart; i <= fillEnd; i++) {
                         if(foundsetIndexes.indexOf(i) === -1) {
@@ -2812,8 +2824,8 @@ export class DataGrid extends NGGridDirective {
                     });
                 } else {	// ctrlKey pressed, include row in multiselect
 
-                    const selectionIndex = foundsetIndexes.indexOf(this.selectionEvent.rowIndex);
-                    if(selectionIndex === -1) foundsetIndexes.push(this.selectionEvent.rowIndex);
+                    const selectionIndex = foundsetIndexes.indexOf(selectionEvent.rowIndex);
+                    if(selectionIndex === -1) foundsetIndexes.push(selectionEvent.rowIndex);
                     else foundsetIndexes.splice(selectionIndex, 1);
                 }
             } else {
@@ -2849,7 +2861,9 @@ export class DataGrid extends NGGridDirective {
                         if (this.onSelectedRowsChanged) {
                             this.onSelectedRowsChanged();
                         }
-
+                        if(this.agGridOptions.rowSelection === 'multiple') {
+                            this.onMultipleSelectionChangedEx();
+                        }
                         //success
                     },
                     (serverRows) => {
@@ -2858,12 +2872,17 @@ export class DataGrid extends NGGridDirective {
                         }
                         //canceled
                         if (typeof serverRows === 'string'){
+                            // clear multi select queue
+							this.multipleSelectionEvents.length = 0;
                             return;
                         }
                         //reject
                         this.selectedRowIndexesChanged();
                         if(this.scrollToSelectionWhenSelectionReady) {
                             this.scrollToSelection();
+                        }
+                        if(this.agGridOptions.rowSelection === 'multiple') {
+                            this.onMultipleSelectionChangedEx();
                         }
                     }
                 );

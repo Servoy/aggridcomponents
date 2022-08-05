@@ -972,17 +972,29 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					var selectionEvent;
 					var onSelectionChangedTimeout = null;
 					var requestSelectionPromises = new Array();
+					var multipleSelectionEvents = new Array();
 					function onSelectionChanged(event) {
-						if(onSelectionChangedTimeout) {
-							clearTimeout(onSelectionChangedTimeout);
+						if(gridOptions.rowSelection === 'multiple') {
+							multipleSelectionEvents.push(selectionEvent);
+							onMultipleSelectionChangedEx();
+						} else {
+							if(onSelectionChangedTimeout) {
+								clearTimeout(onSelectionChangedTimeout);
+							}
+							onSelectionChangedTimeout = setTimeout(function() {
+								onSelectionChangedTimeout = null;
+								onSelectionChangedEx(selectionEvent);
+							}, 250);
 						}
-						onSelectionChangedTimeout = setTimeout(function() {
-							onSelectionChangedTimeout = null;
-							onSelectionChangedEx();
-						}, 250);
 					}
 
-					function onSelectionChangedEx() {
+					function onMultipleSelectionChangedEx() {
+						if(!requestSelectionPromises.length && multipleSelectionEvents.length) {
+							onSelectionChangedEx(multipleSelectionEvents.shift());
+						}
+					}
+
+					function onSelectionChangedEx(selectionEvent) {
 						// Don't trigger foundset selection if table is grouping
 						if (isTableGrouped()) {
 							
@@ -1083,7 +1095,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 										if ($scope.handlers.onSelectedRowsChanged) {
 											$scope.handlers.onSelectedRowsChanged();
 										}
-										
+										if(gridOptions.rowSelection === 'multiple') {
+											onMultipleSelectionChangedEx();
+										}
 										//success
 									},
 									function(serverRows){
@@ -1092,12 +1106,17 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 										}
 										//canceled 
 										if (typeof serverRows === 'string'){
+											// clear multi select queue
+											multipleSelectionEvents.length = 0;
 											return;
 										}
 										//reject
 										selectedRowIndexesChanged();
 										if(scrollToSelectionWhenSelectionReady) {
 											$scope.api.scrollToSelection();
+										}
+										if(gridOptions.rowSelection === 'multiple') {
+											onMultipleSelectionChangedEx();
 										}
 									}
 								);
