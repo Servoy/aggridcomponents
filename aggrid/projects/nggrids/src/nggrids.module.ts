@@ -9,9 +9,14 @@ import { SelectEditor } from './editors/selecteditor';
 import { TextEditor } from './editors/texteditor';
 import { TypeaheadEditor } from './editors/typeaheadeditor';
 import { AgGridModule } from '@ag-grid-community/angular';
-import { LicenseManager } from '@ag-grid-enterprise/core';
-import { ClientSideRowModelModule,
-    ColumnsToolPanelModule, FiltersToolPanelModule, MenuModule, ModuleRegistry, RowGroupingModule, ServerSideRowModelModule, SideBarModule } from '@ag-grid-enterprise/all-modules';
+import { ModuleRegistry } from '@ag-grid-community/core';
+import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model';
+import {  ServerSideRowModelModule } from '@ag-grid-enterprise/server-side-row-model';
+import {  ColumnsToolPanelModule } from '@ag-grid-enterprise/column-tool-panel';
+import { FiltersToolPanelModule } from '@ag-grid-enterprise/filter-tool-panel';
+import { MenuModule } from '@ag-grid-enterprise/menu';
+import { SideBarModule } from '@ag-grid-enterprise/side-bar';
+import { RowGroupingModule } from '@ag-grid-enterprise/row-grouping';
 import { ValuelistFilter } from './datagrid/filters/valuelistfilter';
 import { RadioFilter } from './datagrid/filters/radiofilter';
 import { AggFuncInfo, PowerGrid, PowerGridColumn } from './powergrid/powergrid';
@@ -37,7 +42,7 @@ import { IconConfig, MainMenuItemsConfig, ToolPanelConfig } from './nggrid';
         FormsModule,
         ServoyPublicModule,
         NgbModule,
-        AgGridModule.withComponents([])
+        AgGridModule
     ],
     exports: [
         DataGrid,
@@ -58,7 +63,6 @@ export class NGGridsModule {
         specTypesService.registerType('aggrid-datasettable.mainMenuItemsConfig', MainMenuItemsConfig);
         specTypesService.registerType('aggrid-datasettable.aggFuncInfo', AggFuncInfo);
         // eslint-disable-next-line max-len
-        LicenseManager.setLicenseKey('CompanyName=Servoy B.V.,LicensedApplication=Servoy,LicenseType=SingleApplication,LicensedConcurrentDeveloperCount=7,LicensedProductionInstancesCount=10000,AssetReference=AG-018380,ExpiryDate=11_October_2022_[v2]_MTY2NTQ0MjgwMDAwMA==a725c314c19f2c87b1f6a2f4836eec3e');
         ModuleRegistry.registerModules([
             ServerSideRowModelModule,
             RowGroupingModule,

@@ -10,10 +10,15 @@
   },
   "dependencies": {
     "@angular/cdk": "<15",
-    "@ng-bootstrap/ng-bootstrap": "<13",
+    "@ng-bootstrap/ng-bootstrap": "<14",
     "@popperjs/core": "<3",
     "@servoy/tempus-dominus": "6.0.0-beta5.1",
     "bootstrap": "<6",
+    "@ag-grid-enterprise/column-tool-panel": "28.1.0",
+    "@ag-grid-enterprise/filter-tool-panel": "28.1.0",
+    "@ag-grid-enterprise/menu": "28.1.0",
+    "@ag-grid-enterprise/row-grouping": "28.1.0",
+    "@ag-grid-enterprise/side-bar": "28.1.0",
     "tslib": "*"
   },
   "license": "MIT",
