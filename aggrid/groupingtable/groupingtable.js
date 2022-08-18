@@ -3453,6 +3453,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 									// skip entries with data
 									delete ob['dataprovider']; 
 									delete ob['valuelist'];
+									delete ob['styleClassDataprovider'];
+									delete ob['isEditableDataprovider'];
+									delete ob['tooltip'];
 									n.push(ob);
 								}
 							}
@@ -3461,8 +3464,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								for(var i = 0; i < collumnsArray2.length; i++) {
 									var ob = Object.assign({}, collumnsArray2[i]);
 									// skip entries with data
-									delete ob['dataprovider'];
+									delete ob['dataprovider']; 
 									delete ob['valuelist'];
+									delete ob['styleClassDataprovider'];
+									delete ob['isEditableDataprovider'];
+									delete ob['tooltip'];
 									o.push(ob);
 								}
 							}

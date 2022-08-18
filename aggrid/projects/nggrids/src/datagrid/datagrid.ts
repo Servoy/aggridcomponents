@@ -16,6 +16,7 @@ import { DOCUMENT } from '@angular/common';
 import { BlankLoadingCellRendrer } from './renderers/blankloadingcellrenderer';
 import { NgbTypeaheadConfig } from '@ng-bootstrap/ng-bootstrap';
 import { CustomTooltip } from './commons/tooltip';
+import { isEqualWith } from 'lodash-es';
 
 const TABLE_PROPERTIES_DEFAULTS = {
     rowHeight: { gridOptionsProperty: 'rowHeight', default: 25 },
@@ -63,6 +64,15 @@ const COLUMN_KEYS_TO_CHECK_FOR_CHANGES = [
     'autoResize',
     'editType',
     'id'
+];
+
+const COLUMN_KEYS_TO_SKIP_IN_CHANGES = [
+    'dataprovider',
+    'valuelist',
+    'styleClassDataprovider',
+    'isEditableDataprovider',
+    'tooltip',
+    'state'
 ];
 
 const GRID_EVENT_TYPES = {
@@ -767,7 +777,12 @@ export class DataGrid extends NGGridDirective {
                         break;
                     case 'columns':
                         if(!change.firstChange) {
-                            if(!this.isSameColumns(change.currentValue, change.previousValue)) {
+                            if(!isEqualWith(change.currentValue, change.previousValue, (objValue: any, othValue: any, key: any) => {
+                                if(key && COLUMN_KEYS_TO_SKIP_IN_CHANGES.indexOf(key) !== -1) {
+                                    return true;
+                                }
+                                return undefined;
+                            })) {
                                 this.updateColumnDefs();
                             } else {
                                 for(let i = 0; i < this.columns.length; i++) {
@@ -2709,35 +2724,6 @@ export class DataGrid extends NGGridDirective {
         // the column is now updated. to reflect the header change, get the grid refresh the header
         this.agGrid.api.refreshHeader();
         this.sizeHeader();
-    }
-
-    isSameColumns(columnsArray1: any[], collumnsArray2: any[]): boolean {
-        if(columnsArray1 !== collumnsArray2) {
-            const n = [];
-            if(columnsArray1) {
-                for(const i of columnsArray1) {
-                    const ob = Object.assign({}, i);
-                    // skip entries with data
-                    delete ob['dataprovider'];
-                    delete ob['valuelist'];
-                    n.push(ob);
-                }
-            }
-            const o = [];
-            if(collumnsArray2) {
-                for(const i of collumnsArray2) {
-                    const ob = Object.assign({}, i);
-                    // skip entries with data
-                    delete ob['dataprovider'];
-                    delete ob['valuelist'];
-                    o.push(ob);
-                }
-            }
-            const nS = JSON.stringify(n);
-            const oS = JSON.stringify(o);
-            return nS === oS;
-        }
-        return true;
     }
 
     onSelectionChanged() {
