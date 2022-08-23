@@ -605,6 +605,14 @@ $scope.onHide = function() {
 	}
 }
 
+
+$scope.columnStateOnErrorHandler = function(errorMsg, event) {
+	if($scope.model.columnStateOnError) {
+		$scope.model.columnStateOnError(errorMsg, event);
+	}
+}
+
+
 /**
  * Table column API
  */

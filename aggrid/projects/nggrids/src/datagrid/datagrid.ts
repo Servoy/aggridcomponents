@@ -2353,10 +2353,7 @@ export class DataGrid extends NGGridDirective {
 
         if (this.columnStateOnError) {
             // can't parse columnState
-            this.servoyService.executeInlineScript(
-                this.columnStateOnError.formname,
-                this.columnStateOnError.script,
-                [errorMsg]);
+            this.servoyApi.callServerSideApi('columnStateOnErrorHandler', [errorMsg, this.createJSEvent()]);
         } else {
             console.error(errorMsg);
         }

@@ -5868,10 +5868,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								
 								if (restoreColumns && $scope.model.columnStateOnError) {
 									// can't parse columnState
-									$window.executeInlineScript(
-										$scope.model.columnStateOnError.formname,
-										$scope.model.columnStateOnError.script,
-										[errorMsg]);
+									$scope.svyServoyapi.callServerSideApi("columnStateOnErrorHandler", [errorMsg, createJSEvent()]);
 								} else {
 									console.error(errorMsg);
 								}

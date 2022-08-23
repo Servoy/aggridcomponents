@@ -396,7 +396,17 @@
 			}],
 			"returns": "int"
 		},
-		"onHide" : {}
+		"onHide" : {},
+		"columnStateOnErrorHandler" : {
+			"parameters": [{
+				"name": "errorMsg",
+				"type": "string"
+			},
+			{
+				"name": "event",
+				"type": "JSEvent"
+			}]
+		}
 	},
 	"types" : {
 		"column" : {
