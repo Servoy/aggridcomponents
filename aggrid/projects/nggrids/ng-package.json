@@ -7,7 +7,7 @@
   "lib": {
     "entryFile": "src/public-api.ts"
   },
-  "allowedNonPeerDependencies": ["@servoy/tempus-dominus", "@ng-bootstrap/ng-bootstrap","@popperjs/core",  "@angular/cdk", "bootstrap",
+  "allowedNonPeerDependencies": ["@servoy/tempus-dominus", "@ng-bootstrap/ng-bootstrap","@popperjs/core",  "@angular/cdk", "bootstrap", "lodash-es",
         "@ag-grid-enterprise/column-tool-panel" , "@ag-grid-enterprise/filter-tool-panel",  "@ag-grid-enterprise/menu",  "@ag-grid-enterprise/row-grouping", "@ag-grid-enterprise/side-bar"]
                                                             
 
