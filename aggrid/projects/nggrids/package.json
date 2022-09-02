@@ -15,7 +15,6 @@
     "@popperjs/core": "<3",
     "@servoy/tempus-dominus": "6.0.0-beta5.1",
     "bootstrap": "<6",
-    "lodash-es": "<5",
     "@ag-grid-enterprise/column-tool-panel": "28.1.1",
     "@ag-grid-enterprise/filter-tool-panel": "28.1.1",
     "@ag-grid-enterprise/menu": "28.1.1",
