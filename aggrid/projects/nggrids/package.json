@@ -1,12 +1,13 @@
 {
   "name": "@servoy/nggrids",
-  "version": "2022.6.1",
+  "version": "2022.9.0",
   "peerDependencies": {
     "@angular/animations": "^14",
     "@angular/common": "^14",
     "@angular/core": "^14",
     "@angular/forms": "^14",
-    "luxon": "*"
+    "luxon": "*",
+    "lodash-es": "<5"
   },
   "dependencies": {
     "@angular/cdk": "<15",
@@ -14,7 +15,6 @@
     "@popperjs/core": "<3",
     "@servoy/tempus-dominus": "6.0.0-beta5.1",
     "bootstrap": "<6",
-    "lodash-es": "<5",
     "@ag-grid-enterprise/column-tool-panel": "28.1.0",
     "@ag-grid-enterprise/filter-tool-panel": "28.1.0",
     "@ag-grid-enterprise/menu": "28.1.0",
