@@ -6,7 +6,8 @@
     "@angular/common": "^14",
     "@angular/core": "^14",
     "@angular/forms": "^14",
-    "luxon": "*"
+    "luxon": "*",
+    "lodash-es": "<5"
   },
   "dependencies": {
     "@angular/cdk": "<15",
