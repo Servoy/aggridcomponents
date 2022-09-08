@@ -1,28 +1,46 @@
 import { Component, ViewChild } from '@angular/core';
-import { NgbTypeahead, NgbTypeaheadConfig } from '@ng-bootstrap/ng-bootstrap';
+import { NgbTypeahead } from '@ng-bootstrap/ng-bootstrap';
 import { merge, Observable, of, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, switchMap } from 'rxjs/operators';
+import { NULL_VALUE } from '../datagrid';
 import { DatagridFilterDirective } from './datagridfilter';
 
 @Component({
     selector: 'aggrid-datagrid-valuelistfilter',
     template: `
-      <div><div class="ag-filter-body-wrapper"><div class="ag-filter-body">
-        <div class="ag-input-wrapper">
+      <div><div class="ag-filter-body-wrapper">
+        <div class="ag-filter-body">
+          <div class="ag-input-wrapper">
             <input class="ag-filter-filter" type="text" id="filterText" autocomplete="off"
                 [ngbTypeahead]="filterValues"
+                (selectItem)="valueChanged()"
                 [resultFormatter]="resultFormatter"
                 [inputFormatter]="inputFormatter"
                 (focus)="focus$.next('')"
                 [resultTemplate]="rt"
                 [popupClass]="'ag-custom-component-popup'"
                 #instance="ngbTypeahead" #element>
-        </div></div></div>
-        <div class="ag-filter-apply-panel">
-          <button type="button" id="btnClearFilter" (click)="onClearFilter()">{{ txtClearFilter }}</button>
-          <button type="button" id="btnApplyFilter" (click)="onApplyFilter()">{{ txtApplyFilter }}</button>
+          </div>
+        </div>
+        <div *ngIf="!suppressAndOrCondition()" class="ag-filter-condition"><label>OR</label></div>
+        <div *ngIf="!suppressAndOrCondition()" class="ag-filter-body">
+          <div class="ag-input-wrapper">
+            <input class="ag-filter-filter" type="text" id="filterText1" autocomplete="off"
+                [ngbTypeahead]="filterValues1"
+                (selectItem)="valueChanged()"
+                [resultFormatter]="resultFormatter"
+                [inputFormatter]="inputFormatter"
+                (focus)="focus1$.next('')"
+                [resultTemplate]="rt"
+                [popupClass]="'ag-custom-component-popup'"
+                #instance="ngbTypeahead" #element1>
+          </div>
         </div>
       </div>
+      <div *ngIf="hasApplyButton()" class="ag-filter-apply-panel">
+          <button type="button" id="btnClearFilter" (click)="onClearFilter()">{{ txtClearFilter }}</button>
+          <button type="button" id="btnApplyFilter" (click)="onApplyFilter()">{{ txtApplyFilter }}</button>
+      </div></div>
       <ng-template #rt let-r="result" let-t="term">
         <ngb-highlight [result]="r.displayValue" [term]="t"></ngb-highlight>
       </ng-template>
@@ -31,23 +49,33 @@ import { DatagridFilterDirective } from './datagridfilter';
 export class ValuelistFilter extends DatagridFilterDirective {
 
     @ViewChild('instance') instance: NgbTypeahead;
+    @ViewChild('instance1') instance1: NgbTypeahead;
     focus$ = new Subject<string>();
+    focus1$ = new Subject<string>();
 
-    filterValues = (text$: Observable<string>) => {
-        const debouncedText$ = text$.pipe(debounceTime(200), distinctUntilChanged());
-        const inputFocus$ = this.focus$;
-        return merge(debouncedText$, inputFocus$).pipe( switchMap(term => {
-            const valuelist = this.getValuelistFromGrid();
-            let valuelistObs: Observable<readonly any[]>;
-            if(valuelist) {
-              valuelistObs = valuelist.filterList(term);
-              valuelistObs.subscribe(valuelistValues => this.valuelistValues = valuelistValues);
-            } else {
-              valuelistObs = of([]);
-            }
-            return valuelistObs;
-          }));
-    };
+    filterValues = (text$: Observable<string>) => this.doFilterValues(text$, this.focus$);
+
+    filterValues1 = (text$: Observable<string>) => this.doFilterValues(text$, this.focus1$);
+
+    doFilterValues(text$: Observable<string>, inputFocus$: any) {
+      const debouncedText$ = text$.pipe(debounceTime(200), distinctUntilChanged());
+      return merge(debouncedText$, inputFocus$).pipe( switchMap(term => {
+          const valuelist = this.getValuelistFromGrid();
+          let valuelistObs: Observable<readonly any[]>;
+          if(valuelist) {
+            valuelistObs = valuelist.filterList(term);
+            valuelistObs.subscribe(valuelistValues =>  {
+              this.valuelistValues = valuelistValues;
+              if(!this.hasApplyButton()) {
+                this.valuelistValues.splice(0, 0, NULL_VALUE);
+              }
+            });
+          } else {
+            valuelistObs = of([]);
+          }
+          return valuelistObs;
+        }));
+    }
 
     resultFormatter = (result: {displayValue: string; realValue: any}) => {
       if (result.displayValue === null) return '';
@@ -70,5 +98,9 @@ export class ValuelistFilter extends DatagridFilterDirective {
 
     getFilterUIValue(): any {
       return this.elementRef.nativeElement.value;
-  }
+    }
+
+    getSecondFilterUIValue(): any {
+      return this.element1Ref.nativeElement.value;
+    }
 }
