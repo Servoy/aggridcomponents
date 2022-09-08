@@ -1,12 +1,13 @@
 import { AgFilterComponent } from '@ag-grid-community/angular';
 import { IFilterParams } from '@ag-grid-community/core';
 import { Directive, ElementRef, ViewChild } from '@angular/core';
-import { DataGrid } from '../datagrid';
+import { DataGrid, NULL_VALUE } from '../datagrid';
 
 @Directive()
 export class DatagridFilterDirective implements AgFilterComponent {
 
     @ViewChild('element') elementRef: ElementRef;
+    @ViewChild('element1') element1Ref: ElementRef;
     dataGrid: DataGrid;
     params: IFilterParams;
     model: any;
@@ -33,6 +34,9 @@ export class DatagridFilterDirective implements AgFilterComponent {
         if (valuelist) {
           valuelist.filterList('').subscribe((valuelistValues) => {
             this.valuelistValues = valuelistValues;
+            if(!this.hasApplyButton()) {
+              this.valuelistValues.splice(0, 0, NULL_VALUE);
+            }
             this.dataGrid.cdRef.detectChanges();
           });
         }
@@ -49,11 +53,14 @@ export class DatagridFilterDirective implements AgFilterComponent {
 
     onClearFilter() {
         this.elementRef.nativeElement.value = '';
+        if(!this.suppressAndOrCondition()) {
+          this.element1Ref.nativeElement.value = '';
+        }
         this.model = '';
-      }
+    }
 
     onApplyFilter() {
-        const filterRealValue = this.getFilterRealValue();
+        let filterRealValue = this.getFilterRealValue();
         if(filterRealValue === '' || filterRealValue === null) {
             this.model = null;
         } else {
@@ -63,6 +70,31 @@ export class DatagridFilterDirective implements AgFilterComponent {
             filter: filterRealValue
             };
         }
+
+        if(!this.suppressAndOrCondition()) {
+          let condition2 = null;
+          filterRealValue = this.getFilterRealValue(true);
+          if(filterRealValue === '' || filterRealValue === null) {
+            condition2 = null;
+          } else {
+            condition2 = {
+              filterType: isNaN(filterRealValue) ? 'text' : 'number',
+              type: 'equals',
+              filter: filterRealValue
+            };
+          }
+
+          if(this.model && condition2) {
+            this.model = {
+              operator: 'OR',
+              condition1: this.model,
+              condition2
+            };
+          } else if(condition2) {
+            this.model = condition2;
+          }
+        }
+
         this.params.filterChangedCallback();
     }
 
@@ -70,9 +102,13 @@ export class DatagridFilterDirective implements AgFilterComponent {
         return null;
     }
 
-    getFilterRealValue(): any {
+    getSecondFilterUIValue(): any {
+      return null;
+    }
+
+    getFilterRealValue(second?: boolean): any {
         let realValue = '';
-        const displayValue = this.getFilterUIValue();
+        const displayValue = second ? this.getSecondFilterUIValue() : this.getFilterUIValue();
         if(this.valuelistValues) {
           for (const vvalue of this.valuelistValues) {
             // compare trimmed values, typeahead will trim the selected value
@@ -103,5 +139,21 @@ export class DatagridFilterDirective implements AgFilterComponent {
 
     getFrameworkComponentInstance() {
         return this.instance;
+    }
+
+    hasApplyButton(): boolean {
+      return this.params['buttons'] instanceof Array && this.params['buttons'].indexOf('apply') !== -1;
+    }
+
+    valueChanged() {
+      if(!this.hasApplyButton()) {
+        this.dataGrid.setTimeout(() => {
+          this.onApplyFilter();
+        }, 0);
+      }
+    }
+
+    suppressAndOrCondition(): boolean {
+      return this.params['suppressAndOrCondition'];
     }
 }

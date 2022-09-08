@@ -2596,66 +2596,139 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						ValuelistFilter.prototype.init = function(params) {
 							this.params = params;
 							this.columnIndex = getColumnIndex(params.column.colId);
+							this.filterType = getColumn(params.column.colId).filterType;
 
-							var txtClearFilter = gridOptions["localeText"] && gridOptions["localeText"]["clearFilter"] ? 
-								gridOptions["localeText"] && gridOptions["localeText"]["clearFilter"] : "Clear Filter";
-
-							var txtApplyFilter = gridOptions["localeText"] && gridOptions["localeText"]["applyFilter"] ? 
-								gridOptions["localeText"] && gridOptions["localeText"]["applyFilter"] : "Apply Filter";
-
-							this.gui = document.createElement('div');
-							this.gui.innerHTML =
+							var innerHTML =
 								'<div class="ag-filter-body-wrapper">' +
 								'<div class="ag-filter-body">' +
 								this.getFilterUI() +
-								'</div></div>' +
-								'<div class="ag-filter-apply-panel">' +
-								'<button type="button" id="btnClearFilter">' + txtClearFilter + '</button>' +
-								'<button type="button" id="btnApplyFilter">' +txtApplyFilter + '</button>' +
 								'</div>';
-		
-							this.btnClearFilter = this.gui.querySelector('#btnClearFilter');
-							this.btnClearFilter.addEventListener('click', this.onClearFilter.bind(this));
-							this.btnApplyFilter = this.gui.querySelector('#btnApplyFilter');
-							this.btnApplyFilter.addEventListener('click', this.onApplyFilter.bind(this));
 
-							if(this.params.svyFilterType == 'VALUELIST') {
-								this.eFilterText = this.gui.querySelector('#filterText');
-								this.eFilterText.setAttribute("uib-typeahead", "value.displayValue | formatFilter:model.columns[" + this.columnIndex + "].format.display:model.columns[" + this.columnIndex + "].format.type for value in filterValuelist[" + this.columnIndex+ "] | filter:$viewValue");
-								this.eFilterText.setAttribute("typeahead-wait-ms", "300");
-								this.eFilterText.setAttribute("typeahead-min-length", "0");
-								this.eFilterText.setAttribute("typeahead-append-to-body", "true");
-								this.eFilterText.setAttribute("ng-model", "typeaheadFilterValue" + this.columnIndex);
-
-								$compile(this.eFilterText)($scope);
-								$scope.$digest();
-
-								var ariaOwns = this.eFilterText.getAttribute("aria-owns");
-								$("#" + ariaOwns).addClass("ag-custom-component-popup");
+							if(!params.suppressAndOrCondition) {
+								innerHTML += '<div class="ag-filter-condition">' +
+                    				'<label>OR</label>' +
+									'</div>' +
+									'<div class="ag-filter-body">' +
+									this.getFilterUI(1) +
+									'</div>';
 							}
-							else {
-								this.eFilterRadio = this.gui.querySelector('#filterRadio');
-								$compile(this.eFilterRadio)($scope);
-								$scope.$digest();
+
+							innerHTML += '</div>';
+									
+							if(params.applyButton) {
+								var txtClearFilter = gridOptions["localeText"] && gridOptions["localeText"]["clearFilter"] ? 
+								gridOptions["localeText"] && gridOptions["localeText"]["clearFilter"] : "Clear Filter";
+
+								var txtApplyFilter = gridOptions["localeText"] && gridOptions["localeText"]["applyFilter"] ? 
+								gridOptions["localeText"] && gridOptions["localeText"]["applyFilter"] : "Apply Filter";
+
+								innerHTML += '<div class="ag-filter-apply-panel">' +
+									'<button type="button" id="btnClearFilter">' + txtClearFilter + '</button>' +
+									'<button type="button" id="btnApplyFilter">' +txtApplyFilter + '</button>' +
+									'</div>';
+
+							}
+
+							this.gui = document.createElement('div');
+							this.gui.innerHTML = innerHTML;
+
+							if(params.applyButton) {
+								this.btnClearFilter = this.gui.querySelector('#btnClearFilter');
+								this.btnClearFilter.addEventListener('click', this.onClearFilter.bind(this));
+								this.btnApplyFilter = this.gui.querySelector('#btnApplyFilter');
+								this.btnApplyFilter.addEventListener('click', this.onApplyFilter.bind(this));								
+							}
+
+							this.complileFilterUI();
+							if(!params.suppressAndOrCondition) {
+								this.complileFilterUI(1);
 							}
 						};
 
-						ValuelistFilter.prototype.getFilterUI = function() {
-							if(this.params.svyFilterType == 'RADIO') {
-								return '<label class="ag-radio-filter" id="filterRadio" ng-repeat="item in filterValuelist[' + this.columnIndex + ']"><input type="radio" name="radioFilterInput" ng-value="item.displayValue" /><span ng-bind="item.displayValue" ></span></label>';
+						ValuelistFilter.prototype.getFilterUI = function(suffix) {
+							if(this.filterType == 'RADIO') {
+								var id = 'filterRadio';
+								var name = 'radioFilterInput';
+								var model = 'radioOnChangeModel';
+								if(suffix) {
+									id += suffix;
+									name += suffix;
+									model += suffix;
+								}
+								return '<label class="ag-radio-filter" id="' + id + '" ng-repeat="item in filterValuelist[' + this.columnIndex + ']"><input type="radio" name="' + name + '" ng-model="' + model + '[' + this.columnIndex + '][item]" ng-value="item.displayValue" /><span ng-bind="item.displayValue" ></span></label>';
 							}
 							else { // VALUELIST
-								return '<div class="ag-input-wrapper"><input class="ag-filter-filter" type="text" id="filterText" autocomplete="off"/></div>';
+								var id = 'filterText';
+								if(suffix) id += suffix;
+								return '<div class="ag-input-wrapper"><input class="ag-filter-filter" type="text" id="' + id + '" autocomplete="off"/></div>';
 							}
 						}
 
-						ValuelistFilter.prototype.getFilterUIValue = function() {
-							if(this.params.svyFilterType == 'RADIO') {
-								var checkedRadio = this.gui.querySelector('input[name="radioFilterInput"]:checked');
+
+						ValuelistFilter.prototype.complileFilterUI = function(suffix) {
+							if(this.filterType == 'VALUELIST') {
+								var id = "#filterText";
+								var model = "typeaheadFilterValue";
+								if(suffix) {
+									id += suffix;
+									model += '_' + suffix;
+								}
+
+								var eFilterText = this.gui.querySelector(id);
+								eFilterText.setAttribute("uib-typeahead", "value.displayValue | formatFilter:model.columns[" + this.columnIndex + "].format.display:model.columns[" + this.columnIndex + "].format.type for value in filterValuelist[" + this.columnIndex+ "] | filter:$viewValue");
+								eFilterText.setAttribute("typeahead-wait-ms", "300");
+								eFilterText.setAttribute("typeahead-min-length", "0");
+								eFilterText.setAttribute("typeahead-append-to-body", "true");
+								eFilterText.setAttribute("ng-model", model + this.columnIndex);
+
+								if(!this.params.applyButton) {
+									eFilterText.setAttribute("typeahead-on-select", "filterValuelistOnChange[" + this.columnIndex + "]()");
+								}
+
+								$compile(eFilterText)($scope);
+								$scope.$digest();
+
+								var ariaOwns = eFilterText.getAttribute("aria-owns");
+								$("#" + ariaOwns).addClass("ag-custom-component-popup");
+
+								if(!this.eFilterText) {
+									this.eFilterText = {};
+								}
+
+								if(suffix) {
+									this.eFilterText[suffix] = eFilterText;
+								} else {
+									this.eFilterText[0] = eFilterText;
+								}
+							}
+							else {
+								var id = '#filterRadio';
+								var name = 'radioFilterInput';
+								if(suffix) {
+									id += suffix;
+									name += suffix;
+								}
+								if(!this.params.applyButton) {
+									var radioFilterInput = this.gui.querySelector('input[name="' + name + '"]');
+									radioFilterInput.setAttribute('ng-change', 'filterValuelistOnChange[' + this.columnIndex + ']()');
+								}
+
+								this.eFilterRadio = this.gui.querySelector(id);
+								$compile(this.eFilterRadio)($scope);
+								$scope.$digest();
+							}
+						}
+
+
+						ValuelistFilter.prototype.getFilterUIValue = function(suffix) {
+							if(this.filterType == 'RADIO') {
+								var name = 'radioFilterInput';
+								if(suffix) name += suffix;
+								var checkedRadio = this.gui.querySelector('input[name="' + name + '"]:checked');
 								return  checkedRadio ? checkedRadio.value : null;
 							}
 							else { // VALUELIST
-								return this.eFilterText.value;	
+								return suffix ? this.eFilterText[suffix].value : this.eFilterText[0].value;
 							}
 						}
 
@@ -2681,12 +2754,17 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						};
 
 						ValuelistFilter.prototype.onClearFilter = function() {
-							if(this.params.svyFilterType == 'RADIO') {
+							if(this.filterType == 'RADIO') {
 								var checkedRadio = this.gui.querySelector('input[name="radioFilterInput"]:checked');
+								if(checkedRadio) checkedRadio.checked = false;
+								checkedRadio = this.gui.querySelector('input[name="radioFilterInput1"]:checked');
 								if(checkedRadio) checkedRadio.checked = false;
 							}
 							else { // VALUELIST
-								this.eFilterText.value = "";
+								this.eFilterText[0].value = "";
+								if(this.eFilterText[1] !== undefined) {
+									this.eFilterText[1].value = "";
+								}
 							}
 							this.model = "";
 						}
@@ -2703,6 +2781,32 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 									filter: filterRealValue
 								};
 							}
+
+							if(!this.params.suppressAndOrCondition) {
+								var condition2 = null;
+								filterRealValue = this.getFilterRealValue(1);
+								if(filterRealValue === "" || filterRealValue === null) {
+									condition2 = null;
+								}
+								else {
+									condition2 = {
+										filterType: isNaN(filterRealValue) ? "text" : "number",
+										type: "equals",
+										filter: filterRealValue
+									};
+								}
+
+								if(this.model && condition2) {
+									this.model = {
+										operator: "OR",
+										condition1: this.model,
+										condition2: condition2
+									};
+								} else if(condition2) {
+									this.model = condition2;
+								}
+							}
+
 							this.params.filterChangedCallback();
 						}
 
@@ -2720,6 +2824,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 									var thisFilter = this;
 									$scope.filterValuelistPromise[this.columnIndex].then(function(valuelistValues) {
 										$scope.filterValuelist[thisFilter.columnIndex] = valuelistValues;
+										if(!thisFilter.params.applyButton) {
+											$scope.filterValuelist[thisFilter.columnIndex].splice(0, 0, NULL_VALUE);
+										}
 										$scope.filterValuelistPromise[thisFilter.columnIndex] = null;
 									}, function(e) {
 										$log.error(e);
@@ -2727,11 +2834,29 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 									});
 								}
 							}
+
+							if(!this.params.applyButton) {
+								if(!$scope.filterValuelistOnChange) $scope.filterValuelistOnChange = {};
+								var _this = this;
+								$scope.filterValuelistOnChange[this.columnIndex] = function() {
+									setTimeout(function() {
+										_this.onApplyFilter();
+									});
+								}
+
+								if(!$scope.radioOnChangeModel) $scope.radioOnChangeModel = {};
+								$scope.radioOnChangeModel[this.columnIndex] = {};
+
+								if(!this.params.suppressAndOrCondition) {
+									if(!$scope.radioOnChangeModel1) $scope.radioOnChangeModel1 = {};
+									$scope.radioOnChangeModel1[this.columnIndex] = {};									
+								}
+							}
 						}
 
-						ValuelistFilter.prototype.getFilterRealValue = function() {
+						ValuelistFilter.prototype.getFilterRealValue = function(suffix) {
 							var realValue = "";
-							var displayValue = this.getFilterUIValue();
+							var displayValue = this.getFilterUIValue(suffix);
 							if($scope.filterValuelist && $scope.filterValuelist[this.columnIndex]) {
 								for (var i = 0; i < $scope.filterValuelist[this.columnIndex].length; i++) {
 									// compare trimmed values, typeahead will trim the selected value
@@ -2747,8 +2872,21 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							if($scope.filterValuelist && $scope.filterValuelist[this.columnIndex]) {
 								delete $scope.filterValuelist[this.columnIndex];
 							}
-							this.btnClearFilter.removeEventListener('keydown', this.onClearFilter);
-							this.btnApplyFilter.removeEventListener('keydown', this.onApplyFilter);
+
+							if($scope.filterValuelistOnChange && $scope.filterValuelistOnChange[this.columnIndex]) {
+								delete $scope.filterValuelistOnChange[this.columnIndex];
+							}
+
+							if($scope.radioOnChangeModel && $scope.radioOnChangeModel[this.columnIndex]) {
+								delete $scope.radioOnChangeModel[this.columnIndex];
+							}
+							if($scope.radioOnChangeModel1 && $scope.radioOnChangeModel1[this.columnIndex]) {
+								delete $scope.radioOnChangeModel1[this.columnIndex];
+							}							
+
+
+							if(this.btnClearFilter) this.btnClearFilter.removeEventListener('click', this.onClearFilter);
+							if(this.btnApplyFilter) this.btnApplyFilter.removeEventListener('click', this.onApplyFilter);
 						}
 
 						return ValuelistFilter;
@@ -5403,7 +5541,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								}
 								else if(column.filterType == 'VALUELIST' || column.filterType == 'RADIO') {
 									colDef.filter = getValuelistFilter();
-									colDef.filterParams.svyFilterType = column.filterType;
+									colDef.filterParams['suppressAndOrCondition'] = true;
 								}	
 							}
 							colDef.tooltipValueGetter = getTooltip;
