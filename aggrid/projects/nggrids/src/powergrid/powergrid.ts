@@ -1338,6 +1338,29 @@ export class PowerGrid extends NGGridDirective {
         return -1;
     }
 
+    getColumnFormat(colId: any): any {
+        let columnFormat = null;
+        const column = this.getColumn(colId);
+        if(column && column.format) {
+            columnFormat = {};
+            columnFormat['type'] = column.formatType;
+            if(column.formatType === 'TEXT' && (column.format === '|U' || column.format === '|L')) {
+                if(column.format === '|U') {
+                    columnFormat['uppercase'] = true;
+                } else if(column.format === '|L') {
+                    columnFormat['lowercase'] = true;
+                }
+            } else {
+                const displayAndEditFormat = column.format.split('|');
+                columnFormat['display'] = displayAndEditFormat[0];
+                if(displayAndEditFormat.length > 1) {
+                    columnFormat['edit'] = displayAndEditFormat[1];
+                }
+            }
+        }
+        return columnFormat;
+    }
+
     getEditingRowIndex(param: any): number {
         return param.node.rowIndex;
     }
@@ -1493,9 +1516,9 @@ export class PowerGrid extends NGGridDirective {
     createValueFormatter(format: any, formatType: any): any {
         return (params: any) => {
             if (params.value !== undefined) {
+                let v = params.value;
+                if (v.displayValue !== undefined) v = v.displayValue;
                 if (formatType === 'TEXT' && params.value) {
-                    let v = params.value;
-                    if (v.displayValue !== undefined) v = v.displayValue;
                     if (format === '|U') {
                         return v.toUpperCase();
                     } else if (format === '|L') {
@@ -1505,7 +1528,7 @@ export class PowerGrid extends NGGridDirective {
                 const formatDef = new Format();
                 formatDef.type = formatType;
                 formatDef.display = format.split('|')[0];
-                return params.context.componentParent.formattingService.format(params.value, formatDef, false);
+                return params.context.componentParent.formattingService.format(v, formatDef, false);
             }
             return '';
         };

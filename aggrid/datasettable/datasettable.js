@@ -1513,6 +1513,29 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     return -1;
                 }
 
+                function getColumnFormat(colId) {
+                    var columnFormat = null;
+                    var column = getColumn(colId);
+                    if(column && column.format) {
+                        columnFormat = {};
+                        columnFormat['type'] = column.formatType;
+                        if(column.formatType == 'TEXT' && (column.format == '|U' || column.format == '|L')) {
+                            if(column.format == '|U') {
+                                columnFormat['uppercase'] = true;
+                            } else if(column.format == '|L') {
+                                columnFormat['lowercase'] = true;
+                            }
+                        } else {
+                            var displayAndEditFormat = column.format.split("|");
+                            columnFormat['display'] = displayAndEditFormat[0];
+                            if(displayAndEditFormat.length > 1) {
+                                columnFormat['edit'] = displayAndEditFormat[1];
+                            }
+                        }
+                    }
+                    return columnFormat;
+                }
+
                 function isTableGrouped() {
                     var rowGroupCols = gridOptions.columnApi.getRowGroupColumns();
                     return rowGroupCols && rowGroupCols.length > 0;
@@ -1755,14 +1778,12 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                         this.eInput = document.createElement('input');
                         this.eInput.className = "ag-cell-edit-input";
 
-                        var column = getColumn(params.column.colId);
-
                         this.initialValue = params.value;
 
                         var v = this.initialValue;
-                        if(column && column.format) {
-                            this.format = column.format;
-                            if (this.format.maxLength) {
+                        this.format = getColumnFormat(params.column.colId);
+                        if(this.format) {
+                             if (this.format.maxLength) {
                                 this.eInput.setAttribute('maxlength', this.format.maxLength);
                             }
                             if(this.format.edit) {
@@ -1773,7 +1794,6 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                                 if (this.format.uppercase) v = v.toUpperCase();
                                 else if (this.format.lowercase) v = v.toLowerCase();
                             }
-
                         }
                         this.initialDisplayValue = v;
 
@@ -1878,6 +1898,12 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                                 if (this.format.uppercase) displayValue = displayValue.toUpperCase();
                                 else if (this.format.lowercase) displayValue = displayValue.toLowerCase();
                             }
+                        }
+
+                        if(!this.initialValue || !isNaN(this.initialValue)) {
+                            try {
+                                displayValue = Number(displayValue);
+                            } catch(e){}
                         }
 
                         return displayValue;

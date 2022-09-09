@@ -3430,6 +3430,14 @@ export class DataGrid extends NGGridDirective {
         return this.internalGetColumnIndex(field);
     }
 
+    getColumnFormat(field: any): any {
+        const column = this.getColumn(field);
+        if(column && column.format) {
+            return column.format;
+        }
+        return null;
+    }
+
     /***********************************************************************************************************************************
      ***********************************************************************************************************************************
     *
