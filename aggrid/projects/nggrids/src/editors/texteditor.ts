@@ -87,9 +87,8 @@ export class TextEditor extends EditorDirective {
             this.initialValue = this.initialValue.displayValue;
         }
         let v = this.initialValue;
-        const column = this.ngGrid.getColumn(params.column.getColId());
-        if(column && column.format) {
-            this.format = column.format;
+        this.format = this.ngGrid.getColumnFormat(params.column.getColId());
+        if(this.format) {
             if (this.format.maxLength) {
                 this.maxLength = this.format.maxLength;
             }
@@ -136,6 +135,13 @@ export class TextEditor extends EditorDirective {
                 else if (this.format.lowercase) displayValue = displayValue.toLowerCase();
             }
         }
+
+        if(!this.initialValue || !isNaN(this.initialValue)) {
+            try {
+                displayValue = Number(displayValue);
+            } catch(e){}
+        }
+
         const realValue = displayValue;
 
         return {displayValue, realValue};

@@ -40,6 +40,8 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
 
     abstract getColumnIndex(field: any): number;
 
+    abstract getColumnFormat(field: any): any;
+
     abstract getEditingRowIndex(param: any): number;
 }
 
