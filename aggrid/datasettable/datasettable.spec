@@ -18,7 +18,7 @@
     },
 	"model":
 	{
-		"data": { "type": "object[]", "tags": {"scope" : "private"}},
+		"data": { "type": "object[]", "tags": {"scope" : "private"}, "pushToServer": "allow"},
 		"pks": { "type": "string[]", "tags": {"scope" : "private"}},
 		"updateData": { "type": "object", "tags": {"scope" : "private"}},
 		"columns": { "type": "column[]", "droppable" : true, "tags": {"doc": "List all columns to be used in table as dataprovider"}},

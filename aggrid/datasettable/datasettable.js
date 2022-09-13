@@ -806,6 +806,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     if(isValueChanged && newValue instanceof Date && oldValue instanceof Date) {
                         isValueChanged = newValue.toISOString() != oldValue.toISOString();
                     }
+                    if(isValueChanged) $scope.svyServoyapi.apply('data');
                     if(col && col["dataprovider"] && (isValueChanged || invalidCellDataIndex.rowIndex != -1)) {
                         if($scope.handlers.onColumnDataChange && isValueChanged) {
                             var currentEditCells = gridOptions.api.getEditingCells();
