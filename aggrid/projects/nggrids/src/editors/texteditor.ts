@@ -142,8 +142,6 @@ export class TextEditor extends EditorDirective {
             } catch(e){}
         }
 
-        const realValue = displayValue;
-
-        return {displayValue, realValue};
+        return displayValue;
     }
 }

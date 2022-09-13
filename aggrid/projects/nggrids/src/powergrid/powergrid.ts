@@ -1,6 +1,6 @@
 import { GridOptions, GroupCellRenderer, GetRowIdParams } from '@ag-grid-community/core';
 import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Inject, Input, Output, Renderer2, SecurityContext, SimpleChanges, ViewChild } from '@angular/core';
-import { BaseCustomObject, Format, FormattingService } from '@servoy/public';
+import { BaseCustomObject, Format, FormattingService, ICustomArray } from '@servoy/public';
 import { LoggerFactory, LoggerService } from '@servoy/public';
 import { IconConfig, MainMenuItemsConfig, NGGridDirective, ToolPanelConfig } from '../nggrid';
 import { DatePicker } from '../editors/datepicker';
@@ -87,6 +87,7 @@ export class PowerGrid extends NGGridDirective {
     @Input() pivotMode: boolean;
     @Input() useLazyLoading: boolean;
     @Input() data: any;
+    @Output() dataChange = new EventEmitter();
     @Input() pks: string[];
     @Input() updateData: any;
     @Input() lastRowIndex: number;
@@ -1809,6 +1810,11 @@ export class PowerGrid extends NGGridDirective {
         let isValueChanged = newValue !== oldValueStr || (!newValue && newValue !== oldValueStr);
         if (isValueChanged && newValue instanceof Date && oldValue instanceof Date) {
             isValueChanged = newValue.toISOString() !== oldValue.toISOString();
+        }
+        if (isValueChanged && !this.useLazyLoading) {
+            const dataAsCustomArray = this.data as ICustomArray<any>;
+            dataAsCustomArray.getStateHolder().markAllChanged(false);
+            this.dataChange.emit(this.data);
         }
         if (col && col['dataprovider'] && (isValueChanged || this.invalidCellDataIndex.rowIndex !== -1)) {
             if (this.onColumnDataChange && isValueChanged) {
