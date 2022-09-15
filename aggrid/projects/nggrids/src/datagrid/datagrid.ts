@@ -1255,7 +1255,9 @@ export class DataGrid extends NGGridDirective {
      * @private
      */
     getColumnID(column: any, idx: any) {
-        if (column.dataprovider) {
+        if (column.columnid) {
+            return column.columnid;
+        } else if (column.dataprovider) {
             return column.dataprovider.idForFoundset + ':' + idx;
         } else {
             return 'col_' + idx;

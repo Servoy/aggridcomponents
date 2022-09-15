@@ -448,6 +448,7 @@
             "format" : { "type": "format",  "for": [ "valuelist", "dataprovider" ]},
 			"valuelist": { "type": "valuelist", "for": "dataprovider", "forFoundset": "foundset" },
 			"id": {"type" : "string"},
+			"columnid": {"type" : "string"},
 			"styleClassDataprovider": { "type": "dataprovider", "forFoundset": "foundset" }
         },
 		 "hashedFoundset" : {
