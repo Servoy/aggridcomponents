@@ -5838,7 +5838,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					 * @private
 					 * */
 					function getColumnID(column, idx) {					
-						if (column.dataprovider) {
+						if(column.columnid) {
+							return column.columnid;
+						}
+						else if (column.dataprovider) {
 							return column.dataprovider.idForFoundset + ':' + idx;
 						}
 						else if(column.styleClassDataprovider) {

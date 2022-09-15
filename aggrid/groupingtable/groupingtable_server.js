@@ -76,7 +76,7 @@ $scope.getGroupedFoundsetUUID = function(
 		query.result.clear();
 		query.sort.clear();
 		if(groupColumnType == 'DATETIME') {
-			query.result.add(groupColumn.cast('date'), groupDataprovider);
+			query.result.add(groupColumn.cast('date'), getDataproviderNameForGroupingView(groupDataprovider));
 			query.groupBy.add(groupColumn.cast('date'));
 
 			if (sort === 'desc') {
@@ -86,7 +86,7 @@ $scope.getGroupedFoundsetUUID = function(
 			}
 		}
 		else {
-			query.result.add(groupColumn, groupDataprovider);
+			query.result.add(groupColumn, getDataproviderNameForGroupingView(groupDataprovider));
 			query.groupBy.add(groupColumn);	
 
 			if (sort === 'desc') {
@@ -155,16 +155,18 @@ $scope.getGroupedFoundsetUUID = function(
 		for (var idx = 0; idx < $scope.model.columns.length; idx++) {
 			if(allGroupDataproviders.indexOf($scope.model.columns[idx].dataprovider) != -1) {
 				columns.push({
-					dataprovider: $scope.model.columns[idx].dataprovider,
+					dataprovider: getDataproviderNameForGroupingView($scope.model.columns[idx].dataprovider),
 					format: $scope.model.columns[idx].format,
 					valuelist: $scope.model.columns[idx].valuelist,
 					id: $scope.model.columns[idx].id,
-					styleClassDataprovider: $scope.model.columns[idx].styleClassDataprovider
+					styleClassDataprovider: getDataproviderNameForGroupingView($scope.model.columns[idx].styleClassDataprovider),
+					columnid: idForFoundsets[idx]
 				});
 			} else {
 				columns.push({
-					dataprovider: $scope.model.columns[idx].dataprovider,
+					dataprovider: getDataproviderNameForGroupingView($scope.model.columns[idx].dataprovider),
 					id: $scope.model.columns[idx].id,
+					columnid: idForFoundsets[idx]
 				});
 			}
 		}
@@ -223,6 +225,10 @@ $scope.removeGroupedFoundsetUUID = function(parentFoundset) {
 		}
 	}
 	return false;
+}
+
+function getDataproviderNameForGroupingView(dataproviderName) {
+	return dataproviderName ? dataproviderName.replace(/\./g, '_') : dataproviderName;
 }
 
 /**
