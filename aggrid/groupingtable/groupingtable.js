@@ -2065,7 +2065,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 									});
 								}
 							}
-							else if(this.editType == 'TEXTFIELD' && column.format) {
+							else if(this.editType == 'TEXTFIELD' && column && column.format) {
 								var attConverter = document.createAttribute("svy-decimal-key-converter");
 								this.eInput.setAttributeNode(attConverter);
 								$scope.model.format = column.format;
@@ -2179,14 +2179,16 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							if(this.editType == 'TEXTFIELD') {
 								this.eInput.select();
 							}
-							var editFormat = this.format.edit ? this.format.edit : this.format.display;
-							if(this.format && editFormat && this.format.isMask) {
-								var settings = {};
-								settings['placeholder'] = this.format.placeHolder ? this.format.placeHolder : " ";
-								if (this.format.allowedCharacters)
-									settings['allowedCharacters'] = this.format.allowedCharacters;
-		
-								$(this.eInput).mask(editFormat, settings);
+							if(this.format) {
+								var editFormat = this.format.edit ? this.format.edit : this.format.display;
+								if(editFormat && this.format.isMask) {
+									var settings = {};
+									settings['placeholder'] = this.format.placeHolder ? this.format.placeHolder : " ";
+									if (this.format.allowedCharacters)
+										settings['allowedCharacters'] = this.format.allowedCharacters;
+			
+									$(this.eInput).mask(editFormat, settings);
+								}
 							}
 						};
 

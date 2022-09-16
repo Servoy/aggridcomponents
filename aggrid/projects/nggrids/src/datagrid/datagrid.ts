@@ -2716,15 +2716,17 @@ export class DataGrid extends NGGridDirective {
         // get a reference to the column
         const col = this.agGrid.columnApi.getColumn(id);
 
-        // obtain the column definition from the column
-        const colDef = col.getColDef();
+        if(col) {
+            // obtain the column definition from the column
+            const colDef = col.getColDef();
 
-        // update the header name
-        colDef.headerName = text;
+            // update the header name
+            colDef.headerName = text;
 
-        // the column is now updated. to reflect the header change, get the grid refresh the header
-        this.agGrid.api.refreshHeader();
-        this.sizeHeader();
+            // the column is now updated. to reflect the header change, get the grid refresh the header
+            this.agGrid.api.refreshHeader();
+            this.sizeHeader();
+        }
     }
 
     onSelectionChanged() {
