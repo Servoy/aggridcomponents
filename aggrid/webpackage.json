@@ -3,6 +3,7 @@
     "displayName":"Servoy NG Grids",
     "packageType": "Web-Component",
     "icon": "https://raw.githubusercontent.com/Servoy/aggridcomponents/master/aggrid/aggrid.png",
+    "invertIcon": true,
     "description": "Data Grid: Editing, group, sort, filter. Power Grid: Summaries. Pivot. Powerful analytics",
     "wikiUrl": "https://github.com/Servoy/aggridcomponents/wiki",
     "sourceUrl" : "https://github.com/Servoy/aggridcomponents",
