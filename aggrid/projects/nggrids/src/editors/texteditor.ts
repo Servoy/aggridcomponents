@@ -137,9 +137,8 @@ export class TextEditor extends EditorDirective {
         }
 
         if(!this.initialValue || !isNaN(this.initialValue)) {
-            try {
-                displayValue = Number(displayValue);
-            } catch(e){}
+            const displayNumber = Number(displayValue);
+            if(!isNaN(displayNumber)) displayValue = displayNumber;
         }
 
         return displayValue;
