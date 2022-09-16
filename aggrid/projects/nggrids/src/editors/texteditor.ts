@@ -76,6 +76,15 @@ export class TextEditor extends EditorDirective {
         const isNavigationUpDownEntertKey = e.keyCode === 38 || e.keyCode === 40 || e.keyCode === 13;
 
         if(!(isNavigationLeftRightKey || isNavigationUpDownEntertKey) && this.format) {
+			if (this.format.type === "NUMBER" && this.format.display.includes(".")) {
+				const val = this.elementRef.nativeElement.value;
+				if (val.includes('.')) {
+					const maxDecimals = this.format.display.split(".")[1].length;
+					if (val.split(".")[1].length >= maxDecimals) {
+						return false;
+					}
+				}
+			}
             return this.ngGrid.formattingService.testForNumbersOnly(e, null, this.elementRef.nativeElement, false, true, this.format, false);
         } else return true;
     }
