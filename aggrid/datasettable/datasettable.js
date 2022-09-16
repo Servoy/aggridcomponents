@@ -1902,9 +1902,8 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                         }
 
                         if(!this.initialValue || !isNaN(this.initialValue)) {
-                            try {
-                                displayValue = Number(displayValue);
-                            } catch(e){}
+                            var displayNumber = Number(displayValue);
+                            if(!isNaN(displayNumber)) displayValue = displayNumber;
                         }
 
                         return displayValue;
