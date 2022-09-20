@@ -5,7 +5,7 @@ import { EditorDirective } from './editor';
 @Component({
     selector: 'aggrid-formeditor',
     template: `
-      <div id="nggridformeditor" [style.width.px]="width" [style.height.px]="height" [hidden]="!isFormLoaded">
+      <div id="nggridformeditor" [style.width.px]="width" [style.height.px]="height">
         <ng-template [ngTemplateOutlet]="getTemplate()" [ngTemplateOutletContext]="{name:getForm()}"></ng-template>
       </div>
     `
@@ -15,7 +15,6 @@ export class FormEditor extends EditorDirective implements OnDestroy {
     editForm: any;
     width = 300;
     height = 200;
-    isFormLoaded = false;
 
     constructor(private cdRef: ChangeDetectorRef) {
         super();
@@ -37,9 +36,7 @@ export class FormEditor extends EditorDirective implements OnDestroy {
         }
 
         this.editForm = column.editForm;
-        this.ngGrid.servoyApi.formWillShow(this.editForm).then(() => {
-            this.isFormLoaded = true;
-        }).finally(() => this.cdRef.markForCheck());
+        this.ngGrid.servoyApi.formWillShow(this.editForm).finally(() => this.cdRef.markForCheck());
     }
 
     ngAfterViewInit(): void {
