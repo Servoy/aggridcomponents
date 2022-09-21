@@ -606,7 +606,7 @@ function getConvertedDate(clientDateAsString, clientDateAsMs, columnFormat) {
 $scope.onHide = function() {
 	// related foundsets does not have filters, so only clear/remove filters from unrelated
 	var myFoundset = $scope.model.myFoundset.foundset;
-	if(!myFoundset.getRelationName || !myFoundset.getRelationName()) {
+	if(myFoundset && (!myFoundset.getRelationName || !myFoundset.getRelationName())) {
 		$scope.filterMyFoundset("{}");
 	}
 }

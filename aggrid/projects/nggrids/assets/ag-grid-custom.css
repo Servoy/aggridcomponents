@@ -222,3 +222,8 @@
 	z-index: 1;
 	min-height: 1px;
 }
+
+/* resolving issue (AG-7242) with missing mouse events in the last row */
+.ag-body-horizontal-scroll-viewport[style*='height: 0'] {
+    display: none;
+}
