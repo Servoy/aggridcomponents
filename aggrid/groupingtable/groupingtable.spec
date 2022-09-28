@@ -53,7 +53,8 @@
 		"showGroupCount" : {"type": "boolean", "default" : false, "tags" : {"scope": "design", "doc": "When true the number of rows for groups is shown, beside the name"}},
 		"showLoadingIndicator":  { "type": "boolean", "default": true },
 		"editNextCellOnEnter":  { "type": "boolean", "default": false },
-		"tabSeq": { "type": "tabseq", "tags": { "scope": "design" } }
+		"tabSeq": { "type": "tabseq", "tags": { "scope": "design" } },
+		"rowDropZoneFor": { "type": "string[]", "tags": {"doc": "List of Data Grid names from where rows can be dropped to this grid"} }
 	},
 	"handlers" : {
     	"onSelectedRowsChanged": {
@@ -217,6 +218,19 @@
 				"optional": true
 			}],
 			"allowaccess": "enabled"
+		},
+		"onDrop": {
+			"doc": "Called when a record is dropped as a result of moving rows inside the grid or a drag-n-drop from another grid",
+			"parameters": [{
+				"name": "sourceRecord",
+				"type": "record"
+			}, {
+				"name": "targetRecord",
+				"type": "record",
+			}, {
+				"name": "event",
+				"type": "JSEvent"
+			}]			
 		}
 	}, 
 	"api" : {
@@ -441,7 +455,10 @@
 			"filterType": {"type": "string", "values": [{"NONE":null}, {"TEXT":"TEXT"}, {"NUMBER":"NUMBER"}, {"DATE":"DATE"}, {"VALUELIST":"VALUELIST"}, {"RADIO":"RADIO"}]},
 			"id": {"type" : "string", "tags": {"wizard": {"prefill" : "dataprovider"}, "showInOutlineView": true, "doc": "Used to set the column id (colId) property in the serialized column state json string of getColumnState and onColumnStateChanged" }},
 			"columnDef": {"type" : "map", "tags": {"doc": "Map where additional column properties of ag-grid can be set"}},
-			"showAs": { "type": "string", "values": [{"text":null}, {"html":"html"}, {"sanitizedHtml":"sanitizedHtml"}] }
+			"showAs": { "type": "string", "values": [{"text":null}, {"html":"html"}, {"sanitizedHtml":"sanitizedHtml"}] },
+			"rowDrag" : {"type": "boolean", "default" : false, "tags": {"doc": "Allow row dragging"}},
+			"rowDragDataprovider" : { "type": "dataprovider", "forFoundset": "myFoundset", "tags": {"doc": "Boolean dataprovider for allow/disallow row dragging."}},
+			"rowDragText" : { "type": "dataprovider", "forFoundset": "myFoundset", "tags": {"doc": "Text displayed during row dragging (by default the cell's value is shown)"}}
 		},
 		"groupedColumn" : {
             "dataprovider": { "type": "dataprovider", "forFoundset": "foundset", "resolveValuelist": true, "pushToServer" : "allow"},

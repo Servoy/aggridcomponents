@@ -1,4 +1,4 @@
-import { GridOptions, GetRowIdParams } from '@ag-grid-community/core';
+import { GridOptions, GetRowIdParams, RowDragEvent, RowDragCallbackParams, IRowDragItem, RowDropZoneParams, RowDragEnterEvent, RowDragLeaveEvent } from '@ag-grid-community/core';
 import { ChangeDetectionStrategy, ChangeDetectorRef, ElementRef, EventEmitter, Inject, Input, Output, Renderer2, SecurityContext, SimpleChanges } from '@angular/core';
 import { Component, ViewChild } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
@@ -72,7 +72,9 @@ const COLUMN_KEYS_TO_SKIP_IN_CHANGES = [
     'styleClassDataprovider',
     'isEditableDataprovider',
     'tooltip',
-    'state'
+    'state',
+    'rowDragDataprovider',
+    'rowDragText'
 ];
 
 const GRID_EVENT_TYPES = {
@@ -119,6 +121,7 @@ export class DataGrid extends NGGridDirective {
     @Input() gridOptions: any;
     @Input() showColumnsMenuTab: any;
     @Input() showLoadingIndicator: boolean;
+    @Input() rowDropZoneFor: string[];
 
     @Input() columnState: any;
     @Output() columnStateChange = new EventEmitter();
@@ -137,6 +140,7 @@ export class DataGrid extends NGGridDirective {
     @Input() onRowGroupOpened: any;
     @Input() onSelectedRowsChanged: any;
     @Input() onSort: any;
+    @Input() onDrop: any;
     @Input() tooltipTextRefreshData: any;
     // used in HTML template to toggle sync button
     @Output() isGroupView = false;
@@ -318,6 +322,8 @@ export class DataGrid extends NGGridDirective {
             onGridReady: () => {
                 this.log.debug('gridReady');
                 this.isGridReady = true;
+                const rowDropZoneParams: RowDropZoneParams = this.rowDropZoneFor && this.rowDropZoneFor.length ? this.agGrid.api.getRowDropZoneParams() : null;
+                this.datagridService.addRowDropZone(this, rowDropZoneParams);
                 if(this.isRendered) {
                     const emptyValue = '_empty';
                     if(this._internalColumnState !== emptyValue) {
@@ -528,6 +534,11 @@ export class DataGrid extends NGGridDirective {
                     this.setTimeout(()  =>{
                         this.sizeHeaderAndColumnsToFit();
                     }, 0);
+                }
+            },
+            onRowDragEnd: ($event: RowDragEvent) => {
+                if(this.onDrop) {
+                    this.onDrop(this.getRecord($event.node), this.getRecord($event.overNode), $event.event);
                 }
             },
             components: {
@@ -880,6 +891,7 @@ export class DataGrid extends NGGridDirective {
         if(this.removeChangeListenerFunction) this.removeChangeListenerFunction();
 
         // release grid resources
+        this.datagridService.removeRowDropZone(this);
         this.destroy();
     }
 
@@ -1179,6 +1191,14 @@ export class DataGrid extends NGGridDirective {
 
             colDef.tooltipValueGetter = (args: any) => this.getTooltip(args);
 
+            if(column.rowDragDataprovider) {
+                colDef.rowDrag = (params: RowDragCallbackParams) => this.onRowDrag(params);
+            } else {
+                colDef.rowDrag = column.rowDrag;
+            }
+            if(colDef.rowDrag !== false) {
+                colDef.rowDragText = (dragItem: IRowDragItem) => this.getRowDragText(dragItem);
+            }
 
             let columnOptions = this.datagridService.columnOptions ? this.datagridService.columnOptions : {};
             columnOptions = this.mergeConfig(columnOptions, column.columnDef);
@@ -1479,6 +1499,26 @@ export class DataGrid extends NGGridDirective {
             }
         }
         return tooltip;
+    }
+
+    onRowDrag(params: RowDragCallbackParams): boolean {
+        const column = this.getColumn(params.colDef.field);
+        if (column) {
+            if(column.rowDragDataprovider) {
+                const index = params.node.rowIndex - this.foundset.foundset.viewPort.startIndex;
+                return column.rowDragDataprovider[index];
+            }
+        }
+        return false;
+    }
+
+    getRowDragText(dragItem: IRowDragItem): string {
+        const column = this.getColumn(dragItem.columns[0].getColDef().field);
+        if (column && column.rowDragText) {
+            const index = dragItem.rowNode.rowIndex - this.foundset.foundset.viewPort.startIndex;
+            return column.rowDragText[index];
+        }
+        return dragItem.defaultTextValue;
     }
 
     cellRenderer(params: any) {
@@ -5186,6 +5226,9 @@ export class DataGridColumn extends BaseCustomObject {
     id: string;
     columnDef: any;
     showAs: string;
+    rowDrag: boolean;
+    rowDragDataprovider: boolean;
+    rowDragText: string;
 }
 
 export class GroupedColumn extends BaseCustomObject {
