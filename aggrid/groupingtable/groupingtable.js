@@ -6118,7 +6118,15 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								($scope.model.columns[j].dataprovider != undefined ? $scope.model.columns[j].dataprovider.idForFoundset :
 									($scope.model.columns[j].styleClassDataprovider != undefined ? $scope.model.columns[j].styleClassDataprovider.idForFoundset : null));
 							if(id == null || ids.indexOf(id) != -1) {
-								console.error('Column at index ' + j + ' in the model, does not have unique id/dataprovider/styleClassDataprovider');
+								// find element name
+								var elementName = null;
+								for (var elName in $scope.$parent.model) {
+									if($scope.$parent.model[elName] === $scope.model) {
+										elementName = elName;
+										break;
+									}
+								}
+								console.error('Column at index ' + j + ' in the model, does not have unique id/dataprovider/styleClassDataprovider for data grid "' + elementName + '" on form "' + $scope.svyServoyapi.getFormName() + '"');
 								return false;
 							}
 							ids.push(id);
