@@ -18,6 +18,7 @@ export class DatagridService {
     private gridNameToRowDropZoneInfo: Map<string, RowDropZoneInfo> = new Map();
 
     addRowDropZone(dataGrid: DataGrid, rowDropZone: RowDropZoneParams) {
+      const formNameDataGridName = dataGrid.servoyApi.getFormName() + '.' + dataGrid.name;
       if(rowDropZone && dataGrid.rowDropZoneFor && dataGrid.rowDropZoneFor.length) {
         dataGrid.rowDropZoneFor.forEach(forGridName => {
           if(this.gridNameToRowDropZoneInfo.has(forGridName)) {
@@ -29,18 +30,19 @@ export class DatagridService {
       this.gridNameToRowDropZoneInfo.forEach(rowDropZoneInfo => {
         if(rowDropZoneInfo.rowDropZone && rowDropZoneInfo.dataGrid.rowDropZoneFor && rowDropZoneInfo.dataGrid.rowDropZoneFor.length) {
           rowDropZoneInfo.dataGrid.rowDropZoneFor.forEach(forGridName => {
-            if(dataGrid.name === forGridName) {
+            if(formNameDataGridName === forGridName) {
               dataGrid.agGrid.api.addRowDropZone(rowDropZoneInfo.rowDropZone);
             }
           });
         }
       });
-      this.gridNameToRowDropZoneInfo.set(dataGrid.name,  new RowDropZoneInfo(dataGrid, rowDropZone));
+      this.gridNameToRowDropZoneInfo.set(formNameDataGridName,  new RowDropZoneInfo(dataGrid, rowDropZone));
     }
 
     removeRowDropZone(dataGrid: DataGrid) {
-      if(this.gridNameToRowDropZoneInfo.has(dataGrid.name)) {
-        const rowDropZoneInfo = this.gridNameToRowDropZoneInfo.get(dataGrid.name);
+      const formNameDataGridName = dataGrid.servoyApi.getFormName() + '.' + dataGrid.name;
+      if(this.gridNameToRowDropZoneInfo.has(formNameDataGridName)) {
+        const rowDropZoneInfo = this.gridNameToRowDropZoneInfo.get(formNameDataGridName);
         if(rowDropZoneInfo.rowDropZone && rowDropZoneInfo.dataGrid.rowDropZoneFor && rowDropZoneInfo.dataGrid.rowDropZoneFor.length) {
           dataGrid.rowDropZoneFor.forEach(forGridName => {
             if(this.gridNameToRowDropZoneInfo.has(forGridName)) {
@@ -48,13 +50,13 @@ export class DatagridService {
             }
           });
         }
-        this.gridNameToRowDropZoneInfo.delete(dataGrid.name)
+        this.gridNameToRowDropZoneInfo.delete(formNameDataGridName);
       }
 
       this.gridNameToRowDropZoneInfo.forEach(rowDropZoneInfo => {
         if(rowDropZoneInfo.rowDropZone && rowDropZoneInfo.dataGrid.rowDropZoneFor && rowDropZoneInfo.dataGrid.rowDropZoneFor.length) {
           rowDropZoneInfo.dataGrid.rowDropZoneFor.forEach(forGridName => {
-            if(dataGrid.name === forGridName) {
+            if(formNameDataGridName === forGridName) {
               dataGrid.agGrid.api.removeRowDropZone(rowDropZoneInfo.rowDropZone);
             }
           });
