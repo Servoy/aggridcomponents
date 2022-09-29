@@ -2410,7 +2410,8 @@ export class DataGrid extends NGGridDirective {
                 (this.columns[j].dataprovider !== undefined ? this.columns[j].dataprovider.idForFoundset :
                     (this.columns[j].styleClassDataprovider !== undefined ? this.columns[j].styleClassDataprovider.idForFoundset : null));
             if(id == null || ids.indexOf(id) !== -1) {
-                console.error('Column at index ' + j + ' in the model, does not have unique id/dataprovider/styleClassDataprovider');
+                console.error('Column at index ' + j + ' in the model, does not have unique id/dataprovider/styleClassDataprovider for data grid "' +
+                this.name + '" on form "' + this.servoyApi.getFormName() + '"');
                 return false;
             }
             ids.push(id);
