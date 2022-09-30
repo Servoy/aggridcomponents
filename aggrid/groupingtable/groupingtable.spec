@@ -226,7 +226,7 @@
 				"type": "record"
 			}, {
 				"name": "targetRecord",
-				"type": "record",
+				"type": "record"
 			}, {
 				"name": "event",
 				"type": "JSEvent"
