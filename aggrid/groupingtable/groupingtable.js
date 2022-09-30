@@ -2161,9 +2161,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								
 								if(!(isNavigationLeftRightKey || isNavigationUpDownEntertKey) && $formatterUtils.testForNumbersOnly && thisEditor.format) {
 									if (thisEditor.format.type === "NUMBER" && thisEditor.format.display.includes(".")) {
-										const val = thisEditor.eInput.value;
+										var val = thisEditor.eInput.value;
 										if (val.includes('.')) {
-											const maxDecimals = thisEditor.format.display.split(".")[1].length;
+											var maxDecimals = thisEditor.format.display.split(".")[1].length;
 											if (val.split(".")[1].length >= maxDecimals) {
 												return false;
 											}

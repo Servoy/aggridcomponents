@@ -204,3 +204,7 @@
 	z-index: 1;
 	min-height: 1px;
 }
+
+.ag-cell-inline-editing .ag-cell-edit-input, .ag-cell-inline-editing .ag-input-wrapper {
+    color: #333;
+}
