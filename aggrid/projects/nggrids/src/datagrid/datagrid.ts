@@ -793,7 +793,7 @@ export class DataGrid extends NGGridDirective {
                                     return true;
                                 }
                                 return undefined;
-                            })) {
+                            }) || (change.currentValue && this.previousColumns && change.currentValue.length !== this.previousColumns.length)) {
                                 this.updateColumnDefs();
                             } else {
                                 for(let i = 0; i < this.columns.length; i++) {
