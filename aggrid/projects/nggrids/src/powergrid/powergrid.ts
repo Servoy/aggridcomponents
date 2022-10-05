@@ -10,6 +10,7 @@ import { PowergridService } from './powergrid.service';
 import { DomSanitizer } from '@angular/platform-browser';
 import { DOCUMENT } from '@angular/common';
 import { CustomTooltip } from '../datagrid/commons/tooltip';
+import { isEqualWith } from 'lodash-es';
 
 const TABLE_PROPERTIES_DEFAULTS = {
     rowHeight: { gridOptionsProperty: 'rowHeight', default: 25 },
@@ -571,8 +572,8 @@ export class PowerGrid extends NGGridDirective {
                         break;
                     case 'columns':
                         if (!change.firstChange) {
-                            // need a better way to detect if columns array are changed
-                            if (change.currentValue !== change.previousValue) {
+                            if(!isEqualWith(change.currentValue, change.previousValue) ||
+                                (change.currentValue && this.previousColumns && change.currentValue.length !== this.previousColumns.length)) {
                                 this.updateColumnDefs();
                             } else {
                                 for (let i = 0; i < this.columns.length; i++) {
