@@ -4,8 +4,9 @@ import { ICellEditorParams } from '@ag-grid-community/core';
 import { DOCUMENT } from '@angular/common';
 import { Format, FormattingService, getFirstDayOfWeek, ServoyPublicService } from '@servoy/public';
 import { DateTime as DateTimeLuxon} from 'luxon';
-import { DateTime, Namespace, Options, TempusDominus } from '@servoy/tempus-dominus';
-import { ChangeEvent } from '@servoy/tempus-dominus/types/utilities/event-types';
+import { DateTime, Namespace, TempusDominus } from '@eonasdan/tempus-dominus';
+import { ChangeEvent } from '@eonasdan/tempus-dominus/types/utilities/event-types';
+import  Options from '@eonasdan/tempus-dominus/types/utilities/options';
 import { NULL_VALUE } from '../datagrid/datagrid';
 
 @Component({
@@ -46,7 +47,8 @@ export class DatePicker extends EditorDirective {
                 close: true,
                 clear: true,
             },
-            inline: false
+            inline: false,
+            theme: 'light'
         },
         restrictions: {
         },
@@ -163,7 +165,7 @@ export class DatePicker extends EditorDirective {
             language = locale.substring(0, index);
         }
         language = language.toLowerCase();
-        import(`@servoy/tempus-dominus/dist/locales/${language}.js`).then(
+        import(`@eonasdan/tempus-dominus/dist/locales/${language}.js`).then(
             (module: { localization: { [key: string]: string } }) => {
                 this.config.localization = module.localization;
                 if (this.picker !== null) this.picker.updateOptions(this.config);

@@ -33,7 +33,7 @@
     "@ng-bootstrap/ng-bootstrap": "13.0.0",
     "@popperjs/core": "^2.11.6",
     "@servoy/public": "2022.9.2",
-    "@servoy/tempus-dominus": "6.0.0-beta5.1",
+    "@eonasdan/tempus-dominus": "6.2.4",
     "lodash-es": "4.17.21",
     "luxon": "3.0.3",
     "rxjs": "7.5.6",
