@@ -1909,12 +1909,6 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                                 else if (this.format.lowercase) displayValue = displayValue.toLowerCase();
                             }
                         }
-
-                        if(!this.initialValue || !isNaN(this.initialValue)) {
-                            var displayNumber = Number(displayValue);
-                            if(!isNaN(displayNumber)) displayValue = displayNumber;
-                        }
-
                         return displayValue;
                     };
 

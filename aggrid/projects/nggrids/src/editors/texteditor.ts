@@ -144,12 +144,6 @@ export class TextEditor extends EditorDirective {
                 else if (this.format.lowercase) displayValue = displayValue.toLowerCase();
             }
         }
-
-        if(!this.initialValue || !isNaN(this.initialValue)) {
-            const displayNumber = Number(displayValue);
-            if(!isNaN(displayNumber)) displayValue = displayNumber;
-        }
-
         return displayValue;
     }
 }
