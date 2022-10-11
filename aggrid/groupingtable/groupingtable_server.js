@@ -458,12 +458,9 @@ function getFilterWhereClauseForDataprovider(query, filter, dp, columnFormat) {
 	if(filter["filterType"] == "text") {
 		useIgnoreCase = true;
 		switch(filter["type"]) {
-			case "equals":
-				op = "eq";
-				value = filter["filter"];
-				break;
 			case "notEqual":
 				useNot = true;
+			case "equals":
 				op = "eq";
 				value = filter["filter"];
 				break;
@@ -474,26 +471,27 @@ function getFilterWhereClauseForDataprovider(query, filter, dp, columnFormat) {
 			case "endsWith":
 				op = "like";
 				value = "%" + filter["filter"];
-				break;				
+				break;
+			case "notContains":
+				useNot = true;
 			case "contains":
 				op = "like";
 				value = "%" + filter["filter"] + "%";
-				break;		
-			case "notContains":
+				break;
+			case "notBlank":
 				useNot = true;
-				op = "like";
-				value = "%" + filter["filter"] + "%";
-				break;	
+			case "blank":
+				op = "eq";
+				value = "^=";
+				break;
 		}
 	}
 	else if(filter["filterType"] == "number") {
 		value = filter["filter"];
 		switch(filter["type"]) {
-			case "equals":
-				op = "eq";
-				break;
 			case "notEqual":
-				useNot = true;
+				useNot = true;		
+			case "equals":
 				op = "eq";
 				break;
 			case "greaterThan":
@@ -514,10 +512,16 @@ function getFilterWhereClauseForDataprovider(query, filter, dp, columnFormat) {
 				value.push(filter["filter"]);
 				value.push(filter["filterTo"]);
 				break;
+			case "notBlank":
+				useNot = true;
+			case "blank":
+				op = "eq";
+				value = "^";
+				break;
 		}
 	}
 	else if(filter["filterType"] == "date") {
-		value = getConvertedDate(filter["dateFrom"].split(" ")[0], filter["dateFromMs"], columnFormat);
+		value = filter["dateFrom"] ? getConvertedDate(filter["dateFrom"].split(" ")[0], filter["dateFromMs"], columnFormat) : null;
 		switch(filter["type"]) {
 			case "notEqual":
 				useNot = true;
@@ -545,7 +549,13 @@ function getFilterWhereClauseForDataprovider(query, filter, dp, columnFormat) {
 				valueA.push(value);
 				valueA.push(getConvertedDate(filter["dateTo"].split(" ")[0], filter["dateToMs"], columnFormat));
 				value = valueA;
-			break;
+				break;
+			case "notBlank":
+				useNot = true;
+			case "blank":
+				op = "eq";
+				value = "^";
+				break;
 		}
 	}
 
