@@ -1420,8 +1420,14 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                             svyRowGroupColumnIds.push(rowGroupColumns[i].colId);
                         }
 
+                        var columnStateOrdered = gridOptions.columnApi.getColumnState();
+                        // when in pivot mode, getColumnState does not order the columns in this version of aggrid (in more recent versions it does) -
+                        // as a workaround, use aggrid's internal column state sort here
+                        if(gridOptions.columnApi.isPivotMode()) {
+                            gridOptions.columnApi.columnController.orderColumnStateList(columnStateOrdered);
+                        }
                         var columnState = {
-                            columnState: gridOptions.columnApi.getColumnState(),
+                            columnState: columnStateOrdered,
                             rowGroupColumnsState: svyRowGroupColumnIds,
                             isToolPanelShowing: gridOptions.api.isToolPanelShowing(),
                             isSideBarVisible: gridOptions.api.isSideBarVisible(),
