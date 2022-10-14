@@ -1867,15 +1867,6 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                             var isNavigationUpDownEntertKey = event.keyCode === 38 || event.keyCode === 40 || event.keyCode === 13;
                             
                             if(!(isNavigationLeftRightKey || isNavigationUpDownEntertKey) && $formatterUtils.testForNumbersOnly && thisEditor.format) {
-								if (thisEditor.format.type === "NUMBER" && thisEditor.format.display.includes(".")) {
-									var val = thisEditor.eInput.value;
-									if (val.includes('.')) {
-										var maxDecimals = thisEditor.format.display.split(".")[1].length;
-										if (val.split(".")[1].length >= maxDecimals) {
-											return false;
-										}
-									}
-								}
                                 return $formatterUtils.testForNumbersOnly(event, null, thisEditor.eInput, false, true, thisEditor.format);
                             }
                             else return true;
