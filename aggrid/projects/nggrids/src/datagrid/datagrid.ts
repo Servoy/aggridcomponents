@@ -1,4 +1,4 @@
-import { GridOptions, GetRowIdParams, RowDragEvent, RowDragCallbackParams, IRowDragItem, RowDropZoneParams, RowDragEnterEvent, RowDragLeaveEvent } from '@ag-grid-community/core';
+import { GridOptions, GetRowIdParams, RowDragEvent, RowDragCallbackParams, IRowDragItem, RowDropZoneParams } from '@ag-grid-community/core';
 import { ChangeDetectionStrategy, ChangeDetectorRef, ElementRef, EventEmitter, Inject, Input, Output, Renderer2, SecurityContext, SimpleChanges } from '@angular/core';
 import { Component, ViewChild } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
@@ -121,7 +121,6 @@ export class DataGrid extends NGGridDirective {
     @Input() gridOptions: any;
     @Input() showColumnsMenuTab: any;
     @Input() showLoadingIndicator: boolean;
-    @Input() rowDropZoneFor: string[];
 
     @Input() columnState: any;
     @Output() columnStateChange = new EventEmitter();
@@ -140,7 +139,6 @@ export class DataGrid extends NGGridDirective {
     @Input() onRowGroupOpened: any;
     @Input() onSelectedRowsChanged: any;
     @Input() onSort: any;
-    @Input() onDrop: any;
     @Input() tooltipTextRefreshData: any;
     // used in HTML template to toggle sync button
     @Output() isGroupView = false;

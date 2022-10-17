@@ -1,13 +1,8 @@
 import { Injectable } from '@angular/core';
+import { GridService } from '../datagrid/commons/grid.service';
 
 @Injectable({
   providedIn: 'root'
 })
-export class PowergridService {
-    public iconConfig: any;
-    public toolPanelConfig: any;
-    public gridOptions: any;
-    public localeText: any;
-    public columnOptions: any;
-    public mainMenuItemsConfig: any;
+export class PowergridService extends GridService {
 }
