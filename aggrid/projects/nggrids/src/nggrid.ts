@@ -13,7 +13,9 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
     @Input() arrowsUpDownMoveWhenEditing: any;
     @Input() editNextCellOnEnter: boolean;
     @Input() _internalFormEditorValue: any;
+    @Input() rowDropZoneFor: string[];
 
+    @Input() onDrop: any;
     @Input() onColumnFormEditStarted: any;
 
     formattingService: FormattingService;

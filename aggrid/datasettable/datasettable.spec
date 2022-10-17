@@ -56,7 +56,8 @@
 		"isEditableFunc": {"type": "clientfunction", "tags": {"doc": "Callback that returns the editable state of a cell."}},
 		"_internalAggCustomFuncs": { "type": "aggFuncInfo[]", "tags": {"scope" : "private"}},
 		"tabSeq": { "type": "tabseq", "tags": { "scope": "design" } },
-		"continuousColumnsAutoSizing":  { "type": "boolean", "default": false, "tags": {"doc": "Size columns to fit whenever columns width are changed"} }
+		"continuousColumnsAutoSizing":  { "type": "boolean", "default": false, "tags": {"doc": "Size columns to fit whenever columns width are changed"} },
+		"rowDropZoneFor": { "type": "string[]", "tags": {"doc": "List of Power Grid names from where rows can be dropped to this grid"} }
 	},
 	"handlers" : {
 		"onRowSelected": {
@@ -245,6 +246,19 @@
 				"optional": true
 			}],
 			"allowaccess": "enabled"
+		},
+		"onDrop": {
+			"doc": "Called when a row is dropped as a result of moving rows inside the grid or a drag-n-drop from another grid",
+			"parameters": [{
+				"name": "sourceRow",
+				"type": "object"
+			}, {
+				"name": "targetRow",
+				"type": "object",
+			}, {
+				"name": "event",
+				"type": "JSEvent"
+			}]
 		}		
 	}, 
 	"api" : {
@@ -419,7 +433,10 @@
 			"showAs": { "type": "string", "values": [{"text":null}, {"html":"html"}, {"sanitizedHtml":"sanitizedHtml"}] },
 			"exportDisplayValue": {"type": "boolean", "default" : false, "tags": {"doc": "If exportData api should export the display value (with format applied) instead of the raw data of the dataset"}},
 			"pivotComparatorFunc": {"type": "clientfunction", "tags": {"doc": "Function to sort the pivot columns"}},
-			"valueGetterFunc": {"type": "clientfunction", "tags": {"doc": "Proxy function for getting the cell value from the model"}}
+			"valueGetterFunc": {"type": "clientfunction", "tags": {"doc": "Proxy function for getting the cell value from the model"}},
+			"rowDrag" : {"type": "boolean", "default" : false, "tags": {"doc": "Allow row dragging"}},
+			"rowDragFunc" : { "type": "clientfunction", "tags": {"doc": "Boolean function for allow/disallow row dragging."}},
+			"rowDragText" : { "type": "string", "tags": {"doc": "Text displayed during row dragging (by default the cell's value is shown)"}}
 		},
         "iconConfig" : {
 			"iconMenu": { "type": "styleclass", "tags": {"scope": "design"}},

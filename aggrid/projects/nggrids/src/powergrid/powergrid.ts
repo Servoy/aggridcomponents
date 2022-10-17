@@ -1,4 +1,4 @@
-import { GridOptions, GroupCellRenderer, GetRowIdParams } from '@ag-grid-community/core';
+import { GridOptions, GroupCellRenderer, GetRowIdParams, RowDropZoneParams, RowDragEvent, IRowDragItem } from '@ag-grid-community/core';
 import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Inject, Input, Output, Renderer2, SecurityContext, SimpleChanges, ViewChild } from '@angular/core';
 import { BaseCustomObject, Format, FormattingService, ICustomArray } from '@servoy/public';
 import { LoggerFactory, LoggerService } from '@servoy/public';
@@ -270,7 +270,8 @@ export class PowerGrid extends NGGridDirective {
             onGridReady: () => {
                 this.log.debug('gridReady');
                 this.isGridReady = true;
-
+                const rowDropZoneParams: RowDropZoneParams = this.rowDropZoneFor && this.rowDropZoneFor.length ? this.agGrid.api.getRowDropZoneParams() : null;
+                this.powergridService.addRowDropZone(this, rowDropZoneParams);
                 const emptyValue = '_empty';
                 if (this._internalColumnState !== emptyValue) {
                     this.columnState = this._internalColumnState;
@@ -368,7 +369,16 @@ export class PowerGrid extends NGGridDirective {
                         });
                     }
                 }
-            }
+            },
+            onRowDragEnd: ($event: RowDragEvent) => {
+                if(this.onDrop) {
+                    const rowData = $event.node.data || Object.assign($event.node.groupData, $event.node.aggData);
+                    const overRowData = $event.overNode.data || Object.assign($event.overNode.groupData, $event.overNode.aggData);
+                    this.onDrop(rowData, overRowData, $event.event);
+                }
+            },
+            rowDragManaged: true,
+            suppressMoveWhenRowDragging: true
         };
 
         if (this.groupWidth || this.groupWidth === 0) this.agGridOptions.autoGroupColumnDef.width = this.groupWidth;
@@ -660,6 +670,7 @@ export class PowerGrid extends NGGridDirective {
     ngOnDestroy() {
         super.ngOnDestroy();
         // release grid resources
+        this.powergridService.removeRowDropZone(this);
         this.destroy();
     }
 
@@ -796,6 +807,18 @@ export class PowerGrid extends NGGridDirective {
                     }
 
                     colDef.onCellValueChanged = (param: any) => this.onCellValueChanged(param);
+                }
+
+                if(column.rowDragFunc) {
+                    colDef.rowDrag = this.createColumnCallbackFunctionFromString(column.rowDragFunc); // (params: RowDragCallbackParams) => this.onRowDrag(params);
+                } else {
+                    colDef.rowDrag = column.rowDrag;
+                }
+                if(colDef.rowDrag !== false && column['rowDragText'] !== undefined) {
+                    colDef.rowDragText = (dragItem: IRowDragItem) => {
+                        const dragText = dragItem.rowNode.data[column['rowDragText']];
+                        return dragText !== undefined ? dragText : dragItem.defaultTextValue;
+                    };
                 }
 
                 let columnOptions = this.powergridService.columnOptions ? this.powergridService.columnOptions : {};
@@ -1997,6 +2020,9 @@ export class PowerGridColumn extends BaseCustomObject {
     exportDisplayValue: boolean;
     pivotComparatorFunc: any;
     valueGetterFunc: any;
+    rowDrag: boolean;
+    rowDragFunc: any;
+    rowDragText: string;
 }
 
 export class AggFuncInfo extends BaseCustomObject {
