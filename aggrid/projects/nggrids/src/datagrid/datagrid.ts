@@ -857,7 +857,7 @@ export class DataGrid extends NGGridDirective {
                             this._internalColumnState = '_empty';
                             this._internalColumnStateChange.emit(this._internalColumnState);
                             if(this.columnState) {
-                                this.restoreColumnsState();
+                                this.restoreColumnsState(this.restoreStates);
                             } else {
                                 this.agGrid.columnApi.resetColumnState();
                             }
@@ -1006,14 +1006,6 @@ export class DataGrid extends NGGridDirective {
     initRootFoundset() {
 
         this.foundset = new FoundsetManager(this, this.myFoundset, 'root', true);
-
-        this.filterModel = null;
-        const currentAGGridFilterModel = this.agGrid.api.getFilterModel();
-        if(currentAGGridFilterModel && Object.keys(currentAGGridFilterModel).length !== 0) {
-            this.agGrid.api.setFilterModel(null);
-            this.storeColumnsState();
-        }
-
         const foundsetServer = new FoundsetServer(this, []);
         const datasource = new FoundsetDatasource(this, foundsetServer);
         if(this.myFoundset) this.agGrid.api.setServerSideDatasource(datasource);
@@ -1025,12 +1017,6 @@ export class DataGrid extends NGGridDirective {
         if(currentEditCells.length !== 0) {
             this.startEditFoundsetIndex = currentEditCells[0].rowIndex + 1;
             this.startEditColumnIndex = this.getColumnIndex(currentEditCells[0].column.getColId());
-        }
-        this.filterModel = null;
-        const currentAGGridFilterModel = this.agGrid.api.getFilterModel();
-        if(currentAGGridFilterModel && Object.keys(currentAGGridFilterModel).length !== 0) {
-            this.agGrid.api.setFilterModel(null);
-            this.storeColumnsState();
         }
         const foundsetServer = new FoundsetServer(this, []);
         const datasource = new FoundsetDatasource(this, foundsetServer);
@@ -2294,7 +2280,7 @@ export class DataGrid extends NGGridDirective {
         }
     }
 
-    restoreColumnsState() {
+    restoreColumnsState(restoreStates?: any) {
         if(this.columnState && this.agGrid.api && this.agGrid.columnApi) { // if there is columnState and grid not yet destroyed
             let columnStateJSON = null;
 
@@ -2304,7 +2290,9 @@ export class DataGrid extends NGGridDirective {
                 this.log.error(e);
             }
 
-            const restoreColumns = this.restoreStates === undefined || this.restoreStates.columns === undefined || this.restoreStates.columns;
+            const restoreColumns = restoreStates === undefined || restoreStates.columns !== false;
+            const restoreFilter = restoreStates === undefined || restoreStates.filter === true;
+            const restoreSort = restoreStates === undefined || restoreStates.sort === true;
 
             if (restoreColumns) {
                 // can't parse columnState
@@ -2373,11 +2361,11 @@ export class DataGrid extends NGGridDirective {
                     this.agGrid.columnApi.setRowGroupColumns(columnStateJSON.rowGroupColumnsState);
                 }
 
-                if(restoreColumns && this.isPlainObject(columnStateJSON.filterModel)) {
+                if(restoreFilter && this.isPlainObject(columnStateJSON.filterModel)) {
                     this.agGrid.api.setFilterModel(columnStateJSON.filterModel);
                 }
 
-                if(this.restoreStates && this.restoreStates.sort && Array.isArray(columnStateJSON.sortModel)) {
+                if(restoreSort && Array.isArray(columnStateJSON.sortModel)) {
                     this.applySortModel(columnStateJSON.sortModel);
                 }
             }
