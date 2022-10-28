@@ -311,6 +311,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					// currently set aggrid-filter
 					$scope.filterModel = null;
 
+					// currenlty executing filter's promise
+					var filterPromise = null;
+
 					// used in HTML template to toggle sync button
 					$scope.isGroupView = false;
 
@@ -3191,8 +3194,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							else {
 								filterMyFoundsetArg.push(sUpdatedFilterModel);
 							}
-							var filterPromise = $scope.svyServoyapi.callServerSideApi("filterMyFoundset", filterMyFoundsetArg);
+							filterPromise = $scope.svyServoyapi.callServerSideApi("filterMyFoundset", filterMyFoundsetArg);
 							filterPromise.requestInfo = "filterMyFoundset";
+							filterPromise.finally(
+								function() {
+									filterPromise = null;
+								});
+							allPromises.push(filterPromise);
+						} else if(filterPromise) {
 							allPromises.push(filterPromise);
 						}
 
@@ -3391,14 +3400,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					function initRootFoundset() {
 
 						foundset = new FoundSetManager($scope.model.myFoundset, 'root', true);
-
-						$scope.filterModel = null;
-						var currentAGGridFilterModel = gridOptions.api.getFilterModel();
-						if(currentAGGridFilterModel && !$.isEmptyObject(currentAGGridFilterModel)) {
-							gridOptions.api.setFilterModel(null);
-							storeColumnsState();
-						}
-
 						var foundsetServer = new FoundsetServer([]);
 						var datasource = new FoundsetDatasource(foundsetServer);
 						gridOptions.api.setServerSideDatasource(datasource);
@@ -3410,12 +3411,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						if(currentEditCells.length != 0) {
 							startEditFoundsetIndex = currentEditCells[0].rowIndex + 1;
 							startEditColumnIndex = getColumnIndex(currentEditCells[0].column.colId);
-						}
-						$scope.filterModel = null;
-						var currentAGGridFilterModel = gridOptions.api.getFilterModel();
-						if(currentAGGridFilterModel && !$.isEmptyObject(currentAGGridFilterModel)) {
-							gridOptions.api.setFilterModel(null);
-							storeColumnsState();
 						}
 						var foundsetServer = new FoundsetServer([]);
 						var datasource = new FoundsetDatasource(foundsetServer);
@@ -3627,7 +3622,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							$scope.model._internalColumnState = "_empty";
 							$scope.svyServoyapi.apply('_internalColumnState');
 							if($scope.model.columnState) {
-								restoreColumnsState();
+								restoreColumnsState($scope.model.restoreStates);
 							}
 							else {
 								gridOptions.columnApi.resetColumnState();
@@ -5989,7 +5984,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						}
 					}
 		
-					function restoreColumnsState() {
+					function restoreColumnsState(restoreStates) {
 						if($scope.model.columnState && gridOptions.api && gridOptions.columnApi) { // if there is columnState and grid not yet destroyed
 							var columnStateJSON = null;
 
@@ -6017,7 +6012,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								}
 							}
 							
-							var restoreColumns = $scope.model.restoreStates == undefined || $scope.model.restoreStates.columns == undefined || $scope.model.restoreStates.columns;
+							var restoreColumns = restoreStates == undefined || restoreStates.columns !== false;
+							var restoreFilter = restoreStates == undefined || restoreStates.filter == true;
+							var restoreSort = restoreStates == undefined || restoreStates.sort == true;
 
 							if (restoreColumns) {
 								// can't parse columnState
@@ -6090,11 +6087,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 									gridOptions.columnApi.setRowGroupColumns(columnStateJSON.rowGroupColumnsState);
 								}
 
-								if(restoreColumns && $.isPlainObject(columnStateJSON.filterModel)) {
+								if(restoreFilter && $.isPlainObject(columnStateJSON.filterModel)) {
 									gridOptions.api.setFilterModel(columnStateJSON.filterModel);
 								}
 
-								if($scope.model.restoreStates && $scope.model.restoreStates.sort && Array.isArray(columnStateJSON.sortModel)) {
+								if(restoreSort && Array.isArray(columnStateJSON.sortModel)) {
 									gridOptions.api.setSortModel(columnStateJSON.sortModel);
 								}
 							}
