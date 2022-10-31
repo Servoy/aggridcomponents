@@ -1018,6 +1018,7 @@ export class DataGrid extends NGGridDirective {
             this.startEditFoundsetIndex = currentEditCells[0].rowIndex + 1;
             this.startEditColumnIndex = this.getColumnIndex(currentEditCells[0].column.getColId());
         }
+        this.filterModel = null; // force re-applying the filter
         const foundsetServer = new FoundsetServer(this, []);
         const datasource = new FoundsetDatasource(this, foundsetServer);
         this.agGrid.api.setServerSideDatasource(datasource);

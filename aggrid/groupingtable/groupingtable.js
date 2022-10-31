@@ -3412,6 +3412,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							startEditFoundsetIndex = currentEditCells[0].rowIndex + 1;
 							startEditColumnIndex = getColumnIndex(currentEditCells[0].column.colId);
 						}
+						$scope.filterModel = null; // force re-applying the filter
 						var foundsetServer = new FoundsetServer([]);
 						var datasource = new FoundsetDatasource(foundsetServer);
 						gridOptions.api.setServerSideDatasource(datasource);
