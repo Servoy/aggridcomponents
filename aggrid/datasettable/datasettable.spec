@@ -254,7 +254,7 @@
 				"type": "object"
 			}, {
 				"name": "targetRow",
-				"type": "object",
+				"type": "object"
 			}, {
 				"name": "event",
 				"type": "JSEvent"
