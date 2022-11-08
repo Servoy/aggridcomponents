@@ -722,7 +722,7 @@ $scope.api.removeColumn = function(index) {
  */
 $scope.api.removeAllColumns = function() {
 	   if($scope.model.columns && $scope.model.columns.length > 0) {
-		   $scope.model.columns.length = 0;
+		   $scope.model.columns.splice(0, $scope.model.columns.length);
 		   return true;
 	   }
 	   return false;

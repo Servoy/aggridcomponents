@@ -3705,16 +3705,19 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								}
 							}
 
-							for (var j = startIndex; j < endIndex; j++) {
-								var row = thisInstance.getViewPortRow(j, columnsModel);
-								if (row) result.push(row);
+							var columns = columnsModel ? columnsModel : $scope.model.columns;
+							if(columns && columns.length) {
+								for (var j = startIndex; j < endIndex; j++) {
+									var row = thisInstance.getViewPortRow(j, columns);
+									if (row) result.push(row);
+								}
 							}
 
 							return result;
 						}
 
 						/** return the row in viewport at the given index */
-						var getViewPortRow = function(index, columnsModel) {
+						var getViewPortRow = function(index, columns) {
 							var r;
 							try {
 								r = new Object();
@@ -3729,8 +3732,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								r._svyFoundsetUUID = this.foundsetUUID;
 								r._svyFoundsetIndex = this.foundset.viewPort.startIndex + index;
 
-								var columns = columnsModel ? columnsModel : $scope.model.columns;
-
 								// push each dataprovider
 								for (var i = 0; i < columns.length; i++) {
 									var header = columns[i];
@@ -3739,6 +3740,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 									var value = header.dataprovider ? header.dataprovider[index] : null;
 									r[field] = value;
 								}
+
 								return r;
 
 							} catch (e) {
@@ -3754,7 +3756,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						}
 
 						var getLastRowIndex = function() {
-							if (this.hasMoreRecordsToLoad()) {
+							if (!$scope.model.columns || !$scope.model.columns.length) {
+								return 0;
+							}
+							else if (this.hasMoreRecordsToLoad()) {
 								return -1;
 							} else {
 								return thisInstance.foundset.serverSize;
@@ -5018,7 +5023,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					function scrollToSelection(foundsetManager)
 					{
 						// don't do anything if table is grouped.
-						if (isTableGrouped()) {
+						if (isTableGrouped() || !$scope.model.columns || !$scope.model.columns.length) {
 							return;
 						}
 						
@@ -5957,6 +5962,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 					function storeColumnsState(skipFireColumnStateChanged) {
 
+						if(!$scope.model.columns) return;
+
 						var agColumnState = gridOptions.columnApi.getColumnState();
 
 						var rowGroupColumns = getRowGroupColumns();
@@ -5986,7 +5993,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 		
 					function restoreColumnsState(restoreStates) {
-						if($scope.model.columnState && gridOptions.api && gridOptions.columnApi) { // if there is columnState and grid not yet destroyed
+						if($scope.model.columnState && $scope.model.columns && gridOptions.api && gridOptions.columnApi) { // if there is columnState and grid not yet destroyed
 							var columnStateJSON = null;
 
 							try {

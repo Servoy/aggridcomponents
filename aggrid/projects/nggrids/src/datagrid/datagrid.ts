@@ -2255,6 +2255,8 @@ export class DataGrid extends NGGridDirective {
     }
 
     storeColumnsState(skipFireColumnStateChanged?: boolean) {
+        if(!this.columns) return;
+
         const agColumnState = this.agGrid.columnApi.getColumnState();
 
         const rowGroupColumns = this.getRowGroupColumns();
@@ -2282,7 +2284,7 @@ export class DataGrid extends NGGridDirective {
     }
 
     restoreColumnsState(restoreStates?: any) {
-        if(this.columnState && this.agGrid.api && this.agGrid.columnApi) { // if there is columnState and grid not yet destroyed
+        if(this.columnState && this.columns && this.agGrid.api && this.agGrid.columnApi) { // if there is columnState and grid not yet destroyed
             let columnStateJSON = null;
 
             try {
@@ -2547,8 +2549,8 @@ export class DataGrid extends NGGridDirective {
     }
 
     scrollToSelectionEx(foundsetManager?: any) {
-        // don't do anything if table is grouped.
-        if (this.isTableGrouped()) {
+        // don't do anything if table is grouped or there is no columns
+        if (this.isTableGrouped() || !this.columns || this.columns.length === 0) {
             return;
         }
 
@@ -3837,16 +3839,20 @@ class FoundsetManager {
             }
         }
 
-        for (let j = startIndex; j < endIndex; j++) {
-            const row = this.getViewPortRow(j, columnsModel);
-            if (row) result.push(row);
+        const columns = columnsModel ? columnsModel : this.dataGrid.columns;
+
+        if(columns && columns.length) {
+            for (let j = startIndex; j < endIndex; j++) {
+                const row = this.getViewPortRow(j, columns);
+                if (row) result.push(row);
+            }
         }
 
         return result;
     }
 
     /** return the row in viewport at the given index */
-    getViewPortRow(index: number, columnsModel: any) {
+    getViewPortRow(index: number, columns: any) {
         let r: any;
         try {
             r = new Object();
@@ -3860,8 +3866,6 @@ class FoundsetManager {
             r._svyRowId = viewPortRow._svyRowId;
             r._svyFoundsetUUID = this.foundsetUUID;
             r._svyFoundsetIndex = this.foundset.viewPort.startIndex + index;
-
-            const columns = columnsModel ? columnsModel : this.dataGrid.columns;
 
             // push each dataprovider
             for (let i = 0; i < columns.length; i++) {
@@ -3885,7 +3889,9 @@ class FoundsetManager {
     }
 
     getLastRowIndex() {
-        if (this.hasMoreRecordsToLoad()) {
+        if (!this.dataGrid.columns || this.dataGrid.columns.length === 0) {
+            return 0;
+        } else if (this.hasMoreRecordsToLoad()) {
             return -1;
         } else {
             return this.foundset.serverSize;
