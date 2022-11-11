@@ -1,4 +1,4 @@
-import { GridOptions, GroupCellRenderer, GetRowIdParams, RowDropZoneParams, RowDragEvent, IRowDragItem } from '@ag-grid-community/core';
+import { GridOptions, GroupCellRenderer, GetRowIdParams, RowDropZoneParams, RowDragEvent, IRowDragItem, ColumnMenuTab } from '@ag-grid-community/core';
 import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Inject, Input, Output, Renderer2, SecurityContext, SimpleChanges, ViewChild } from '@angular/core';
 import { BaseCustomObject, Format, FormattingService, ICustomArray } from '@servoy/public';
 import { LoggerFactory, LoggerService } from '@servoy/public';
@@ -174,7 +174,7 @@ export class PowerGrid extends NGGridDirective {
         localeText = this.mergeConfig(localeText, this.localeText);
         this.agMainMenuItemsConfig = this.mergeConfig(mainMenuItemsConfig, this.mainMenuItemsConfig);
 
-        const vMenuTabs = ['generalMenuTab', 'filterMenuTab'];
+        const vMenuTabs = ['generalMenuTab', 'filterMenuTab'] as ColumnMenuTab[]
 
         if (this.showColumnsMenuTab) vMenuTabs.push('columnsMenuTab');
 
