@@ -1691,7 +1691,12 @@ export class DataGrid extends NGGridDirective {
                         styleClassDPColumns.push(column);
                     }
                 }
-
+                
+                if (this.rowStyleClassDataprovider){
+                    // need to refresh row 
+                    isRowChanged = true;
+                }
+                                
                 if(isRowChanged || styleClassDPColumns.length) {
                     // find first editing cell for the updating row
                     const editCells = this.agGrid.api.getEditingCells();
@@ -2586,18 +2591,6 @@ export class DataGrid extends NGGridDirective {
         const rowIndex = params.node.rowIndex;
         let styleClassProvider: any;
 
-        // TODO:
-        // make sure we remove non ag- classes, we consider those added by rowStyleClassDataprovider
-        // const rowElement = $element.find("[row-index='" + params.rowIndex + "']");
-        // if(rowElement.length) {
-        //     const classes = rowElement.attr("class").split(/\s+/);
-        //     for(let j = 0; j < classes.length; j++) {
-        //         if(classes[j].indexOf("ag-") != 0) {
-        //             rowElement.removeClass(classes[j]);
-        //         }
-        //     }
-        // }
-
         // TODO can i get rowStyleClassDataprovider from grouped foundset ?
         if (!_this.isTableGrouped()) {
             const index = rowIndex - _this.foundset.foundset.viewPort.startIndex;
@@ -2646,6 +2639,25 @@ export class DataGrid extends NGGridDirective {
         }
         if(styleClassProvider) {
             styleClassProvider = styleClassProvider.split(' ');
+        }
+         // we have to manually sync the classes because aggrid caches them in rowcomponent -> cssmanager
+        if (_this.agGridElementRef && _this.agGridElementRef.nativeElement)
+        {
+            _this.agGridElementRef.nativeElement.querySelectorAll("[row-index='" + params.rowIndex + "']").forEach((rowElement: HTMLElement) => {
+                Array.from(rowElement.classList).forEach(cssClass => {
+                    if(cssClass.indexOf("ag-") != 0 && (!styleClassProvider || styleClassProvider.indexOf(cssClass) == -1)) {
+                          rowElement.classList.remove(cssClass);
+                     }
+                });
+                if (styleClassProvider){
+                    styleClassProvider.forEach(cssClass => {
+                        if (!rowElement.classList.contains(cssClass))
+                        {
+                            rowElement.classList.add(cssClass)
+                        }
+                    } );
+                }
+             });
         }
         return styleClassProvider;
     }

@@ -4950,6 +4950,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 										styleClassDPColumns.push(column);
 									}
 								}
+								
+								if ($scope.model.rowStyleClassDataprovider){
+								    // need to refresh row 
+								    isRowChanged = true;
+								}
 
 								if(isRowChanged || styleClassDPColumns.length) {
 									// find first editing cell for the updating row
