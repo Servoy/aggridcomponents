@@ -402,6 +402,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								if(focuseFromEl && (focuseFromEl.classList.contains('ag-cell') || focuseFromEl.classList.contains('ag-header-cell'))) { // focuse out from the grid
 									gridOptions.api.clearFocusedCell();
 								} else {
+									if (!foundset.foundset) {
+										return;
+									}
 									if(foundset.foundset.selectedRowIndexes[0] == 0) {
 										gridOptions.api.setFocusedCell(0, allDisplayedColumns[0]);
 									}
