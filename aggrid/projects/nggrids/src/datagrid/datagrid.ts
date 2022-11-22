@@ -1,4 +1,4 @@
-import { GridOptions, GetRowIdParams, RowDragEvent, RowDragCallbackParams, IRowDragItem, RowDropZoneParams } from '@ag-grid-community/core';
+import { GridOptions, GetRowIdParams, IRowDragItem, DndSourceCallbackParams } from '@ag-grid-community/core';
 import { ChangeDetectionStrategy, ChangeDetectorRef, ElementRef, EventEmitter, Inject, Input, Output, Renderer2, SecurityContext, SimpleChanges } from '@angular/core';
 import { Component, ViewChild } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
@@ -320,8 +320,6 @@ export class DataGrid extends NGGridDirective {
             onGridReady: () => {
                 this.log.debug('gridReady');
                 this.isGridReady = true;
-                const rowDropZoneParams: RowDropZoneParams = this.rowDropZoneFor && this.rowDropZoneFor.length ? this.agGrid.api.getRowDropZoneParams() : null;
-                this.datagridService.addRowDropZone(this, rowDropZoneParams);
                 if(this.isRendered) {
                     const emptyValue = '_empty';
                     if(this._internalColumnState !== emptyValue) {
@@ -532,11 +530,6 @@ export class DataGrid extends NGGridDirective {
                     this.setTimeout(()  =>{
                         this.sizeHeaderAndColumnsToFit();
                     }, 0);
-                }
-            },
-            onRowDragEnd: ($event: RowDragEvent) => {
-                if(this.onDrop) {
-                    this.onDrop(this.getRecord($event.node), this.getRecord($event.overNode), $event.event);
                 }
             },
             components: {
@@ -889,7 +882,6 @@ export class DataGrid extends NGGridDirective {
         if(this.removeChangeListenerFunction) this.removeChangeListenerFunction();
 
         // release grid resources
-        this.datagridService.removeRowDropZone(this);
         this.destroy();
     }
 
@@ -1176,13 +1168,28 @@ export class DataGrid extends NGGridDirective {
 
             colDef.tooltipValueGetter = (args: any) => this.getTooltip(args);
 
-            if(column.rowDragDataprovider) {
-                colDef.rowDrag = (params: RowDragCallbackParams) => this.onRowDrag(params);
+            if(column.dndSourceDataprovider) {
+                colDef.dndSource = (params: DndSourceCallbackParams) => this.onRowDrag(params);
             } else {
-                colDef.rowDrag = column.rowDrag;
+                colDef.dndSource = column.dndSource;
             }
-            if(colDef.rowDrag !== false) {
-                colDef.rowDragText = (dragItem: IRowDragItem) => this.getRowDragText(dragItem);
+
+            if(colDef.dndSource) {
+                colDef.dndSourceOnRowDrag = (params) => {
+                    const rowData = params.rowNode.data || Object.assign(params.rowNode.groupData, params.rowNode.aggData);
+                    const dragData = {};
+                    for( const p in rowData) {
+                        if(rowData.hasOwnProperty(p)) {
+                            const col = this.getColumn(p);
+                            if(col) {
+                                dragData[col.id ? col.id : p] = rowData[p];
+                            }
+                        }
+                    }
+                    this.datagridService.setDragData(dragData);
+                    const record = this.getRecord(params.rowNode);
+                    params.dragEvent.dataTransfer.setData('nggrids-record/json', JSON.stringify(record));
+                };
             }
 
             let columnOptions = this.datagridService.columnOptions ? this.datagridService.columnOptions : {};
@@ -1486,12 +1493,12 @@ export class DataGrid extends NGGridDirective {
         return tooltip;
     }
 
-    onRowDrag(params: RowDragCallbackParams): boolean {
+    onRowDrag(params: DndSourceCallbackParams): boolean {
         const column = this.getColumn(params.colDef.field);
         if (column) {
-            if(column.rowDragDataprovider) {
+            if(column.dndSourceDataprovider) {
                 const index = params.node.rowIndex - this.foundset.foundset.viewPort.startIndex;
-                return column.rowDragDataprovider[index];
+                return column.dndSourceDataprovider[index];
             }
         }
         return false;
@@ -3715,6 +3722,52 @@ export class DataGrid extends NGGridDirective {
     public getNativeChild(): any {
         return this.agGridElementRef.nativeElement;
     }
+
+    gridDragOver($event) {
+        const dragSupported = $event.dataTransfer.types.length && $event.dataTransfer.types[0] === 'nggrids-record/json';
+        if (dragSupported) {
+            let dragOver = false;
+            if(this.onDragOverFunc) {
+                const overRow = this.getNodeForElement($event.target);
+                if(overRow) {
+                    const overRowData = overRow.data || Object.assign(overRow.groupData, overRow.aggData);
+                    const overDragData = {};
+                    for( const p in overRowData) {
+                        if(overRowData.hasOwnProperty(p)) {
+                            const col = this.getColumn(p);
+                            if(col) {
+                                overDragData[col.id ? col.id : p] = overRowData[p];
+                            }
+                        }
+                    }
+                    dragOver = this.onDragOverFunc(this.datagridService.getDragData(), overDragData, $event);
+                }
+            } else {
+                dragOver = true;
+            }
+            if(dragOver) {
+                $event.dataTransfer.dropEffect = 'copy';
+                $event.preventDefault();
+            }
+        }
+    }
+
+    gridDrop($event) {
+        $event.preventDefault();
+        if(this.onDrop) {
+            const targetNode = this.getNodeForElement($event.target);
+            if(targetNode) {
+                const jsonData = $event.dataTransfer.getData('nggrids-record/json');
+                const record = JSON.parse(jsonData);
+                this.onDrop(record, this.getRecord(targetNode), $event);
+            }
+        }
+    }
+
+    getNodeForElement(element): any {
+        const row = element.closest('[row-id]');
+        return row ? this.agGrid.api.getRowNode(row.getAttribute('row-id')) : null;
+    }
 }
 
 class State {
@@ -5214,9 +5267,8 @@ export class DataGridColumn extends BaseCustomObject {
     id: string;
     columnDef: any;
     showAs: string;
-    rowDrag: boolean;
-    rowDragDataprovider: boolean;
-    rowDragText: string;
+    dndSource: boolean;
+    dndSourceDataprovider: boolean;
 }
 
 export class GroupedColumn extends BaseCustomObject {

@@ -54,7 +54,7 @@
 		"showLoadingIndicator":  { "type": "boolean", "default": true },
 		"editNextCellOnEnter":  { "type": "boolean", "default": false },
 		"tabSeq": { "type": "tabseq", "tags": { "scope": "design" } },
-		"rowDropZoneFor": { "type": "string[]", "tags": {"doc": "List of Data Grid names from where rows can be dropped to this grid"} }
+		"onDragOverFunc": {"type": "clientfunction", "tags": {"doc": "Callback when dragging over a row - returns true whenever a drop is allowed."}}
 	},
 	"handlers" : {
     	"onSelectedRowsChanged": {
@@ -220,7 +220,7 @@
 			"allowaccess": "enabled"
 		},
 		"onDrop": {
-			"doc": "Called when a record is dropped as a result of moving rows inside the grid or a drag-n-drop from another grid",
+			"doc": "Called when a row is dropped as a result of a drag-n-drop",
 			"parameters": [{
 				"name": "sourceRecord",
 				"type": "record"
@@ -456,9 +456,8 @@
 			"id": {"type" : "string", "tags": {"wizard": {"prefill" : "dataprovider"}, "showInOutlineView": true, "doc": "Used to set the column id (colId) property in the serialized column state json string of getColumnState and onColumnStateChanged" }},
 			"columnDef": {"type" : "map", "tags": {"doc": "Map where additional column properties of ag-grid can be set"}},
 			"showAs": { "type": "string", "values": [{"text":null}, {"html":"html"}, {"sanitizedHtml":"sanitizedHtml"}] },
-			"rowDrag" : {"type": "boolean", "default" : false, "tags": {"doc": "Allow row dragging"}},
-			"rowDragDataprovider" : { "type": "dataprovider", "forFoundset": "myFoundset", "tags": {"doc": "Boolean dataprovider for allow/disallow row dragging."}},
-			"rowDragText" : { "type": "dataprovider", "forFoundset": "myFoundset", "tags": {"doc": "Text displayed during row dragging (by default the cell's value is shown)"}}
+			"dndSource" : {"type": "boolean", "default" : false, "tags": {"doc": "Allow dragging"}},
+			"dndSourceDataprovider" : { "type": "dataprovider", "forFoundset": "myFoundset", "tags": {"doc": "Boolean dataprovider for allow/disallow dragging."}}
 		},
 		"groupedColumn" : {
             "dataprovider": { "type": "dataprovider", "forFoundset": "foundset", "resolveValuelist": true, "pushToServer" : "allow"},
