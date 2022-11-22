@@ -57,7 +57,7 @@
 		"_internalAggCustomFuncs": { "type": "aggFuncInfo[]", "tags": {"scope" : "private"}},
 		"tabSeq": { "type": "tabseq", "tags": { "scope": "design" } },
 		"continuousColumnsAutoSizing":  { "type": "boolean", "default": false, "tags": {"doc": "Size columns to fit whenever columns width are changed"} },
-		"rowDropZoneFor": { "type": "string[]", "tags": {"doc": "List of Power Grid names from where rows can be dropped to this grid"} }
+		"onDragOverFunc": {"type": "clientfunction", "tags": {"doc": "Callback when dragging over a row - returns true whenever a drop is allowed."}}
 	},
 	"handlers" : {
 		"onRowSelected": {
@@ -248,7 +248,7 @@
 			"allowaccess": "enabled"
 		},
 		"onDrop": {
-			"doc": "Called when a row is dropped as a result of moving rows inside the grid or a drag-n-drop from another grid",
+			"doc": "Called when a row is dropped as a result of a drag-n-drop",
 			"parameters": [{
 				"name": "sourceRow",
 				"type": "object"
@@ -434,9 +434,8 @@
 			"exportDisplayValue": {"type": "boolean", "default" : false, "tags": {"doc": "If exportData api should export the display value (with format applied) instead of the raw data of the dataset"}},
 			"pivotComparatorFunc": {"type": "clientfunction", "tags": {"doc": "Function to sort the pivot columns"}},
 			"valueGetterFunc": {"type": "clientfunction", "tags": {"doc": "Proxy function for getting the cell value from the model"}},
-			"rowDrag" : {"type": "boolean", "default" : false, "tags": {"doc": "Allow row dragging"}},
-			"rowDragFunc" : { "type": "clientfunction", "tags": {"doc": "Boolean function for allow/disallow row dragging."}},
-			"rowDragText" : { "type": "string", "tags": {"doc": "Text displayed during row dragging (by default the cell's value is shown)"}}
+			"dndSource" : {"type": "boolean", "default" : false, "tags": {"doc": "Allow dragging"}},
+			"dndSourceFunc" : { "type": "clientfunction", "tags": {"doc": "Boolean function for allow/disallow dragging."}}
 		},
         "iconConfig" : {
 			"iconMenu": { "type": "styleclass", "tags": {"scope": "design"}},
