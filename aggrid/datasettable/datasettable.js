@@ -506,7 +506,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                             var focuseFromEl = e.relatedTarget;
                             if(focuseFromEl && (focuseFromEl.classList.contains('ag-cell') || focuseFromEl.classList.contains('ag-header-cell'))) { // focuse out from the grid
                                 gridOptions.api.clearFocusedCell();
-                            } else {
+                            } else if (gridOptions.columnApi.columnController.rowGroupColumns.length === 0){
                                 gridOptions.api.ensureIndexVisible(0);
                                 gridOptions.api.ensureColumnVisible(allDisplayedColumns[0]);
                                 $scope.api.setSelectedRows([0]);

@@ -506,7 +506,7 @@ export class PowerGrid extends NGGridDirective {
                     const focuseFromEl = e.relatedTarget;
                     if(focuseFromEl && (focuseFromEl.classList.contains('ag-cell') || focuseFromEl.classList.contains('ag-header-cell'))) { // focuse out from the grid
                         this.agGrid.api.clearFocusedCell();
-                    } else{
+                    } else if (this.agGridOptions.groupDisplayType !== 'groupRows'){
                         this.agGrid.api.ensureIndexVisible(0);
                         this.agGrid.api.ensureColumnVisible(allDisplayedColumns[0]);
                         this.setSelectedRows([0]);
