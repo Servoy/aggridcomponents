@@ -676,12 +676,10 @@ export class DataGrid extends NGGridDirective {
 						if (!this.foundset.foundset) {
 							return;
 						}
-                        if(this.foundset.foundset.selectedRowIndexes[0] === 0) {
-                            this.agGrid.api.setFocusedCell(0, allDisplayedColumns[0]);
-                        } else {
-                            this.requestFocusColumnIndex = this.getColumnIndex(allDisplayedColumns[0].getColId());
-                            this.foundset.foundset.requestSelectionUpdate([0]);
-                        }
+						const selectedNodes = this.agGrid.api.getSelectedNodes();
+						if(selectedNodes && selectedNodes.length) {
+							this.agGrid.api.setFocusedCell(selectedNodes[0].rowIndex, allDisplayedColumns[0]);
+						}
                     }
                 }
             }

@@ -405,12 +405,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 									if (!foundset.foundset) {
 										return;
 									}
-									if(foundset.foundset.selectedRowIndexes[0] == 0) {
-										gridOptions.api.setFocusedCell(0, allDisplayedColumns[0]);
-									}
-									else {
-										requestFocusColumnIndex = getColumnIndex(allDisplayedColumns[0].colId);
-										foundset.foundset.requestSelectionUpdate([0]);
+									var selectedNodes = gridOptions.api.getSelectedNodes();
+									if(selectedNodes && selectedNodes.length) {
+										gridOptions.api.setFocusedCell(selectedNodes[0].rowIndex, allDisplayedColumns[0]);
 									}
 								}
 							}
