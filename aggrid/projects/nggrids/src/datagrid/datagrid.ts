@@ -285,7 +285,7 @@ export class DataGrid extends NGGridDirective {
                             suppressPivots: true,
                             suppressPivotMode: true,
                             suppressSideButtons: toolPanelConfig ? toolPanelConfig.suppressSideButtons : false,
-                            suppressColumnFilter: toolPanelConfig ? toolPanelConfig.suppressColumnFilter : false,
+                            suppressFiltersToolPanel: toolPanelConfig ? toolPanelConfig.suppressColumnFilter : false,
                             suppressColumnSelectAll: toolPanelConfig ? toolPanelConfig.suppressColumnSelectAll : false,
                             suppressColumnExpandAll: toolPanelConfig ? toolPanelConfig.suppressColumnExpandAll : false
                         }

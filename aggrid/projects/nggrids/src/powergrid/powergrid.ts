@@ -196,7 +196,7 @@ export class PowerGrid extends NGGridDirective {
                             suppressPivots: toolPanelConfig ? toolPanelConfig.suppressPivots : false,
                             suppressPivotMode: toolPanelConfig ? toolPanelConfig.suppressPivotMode : false,
                             suppressSideButtons: toolPanelConfig ? toolPanelConfig.suppressSideButtons : false,
-                            suppressColumnFilter: toolPanelConfig ? toolPanelConfig.suppressColumnFilter : false,
+                            suppressFiltersToolPanel: toolPanelConfig ? toolPanelConfig.suppressColumnFilter : false,
                             suppressColumnSelectAll: toolPanelConfig ? toolPanelConfig.suppressColumnSelectAll : false,
                             suppressColumnExpandAll: toolPanelConfig ? toolPanelConfig.suppressColumnExpandAll : false
                         }
@@ -672,7 +672,7 @@ export class PowerGrid extends NGGridDirective {
             for (const column of this.columns) {
                 //create a column definition based on the properties defined at design time
                 colDef = {
-                    headerName: '' + (column['headerTitle'] ? column['headerTitle'] : '') + '',
+                    headerName: column['headerTitle'] ? column['headerTitle'] : '',
                     headerTooltip: column['headerTooltip'] ? column['headerTooltip'] : null,
                     field: column['dataprovider'],
                     tooltipField: column['tooltip'] ? column['tooltip'] : null
@@ -1530,7 +1530,7 @@ export class PowerGrid extends NGGridDirective {
 
     createValueFormatter(format: any, formatType: any): any {
         return (params: any) => {
-            if (params.value !== undefined) {
+            if (params.value !== undefined && params.value !== null) {
                 let v = params.value;
                 if (v.displayValue !== undefined) v = v.displayValue;
                 if (formatType === 'TEXT' && params.value) {
