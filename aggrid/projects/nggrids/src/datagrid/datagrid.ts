@@ -3771,11 +3771,9 @@ export class DataGrid extends NGGridDirective {
         $event.preventDefault();
         if(this.onDrop) {
             const targetNode = this.getNodeForElement($event.target);
-            if(targetNode) {
-                const jsonData = $event.dataTransfer.getData('nggrids-record/json');
-                const record = JSON.parse(jsonData);
-                this.onDrop(record, this.getRecord(targetNode), $event);
-            }
+            const jsonData = $event.dataTransfer.getData('nggrids-record/json');
+            const record = JSON.parse(jsonData);
+            this.onDrop(record, targetNode ? this.getRecord(targetNode) : null, $event);
         }
     }
 
