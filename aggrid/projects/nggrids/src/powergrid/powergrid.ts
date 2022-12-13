@@ -1931,12 +1931,10 @@ export class PowerGrid extends NGGridDirective {
         $event.preventDefault();
         if(this.onDrop) {
             const targetNode = this.getNodeForElement($event.target);
-            if(targetNode) {
-                const jsonData = $event.dataTransfer.getData('nggrids/json');
-                const rowData = JSON.parse(jsonData);
-                const overRowData = targetNode.data || Object.assign(targetNode.groupData, targetNode.aggData);
-                this.onDrop(rowData, overRowData, $event);
-            }
+            const jsonData = $event.dataTransfer.getData('nggrids/json');
+            const rowData = JSON.parse(jsonData);
+            const overRowData = targetNode ? (targetNode.data || Object.assign(targetNode.groupData, targetNode.aggData)) : null;
+            this.onDrop(rowData, overRowData, $event);
         }
     }
 
