@@ -105,23 +105,27 @@ $scope.api.getColumn = function(id, forChange) {
  * The column name from the dataset is used to match on the
  * component column id
  * 
- * @param {JSDataSet} dataset
+ * @param {JSDataSet} [dataset]
  * @param {Array<String>} [pks] list of dataprovider names; needed in case of using apis: updateRows and deleteRows
  */
 $scope.api.renderData = function(dataset, pks) {
-    $scope.model.pks = pks;
-    $scope.model.data = []
-    var rowsCount = dataset.getMaxRowIndex();
+    if(dataset) {
+        $scope.model.pks = pks;
+        $scope.model.data = []
+        var rowsCount = dataset.getMaxRowIndex();
 
-    for(var i = 1; i <= rowsCount; i++) {
-        var row = dataset.getRowAsArray(i);
-        var rowData = {};
-        for(var j = 0; j < row.length; j++) {
-            var columnName = dataset.getColumnName(j + 1);
-            rowData[columnName] = convertData(row[j], columnName);
+        for(var i = 1; i <= rowsCount; i++) {
+            var row = dataset.getRowAsArray(i);
+            var rowData = {};
+            for(var j = 0; j < row.length; j++) {
+                var columnName = dataset.getColumnName(j + 1);
+                rowData[columnName] = convertData(row[j], columnName);
+            }
+            $scope.model.data.push(rowData);
         }
-        $scope.model.data.push(rowData);
-    }     
+    } else {
+        $scope.model._internalResetLazyLoading = true;
+    }
 }
 
 function convertData(value, columnName) {

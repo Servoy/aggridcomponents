@@ -111,6 +111,9 @@ export class PowerGrid extends NGGridDirective {
     @Input() _internalExpandedState: any;
     @Output() _internalExpandedStateChange = new EventEmitter();
 
+    @Input() _internalResetLazyLoading: any;
+    @Output() _internalResetLazyLoadingChange = new EventEmitter();
+
     @Input() onCellClick: any;
     @Input() onCellDoubleClick: any;
     @Input() onCellRightClick: any;
@@ -152,6 +155,8 @@ export class PowerGrid extends NGGridDirective {
 
     isEditableCallback: any;
 
+    lazyLoadingRemoteDatasource: RemoteDatasource;
+
     constructor(renderer: Renderer2, cdRef: ChangeDetectorRef, logFactory: LoggerFactory,
         private powergridService: PowergridService, public formattingService: FormattingService,
         private sanitizer: DomSanitizer, @Inject(DOCUMENT) private doc: Document) {
@@ -174,7 +179,7 @@ export class PowerGrid extends NGGridDirective {
         localeText = this.mergeConfig(localeText, this.localeText);
         this.agMainMenuItemsConfig = this.mergeConfig(mainMenuItemsConfig, this.mainMenuItemsConfig);
 
-        const vMenuTabs = ['generalMenuTab', 'filterMenuTab'] as ColumnMenuTab[]
+        const vMenuTabs = ['generalMenuTab', 'filterMenuTab'] as ColumnMenuTab[];
 
         if (this.showColumnsMenuTab) vMenuTabs.push('columnsMenuTab');
 
@@ -391,6 +396,7 @@ export class PowerGrid extends NGGridDirective {
 
         if (this.useLazyLoading) {
             this.agGridOptions.rowModelType = 'serverSide';
+            this.agGridOptions.serverSideInfiniteScroll = true;
         } else {
             this.agGridOptions.rowModelType = 'clientSide';
             this.agGridOptions.rowData = this.data;
@@ -532,7 +538,8 @@ export class PowerGrid extends NGGridDirective {
 
 
         if (!this.servoyApi.isInDesigner() && this.useLazyLoading) {
-            this.agGridOptions.api.setEnterpriseDatasource(new RemoteDatasource(this));
+            this.lazyLoadingRemoteDatasource = new RemoteDatasource(this);
+            this.agGridOptions.api.setServerSideDatasource(this.lazyLoadingRemoteDatasource);
         }
     }
 
@@ -545,7 +552,7 @@ export class PowerGrid extends NGGridDirective {
                         this.setHeight();
                         break;
                     case 'data':
-                        if (this.agGrid) {
+                        if (this.agGrid && !this.useLazyLoading) {
                             if(this.pks) {
                                 this.agGridOptions.getRowId = (param: GetRowIdParams) =>  {
                                     let rowNodeId = null;
@@ -648,6 +655,13 @@ export class PowerGrid extends NGGridDirective {
                     case 'enabled':
                         if(this.isGridReady) {
                             this.agGridOptions.suppressRowClickSelection = !change.currentValue;
+                        }
+                        break;
+                    case '_internalResetLazyLoading':
+                        if(this.isGridReady && change.currentValue) {
+                            this._internalResetLazyLoading = false;
+                            this._internalResetLazyLoadingChange.emit(this._internalResetLazyLoading);
+                                this.agGridOptions.api.setServerSideDatasource(this.lazyLoadingRemoteDatasource);
                         }
                         break;
                 }

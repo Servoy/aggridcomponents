@@ -550,7 +550,16 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                         }
                     };
 
-                    gridOptions.api.setEnterpriseDatasource(new RemoteDatasource());
+                    var lazyLoadingRemoteDatasource = new RemoteDatasource();
+                    gridOptions.api.setServerSideDatasource(lazyLoadingRemoteDatasource);
+
+                    $scope.$watch("model._internalResetLazyLoading", function(newValue) {
+                        if(isGridReady && newValue) {
+                            $scope.model._internalResetLazyLoading = false;
+                            $scope.svyServoyapi.apply('_internalResetLazyLoading');
+                            gridOptions.api.setServerSideDatasource(lazyLoadingRemoteDatasource);
+                        }
+                    });
                 }
                 else {
                     $scope.$watchCollection("model.data", function(newValue, oldValue) {

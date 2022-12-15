@@ -39,6 +39,7 @@
 		"groupMinWidth":  { "type": "int" },
 		"groupMaxWidth":  { "type": "int" },		
 		"useLazyLoading": { "type": "boolean", "default": false, "tags": {"scope": "design"}},
+		"_internalResetLazyLoading": { "type": "boolean", "default": false, "tags": {"scope" : "private", "allowaccess": "enabled"}, "pushToServer": "allow"},
 		"lastRowIndex": { "type": "long", "tags": {"scope" : "private"}},
 		"multiSelect": { "type": "boolean", "default": false, "tags": {"scope": "design"}},
 		"headerHeight" : {"type" : "int", "default": 33, "tags": {"scope": "design"}},
@@ -264,7 +265,7 @@
 	"api" : {
 		"renderData": {
 			"parameters": [
-				{ "name": "dataset", "type": {"type": "dataset"} },
+				{ "name": "dataset", "type": {"type": "dataset"}, "optional": true},
 				{ "name": "pks", "type" : "string[]", "optional": true }
 			]
 		},
