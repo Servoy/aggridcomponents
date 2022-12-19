@@ -227,3 +227,7 @@
 .ag-body-horizontal-scroll-viewport[style*='height: 0'] {
     display: none;
 }
+
+.ag-table .tooltip-inner {
+	max-width: none !important;
+}

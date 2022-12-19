@@ -208,3 +208,7 @@
 .ag-cell-inline-editing .ag-cell-edit-input, .ag-cell-inline-editing .ag-input-wrapper {
     color: #333;
 }
+
+.ag-table .tooltip-inner {
+	max-width: none !important;
+}
