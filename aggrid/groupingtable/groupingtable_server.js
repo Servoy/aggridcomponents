@@ -874,3 +874,46 @@ $scope.api.getColumnIndex = function(colId) {
 	return $scope.api.internalGetColumnIndex(colId);
 }
 
+/**
+ * Set the filter model. This api maps to ag-grid's setFilterModel; for more details on the model's
+ * structure check this page: https://www.ag-grid.com/angular-data-grid/filter-api/
+ * NOTE: The name of the columns from the model are the id properties of the column;
+ * to clear the filter, use an empty object ({}) as filterModel;
+ *
+ * @param {Object} filterModel
+ * @example <pre>
+ *	var filterModel = {
+ *		"country": {
+ *			"filterType":"text",
+ *			"type":"contains",
+ *			"filter":"Argentina"
+ *		}
+ *	};
+ *	
+ *	var filterModelWithCondition = {
+ *		"freight": {
+ *			"filterType":"number",
+ *			"operator":"OR",
+ *			"condition1": { 
+ *				"filterType":"number",
+ *				"type":"equals",
+ *				"filter":66
+ *			},
+ *			"condition2": {
+ *				"filterType":"number",
+ *				"type":"equals",
+ *				"filter":23
+ *			}
+ *		}
+ *	};
+ *	
+ *	elements.groupingtable_1.setFilterModel(filterModelWithCondition);
+ *	
+ *	//clear filter
+ *	//elements.groupingtable_1.setFilterModel({});
+ * </pre>
+ * @public
+ */
+$scope.api.setFilterModel = function(filterModel) {
+	$scope.model._internalFilterModel = filterModel;
+}

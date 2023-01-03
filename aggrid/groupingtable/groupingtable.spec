@@ -54,7 +54,8 @@
 		"showLoadingIndicator":  { "type": "boolean", "default": true },
 		"editNextCellOnEnter":  { "type": "boolean", "default": false },
 		"tabSeq": { "type": "tabseq", "tags": { "scope": "design" } },
-		"onDragOverFunc": {"type": "clientfunction", "tags": {"doc": "Callback when dragging over a row - returns true whenever a drop is allowed."}}
+		"onDragOverFunc": {"type": "clientfunction", "tags": {"doc": "Callback when dragging over a row - returns true whenever a drop is allowed."}},
+		"_internalFilterModel": { "type": "object", "tags": {"scope" : "private", "allowaccess": "enabled"}, "pushToServer": "allow" }
 	},
 	"handlers" : {
     	"onSelectedRowsChanged": {
@@ -293,6 +294,12 @@
 	    },
 	    "removeAllColumns": {
 	        "returns": "boolean"
+	    },
+	    "setFilterModel": {
+		    "parameters": [{
+				"name": "filterModel",
+				"type": "object"
+			}]
 	    },
 		"getGroupedSelection": {
 			"returns": "record[]"

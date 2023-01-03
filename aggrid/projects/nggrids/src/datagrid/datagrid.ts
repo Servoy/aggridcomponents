@@ -128,6 +128,8 @@ export class DataGrid extends NGGridDirective {
     @Output() _internalColumnStateChange = new EventEmitter();
     @Input() columnStateOnError: any;
     @Input() restoreStates: any;
+    @Input() _internalFilterModel: any;
+    @Output() _internalFilterModelChange = new EventEmitter();
 
     @Input() onCellClick: any;
     @Input() onCellDoubleClick: any;
@@ -867,6 +869,14 @@ export class DataGrid extends NGGridDirective {
                     case 'enabled':
                         if(this.isGridReady) {
                             this.agGridOptions.suppressRowClickSelection = !change.currentValue;
+                        }
+                        break;
+                    case '_internalFilterModel':
+                        if(this.isGridReady && change.currentValue) {
+                            this.agGrid.api.setFilterModel(change.currentValue);
+                            this.agGrid.api.onFilterChanged();
+                            this._internalFilterModel = null;
+                            this._internalFilterModelChange.emit(this._internalFilterModel);
                         }
                         break;
                 }
