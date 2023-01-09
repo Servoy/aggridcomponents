@@ -855,6 +855,16 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						gridOptions.loadingCellRenderer = getBlankLoadingCellRenderer();
 					}
 
+					var checkboxEditorValueServerToClientFunc = null;
+					if($scope.model.checkboxEditorValueServerToClientFunc) {
+						checkboxEditorValueServerToClientFunc = eval($scope.model.checkboxEditorValueServerToClientFunc);
+					}
+
+					var checkboxEditorValueClientToServerFunc = null;
+					if($scope.model.checkboxEditorValueClientToServerFunc) {
+						checkboxEditorValueClientToServerFunc = eval($scope.model.checkboxEditorValueClientToServerFunc);
+					}
+
 					// set all custom icons
 					if (iconConfig) {
 						var icons = new Object();
@@ -1143,9 +1153,16 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						$log.debug(params);
 						var col = params.colDef.field ? getColumn(params.colDef.field) : null;
 						if(col && col.editType == 'CHECKBOX' && params.event.target.tagName == 'I' && isColumnEditable(params)) {
-							var v = parseInt(params.value);
-							if(v == NaN) v = 0;		
-							params.node.setDataValue(params.column.colId, v ? 0 : 1);
+							var checkboxValue;
+							if(typeof params.value === 'boolean') {
+								checkboxValue = !params.value
+							} else {
+								var v = parseInt(params.value);
+								if(v == NaN) v = 0;
+								checkboxValue = v ? 0 : 1;
+							}
+
+							params.node.setDataValue(params.column.colId, checkboxValue);
 						}
 						if ($scope.handlers.onCellClick) {
 							//						var row = params.data;
@@ -1255,7 +1272,13 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								} else {
 									applyProperty = "hashedFoundsets[" + groupFoundsetIndex + "].columns[" + getColumnIndex(params.column.colId) + "].dataprovider[" + dpIdx+ "]";
 								}
-								col.dataprovider[dpIdx] = newValue;
+
+								if(col.editType == 'CHECKBOX' && checkboxEditorValueClientToServerFunc) {
+									col.dataprovider[dpIdx] = checkboxEditorValueClientToServerFunc(col.id, newValue);
+								} else {
+									col.dataprovider[dpIdx] = newValue;
+								}
+
 								$scope.svyServoyapi.apply(applyProperty);
 								if($scope.handlers.onColumnDataChange) {
 									var currentEditCells = gridOptions.api.getEditingCells();
@@ -1850,7 +1873,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						if (field && params.data) {
 							var value = params.data[field];
 
-							if (value == null) {
+							var col = getColumn(params.column.colId);
+							if(col && col.editType == 'CHECKBOX' && !params.node.group && typeof value !== 'boolean' && checkboxEditorValueServerToClientFunc) {
+								value = checkboxEditorValueServerToClientFunc(col.id, value);
+							} else if (value == null) {
 								value = NULL_VALUE; // need to use an object for null, else grouping won't work in ag grid
 							}
 							return value;
@@ -5381,7 +5407,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 							if(col && col.editType == 'CHECKBOX' && !params.node.group) {
 								checkboxEl = document.createElement('i');
-								checkboxEl.className = getIconCheckboxEditor(parseInt(value));
+								checkboxEl.className = getIconCheckboxEditor(checkboxEditorValueServerToClientFunc ? value : parseInt(value));
 							}
 							else {
 								if(col != null && col.showAs == 'html') {

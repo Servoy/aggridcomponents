@@ -144,6 +144,8 @@ export class DataGrid extends NGGridDirective {
     @Input() tooltipTextRefreshData: any;
     // used in HTML template to toggle sync button
     @Output() isGroupView = false;
+    @Input() checkboxEditorValueServerToClientFunc: any;
+    @Input() checkboxEditorValueClientToServerFunc: any;
 
     log: LoggerService;
     agGridOptions: GridOptions;
@@ -654,7 +656,7 @@ export class DataGrid extends NGGridDirective {
         this.agGridElementRef.nativeElement.addEventListener('click', (e: any) => {
             if(e.target.parentNode && e.target.parentNode.classList &&
                 e.target.parentNode.classList.contains('ag-checkbox-input-wrapper')) {
-                let t = e.target.closest('[row-index]');
+                const t = e.target.closest('[row-index]');
                 if(t) {
                     const rowIndex = t.getAttribute('row-index');
                     this.selectionEvent = { type: 'click' , event: {ctrlKey: true, shiftKey: e.shiftKey}, rowIndex: parseInt(rowIndex, 10)};
@@ -900,9 +902,14 @@ export class DataGrid extends NGGridDirective {
         if (field && params.data) {
             let value = params.data[field];
 
-            if (value == null) {
+            const dataGrid = params.context.componentParent;
+            const col = dataGrid.getColumn(params.column.colId);
+            if(col && col.editType === 'CHECKBOX' && !params.node.group && typeof value !== 'boolean' && dataGrid.checkboxEditorValueServerToClientFunc) {
+                value = dataGrid.checkboxEditorValueServerToClientFunc(col.id, value);
+            } else if (value == null) {
                 value = NULL_VALUE; // need to use an object for null, else grouping won't work in ag grid
             }
+
             return value;
         }
 
@@ -1543,7 +1550,7 @@ export class DataGrid extends NGGridDirective {
 
         if(col && col.editType === 'CHECKBOX' && !params.node.group) {
             checkboxEl = this.doc.createElement('i');
-            checkboxEl.className = this.getIconCheckboxEditor(parseInt(value, 10));
+            checkboxEl.className = this.getIconCheckboxEditor(this.checkboxEditorValueServerToClientFunc ? value : parseInt(value, 10));
         } else {
             if(col != null && col.showAs === 'html') {
                 value =  value && value.displayValue !== undefined ? value.displayValue : value;
@@ -1750,12 +1757,12 @@ export class DataGrid extends NGGridDirective {
                         styleClassDPColumns.push(column);
                     }
                 }
-                
+
                 if (this.rowStyleClassDataprovider){
-                    // need to refresh row 
+                    // need to refresh row
                     isRowChanged = true;
                 }
-                                
+
                 if(isRowChanged || styleClassDPColumns.length) {
                     // find first editing cell for the updating row
                     const editCells = this.agGrid.api.getEditingCells();
@@ -1864,7 +1871,15 @@ export class DataGrid extends NGGridDirective {
                 } else {
                     applyProperty = 'hashedFoundsets[' + groupFoundsetIndex + '].columns[' + _this.getColumnIndex(params.column.colId) + '].dataprovider[' + dpIdx+ ']';
                 }
-                _this.servoyApi.apply(applyProperty, newValue);
+
+                let applyNewValue: any;
+                if(col.editType === 'CHECKBOX' && _this.checkboxEditorValueClientToServerFunc) {
+                    applyNewValue = _this.checkboxEditorValueClientToServerFunc(col.id, newValue);
+                } else {
+                    applyNewValue = newValue;
+                }
+
+                _this.servoyApi.apply(applyProperty, applyNewValue);
                 if(_this.onColumnDataChange) {
                     const currentEditCells =  _this.agGrid.api.getEditingCells();
                     _this.onColumnDataChangePromise = _this.onColumnDataChange(
@@ -2702,19 +2717,17 @@ export class DataGrid extends NGGridDirective {
             styleClassProvider = styleClassProvider.split(' ');
         }
          // we have to manually sync the classes because aggrid caches them in rowcomponent -> cssmanager
-        if (_this.agGridElementRef && _this.agGridElementRef.nativeElement)
-        {
-            _this.agGridElementRef.nativeElement.querySelectorAll("[row-index='" + params.rowIndex + "']").forEach((rowElement: HTMLElement) => {
+        if (_this.agGridElementRef && _this.agGridElementRef.nativeElement) {
+            _this.agGridElementRef.nativeElement.querySelectorAll('[row-index="' + params.rowIndex + '"]').forEach((rowElement: HTMLElement) => {
                 Array.from(rowElement.classList).forEach(cssClass => {
-                    if(cssClass.indexOf("ag-") != 0 && (!styleClassProvider || styleClassProvider.indexOf(cssClass) == -1)) {
+                    if(cssClass.indexOf('ag-') !== 0 && (!styleClassProvider || styleClassProvider.indexOf(cssClass) === -1)) {
                           rowElement.classList.remove(cssClass);
                      }
                 });
                 if (styleClassProvider){
                     styleClassProvider.forEach(cssClass => {
-                        if (!rowElement.classList.contains(cssClass))
-                        {
-                            rowElement.classList.add(cssClass)
+                        if (!rowElement.classList.contains(cssClass)) {
+                            rowElement.classList.add(cssClass);
                         }
                     } );
                 }
@@ -2976,9 +2989,15 @@ export class DataGrid extends NGGridDirective {
         this.log.debug(params);
         const col = params.colDef.field ? this.getColumn(params.colDef.field) : null;
         if(col && col.editType === 'CHECKBOX' && params.event.target.tagName === 'I' && this.isColumnEditable(params)) {
-            let v = parseInt(params.value, 10);
-            if(isNaN(v)) v = 0;
-            params.node.setDataValue(params.column.colId, v ? 0 : 1);
+            let checkboxValue: any;
+            if(typeof params.value === 'boolean') {
+                checkboxValue = !params.value;
+            } else {
+                let v = parseInt(params.value, 10);
+                if(isNaN(v)) v = 0;
+                checkboxValue = v ? 0 : 1;
+            }
+            params.node.setDataValue(params.column.colId, checkboxValue);
         }
         if (this.onCellClick) {
             //						var row = params.data;
