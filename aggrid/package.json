@@ -35,7 +35,7 @@
     "@servoy/public": "2022.12.0",
     "@eonasdan/tempus-dominus": "6.2.7",
     "lodash-es": "4.17.21",
-    "luxon": "3.1.1",
+    "luxon": "3.2.1",
     "rxjs": "7.5.7",
     "tslib": "2.4.1",
     "zone.js": "0.12.0"
