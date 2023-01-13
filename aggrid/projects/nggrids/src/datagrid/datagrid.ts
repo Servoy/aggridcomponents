@@ -130,6 +130,8 @@ export class DataGrid extends NGGridDirective {
     @Input() restoreStates: any;
     @Input() _internalFilterModel: any;
     @Output() _internalFilterModelChange = new EventEmitter();
+    @Input() _internalGroupedSelection: any;
+    @Output() _internalGroupedSelectionChange = new EventEmitter();
 
     @Input() onCellClick: any;
     @Input() onCellDoubleClick: any;
@@ -881,6 +883,13 @@ export class DataGrid extends NGGridDirective {
                             this._internalFilterModelChange.emit(this._internalFilterModel);
                         }
                         break;
+                    case '_internalGroupedSelection':
+                        if(this.isGridReady) {
+                            if(this.selectedRowIndexesChanged()) {
+                                this.scrollToSelection();
+                            }
+                        }
+                        break;
                 }
             }
         }
@@ -1612,45 +1621,60 @@ export class DataGrid extends NGGridDirective {
         // FIXME can't select the record when is not in viewPort. Need to synchornize with viewPort record selection
         this.log.debug(' - 2.1 Request selection changes');
 
-        // Disable selection when table is grouped
-        if (this.isTableGrouped()) {
-            return  false;;
-        }
-
         let isSelectedRowIndexesChanged = false;
         // old selection
         const oldSelectedNodes = this.agGrid.api.getSelectedNodes();
 
-        // CHANGE Seleciton
-        if (!foundsetManager) {
-            foundsetManager = this.foundset;
-        }
-
-        if (!foundsetManager.foundset) {
-            return false;
-        }
-
         const selectedNodes = new Array();
-        for(const selectedRowIndex of foundsetManager.foundset.selectedRowIndexes) {
+        if (this.isTableGrouped()) {
+            if(this._internalGroupedSelection && this._internalGroupedSelection.length) {
+                const selectedRecordsPKs = new Array();
 
-            const rowIndex = selectedRowIndex - foundsetManager.foundset.viewPort.startIndex;
-            // find rowid
-            if (rowIndex > -1 && foundsetManager.foundset.viewPort.rows[rowIndex]) {
-                //rowIndex >= foundsetManager.foundset.viewPort.startIndex && rowIndex <= foundsetManager.foundset.viewPort.size + foundsetManager.foundset.viewPort.startIndex) {
-                if (!foundsetManager.foundset.viewPort.rows[rowIndex]) {
-                    this.log.error('how is possible there is no rowIndex ' + rowIndex + ' on viewPort size ' + foundsetManager.foundset.viewPort.rows.length);
-                    // TODO deselect node
-                    continue;
-                }
+                this._internalGroupedSelection.forEach(record => {
+                    const _svyRowIdSplit = record._svyRowId.split(';');
+                    selectedRecordsPKs.push(_svyRowIdSplit[0]);
+                });
+                this.agGrid.api.forEachNode( (node: any) => {
+                    if(!node.group && node.data && node.data._svyRowId) {
+                        const _svyRowIdSplit = node.data._svyRowId.split(';');
+                        if(selectedRecordsPKs.indexOf(_svyRowIdSplit[0]) !== -1) {
+                            selectedNodes.push(node);
+                        }
+                    }
+                });
+            } else return false;
+        } else {
+            if (!foundsetManager) {
+                foundsetManager = this.foundset;
+            }
 
-                const node = this.agGrid.api.getRowNode(foundsetManager.foundsetUUID + '_' + selectedRowIndex);
-                if (node) {
-                    selectedNodes.push(node);
+            if (!foundsetManager.foundset) {
+                return false;
+            }
+
+            for(const selectedRowIndex of foundsetManager.foundset.selectedRowIndexes) {
+
+                const rowIndex = selectedRowIndex - foundsetManager.foundset.viewPort.startIndex;
+                // find rowid
+                if (rowIndex > -1 && foundsetManager.foundset.viewPort.rows[rowIndex]) {
+                    //rowIndex >= foundsetManager.foundset.viewPort.startIndex && rowIndex <= foundsetManager.foundset.viewPort.size + foundsetManager.foundset.viewPort.startIndex) {
+                    if (!foundsetManager.foundset.viewPort.rows[rowIndex]) {
+                        this.log.error('how is possible there is no rowIndex ' + rowIndex + ' on viewPort size ' + foundsetManager.foundset.viewPort.rows.length);
+                        // TODO deselect node
+                        continue;
+                    }
+
+                    const node = this.agGrid.api.getRowNode(foundsetManager.foundsetUUID + '_' + selectedRowIndex);
+                    if (node) {
+                        selectedNodes.push(node);
+                    }
+                } else {
+                    // TODO selected record is not in viewPort: how to render it ?
                 }
-            } else {
-                // TODO selected record is not in viewPort: how to render it ?
             }
         }
+
+
         for (const oldSelectedNode of oldSelectedNodes) {
             if(selectedNodes.indexOf(oldSelectedNode) === -1) {
                 this.selectionEvent = null;
@@ -2586,34 +2610,41 @@ export class DataGrid extends NGGridDirective {
     }
 
     scrollToSelectionEx(foundsetManager?: any) {
-        // don't do anything if table is grouped or there is no columns
-        if (this.isTableGrouped() || !this.columns || this.columns.length === 0) {
+        // don't do anything if there is no columns
+        if (!this.columns || this.columns.length === 0) {
             return;
         }
 
-        if (!foundsetManager) {
-            foundsetManager = this.foundset;
-        }
+        if(this.isTableGrouped()) {
+            const selectedNodes = this.agGrid.api.getSelectedNodes();
+            if(selectedNodes && selectedNodes.length) {
+                this.agGrid.api.ensureNodeVisible(selectedNodes[0]);
+            }
+        } else {
+            if (!foundsetManager) {
+                foundsetManager = this.foundset;
+            }
 
-        if (!foundsetManager || !foundsetManager.foundset) {
-            return;
-        }
+            if (!foundsetManager || !foundsetManager.foundset) {
+                return;
+            }
 
-        if(foundsetManager.foundset.selectedRowIndexes.length) {
-            const model: any = this.agGrid.api.getModel();
-            // 'model.rootNode.childrenCache' removed in recent ag-grid
-            // if(model.rootNode.childrenCache) {
-            //     // virtual row count must be multiple of CHUNK_SIZE (limitation/bug of aggrid)
-            //     const offset = foundsetManager.foundset.selectedRowIndexes[0] % CHUNK_SIZE;
-            //     const virtualRowCount = foundsetManager.foundset.selectedRowIndexes[0] + (CHUNK_SIZE - offset);
+            if(foundsetManager.foundset.selectedRowIndexes.length) {
+                const model: any = this.agGrid.api.getModel();
+                // 'model.rootNode.childrenCache' removed in recent ag-grid
+                // if(model.rootNode.childrenCache) {
+                //     // virtual row count must be multiple of CHUNK_SIZE (limitation/bug of aggrid)
+                //     const offset = foundsetManager.foundset.selectedRowIndexes[0] % CHUNK_SIZE;
+                //     const virtualRowCount = foundsetManager.foundset.selectedRowIndexes[0] + (CHUNK_SIZE - offset);
 
-            //     if(virtualRowCount > model.rootNode.childrenCache.getVirtualRowCount()) {
-            //         const newVirtualRowCount = Math.min(virtualRowCount, foundsetManager.foundset.serverSize);
-            //         const maxRowFound = newVirtualRowCount === foundsetManager.foundset.serverSize;
-            //         model.rootNode.childrenCache.setVirtualRowCount(newVirtualRowCount, maxRowFound);
-            //     }
-            // }
-            this.agGrid.api.ensureIndexVisible(foundsetManager.foundset.selectedRowIndexes[0]);
+                //     if(virtualRowCount > model.rootNode.childrenCache.getVirtualRowCount()) {
+                //         const newVirtualRowCount = Math.min(virtualRowCount, foundsetManager.foundset.serverSize);
+                //         const maxRowFound = newVirtualRowCount === foundsetManager.foundset.serverSize;
+                //         model.rootNode.childrenCache.setVirtualRowCount(newVirtualRowCount, maxRowFound);
+                //     }
+                // }
+                this.agGrid.api.ensureIndexVisible(foundsetManager.foundset.selectedRowIndexes[0]);
+            }
         }
     }
 
@@ -2825,7 +2856,14 @@ export class DataGrid extends NGGridDirective {
     onSelectionChangedEx(selectionEvent: any) {
         // Don't trigger foundset selection if table is grouping
         if (this.isTableGrouped()) {
-
+            const groupedSelection  = this.internalGetGroupedSelection();
+            if(groupedSelection && groupedSelection.length) {
+                if(!this._internalGroupedSelection) this._internalGroupedSelection = []; else this._internalGroupedSelection.length = 0;
+                groupedSelection.forEach(record => {
+                    this._internalGroupedSelection.push(record);
+                });
+                this._internalGroupedSelectionChange.emit(this._internalGroupedSelection);
+            }
             // Trigger event on selection change in grouo mode
             if (this.onSelectedRowsChanged) {
                 this.onSelectedRowsChanged();
@@ -3296,7 +3334,8 @@ export class DataGrid extends NGGridDirective {
             this._internalExpandedState = new Object();
         }
 
-        let node = this._internalExpandedState;
+        const _internalExpandedStateUpdated = Object.assign({}, this._internalExpandedState);
+        let node = _internalExpandedStateUpdated;
 
         // Persist the state of an expanded row
         for (const key of groupKeys) {
@@ -3307,7 +3346,7 @@ export class DataGrid extends NGGridDirective {
             node = node[key];
         }
 
-        this._internalExpandedStateChange.emit(this._internalExpandedState);
+        this._internalExpandedStateChange.emit(_internalExpandedStateUpdated);
     }
 
     /**
@@ -3596,14 +3635,14 @@ export class DataGrid extends NGGridDirective {
     /**
      * Returns the selected rows when in grouping mode
      */
-    getGroupedSelection() {
+    internalGetGroupedSelection() {
         let groupedSelection = null;
         if(this.isTableGrouped()) {
             groupedSelection = new Array();
             const selectedNodes = this.agGrid.api.getSelectedNodes();
             for(const node of selectedNodes) {
                 if(node) {
-                    groupedSelection.push({ foundsetId: node.data._svyFoundsetUUID, _svyRowId: node.data._svyRowId });
+                    groupedSelection.push({ foundsetId: node.data._svyFoundsetUUID, _svyRowId: node.data._svyRowId, svyType: 'record' });
                 }
             }
         }
@@ -4386,6 +4425,9 @@ class FoundsetDatasource {
                     // if selection did not changed, mark the selection ready
                     if(!_this.dataGrid.selectedRowIndexesChanged()) {
                         _this.dataGrid.isRenderedAndSelectionReady = true;
+                    } else if (_this.dataGrid.isTableGrouped()) {
+                        _this.dataGrid.isRenderedAndSelectionReady = true;
+                        _this.dataGrid.scrollToSelection();
                     }
                     // rows are rendered, if there was an editCell request, now it is the time to apply it
                     if(_this.dataGrid.startEditFoundsetIndex > -1 && _this.dataGrid.startEditColumnIndex > -1) {

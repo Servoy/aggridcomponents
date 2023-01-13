@@ -1011,7 +1011,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					function onSelectionChangedEx(selectionEvent) {
 						// Don't trigger foundset selection if table is grouping
 						if (isTableGrouped()) {
-							
+							var groupedSelection  = getGroupedSelection();
+							if(groupedSelection && groupedSelection.length) {
+								if(!$scope.model._internalGroupedSelection) $scope.model._internalGroupedSelection = []; else $scope.model._internalGroupedSelection.length = 0;
+								groupedSelection.forEach(function(record) {
+									$scope.model._internalGroupedSelection.push(record);
+								});
+								$scope.svyServoyapi.apply('_internalGroupedSelection');
+							}							
 							// Trigger event on selection change in grouo mode
 							if ($scope.handlers.onSelectedRowsChanged) {
 								$scope.handlers.onSelectedRowsChanged();
@@ -3057,6 +3064,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 									// if selection did not changed, mark the selection ready
 									if(!selectedRowIndexesChanged()) {
 										isRenderedAndSelectionReady = true;
+									} else if(isTableGrouped()) {
+										isRenderedAndSelectionReady = true;
+										scrollToSelection();
 									}
 									// rows are rendered, if there was an editCell request, now it is the time to apply it
 									if(startEditFoundsetIndex > -1 && startEditColumnIndex > -1) {
@@ -3671,6 +3681,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							enableRowSelection(newValue);
 						}
 					});
+
+					$scope.$watch("model._internalGroupedSelection", function(newValue, oldValue) {
+						if(isGridReady) {
+                            if(selectedRowIndexesChanged()) {
+								scrollToSelection();
+                            }
+						}
+					});			
 
 					/**************************************************************************************************
 					 **************************************************************************************************
@@ -4987,43 +5005,57 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						// FIXME can't select the record when is not in viewPort. Need to synchornize with viewPort record selection
 						$log.debug(' - 2.1 Request selection changes');
 
-						// Disable selection when table is grouped
-						if (isTableGrouped()) {
-							return  false;;
-						}
-
 						var isSelectedRowIndexesChanged = false;
 						// old selection
 						var oldSelectedNodes = gridOptions.api.getSelectedNodes();
 
-						// CHANGE Seleciton
-						if (!foundsetManager) {
-							foundsetManager = foundset;
-						}
-
-						if (!foundsetManager.foundset) {
-							return false;
-						}
-
 						var selectedNodes = new Array();
-						for(var i = 0; i < foundsetManager.foundset.selectedRowIndexes.length; i++) {
+						if (isTableGrouped()) {
+							if($scope.model._internalGroupedSelection && $scope.model._internalGroupedSelection.length) {
+								var selectedRecordsPKs = new Array();
+				
+								$scope.model._internalGroupedSelection.forEach (function(record) {
+									var _svyRowIdSplit = record._svyRowId.split(';');
+									selectedRecordsPKs.push(_svyRowIdSplit[0]);
+								});
+								gridOptions.api.forEachNode( function(node) {
+									if(!node.group && node.data && node.data._svyRowId) {
+										var _svyRowIdSplit = node.data._svyRowId.split(';');
+										if(selectedRecordsPKs.indexOf(_svyRowIdSplit[0]) !== -1) {
+											selectedNodes.push(node);
+										}
+									}
+								});
+							} else return false;
+						} else {
+							// CHANGE Seleciton
+							if (!foundsetManager) {
+								foundsetManager = foundset;
+							}
 
-							var rowIndex = foundsetManager.foundset.selectedRowIndexes[i] - foundsetManager.foundset.viewPort.startIndex;
-							// find rowid
-							if (rowIndex > -1 && foundsetManager.foundset.viewPort.rows[rowIndex]) {
-								//rowIndex >= foundsetManager.foundset.viewPort.startIndex && rowIndex <= foundsetManager.foundset.viewPort.size + foundsetManager.foundset.viewPort.startIndex) {
-								if (!foundsetManager.foundset.viewPort.rows[rowIndex]) {
-									$log.error('how is possible there is no rowIndex ' + rowIndex + ' on viewPort size ' + foundsetManager.foundset.viewPort.rows.length);
-									// TODO deselect node
-									continue;
-								}
+							if (!foundsetManager.foundset) {
+								return false;
+							}
 
-								var node = gridOptions.api.getRowNode(foundsetManager.foundsetUUID + "_" + foundsetManager.foundset.selectedRowIndexes[i]);
-								if (node) {
-									selectedNodes.push(node);
+							for(var i = 0; i < foundsetManager.foundset.selectedRowIndexes.length; i++) {
+
+								var rowIndex = foundsetManager.foundset.selectedRowIndexes[i] - foundsetManager.foundset.viewPort.startIndex;
+								// find rowid
+								if (rowIndex > -1 && foundsetManager.foundset.viewPort.rows[rowIndex]) {
+									//rowIndex >= foundsetManager.foundset.viewPort.startIndex && rowIndex <= foundsetManager.foundset.viewPort.size + foundsetManager.foundset.viewPort.startIndex) {
+									if (!foundsetManager.foundset.viewPort.rows[rowIndex]) {
+										$log.error('how is possible there is no rowIndex ' + rowIndex + ' on viewPort size ' + foundsetManager.foundset.viewPort.rows.length);
+										// TODO deselect node
+										continue;
+									}
+
+									var node = gridOptions.api.getRowNode(foundsetManager.foundsetUUID + "_" + foundsetManager.foundset.selectedRowIndexes[i]);
+									if (node) {
+										selectedNodes.push(node);
+									}
+								} else {
+									// TODO selected record is not in viewPort: how to render it ?
 								}
-							} else {
-								// TODO selected record is not in viewPort: how to render it ?
 							}
 						}
 
@@ -5048,33 +5080,41 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 					function scrollToSelection(foundsetManager)
 					{
-						// don't do anything if table is grouped.
-						if (isTableGrouped() || !$scope.model.columns || !$scope.model.columns.length) {
+						// don't do anything if there is no columns
+						if (!$scope.model.columns || !$scope.model.columns.length) {
 							return;
 						}
 						
-						if (!foundsetManager) {
-							foundsetManager = foundset;
-						}
-
-						if (!foundsetManager.foundset) {
-							return;
-						}
-
-						if(foundsetManager.foundset.selectedRowIndexes.length) {
-							var model = gridOptions.api.getModel();
-							if(model.rootNode.childrenCache) {
-								// virtual row count must be multiple of CHUNK_SIZE (limitation/bug of aggrid)
-								var offset = foundsetManager.foundset.selectedRowIndexes[0] % CHUNK_SIZE
-								var virtualRowCount = foundsetManager.foundset.selectedRowIndexes[0] + (CHUNK_SIZE - offset);
-								var newVirtualRowCount = Math.min(virtualRowCount, foundsetManager.foundset.serverSize);
-
-								if(newVirtualRowCount > model.rootNode.childrenCache.getVirtualRowCount()) {
-									var maxRowFound = newVirtualRowCount == foundsetManager.foundset.serverSize;
-									model.rootNode.childrenCache.setVirtualRowCount(newVirtualRowCount, maxRowFound);
-								}
+						if(isTableGrouped()) {
+							var selectedNodes = gridOptions.api.getSelectedNodes();
+							if(selectedNodes && selectedNodes.length) {
+								gridOptions.api.ensureNodeVisible(selectedNodes[0]);
 							}
-							gridOptions.api.ensureIndexVisible(foundsetManager.foundset.selectedRowIndexes[0]);
+						} else {
+
+							if (!foundsetManager) {
+								foundsetManager = foundset;
+							}
+
+							if (!foundsetManager.foundset) {
+								return;
+							}
+
+							if(foundsetManager.foundset.selectedRowIndexes.length) {
+								var model = gridOptions.api.getModel();
+								if(model.rootNode.childrenCache) {
+									// virtual row count must be multiple of CHUNK_SIZE (limitation/bug of aggrid)
+									var offset = foundsetManager.foundset.selectedRowIndexes[0] % CHUNK_SIZE
+									var virtualRowCount = foundsetManager.foundset.selectedRowIndexes[0] + (CHUNK_SIZE - offset);
+									var newVirtualRowCount = Math.min(virtualRowCount, foundsetManager.foundset.serverSize);
+
+									if(newVirtualRowCount > model.rootNode.childrenCache.getVirtualRowCount()) {
+										var maxRowFound = newVirtualRowCount == foundsetManager.foundset.serverSize;
+										model.rootNode.childrenCache.setVirtualRowCount(newVirtualRowCount, maxRowFound);
+									}
+								}
+								gridOptions.api.ensureIndexVisible(foundsetManager.foundset.selectedRowIndexes[0]);
+							}
 						}
 					}
 
@@ -6251,6 +6291,24 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						}, 200);
 					}
 
+					/**
+					 * Returns the selected rows when in grouping mode
+					 */
+					function getGroupedSelection() {
+						var groupedSelection = null;
+						if(isTableGrouped()) {
+							groupedSelection = new Array();
+							var selectedNodes = gridOptions.api.getSelectedNodes();
+							for(var i = 0; i < selectedNodes.length; i++) {
+								var node = selectedNodes[i];
+								if(node) {
+									groupedSelection.push({ foundsetId: node.data._svyFoundsetUUID, _svyRowId: node.data._svyRowId, svyType: 'record' });
+								}
+							}
+						}
+						return groupedSelection;
+					}
+
 					/***********************************************************************************************************************************
 					 ***********************************************************************************************************************************
 					*
@@ -6316,24 +6374,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					 * */
 					$scope.api.refreshData = function() {
 						$scope.purge();
-					}
-
-					/**
-					 * Returns the selected rows when in grouping mode
-					 */
-					$scope.api.getGroupedSelection = function() {
-						var groupedSelection = null;
-						if(isTableGrouped()) {
-							groupedSelection = new Array();
-							var selectedNodes = gridOptions.api.getSelectedNodes();
-							for(var i = 0; i < selectedNodes.length; i++) {
-								var node = selectedNodes[i];
-								if(node) {
-									groupedSelection.push({ foundsetId: node.data._svyFoundsetUUID, _svyRowId: node.data._svyRowId });
-								}
-							}
-						}
-						return groupedSelection;
 					}
 
 					/**

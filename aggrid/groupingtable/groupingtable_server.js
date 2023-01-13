@@ -917,3 +917,20 @@ $scope.api.getColumnIndex = function(colId) {
 $scope.api.setFilterModel = function(filterModel) {
 	$scope.model._internalFilterModel = filterModel;
 }
+
+/**
+ * Set the selection in grouping mode. The table must be already in grouping mode,
+ * and the record already loaded (the group of the record expanded - see: setExpandedGroups)
+ *
+ * @param {Object} value form editor value
+ */
+$scope.api.setGroupedSelection = function(selectedRecords) {
+	$scope.model._internalGroupedSelection = selectedRecords;
+}
+
+/**
+ * Returns the selected rows when in grouping mode
+ */
+$scope.api.getGroupedSelection = function() {
+	return $scope.model._internalGroupedSelection;
+}
