@@ -1927,10 +1927,11 @@ export class PowerGrid extends NGGridDirective {
             let dragOver = false;
             if(this.onDragOverFunc) {
                 const overRow = this.getNodeForElement($event.target);
+                let overRowData = null;
                 if(overRow) {
-                    const overRowData = overRow.data || Object.assign(overRow.groupData, overRow.aggData);
-                    dragOver = this.onDragOverFunc(this.powergridService.getDragData(), overRowData, $event);
+                    overRowData = overRow.data || Object.assign(overRow.groupData, overRow.aggData);
                 }
+                dragOver = this.onDragOverFunc(this.powergridService.getDragData(), overRowData, $event);
             } else {
                 dragOver = true;
             }
