@@ -3811,9 +3811,10 @@ export class DataGrid extends NGGridDirective {
             let dragOver = false;
             if(this.onDragOverFunc) {
                 const overRow = this.getNodeForElement($event.target);
+                let overDragData = null;
                 if(overRow) {
                     const overRowData = overRow.data || Object.assign(overRow.groupData, overRow.aggData);
-                    const overDragData = {};
+                    overDragData = {};
                     for( const p in overRowData) {
                         if(overRowData.hasOwnProperty(p)) {
                             const col = this.getColumn(p);
@@ -3822,8 +3823,8 @@ export class DataGrid extends NGGridDirective {
                             }
                         }
                     }
-                    dragOver = this.onDragOverFunc(this.datagridService.getDragData(), overDragData, $event);
                 }
+                dragOver = this.onDragOverFunc(this.datagridService.getDragData(), overDragData, $event);
             } else {
                 dragOver = true;
             }
