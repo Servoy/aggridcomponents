@@ -396,7 +396,6 @@ export class PowerGrid extends NGGridDirective {
 
         if (this.useLazyLoading) {
             this.agGridOptions.rowModelType = 'serverSide';
-            this.agGridOptions.serverSideInfiniteScroll = true;
         } else {
             this.agGridOptions.rowModelType = 'clientSide';
             this.agGridOptions.rowData = this.data;

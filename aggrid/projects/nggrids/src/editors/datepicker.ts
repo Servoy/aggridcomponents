@@ -4,9 +4,7 @@ import { ICellEditorParams } from '@ag-grid-community/core';
 import { DOCUMENT } from '@angular/common';
 import { Format, FormattingService, getFirstDayOfWeek, ServoyPublicService } from '@servoy/public';
 import { DateTime as DateTimeLuxon} from 'luxon';
-import { DateTime, Namespace, TempusDominus } from '@eonasdan/tempus-dominus';
-import { ChangeEvent } from '@eonasdan/tempus-dominus/types/utilities/event-types';
-import  Options from '@eonasdan/tempus-dominus/types/utilities/options';
+import { DateTime, Namespace, Options, TempusDominus } from '@eonasdan/tempus-dominus';
 import { NULL_VALUE } from '../datagrid/datagrid';
 
 @Component({
@@ -150,7 +148,7 @@ export class DatePicker extends EditorDirective {
         return null;
     }
 
-    public dateChanged(event: ChangeEvent) {
+    public dateChanged(event: any) {
         if (event.type === 'change.td') {
             if ((event.date && this.selectedValue && event.date.getTime() === this.selectedValue.getTime()) ||
                 (!event.date && !this.selectedValue)) return;
