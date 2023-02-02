@@ -6470,10 +6470,28 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							delete $scope.model[$sabloConstants.modelChangeNotifier];
 
 							// release grid resources
-							delete gridOptions.onGridSizeChanged;
+							delete gridOptions.onCellEditingStarted;
+							delete gridOptions.onCellEditingStopped;
+							delete gridOptions.onCellKeyDown;
 							delete gridOptions.onColumnResized;
-							gridOptions.api.destroy();
+							delete gridOptions.onColumnVisible;
+							delete gridOptions.onDisplayedColumnsChanged;
+							delete gridOptions.onFilterChanged;
+							delete gridOptions.onGridReady;
+							delete gridOptions.onGridSizeChanged;
+							delete gridOptions.onSortChanged;
+							delete gridOptions.onToolPanelVisibleChanged;
 
+							gridOptions.api.removeEventListener('selectionChanged', onSelectionChanged);
+							gridOptions.api.removeEventListener('cellClicked', cellClickHandler);
+							gridOptions.api.removeEventListener('cellDoubleClicked', onCellDoubleClicked);
+							gridOptions.api.removeEventListener('cellContextMenu', onCellContextMenu);
+							gridOptions.api.removeEventListener('columnRowGroupChanged', onColumnRowGroupChanged);
+							gridOptions.api.removeEventListener('rowGroupOpened', onRowGroupOpened);
+
+							// discard all pending async calls from aggrid
+							//gridOptions.api.eventService.asyncFunctionsQueue.length = 0;							
+							gridOptions.api.destroy();
 						});
 
 					/** @deprecated  */
