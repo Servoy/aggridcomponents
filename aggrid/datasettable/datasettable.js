@@ -488,9 +488,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 gridOptions.api.addEventListener('cellClicked', cellClickHandler);
                 gridOptions.api.addEventListener('cellDoubleClicked', onCellDoubleClicked);
                 gridOptions.api.addEventListener('cellContextMenu', onCellContextMenu);
-                gridOptions.api.addEventListener('displayedColumnsChanged', function() {
-                    sizeColumnsToFit();
-                });
+                gridOptions.api.addEventListener('displayedColumnsChanged', onDisplayedColumnsChanged);
 
                 // listen to group changes
                 gridOptions.api.addEventListener('columnRowGroupChanged', onColumnRowGroupChanged);
@@ -1224,10 +1222,27 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     delete $scope.model[$sabloConstants.modelChangeNotifier];
 
                     // release grid resources
-                    delete gridOptions.onGridSizeChanged;
+                    delete gridOptions.onCellEditingStarted;
+                    delete gridOptions.onCellEditingStopped;
                     delete gridOptions.onColumnResized;
-                    gridOptions.api.destroy();
+                    delete gridOptions.onDisplayedColumnsChanged;
+                    delete gridOptions.onGridReady;
+                    delete gridOptions.onGridSizeChanged;
+                    delete gridOptions.onSortChanged;
+                    delete gridOptions.onToolPanelVisibleChanged;
 
+                    gridOptions.api.removeEventListener('rowSelected', onRowSelected);
+                    gridOptions.api.removeEventListener('selectionChanged', onSelectionChanged);
+                    gridOptions.api.removeEventListener('cellClicked', cellClickHandler);
+                    gridOptions.api.removeEventListener('cellDoubleClicked', onCellDoubleClicked);
+                    gridOptions.api.removeEventListener('cellContextMenu', onCellContextMenu);
+                    gridOptions.api.removeEventListener('displayedColumnsChanged', onDisplayedColumnsChanged);
+                    gridOptions.api.removeEventListener('columnRowGroupChanged', onColumnRowGroupChanged);
+                    gridOptions.api.removeEventListener('rowGroupOpened', onRowGroupOpened);
+
+                    // discard all pending async calls from aggrid
+                    //gridOptions.api.eventService.asyncFunctionsQueue.length = 0;
+                    gridOptions.api.destroy();
                 });            
                 
                     /**
@@ -1710,6 +1725,10 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     
                     // cache order of grouped fields
                     state.expanded.fields = groupFields;
+                }
+
+                function onDisplayedColumnsChanged() {
+                    sizeColumnsToFit();
                 }
 
                 /** 
