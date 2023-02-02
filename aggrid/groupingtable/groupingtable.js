@@ -2634,7 +2634,15 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						ValuelistFilter.prototype.init = function(params) {
 							this.params = params;
 							this.columnIndex = getColumnIndex(params.column.colId);
-							this.filterType = getColumn(params.column.colId).filterType;
+							var column = getColumn(params.column.colId);
+							this.filterType = column.filterType;
+
+							if(this.filterType == 'RADIO' && !column.valuelist) {
+								if(!$scope.filterValuelist) $scope.filterValuelist = {};
+								if(!$scope.filterValuelist[this.columnIndex]) $scope.filterValuelist[this.columnIndex] = new Array();
+								$scope.filterValuelist[this.columnIndex].push({displayValue: 'Yes', realValue: 1});
+								$scope.filterValuelist[this.columnIndex].push({displayValue: 'No', realValue: 0});
+							}
 
 							var innerHTML =
 								'<div class="ag-filter-body-wrapper">' +

@@ -27,6 +27,11 @@ import { DatagridFilterDirective } from './datagridfilter';
 })
 export class RadioFilter extends DatagridFilterDirective {
 
+    constructor() {
+      super();
+      this.valuelistValues = [{displayValue: 'Yes', realValue: 1}, {displayValue: 'No', realValue: 0}];
+    }
+
     onClearFilter() {
       for(const nativeRadio of this.elementRef.nativeElement.children) {
         nativeRadio.children[0].checked = false;
