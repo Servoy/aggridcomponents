@@ -1918,7 +1918,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								case "SIZE_COLUMNS_TO_FIT":
 								default:
 									//gridOptions.api.sizeColumnsToFit();
-									svySizeColumnsToFit(100);
+									svySizeColumnsToFit();
 							}
 							
 							sizeHeader();
@@ -1940,17 +1940,17 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						}
 						if (nextTimeout === undefined) {
 							svySizeColumnsToFitTimeout = window.setTimeout(function () {
-								_this.sizeColumnsToFit(100);
+								svySizeColumnsToFit(100);
 							}, 0);
 						}
 						else if (nextTimeout === 100) {
 							svySizeColumnsToFitTimeout = window.setTimeout(function () {
-								_this.sizeColumnsToFit(500);
+								svySizeColumnsToFit(500);
 							}, 100);
 						}
 						else if (nextTimeout === 500) {
 							svySizeColumnsToFitTimeout = window.setTimeout(function () {
-								_this.sizeColumnsToFit(-1);
+								svySizeColumnsToFit(-1);
 							}, 500);
 						}
 						else {
