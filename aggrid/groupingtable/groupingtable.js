@@ -1917,11 +1917,45 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 									break;
 								case "SIZE_COLUMNS_TO_FIT":
 								default:
-									gridOptions.api.sizeColumnsToFit();
-
+									//gridOptions.api.sizeColumnsToFit();
+									svySizeColumnsToFit(100);
 							}
 							
 							sizeHeader();
+						}
+					}
+
+					var svySizeColumnsToFitTimeout = null;
+					function svySizeColumnsToFit(nextTimeout) {
+						if(svySizeColumnsToFitTimeout) {
+							clearTimeout(svySizeColumnsToFitTimeout);
+							svySizeColumnsToFitTimeout = null;
+						}
+
+						var _this = gridOptions.api.gridPanel;
+						var availableWidth = _this.eBodyViewport.clientWidth;
+						if (availableWidth > 0) {
+							_this.columnController.sizeColumnsToFit(availableWidth, "sizeColumnsToFit");
+							return;
+						}
+						if (nextTimeout === undefined) {
+							svySizeColumnsToFitTimeout = window.setTimeout(function () {
+								_this.sizeColumnsToFit(100);
+							}, 0);
+						}
+						else if (nextTimeout === 100) {
+							svySizeColumnsToFitTimeout = window.setTimeout(function () {
+								_this.sizeColumnsToFit(500);
+							}, 100);
+						}
+						else if (nextTimeout === 500) {
+							svySizeColumnsToFitTimeout = window.setTimeout(function () {
+								_this.sizeColumnsToFit(-1);
+							}, 500);
+						}
+						else {
+							console.warn('ag-Grid: tried to call sizeColumnsToFit() but the grid is coming back with ' +
+								'zero width, maybe the grid is not visible yet on the screen?');
 						}
 					}
 
@@ -6534,6 +6568,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							// remove model change notifier
 							destroyListenerUnreg();
 							delete $scope.model[$sabloConstants.modelChangeNotifier];
+
+							// clear pending sizeColumnsToFit
+							if(svySizeColumnsToFitTimeout) {
+								clearTimeout(svySizeColumnsToFitTimeout);
+							}
 
 							// release grid resources
 							delete gridOptions.onCellEditingStarted;
