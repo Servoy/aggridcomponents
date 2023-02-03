@@ -1921,8 +1921,16 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							}, 500);
 						}
 						else {
-							console.warn('ag-Grid: tried to call sizeColumnsToFit() but the grid is coming back with ' +
-								'zero width, maybe the grid is not visible yet on the screen?');
+							// find element name
+							var elementName = null;
+							for (var elName in $scope.$parent.model) {
+								if($scope.$parent.model[elName] === $scope.model) {
+									elementName = elName;
+									break;
+								}
+							}
+							console.warn('ag-Grid: tried to call sizeColumnsToFit() on form: ' + $scope.svyServoyapi.getFormName() + ' with elementName: ' + elementName + ' but the grid is coming back with ' +
+							'zero width, maybe the grid is not visible yet on the screen?');
 						}
 					}
 
