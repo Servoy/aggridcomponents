@@ -6483,6 +6483,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							delete gridOptions.onToolPanelVisibleChanged;
 
 							gridOptions.api.removeEventListener('selectionChanged', onSelectionChanged);
+							if(onSelectionChangedTimeout) {
+								clearTimeout(onSelectionChangedTimeout);
+							}							
 							gridOptions.api.removeEventListener('cellClicked', cellClickHandler);
 							gridOptions.api.removeEventListener('cellDoubleClicked', onCellDoubleClicked);
 							gridOptions.api.removeEventListener('cellContextMenu', onCellContextMenu);
