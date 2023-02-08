@@ -56,8 +56,6 @@
 		"tabSeq": { "type": "tabseq", "tags": { "scope": "design" } },
 		"onDragOverFunc": {"type": "clientfunction", "tags": {"doc": "Callback when dragging over a row - returns true whenever a drop is allowed."}},
 		"_internalFilterModel": { "type": "object", "tags": {"scope" : "private", "allowaccess": "enabled"}, "pushToServer": "allow" },
-		"checkboxEditorValueServerToClientFunc": {"type": "clientfunction", "tags": {"doc": "Callback to convert checkbox editor server data to client boolean value."}},
-		"checkboxEditorValueClientToServerFunc": {"type": "clientfunction", "tags": {"doc": "Callback to convert checkbox editor client boolean value to server data."}},
 		"_internalGroupedSelection": { "type": "record[]", "tags": {"scope" : "private"}, "pushToServer": "allow"}
 	},
 	"handlers" : {

@@ -146,8 +146,6 @@ export class DataGrid extends NGGridDirective {
     @Input() tooltipTextRefreshData: any;
     // used in HTML template to toggle sync button
     @Output() isGroupView = false;
-    @Input() checkboxEditorValueServerToClientFunc: any;
-    @Input() checkboxEditorValueClientToServerFunc: any;
 
     log: LoggerService;
     agGridOptions: GridOptions;
@@ -913,12 +911,9 @@ export class DataGrid extends NGGridDirective {
 
             const dataGrid = params.context.componentParent;
             const col = dataGrid.getColumn(params.column.colId);
-            if(col && col.editType === 'CHECKBOX' && !params.node.group && typeof value !== 'boolean' && dataGrid.checkboxEditorValueServerToClientFunc) {
-                value = dataGrid.checkboxEditorValueServerToClientFunc(col.id, value);
-            } else if (value == null) {
+            if (value == null) {
                 value = NULL_VALUE; // need to use an object for null, else grouping won't work in ag grid
             }
-
             return value;
         }
 
@@ -1360,6 +1355,58 @@ export class DataGrid extends NGGridDirective {
         return this.getFoundsetIndexFromEvent(param);
     }
 
+    getCheckboxEditorToggleValue(value: any): any {
+        switch(value) {
+            case 'yes':
+                return 'no';
+            case 'y':
+                return 'n';
+            case 'true':
+                return 'false';
+            case 't':
+                return 'f';
+            case 'no':
+                return 'yes';
+            case 'n':
+                return 'y';
+            case '':
+            case 'false':
+                return 'true';
+            case 'f':
+                return 't';
+        }
+        if(value === NULL_VALUE) return 'true';
+
+        if(!Number.isNaN(value)) {
+            return parseInt(value, 10) > 0 ? 0 : 1;
+        }
+        this.log.warn('Cant toggle value for checkbox editor from ' + value);
+        return null;
+    }
+
+    getCheckboxEditorBooleanValue(value: any): boolean {
+        switch(value) {
+            case 'yes':
+            case 'y':
+            case 'true':
+            case 't':
+                return true;
+            case 'no':
+            case 'n':
+            case '':
+            case 'false':
+            case 'f':
+                return false;
+        }
+        if(value === NULL_VALUE) return false;
+
+        if(!Number.isNaN(value)) {
+            return parseInt(value, 10) > 0;
+        }
+        this.log.warn('Cant make a boolean value for checkbox editor from ' + value);
+        return null;
+    }
+
     stripUnsortableColumns(sortString: any) {
         if (sortString) {
             let newSortString = '';
@@ -1559,7 +1606,7 @@ export class DataGrid extends NGGridDirective {
 
         if(col && col.editType === 'CHECKBOX' && !params.node.group) {
             checkboxEl = this.doc.createElement('i');
-            checkboxEl.className = this.getIconCheckboxEditor(this.checkboxEditorValueServerToClientFunc ? value : parseInt(value, 10));
+            checkboxEl.className = this.getIconCheckboxEditor(this.getCheckboxEditorBooleanValue(value));
         } else {
             if(col != null && col.showAs === 'html') {
                 value =  value && value.displayValue !== undefined ? value.displayValue : value;
@@ -1895,15 +1942,7 @@ export class DataGrid extends NGGridDirective {
                 } else {
                     applyProperty = 'hashedFoundsets[' + groupFoundsetIndex + '].columns[' + _this.getColumnIndex(params.column.colId) + '].dataprovider[' + dpIdx+ ']';
                 }
-
-                let applyNewValue: any;
-                if(col.editType === 'CHECKBOX' && _this.checkboxEditorValueClientToServerFunc) {
-                    applyNewValue = _this.checkboxEditorValueClientToServerFunc(col.id, newValue);
-                } else {
-                    applyNewValue = newValue;
-                }
-
-                _this.servoyApi.apply(applyProperty, applyNewValue);
+                _this.servoyApi.apply(applyProperty, newValue);
                 if(_this.onColumnDataChange) {
                     const currentEditCells =  _this.agGrid.api.getEditingCells();
                     _this.onColumnDataChangePromise = _this.onColumnDataChange(
@@ -3027,15 +3066,7 @@ export class DataGrid extends NGGridDirective {
         this.log.debug(params);
         const col = params.colDef.field ? this.getColumn(params.colDef.field) : null;
         if(col && col.editType === 'CHECKBOX' && params.event.target.tagName === 'I' && this.isColumnEditable(params)) {
-            let checkboxValue: any;
-            if(typeof params.value === 'boolean') {
-                checkboxValue = !params.value;
-            } else {
-                let v = parseInt(params.value, 10);
-                if(isNaN(v)) v = 0;
-                checkboxValue = v ? 0 : 1;
-            }
-            params.node.setDataValue(params.column.colId, checkboxValue);
+            params.node.setDataValue(params.column.colId, this.getCheckboxEditorToggleValue(params.value));
         }
         if (this.onCellClick) {
             //						var row = params.data;
