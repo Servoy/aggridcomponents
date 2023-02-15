@@ -56,7 +56,7 @@
 
 /** style the droppable column label in the row group panel 
 .ag-table.ag-theme-fresh .ag-column-drop-cell,
-.ag-table.ag-theme-bootstrap .ag-column-drop-cell {
+.ag-table.ag-theme-alpine .ag-column-drop-cell {
 	color: #333;
 	background: #ddd;
 	border: 1px solid #ccc;
@@ -82,9 +82,9 @@
 
 /** style the droppable column label in the row group panel  
 .ag-table.ag-theme-fresh .ag-column-drop-cell:focus,
-.ag-table.ag-theme-bootstrap .ag-column-drop-cell:active:focus,
+.ag-table.ag-theme-alpine .ag-column-drop-cell:active:focus,
 .ag-table.ag-theme-fresh .ag-column-drop-cell:focus,
-.ag-table.ag-theme-bootstrap .ag-column-drop-cell:active:focus {
+.ag-table.ag-theme-alpine .ag-column-drop-cell:active:focus {
     outline: thin dotted;
     outline: 5px auto -webkit-focus-ring-color;
     outline-offset: -2px;
@@ -96,9 +96,9 @@
 .ag-table.ag-theme-fresh .ag-column-drop-cell:hover
 .ag-table.ag-theme-fresh .ag-column-drop-cell:focus, 
 .ag-table.ag-theme-fresh .ag-column-drop-cell:active,
-.ag-table.ag-theme-bootstrap .ag-column-drop-cell:hover
-.ag-table.ag-theme-bootstrap .ag-column-drop-cell:focus, 
-.ag-table.ag-theme-bootstrap .ag-column-drop-cell:active {
+.ag-table.ag-theme-alpine .ag-column-drop-cell:hover
+.ag-table.ag-theme-alpine .ag-column-drop-cell:focus, 
+.ag-table.ag-theme-alpine .ag-column-drop-cell:active {
     color: #333;
     background-color: #e6e6e6;
     border-color: #adadad;
@@ -107,12 +107,12 @@
 
 /** style the remove button in the droppable column label in the row group panel 
 .ag-table.ag-theme-fresh .ag-column-drop-cell-button:hover,
-.ag-table.ag-theme-bootstrap .ag-column-drop-cell-button:hover {
+.ag-table.ag-theme-alpine .ag-column-drop-cell-button:hover {
 	border-color: transparent;
 	color: #777;
 }
 
-.ag-table.ag-theme-bootstrap .ag-column-drop-cell-button {
+.ag-table.ag-theme-alpine .ag-column-drop-cell-button {
 	border: 0;
 }
 
@@ -136,37 +136,37 @@
  * Theme Style Adjustments 
  *
  **/
-.ag-table.ag-theme-bootstrap .ag-root {
+.ag-table.ag-theme-alpine .ag-root {
     border: 1px solid darkgray;
 }
 
-.ag-table.ag-theme-bootstrap .ag-header {
+.ag-table.ag-theme-alpine .ag-header {
     border-bottom: 1px solid darkgray;
     font-weight: 600;
 }
 
-.ag-table.ag-theme-bootstrap .ag-header-cell {
+.ag-table.ag-theme-alpine .ag-header-cell {
     border-right: 1px solid darkgray;
 }
 
-.ag-table.ag-theme-bootstrap .ag-side-bar .ag-side-buttons .ag-side-button button {
+.ag-table.ag-theme-alpine .ag-side-bar .ag-side-buttons .ag-side-button button {
 	background: transparent;
     border: 0;
     padding: 8px 0 8px 0;
 }
 
-.ag-table.ag-theme-bootstrap .ag-side-bar .ag-side-buttons .ag-selected button {
+.ag-table.ag-theme-alpine .ag-side-bar .ag-side-buttons .ag-selected button {
 	background-color: #f6f6f6;
 }
 
-.ag-table.ag-theme-bootstrap .ag-side-bar {
+.ag-table.ag-theme-alpine .ag-side-bar {
     border-right: 1px solid darkgray;
     border-top: 1px solid darkgray;
     border-bottom: 1px solid darkgray;
 }
 
 /**
-.ag-table.ag-theme-bootstrap .ag-column-drop-horizontal {
+.ag-table.ag-theme-alpine .ag-column-drop-horizontal {
     border-top: 1px solid darkgrey;
     border-left: 1px solid darkgrey;
     border-right: 1px solid darkgrey;
@@ -180,15 +180,15 @@
 }
 
 /* Text color */
-.ag-table.ag-theme-bootstrap,
-.ag-table.ag-theme-bootstrap .ag-menu,
+.ag-table.ag-theme-alpine,
+.ag-table.ag-theme-alpine .ag-menu,
 .ag-table.ag-theme-fresh,
 .ag-table.ag-theme-fresh .ag-menu   {
 	color: #333;
 }
 
 /* Icon color */
-.ag-theme-bootstrap .ag-icon,
+.ag-theme-alpine .ag-icon,
 .ag-theme-fresh .ag-icon,
 .ag-dark .ag-icon {
 	color: #333;

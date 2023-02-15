@@ -28,7 +28,7 @@
 		"responsiveHeight": { "type": "int", "default": 300, "tags": {"doc": "Table's height to be set in a responsive form. When responsiveHeight is set to 0, the table will use 100% height of the parent container"} },
 		"rowHeight" : {"type" : "int", "default": 25, "tags": {"scope": "design", "doc": "The height in pixels of the table's rows"}},
 		"rowStyleClassFunc": { "type": "clientfunction", "tags": {"doc": "Function to add style class to row"}},
-		"styleClass": { "type": "styleclass", "default" : "ag-theme-bootstrap"},
+		"styleClass": { "type": "styleclass", "default" : "ag-theme-alpine"},
 		"visible": "visible",
 		"enableColumnResize": { "type": "boolean", "default": true, "tags": {"scope": "design"}},
 		"enableSorting": { "type": "boolean", "default": true, "tags": {"scope": "design", "doc": "Enable column sorting by clickin on the column's header"}},

@@ -4,7 +4,7 @@
     </label>
 </div>
 <div id="{{ model.svyMarkupId }}" style="height:100%; width:100%; position: relative;" ng-show="model.visible">
-  <div style="height: 100%;" class="ag-table" ng-class="model.styleClass" sablo-tabseq="model.tabSeq"></div>
+  <div style="height: 100%;" class="ag-table" ng-class="model.styleClass === 'ag-theme-alpine' ? 'ag-theme-bootstrap' : model.styleClass" sablo-tabseq="model.tabSeq"></div>
   <!--span ng-if="isGroupView" class="ag-table-info" ng-class="dirtyCache ? 'ag-table-info-notify' : ''" svy-tooltip="model.tooltipTextRefreshData">
       <i ng-class="model.iconRefreshData" svy-click="purge()"/>
   </span -->
