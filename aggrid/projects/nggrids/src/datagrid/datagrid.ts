@@ -2037,7 +2037,7 @@ export class DataGrid extends NGGridDirective {
      * @public
      * Get Foundset in hashMap by UUID
      * */
-    getFoundSetByFoundsetUUID(foundsetHash: any) {
+    getFoundSetByFoundsetUUID(foundsetHash: any): IFoundset {
         // TODO return something else here ?
         if (foundsetHash === 'root') return this.myFoundset;
         if (this.hashedFoundsets) {
@@ -3294,10 +3294,9 @@ export class DataGrid extends NGGridDirective {
     }
 
     getRecord(params: any) {
-        if(params.data) {
-            const foundsetId = params.data['_svyFoundsetUUID'] === 'root' ? this.foundset.foundset['foundsetId']: params.data['_svyFoundsetUUID'];
-            const jsonRecord = {_svyRowId : params.data['_svyRowId'], foundsetId };
-            return jsonRecord;
+        if (params.data) {
+            const foundset = this.getFoundSetByFoundsetUUID(params.data['_svyFoundsetUUID']);
+            return foundset?.getRecordRefByRowID(params.data['_svyRowId']);
         }
         return null;
     }
@@ -5385,7 +5384,7 @@ export class GroupedColumn extends BaseCustomObject {
 }
 
 export class HashedFoundset extends BaseCustomObject {
-    foundset: any;
+    foundset: IFoundset;
     foundsetUUID: any;
     uuid: string;
     columns: GroupedColumn[];
