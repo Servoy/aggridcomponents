@@ -1,7 +1,7 @@
 import { GridOptions, GroupCellRenderer, GetRowIdParams, ColumnMenuTab } from '@ag-grid-community/core';
 import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Inject, Input, Output, Renderer2, SecurityContext, SimpleChanges, ViewChild } from '@angular/core';
 import { BaseCustomObject, Format, FormattingService, ICustomArray } from '@servoy/public';
-import { LoggerFactory, LoggerService } from '@servoy/public';
+import { LoggerFactory } from '@servoy/public';
 import { IconConfig, MainMenuItemsConfig, NGGridDirective, ToolPanelConfig } from '../nggrid';
 import { DatePicker } from '../editors/datepicker';
 import { FormEditor } from '../editors/formeditor';
@@ -128,7 +128,6 @@ export class PowerGrid extends NGGridDirective {
     @Input() _internalAggCustomFuncs: AggFuncInfo[];
 
 
-    log: LoggerService;
     agGridOptions: GridOptions;
     agMainMenuItemsConfig: any;
 
@@ -1557,7 +1556,7 @@ export class PowerGrid extends NGGridDirective {
                 const formatDef = new Format();
                 formatDef.type = formatType;
                 formatDef.display = format.split('|')[0];
-                return params.context.componentParent.formattingService.format(v, formatDef, false);
+                return params.context.componentParent.format(v, formatDef, false);
             }
             return '';
         };

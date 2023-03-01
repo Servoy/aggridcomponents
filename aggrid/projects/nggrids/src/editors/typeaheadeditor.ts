@@ -100,9 +100,9 @@ export class TypeaheadEditor extends EditorDirective {
             this.maxLength = this.format.maxLength;
         }
         if(this.format.edit) {
-            v = this.ngGrid.formattingService.format(v, this.format, true);
+            v = this.ngGrid.format(v, this.format, true);
         } else if(this.format.display) {
-            v = this.ngGrid.formattingService.format(v, this.format, false);
+            v = this.ngGrid.format(v, this.format, false);
         }
     }
     this.initialDisplayValue = v;

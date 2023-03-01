@@ -1,6 +1,6 @@
 import { AgGridAngular } from '@ag-grid-community/angular';
 import { ContentChild, Directive, Input, TemplateRef, ViewChild } from '@angular/core';
-import { BaseCustomObject, FormattingService, ServoyBaseComponent } from '@servoy/public';
+import { BaseCustomObject, Format, FormattingService, LoggerService, ServoyBaseComponent } from '@servoy/public';
 
 @Directive()
 export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement> {
@@ -21,6 +21,7 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
 
     formattingService: FormattingService;
     selectionEvent: any;
+    log: LoggerService;
 
     private destroyed = false;
 
@@ -37,6 +38,15 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
         return setTimeout(() =>  {
             if (!this.destroyed) func();
         } , millis);
+    }
+
+    format(data: any, format: Format, useEditFormat: boolean): any {
+        try {
+            return this.formattingService.format(data, format, useEditFormat);
+        } catch (e) {
+            this.log.warn(e);
+            return data;
+        }
     }
 
     abstract getColumn(field: any, columnsModel?: any): any;

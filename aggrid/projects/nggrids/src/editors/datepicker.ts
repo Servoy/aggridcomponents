@@ -60,7 +60,7 @@ export class DatePicker extends EditorDirective {
 
     format: Format;
 
-    constructor(servoyService: ServoyPublicService,  @Inject(DOCUMENT) private doc: Document, private formattingService: FormattingService,) {
+    constructor(servoyService: ServoyPublicService,  @Inject(DOCUMENT) private doc: Document, private formattingService: FormattingService) {
         super();
         this.config.localization.startOfTheWeek = getFirstDayOfWeek(servoyService.getLocale());
         const lts = DateTimeLuxon.now().setLocale(servoyService.getLocale()).toLocaleString(DateTimeLuxon.DATETIME_FULL).toUpperCase();
@@ -114,7 +114,7 @@ export class DatePicker extends EditorDirective {
     ngAfterViewInit(): void {
         if (this.selectedValue) this.config.viewDate = DateTime.convert(this.selectedValue);
         this.picker = new TempusDominus(this.inputElementRef.nativeElement, this.config);
-        this.picker.dates.formatInput =  (date: DateTime) => this.formattingService.format(date, this.format, false);
+        this.picker.dates.formatInput =  (date: DateTime) => this.ngGrid.format(date, this.format, false);
         this.picker.dates.parseInput =  (value: string) => {
             const parsed = this.formattingService.parse(value?value.trim():null, this.format, true, this.selectedValue);
             if (parsed instanceof Date && !isNaN(parsed.getTime())) return  new DateTime(parsed);

@@ -79,7 +79,7 @@ export class ValuelistFilter extends DatagridFilterDirective {
 
     resultFormatter = (result: {displayValue: string; realValue: any}) => {
       if (result.displayValue === null) return '';
-      return this.dataGrid.formattingService.format(result.displayValue, this.format, false);
+      return this.dataGrid.format(result.displayValue, this.format, false);
     };
 
     inputFormatter = (result: any) => {
@@ -93,7 +93,7 @@ export class ValuelistFilter extends DatagridFilterDirective {
           result = value.displayValue;
         }
       }
-      return this.dataGrid.formattingService.format(result, this.format, false);
+      return this.dataGrid.format(result, this.format, false);
     };
 
     getFilterUIValue(): any {

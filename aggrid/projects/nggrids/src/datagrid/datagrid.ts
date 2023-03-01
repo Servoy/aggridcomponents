@@ -2,7 +2,7 @@ import { GridOptions, GetRowIdParams, IRowDragItem, DndSourceCallbackParams } fr
 import { ChangeDetectionStrategy, ChangeDetectorRef, ElementRef, EventEmitter, Inject, Input, Output, Renderer2, SecurityContext, SimpleChanges } from '@angular/core';
 import { Component, ViewChild } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
-import { LoggerFactory, LoggerService, ChangeType, IFoundset, FoundsetChangeEvent, Deferred, FormattingService, ServoyPublicService, BaseCustomObject } from '@servoy/public';
+import { LoggerFactory, ChangeType, IFoundset, FoundsetChangeEvent, Deferred, FormattingService, ServoyPublicService, BaseCustomObject } from '@servoy/public';
 import { DatagridService } from './datagrid.service';
 import { DatePicker } from '../editors/datepicker';
 import { FormEditor } from '../editors/formeditor';
@@ -148,7 +148,6 @@ export class DataGrid extends NGGridDirective {
     // used in HTML template to toggle sync button
     @Output() isGroupView = false;
 
-    log: LoggerService;
     agGridOptions: GridOptions;
     foundset: FoundsetManager;
     groupManager: GroupManager;
@@ -936,7 +935,7 @@ export class DataGrid extends NGGridDirective {
             const column = dataGrid.getColumn(params.column.colId);
 
             if (column && column.format ) {
-                value = dataGrid.formattingService.format(value, column.format, false);
+                value = dataGrid.format(value, column.format, false);
             }
         }
 
