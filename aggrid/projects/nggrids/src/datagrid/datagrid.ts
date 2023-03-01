@@ -63,7 +63,8 @@ const COLUMN_KEYS_TO_CHECK_FOR_CHANGES = [
     'enableToolPanel',
     'autoResize',
     'editType',
-    'id'
+    'id',
+    'columnDef'
 ];
 
 const COLUMN_KEYS_TO_SKIP_IN_CHANGES = [

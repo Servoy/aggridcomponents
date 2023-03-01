@@ -59,7 +59,8 @@ const COLUMN_KEYS_TO_CHECK_FOR_CHANGES = [
     'enableToolPanel',
     'autoResize',
     'editType',
-    'id'
+    'id',
+    'columnDef'
 ];
 
 @Component({
