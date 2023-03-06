@@ -3648,7 +3648,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 									}
 								}
 							}
-						});
+						}, property === 'footerText');
 						return columnWatch;
 					}
 
@@ -5451,10 +5451,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						var resultData = {}
 						for (var i = 0; $scope.model.columns && i < $scope.model.columns.length; i++) {
 							var column = $scope.model.columns[i];
-							if (column.footerText) {
+							if (column.footerText && column.footerText.length) {
 								var	colId = getColumnID(column, i);
 								if (colId) {
-									resultData[colId] = column.footerText;
+									resultData[colId] = column.footerText[0];
 									hasFooterData = true;
 								}
 								

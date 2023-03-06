@@ -796,7 +796,11 @@ export class DataGrid extends NGGridDirective {
                                         const oldPropertyValue = this.previousColumns &&
                                             i < this.previousColumns.length ? this.previousColumns[i][prop] : null;
                                         const newPropertyValue = change.currentValue[i][prop];
-                                        if(newPropertyValue !== oldPropertyValue) {
+                                        let columnPropertyChanged = newPropertyValue !== oldPropertyValue;
+                                        if(!columnPropertyChanged && newPropertyValue && prop === 'footerText') {
+                                            columnPropertyChanged = true;
+                                        }
+                                        if(columnPropertyChanged) {
                                             this.log.debug('column property changed');
                                             if(this.isGridReady) {
                                                 if(prop !== 'footerText' && prop !== 'headerTitle' && prop !== 'visible' && prop !== 'width') {
@@ -2699,10 +2703,10 @@ export class DataGrid extends NGGridDirective {
         const resultData = {};
         for (let i = 0; this.columns && i < this.columns.length; i++) {
             const column = this.columns[i];
-            if (column.footerText) {
+            if (column.footerText && column.footerText.length) {
                 const	colId = this.getColumnID(column, i);
                 if (colId) {
-                    resultData[colId] = column.footerText;
+                    resultData[colId] = column.footerText[0];
                     hasFooterData = true;
                 }
 

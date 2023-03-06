@@ -438,7 +438,7 @@
 	},
 	"types" : {
 		"column" : {
-			"footerText" : {"type" : "tagstring"},
+			"footerText" : {"type" : "tagstring", "forFoundset": "myFoundset"},
 			"headerTitle": {"type" : "titlestring", "for": "dataprovider", "tags": { "wizard": "4", "useAsCaptionInDeveloper" : true, "captionPriority" : 1, "showInOutlineView": true }},
 			"footerStyleClass" : {"type" : "styleclass"},
 			"headerStyleClass" : {"type" : "styleclass"},
