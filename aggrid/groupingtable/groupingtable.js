@@ -3516,6 +3516,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						gridOptions.api.purgeServerSideCache();
 						isRenderedAndSelectionReady = false;
 						scrollToSelectionWhenSelectionReady = true;
+                        columnsToFitAfterRowsRendered = true;
 					}
 
 					/**************************************************************************************************

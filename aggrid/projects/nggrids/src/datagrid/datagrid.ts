@@ -1042,6 +1042,7 @@ export class DataGrid extends NGGridDirective {
         this.agGrid.api.refreshServerSide({purge: true});
         this.isRenderedAndSelectionReady = false;
         this.scrollToSelectionWhenSelectionReady = true;
+        this.columnsToFitAfterRowsRendered = true;
     }
 
     getMainMenuItems(params: any) {
