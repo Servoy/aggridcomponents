@@ -224,8 +224,8 @@
 		"onDrop": {
 			"doc": "Called when a row is dropped as a result of a drag-n-drop",
 			"parameters": [{
-				"name": "sourceRecord",
-				"type": "record"
+				"name": "sourceRecords",
+				"type": "record[]"
 			}, {
 				"name": "targetRecord",
 				"type": "record"

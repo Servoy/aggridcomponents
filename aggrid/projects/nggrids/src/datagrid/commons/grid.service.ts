@@ -9,9 +9,9 @@ export class GridService {
     public columnOptions: any;
     public mainMenuItemsConfig: any;
 
-    private dragData: any;
+    private dragData: any[];
 
-    setDragData(dragData: any) {
+    setDragData(dragData: any[]) {
       this.dragData = dragData;
     }
 

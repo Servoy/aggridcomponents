@@ -1,4 +1,4 @@
-import { GridOptions, GetRowIdParams, IRowDragItem, DndSourceCallbackParams } from '@ag-grid-community/core';
+import { GridOptions, GetRowIdParams, IRowDragItem, DndSourceCallbackParams, IRowNode } from '@ag-grid-community/core';
 import { ChangeDetectionStrategy, ChangeDetectorRef, ElementRef, EventEmitter, Inject, Input, Output, Renderer2, SecurityContext, SimpleChanges } from '@angular/core';
 import { Component, ViewChild } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
@@ -1202,19 +1202,30 @@ export class DataGrid extends NGGridDirective {
 
             if(colDef.dndSource) {
                 colDef.dndSourceOnRowDrag = (params) => {
-                    const rowData = params.rowNode.data || Object.assign(params.rowNode.groupData, params.rowNode.aggData);
-                    const dragData = {};
-                    for( const p in rowData) {
-                        if(rowData.hasOwnProperty(p)) {
-                            const col = this.getColumn(p);
-                            if(col) {
-                                dragData[col.id ? col.id : p] = rowData[p];
+                    const dragDatas = [];
+                    const records = [];
+
+                    const selectedNodes = this.agGrid.api.getSelectedNodes();
+                    const rowDatas = selectedNodes.indexOf(params.rowNode) === -1 ? [params.rowNode] : selectedNodes;
+                    rowDatas.forEach(row => {
+                        const rowData = row.data || Object.assign(row.groupData, row.aggData);
+                        const dragData = {};
+                        for( const p in rowData) {
+                            if(rowData.hasOwnProperty(p)) {
+                                const col = this.getColumn(p);
+                                if(col) {
+                                    dragData[col.id ? col.id : p] = rowData[p];
+                                }
                             }
                         }
-                    }
-                    this.datagridService.setDragData(dragData);
-                    const record = this.getRecord(params.rowNode);
-                    params.dragEvent.dataTransfer.setData('nggrids-record/json', JSON.stringify(record));
+                        dragDatas.push(dragData);
+                        records.push(this.getRecord(row));
+                    });
+
+                    this.datagridService.setDragData(dragDatas);
+                    // TODO: customize drag item UI
+                    //params.dragEvent.dataTransfer.setDragImage
+                    params.dragEvent.dataTransfer.setData('nggrids-record/json', JSON.stringify(records));
                 };
             }
 
@@ -3861,8 +3872,8 @@ export class DataGrid extends NGGridDirective {
         if(this.onDrop) {
             const targetNode = this.getNodeForElement($event.target);
             const jsonData = $event.dataTransfer.getData('nggrids-record/json');
-            const record = JSON.parse(jsonData);
-            this.onDrop(record, targetNode ? this.getRecord(targetNode) : null, $event);
+            const records = JSON.parse(jsonData);
+            this.onDrop(records, targetNode ? this.getRecord(targetNode) : null, $event);
         }
     }
 

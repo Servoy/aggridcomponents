@@ -252,7 +252,7 @@
 			"doc": "Called when a row is dropped as a result of a drag-n-drop",
 			"parameters": [{
 				"name": "sourceRow",
-				"type": "object"
+				"type": "object[]"
 			}, {
 				"name": "targetRow",
 				"type": "object"

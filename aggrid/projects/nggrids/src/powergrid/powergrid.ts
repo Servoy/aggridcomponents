@@ -818,9 +818,19 @@ export class PowerGrid extends NGGridDirective {
 
                 if(colDef.dndSource) {
                     colDef.dndSourceOnRowDrag = (params) => {
-                        const rowData = params.rowNode.data || Object.assign(params.rowNode.groupData, params.rowNode.aggData);
-                        this.powergridService.setDragData(rowData);
-                        params.dragEvent.dataTransfer.setData('nggrids/json', JSON.stringify(rowData));
+                        const dragDatas = [];
+
+                        const selectedNodes = this.agGrid.api.getSelectedNodes();
+                        const rowDatas = selectedNodes.indexOf(params.rowNode) === -1 ? [params.rowNode] : selectedNodes;
+                        rowDatas.forEach(row => {
+                            const rowData = row.data || Object.assign(row.groupData, row.aggData);
+                            dragDatas.push(rowData);
+                        });
+
+                        this.powergridService.setDragData(dragDatas);
+                        // TODO: customize drag item UI
+                        //params.dragEvent.dataTransfer.setDragImage
+                        params.dragEvent.dataTransfer.setData('nggrids/json', JSON.stringify(dragDatas));
                     };
                 }
 
@@ -1946,9 +1956,9 @@ export class PowerGrid extends NGGridDirective {
         if(this.onDrop) {
             const targetNode = this.getNodeForElement($event.target);
             const jsonData = $event.dataTransfer.getData('nggrids/json');
-            const rowData = JSON.parse(jsonData);
+            const rowDatas = JSON.parse(jsonData);
             const overRowData = targetNode ? (targetNode.data || Object.assign(targetNode.groupData, targetNode.aggData)) : null;
-            this.onDrop(rowData, overRowData, $event);
+            this.onDrop(rowDatas, overRowData, $event);
         }
     }
 
