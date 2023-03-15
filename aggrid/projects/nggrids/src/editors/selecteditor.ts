@@ -28,6 +28,10 @@ export class SelectEditor extends EditorDirective {
         e.stopPropagation();
     }
 
+    @HostListener('dblclick', ['$event']) onDblClick(e: MouseEvent) {
+        e.stopPropagation();
+    }
+
     agInit(params: ICellEditorParams): void {
         super.agInit(params);
 

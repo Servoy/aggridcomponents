@@ -2538,6 +2538,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								event.stopPropagation();
 							};
 							this.eSelect.addEventListener('mousedown', this.mouseListener);
+							this.eSelect.addEventListener('dblclick', this.mouseListener);
 						}
 
 						// gets called once when grid ready to insert the element
@@ -2558,6 +2559,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						SelectEditor.prototype.destroy = function() {
 							this.eSelect.removeEventListener('keydown', this.keyListener);
 							this.eSelect.removeEventListener('mousedown', this.mouseListener);
+							this.eSelect.removeEventListener('dblclick', this.mouseListener);
 						};
 
 						return SelectEditor;
