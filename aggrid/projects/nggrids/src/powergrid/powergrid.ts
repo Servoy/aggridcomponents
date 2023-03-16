@@ -1246,6 +1246,10 @@ export class PowerGrid extends NGGridDirective {
 
     onCellDoubleClicked(params: any) {
         if(this.enabled) {
+            const currentEditCells = this.agGrid.api.getEditingCells();
+            if(currentEditCells.length !== 0) {
+                this.agGrid.api.stopEditing();
+            }
             const rowData = params.data || Object.assign(params.node.groupData, params.node.aggData);
             if (this.onCellDoubleClick && rowData) {
                 this.onCellDoubleClick(rowData, params.colDef.colId !== undefined ? params.colDef.colId : params.colDef.field, params.value, params.event);

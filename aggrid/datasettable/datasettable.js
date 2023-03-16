@@ -1316,6 +1316,10 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                      * */
                     function onCellDoubleClicked(params) {
                         if($scope.model.enabled) {
+							var currentEditCells = gridOptions.api.getEditingCells();
+							if(currentEditCells.length != 0) {
+								gridOptions.api.stopEditing();
+							}                            
                             var rowData = params.data || Object.assign(params.node.groupData, params.node.aggData);
                             if ($scope.handlers.onCellDoubleClick && rowData) {
                                 $scope.handlers.onCellDoubleClick(rowData, params.colDef.colId != undefined ? params.colDef.colId : params.colDef.field, params.value, params.event);
