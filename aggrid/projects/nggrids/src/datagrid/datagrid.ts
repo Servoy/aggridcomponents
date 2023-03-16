@@ -3104,6 +3104,10 @@ export class DataGrid extends NGGridDirective {
 
     onCellDoubleClicked(params: any) {
         if(this.enabled) {
+            const currentEditCells = this.agGrid.api.getEditingCells();
+            if(currentEditCells.length !== 0) {
+                this.agGrid.api.stopEditing();
+            }
             // need timeout because the selection is also in a 250ms timeout
             this.setTimeout(() => {
                 this.onCellDoubleClickedEx(params);

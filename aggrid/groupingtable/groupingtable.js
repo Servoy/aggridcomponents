@@ -1334,6 +1334,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					 * */
 					function onCellDoubleClicked(params) {
 						if($scope.model.enabled) {
+							var currentEditCells = gridOptions.api.getEditingCells();
+							if(currentEditCells.length != 0) {
+								gridOptions.api.stopEditing();
+							}							
 							// need timeout because the selection is also in a 250ms timeout
 							setTimeout(function() {
 								onCellDoubleClickedEx(params);
@@ -2538,7 +2542,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								event.stopPropagation();
 							};
 							this.eSelect.addEventListener('mousedown', this.mouseListener);
-							this.eSelect.addEventListener('dblclick', this.mouseListener);
 						}
 
 						// gets called once when grid ready to insert the element
@@ -2559,7 +2562,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						SelectEditor.prototype.destroy = function() {
 							this.eSelect.removeEventListener('keydown', this.keyListener);
 							this.eSelect.removeEventListener('mousedown', this.mouseListener);
-							this.eSelect.removeEventListener('dblclick', this.mouseListener);
 						};
 
 						return SelectEditor;
