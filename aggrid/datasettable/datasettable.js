@@ -1316,9 +1316,12 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                      * */
                     function onCellDoubleClicked(params) {
                         if($scope.model.enabled) {
+                            // ignore dblclick handler while editing, because it is the
+							// default trigger for start editing and/or can be used by the editor
+							// like texteditor, for selection
 							var currentEditCells = gridOptions.api.getEditingCells();
-							if(currentEditCells.length != 0) {
-								gridOptions.api.stopEditing();
+							if(currentEditCells.length > 0) {
+								return;
 							}                            
                             var rowData = params.data || Object.assign(params.node.groupData, params.node.aggData);
                             if ($scope.handlers.onCellDoubleClick && rowData) {

@@ -3104,9 +3104,12 @@ export class DataGrid extends NGGridDirective {
 
     onCellDoubleClicked(params: any) {
         if(this.enabled) {
+            // ignore dblclick handler while editing, because it is the
+            // default trigger for start editing and/or can be used by the editor
+            // like texteditor, for selection
             const currentEditCells = this.agGrid.api.getEditingCells();
-            if(currentEditCells.length !== 0) {
-                this.agGrid.api.stopEditing();
+            if(currentEditCells.length > 0) {
+                return;
             }
             // need timeout because the selection is also in a 250ms timeout
             this.setTimeout(() => {

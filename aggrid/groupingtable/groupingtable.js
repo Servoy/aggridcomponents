@@ -1334,9 +1334,12 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					 * */
 					function onCellDoubleClicked(params) {
 						if($scope.model.enabled) {
+							// ignore dblclick handler while editing, because it is the
+							// default trigger for start editing and/or can be used by the editor
+							// like texteditor, for selection
 							var currentEditCells = gridOptions.api.getEditingCells();
-							if(currentEditCells.length != 0) {
-								gridOptions.api.stopEditing();
+							if(currentEditCells.length > 0) {
+								return;
 							}							
 							// need timeout because the selection is also in a 250ms timeout
 							setTimeout(function() {
