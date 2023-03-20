@@ -405,6 +405,8 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 if($scope.model.rowStyleClassFunc) {
                     var rowStyleClassFunc = eval($scope.model.rowStyleClassFunc);
                     gridOptions.getRowClass = function(params) {
+                        // skip pinned (footer) nodes
+						if(params.node.rowPinned) return "";
                         var rowData = params.data || Object.assign(params.node.groupData, params.node.aggData);
                         return rowStyleClassFunc(params.rowIndex, rowData, params.event, params.node.group);
                     };
@@ -420,6 +422,11 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
 
                 if($scope.model._internalAggCustomFuncs) {
                     gridOptions.aggFuncs = getAggCustomFuncs();
+                }
+
+                var gridFooterData = getFooterData();
+                if (gridFooterData) {
+                    gridOptions.pinnedBottomRowData = gridFooterData;
                 }
 
                 initializeIconConfig(iconConfig);
@@ -590,6 +597,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                             "headerTitle",
                             "headerStyleClass",
                             "headerTooltip",
+                            "footerText",
                             "styleClass",
                             "visible",
                             "width",
@@ -624,7 +632,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                         if(newValue != oldValue) {
                             $log.debug('column property changed');
                             if(isGridReady) {
-                                if(property != "headerTitle" && property != "visible" && property != "width") {
+                                if(property != "footerText" && property != "headerTitle" && property != "visible" && property != "width") {
                                     updateColumnDefs();
                                     if(property != "enableToolPanel") {
                                         restoreColumnsState();
@@ -634,6 +642,9 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
 
                             if(property == "headerTitle") {
                                 handleColumnHeaderTitle(index, newValue, oldValue);
+                            }
+                            else if (property == "footerText") {
+                                handleColumnFooterText(newValue, oldValue);
                             }
 							else if(property == "visible" || property == "width") {
                                 // column id is either the id of the column
@@ -707,6 +718,28 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     gridOptions.api.refreshHeader();
                     sizeHeader();
                 }
+
+                function handleColumnFooterText(newValue, oldValue) {
+                    $log.debug('footer text column property changed');
+                    gridOptions.api.setPinnedBottomRowData(getFooterData());
+                }
+                
+                function getFooterData() {
+                    var result = [];
+                    var hasFooterData = false;
+                    var resultData = {}
+                    for (var i = 0; $scope.model.columns && i < $scope.model.columns.length; i++) {
+                        var column = $scope.model.columns[i];
+                        if (column.footerText && column.dataprovider) {
+                            resultData[column.dataprovider] = column.footerText;
+                            hasFooterData = true;
+                        }
+                    }
+                    if (hasFooterData) {
+                        result.push(resultData)
+                    }
+                    return result;
+                }                
 
                 /**
                  * Update header height based on cells content height
@@ -964,6 +997,12 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
 
                         if(column.cellStyleClassFunc) {
                             colDef.cellClass = createColumnCallbackFunctionFromString(column.cellStyleClassFunc);
+                        } else if(column.footerStyleClass) {
+                            var defaultCellClass = colDef.cellClass;
+                            var footerCellClass = defaultCellClass.concat(column.footerStyleClass.split(' '));
+                            colDef.cellClass = function(params) {
+                                return params.node && params.node.rowPinned == 'bottom' ? footerCellClass : defaultCellClass;
+                            }
                         }
 
                         if(column.cellRendererFunc) {
@@ -1074,6 +1113,8 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 }
 
                 function isColumnEditable(args) {
+                    // skip pinned (footer) nodes
+					if(args.node.rowPinned) return false;
                     if($scope.model.enabled && !$scope.model.readOnly) {
                         if(isEditableFunc) {
                             return isEditableFunc(args);
@@ -1156,7 +1197,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 function createColumnCallbackFunctionFromString(functionAsString) {
                     var f = eval(functionAsString);
                     return function(params) {
-                        return f(params.rowIndex, params.data, params.colDef.colId != undefined ? params.colDef.colId : params.colDef.field, params.value);
+                        return f(params.rowIndex, params.data, params.colDef.colId != undefined ? params.colDef.colId : params.colDef.field, params.value, params);
                     };                
                 }
 
@@ -1293,18 +1334,25 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     var clickTimer;
                     function cellClickHandler(params) {
                         if($scope.model.enabled) {
-                            if ($scope.handlers.onCellDoubleClick) {
-                                if (clickTimer) {
-                                    clearTimeout(clickTimer);
-                                    clickTimer = null;
+							if(params.node.rowPinned) {
+								if (params.node.rowPinned == "bottom" && $scope.handlers.onFooterClick) {
+									var columnIndex = getColumnIndex(params.column.colId);
+									$scope.handlers.onFooterClick(columnIndex, params.event);
+								}
+							} else {
+                                if ($scope.handlers.onCellDoubleClick) {
+                                    if (clickTimer) {
+                                        clearTimeout(clickTimer);
+                                        clickTimer = null;
+                                    } else {
+                                        clickTimer = setTimeout(function() {
+                                                clickTimer = null;
+                                                onCellClicked(params);
+                                            }, 250);
+                                    }
                                 } else {
-                                    clickTimer = setTimeout(function() {
-                                            clickTimer = null;
-                                            onCellClicked(params);
-                                        }, 250);
+                                    onCellClicked(params);
                                 }
-                            } else {
-                                onCellClicked(params);
                             }
                         }
                     }

@@ -260,7 +260,19 @@
 				"name": "event",
 				"type": "JSEvent"
 			}]
-		}		
+		},
+		"onFooterClick": {
+			"doc": "Called when the mouse is clicked on a footer cell",
+			"parameters": [{
+				"name": "columnindex",
+				"type": "int",
+				"optional": true
+			}, {
+				"name": "event",
+				"type": "JSEvent",
+				"optional": true
+			}]
+		}
 	}, 
 	"api" : {
 		"renderData": {
@@ -400,6 +412,8 @@
     },	
 	"types" : {
 		"column" : {
+			"footerText" : {"type" : "tagstring"},
+			"footerStyleClass" : {"type" : "styleclass"},
 			"headerGroup": {"type" : "tagstring", "tags": {"doc": "Header group, that this column will be part of"}},
 			"headerGroupStyleClass" : {"type" : "styleclass"},
 			"headerTitle": {"type" : "tagstring", "tags": { "useAsCaptionInDeveloper" : true, "captionPriority" : 1, "showInOutlineView": true }},
