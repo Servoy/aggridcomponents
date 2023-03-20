@@ -62,7 +62,7 @@ export class DatePicker extends EditorDirective {
 
     constructor(servoyService: ServoyPublicService,  @Inject(DOCUMENT) private doc: Document, private formattingService: FormattingService) {
         super();
-        this.config.localization.startOfTheWeek = getFirstDayOfWeek(servoyService.getLocale());
+        this.config.localization.startOfTheWeek = getFirstDayOfWeek(servoyService.getLocaleObject() ? servoyService.getLocaleObject().full : servoyService.getLocale());
         const lts = DateTimeLuxon.now().setLocale(servoyService.getLocale()).toLocaleString(DateTimeLuxon.DATETIME_FULL).toUpperCase();
         this.config.display.components.useTwentyfourHour = lts.indexOf('AM') >= 0 || lts.indexOf('PM') >= 0;
         this.config.localization.locale = servoyService.getLocale();
