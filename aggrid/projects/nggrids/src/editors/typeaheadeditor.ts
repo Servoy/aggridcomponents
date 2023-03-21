@@ -69,7 +69,7 @@ export class TypeaheadEditor extends EditorDirective {
       this.width = params.column.actualWidth;
     }
 
-    const valuelist = this.ngGrid.getValuelist(params);
+    let valuelist = this.ngGrid.getValuelist(params);
     if (valuelist) {
       valuelist.filterList('').subscribe((valuelistValues: any) => {
         this.valuelistValues = valuelistValues;
@@ -84,7 +84,31 @@ export class TypeaheadEditor extends EditorDirective {
         // make sure initial value has the "realValue" set, so when oncolumndatachange is called
         // the previous value has the "realValue"
         if(hasRealValues && params.value && (params.value['realValue'] === undefined)) {
-          params.node['data'][params.column.colDef['field']] = {realValue: params.value, displayValue: params.value};
+          let rv = params.value;
+          let rvFound = false;
+          for (const item of valuelistValues) {
+            if (item.displayValue === params.value) {
+              rv = item.realValue;
+              rvFound = true;
+              break;
+            }
+          }
+          // it could be the valuelist does not have all the entries on the client
+          // try to get the entry using a filter call to the server
+          if(!rvFound) {
+            valuelist = this.ngGrid.getValuelist(params);
+            valuelist.filterList(params.value).subscribe((valuelistWithInitialValue: any) => {
+              for (const item of valuelistWithInitialValue) {
+                if (item.displayValue === params.value) {
+                  rv = item.realValue;
+                  break;
+                }
+              }
+              params.node['data'][params.column.colDef['field']] = {realValue: rv, displayValue: params.value};
+            });
+          } else {
+            params.node['data'][params.column.colDef['field']] = {realValue: rv, displayValue: params.value};
+          }
         }
       });
     }
