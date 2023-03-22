@@ -5291,14 +5291,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 									}
 								}
 								
-								if ($scope.model.rowStyleClassDataprovider){
+								var editCells = gridOptions.api.getEditingCells();
+								if ($scope.model.rowStyleClassDataprovider && editCells.length < 1){
 								    // need to refresh row 
 								    isRowChanged = true;
 								}
 
 								if(isRowChanged || styleClassDPColumns.length) {
 									// find first editing cell for the updating row
-									var editCells = gridOptions.api.getEditingCells();
 									var editingColumnId = null;
 									for(var i = 0; i < editCells.length; i++) {
 										if(index == editCells[i].rowIndex) {

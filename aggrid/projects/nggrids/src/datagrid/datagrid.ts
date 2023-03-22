@@ -1845,14 +1845,14 @@ export class DataGrid extends NGGridDirective {
                     }
                 }
 
-                if (this.rowStyleClassDataprovider){
+                const editCells = this.agGrid.api.getEditingCells();
+                if (this.rowStyleClassDataprovider && editCells.length < 1){
                     // need to refresh row
                     isRowChanged = true;
                 }
 
                 if(isRowChanged || styleClassDPColumns.length) {
                     // find first editing cell for the updating row
-                    const editCells = this.agGrid.api.getEditingCells();
                     let editingColumnId = null;
                     for(const editCell of editCells) {
                         if(index === editCell.rowIndex) {
