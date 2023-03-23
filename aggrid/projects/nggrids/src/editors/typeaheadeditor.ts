@@ -141,7 +141,9 @@ export class TypeaheadEditor extends EditorDirective {
       let valuelistObs: Observable<readonly any[]>;
       if(valuelist) {
         valuelistObs = valuelist.filterList(term);
-        valuelistObs.subscribe(valuelistValues => this.valuelistValues = valuelistValues);
+        valuelistObs.subscribe(
+            valuelistValues => this.valuelistValues = valuelistValues
+        );
       } else {
         valuelistObs = of([]);
       }
