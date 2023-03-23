@@ -6489,22 +6489,27 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					 * @param columnindex column index in the model of the editing cell (0-based)
 					 */
 					$scope.api.requestFocus = function(columnindex) {
-						if(isTableGrouped()) {
-							requestFocusColumnIndex = -1;
-							$log.warn('requestFocus API is not supported in grouped mode');
-						} else if(columnindex < 0 || columnindex > $scope.model.columns.length - 1) {
+						if(columnindex < 0 || columnindex > $scope.model.columns.length - 1) {
 							requestFocusColumnIndex = -1;
 							$log.warn('requestFocus API, invalid columnindex:' + columnindex);
 						} else {
-							
 							// if is not ready to request focus, wait for the row to be rendered
 							if (isRenderedAndSelectionReady) {
-								if ($scope.model.myFoundset && $scope.model.myFoundset.viewPort.size && $scope.model.myFoundset.selectedRowIndexes.length ) {								
-									var column = $scope.model.columns[columnindex];
-									var rowIndex = $scope.model.myFoundset.selectedRowIndexes[0];
-									var	colId = column.id ? column.id : getColumnID(column, columnindex);
-									gridOptions.api.setFocusedCell(rowIndex, colId, null);
-									
+								var column = $scope.model.columns[columnindex];
+								var	colId = column.id ? column.id : getColumnID(column, columnindex);
+								var rowIdx = -1;
+
+								if(isTableGrouped()) {
+									var selectedNodes = gridOptions.api.getSelectedNodes();
+									if(selectedNodes && selectedNodes.length) {
+										rowIdx = selectedNodes[0].rowIndex;
+									}
+								} else if ($scope.model.myFoundset && $scope.model.myFoundset.viewPort.size && $scope.model.myFoundset.selectedRowIndexes.length ) {								
+									rowIdx = $scope.model.myFoundset.selectedRowIndexes[0];									
+								}
+
+								if(rowIdx != -1) {
+									gridOptions.api.setFocusedCell(rowIdx, colId, null);
 									// reset the request focus column index
 									requestFocusColumnIndex = -1;
 								}

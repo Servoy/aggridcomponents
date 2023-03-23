@@ -3730,22 +3730,27 @@ export class DataGrid extends NGGridDirective {
      * @param columnindex column index in the model of the editing cell (0-based)
      */
     requestFocus(columnindex: any) {
-        if(this.isTableGrouped()) {
-            this.requestFocusColumnIndex = -1;
-            this.log.warn('requestFocus API is not supported in grouped mode');
-        } else if(columnindex < 0 || columnindex > this.columns.length - 1) {
+        if(columnindex < 0 || columnindex > this.columns.length - 1) {
             this.requestFocusColumnIndex = -1;
             this.log.warn('requestFocus API, invalid columnindex:' + columnindex);
         } else {
-
             // if is not ready to request focus, wait for the row to be rendered
             if (this.isRenderedAndSelectionReady) {
-                if (this.myFoundset && this.myFoundset.viewPort.size && this.myFoundset.selectedRowIndexes.length ) {
-                    const column = this.columns[columnindex];
-                    const rowIndex = this.myFoundset.selectedRowIndexes[0];
-                    const	colId = column.id ? column.id : this.getColumnID(column, columnindex);
-                    this.agGrid.api.setFocusedCell(rowIndex, colId, null);
+                const column = this.columns[columnindex];
+                const	colId = column.id ? column.id : this.getColumnID(column, columnindex);
+                let rowIdx = -1;
 
+                if(this.isTableGrouped()) {
+                    const selectedNodes = this.agGrid.api.getSelectedNodes();
+                    if(selectedNodes && selectedNodes.length) {
+                        rowIdx = selectedNodes[0].rowIndex;
+                    }
+                } else if (this.myFoundset && this.myFoundset.viewPort.size && this.myFoundset.selectedRowIndexes.length ) {
+                    rowIdx = this.myFoundset.selectedRowIndexes[0];
+                }
+
+                if(rowIdx !== -1) {
+                    this.agGrid.api.setFocusedCell(rowIdx, colId, null);
                     // reset the request focus column index
                     this.requestFocusColumnIndex = -1;
                 }
