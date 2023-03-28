@@ -158,13 +158,17 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						// reset root foundset
 						foundset.foundset = $scope.model.myFoundset;
 
-						var currentEditCells = gridOptions.api.getEditingCells();
-						if(currentEditCells.length != 0) {
-							startEditFoundsetIndex = currentEditCells[0].rowIndex + 1;
-							startEditColumnIndex = getColumnIndex(currentEditCells[0].column.colId);
-						}
+                        if(gridOptions.api) {
+                            var currentEditCells = gridOptions.api.getEditingCells();
+                            if(currentEditCells.length != 0) {
+                                startEditFoundsetIndex = currentEditCells[0].rowIndex + 1;
+                                startEditColumnIndex = getColumnIndex(currentEditCells[0].column.colId);
+                            }
+                        }
 
-						gridOptions.api.purgeServerSideCache();
+                        if(gridOptions.api) {
+						    gridOptions.api.purgeServerSideCache();
+                        }
 						$scope.dirtyCache = false;
 						isRenderedAndSelectionReady = false;
 						scrollToSelectionWhenSelectionReady = true;
@@ -5149,6 +5153,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 					function scrollToSelection(foundsetManager)
 					{
+                        if(!gridOptions.api) {
+                            return;
+                        }
+
 						// don't do anything if there is no columns
 						if (!$scope.model.columns || !$scope.model.columns.length) {
 							return;
