@@ -13,7 +13,7 @@
     "@angular/cdk": "<16",
     "@ng-bootstrap/ng-bootstrap": "<15",
     "@popperjs/core": "<3",
-    "@eonasdan/tempus-dominus": "6.2.10",
+    "@eonasdan/tempus-dominus": "<6.5.0",
     "bootstrap": "<6",
     "@ag-grid-enterprise/column-tool-panel": "29.2.0",
     "@ag-grid-enterprise/filter-tool-panel": "29.2.0",
