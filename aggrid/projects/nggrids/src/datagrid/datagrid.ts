@@ -1,4 +1,4 @@
-import { GridOptions, GetRowIdParams, IRowDragItem, DndSourceCallbackParams, IRowNode } from '@ag-grid-community/core';
+import { GridOptions, GetRowIdParams, IRowDragItem, DndSourceCallbackParams, IRowNode, ColumnResizedEvent } from '@ag-grid-community/core';
 import { ChangeDetectionStrategy, ChangeDetectorRef, ElementRef, EventEmitter, Inject, Input, Output, Renderer2, SecurityContext, SimpleChanges } from '@angular/core';
 import { Component, ViewChild } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
@@ -459,14 +459,21 @@ export class DataGrid extends NGGridDirective {
                     this.onSortHandler();
                 }
             },
-            onColumnResized: (e) => {
+            onColumnResized: (e: ColumnResizedEvent) => {
                 if(this.continuousColumnsAutoSizing && e.source === 'uiColumnDragged') {
                     if(this.sizeHeaderAndColumnsToFitTimeout !== null) {
                         clearTimeout(this.sizeHeaderAndColumnsToFitTimeout);
                     }
                     this.sizeHeaderAndColumnsToFitTimeout = this.setTimeout(() => {
                         this.sizeHeaderAndColumnsToFitTimeout = null;
+                        // agGrid.api.sizeColumnsToFit from sizeHeaderAndColumnsToFit uses the width from
+                        // the column def instead of the actual width to calculate the layout, so set it
+                        // during the call and then reset it at the end
+                        const columnSetWidth = e.column.getColDef().width;
+                        e.column.getColDef().width = e.column.getActualWidth();
                         this.sizeHeaderAndColumnsToFit();
+                        if(columnSetWidth === undefined) delete e.column.getColDef().width;
+                        else e.column.getColDef().width = columnSetWidth;
                         this.storeColumnsState();
                     }, 500);
                 } else {

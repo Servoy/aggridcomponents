@@ -1,4 +1,4 @@
-import { GridOptions, GroupCellRenderer, GetRowIdParams, ColumnMenuTab } from '@ag-grid-community/core';
+import { GridOptions, GroupCellRenderer, GetRowIdParams, ColumnMenuTab, ColumnResizedEvent } from '@ag-grid-community/core';
 import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Inject, Input, Output, Renderer2, SecurityContext, SimpleChanges, ViewChild } from '@angular/core';
 import { BaseCustomObject, Format, FormattingService, ICustomArray } from '@servoy/public';
 import { LoggerFactory } from '@servoy/public';
@@ -324,14 +324,21 @@ export class PowerGrid extends NGGridDirective {
             //                onFilterChanged: storeColumnsState,			 disable filter sets for now
             //                onColumnVisible: storeColumnsState,			 covered by onDisplayedColumnsChanged
             //                onColumnPinned: storeColumnsState,			 covered by onDisplayedColumnsChanged
-            onColumnResized: (e) => {   // NOT covered by onDisplayedColumnsChanged
+            onColumnResized: (e: ColumnResizedEvent) => {   // NOT covered by onDisplayedColumnsChanged
                 if(this.continuousColumnsAutoSizing && e.source === 'uiColumnDragged') {
                     if(this.sizeColumnsToFitTimeout !== null) {
                         clearTimeout(this.sizeColumnsToFitTimeout);
                     }
                     this.sizeColumnsToFitTimeout = this.setTimeout(() => {
                         this.sizeColumnsToFitTimeout = null;
+                        // agGrid.api.sizeColumnsToFit from sizeHeaderAndColumnsToFit uses the width from
+                        // the column def instead of the actual width to calculate the layout, so set it
+                        // during the call and then reset it at the end
+                        const columnSetWidth = e.column.getColDef().width;
+                        e.column.getColDef().width = e.column.getActualWidth();
                         this.sizeColumnsToFit();
+                        if(columnSetWidth === undefined) delete e.column.getColDef().width;
+                        else e.column.getColDef().width = columnSetWidth;
                         this.storeColumnsState();
                     }, 500);
                 } else {
