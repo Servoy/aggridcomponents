@@ -153,8 +153,8 @@ export class TypeaheadEditor extends EditorDirective {
 
   // focus and select can be done after the gui is attached
   ngAfterViewInit(): void {
-    const editFormat = this.format.edit ? this.format.edit : this.format.display;
-    if(this.format && editFormat && this.format.isMask) {
+    const editFormat = this.format?.edit ? this.format.edit : this.format?.display;
+    if (this.format && editFormat && this.format.isMask) {
         const settings = {};
         settings['placeholder'] = this.format.placeHolder ? this.format.placeHolder : ' ';
         if (this.format.allowedCharacters)
