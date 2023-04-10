@@ -453,7 +453,7 @@ export class DataGrid extends NGGridDirective {
                 this.storeColumnsState();
                 if(this.isTableGrouped()) {
                     this.removeAllFoundsetRef = true;
-                    this.agGrid.api.refreshServerSide({purge: true});
+                    this.refreshAgGridServerSide();
                 }
                 if(this.onSort && this.isRenderedAndSelectionReady) {
                     this.onSortHandler();
@@ -695,12 +695,6 @@ export class DataGrid extends NGGridDirective {
             }
         });
 
-        // init the root foundset manager
-        this.initRootFoundset();
-
-        // default selection
-        this.selectedRowIndexesChanged();
-
         // default sort order
         if(this.agGridOptions['enableServerSideSorting']) {
             this.applySortModel(this.getSortModel());
@@ -783,9 +777,8 @@ export class DataGrid extends NGGridDirective {
                         }
                         // TODO ASK R&D should i remove and add the previous listener ?
                         if(this.removeChangeListenerFunction) this.removeChangeListenerFunction();
-                        this.myFoundset.removeChangeListener(this.changeListener);
                         this.removeChangeListenerFunction = this.myFoundset.addChangeListener((ch) => {
-                        this.changeListener(ch);
+                            this.changeListener(ch);
                         });
                         break;
                     case 'columns':
@@ -1032,7 +1025,10 @@ export class DataGrid extends NGGridDirective {
         this.foundset = new FoundsetManager(this, this.myFoundset, 'root', true);
         const foundsetServer = new FoundsetServer(this, []);
         const datasource = new FoundsetDatasource(this, foundsetServer);
-        if(this.myFoundset) this.agGrid.api.setServerSideDatasource(datasource);
+        if(this.myFoundset) {
+            this.agGridOptions.serverSideInitialRowCount = this.myFoundset.serverSize;
+            this.agGrid.api.setServerSideDatasource(datasource);
+        }
         this.isRenderedAndSelectionReady = false;
     }
 
@@ -1046,10 +1042,17 @@ export class DataGrid extends NGGridDirective {
         const foundsetServer = new FoundsetServer(this, []);
         const datasource = new FoundsetDatasource(this, foundsetServer);
         this.agGrid.api.setServerSideDatasource(datasource);
-        this.agGrid.api.refreshServerSide({purge: true});
+        this.refreshAgGridServerSide();
         this.isRenderedAndSelectionReady = false;
         this.scrollToSelectionWhenSelectionReady = true;
         this.columnsToFitAfterRowsRendered = true;
+    }
+
+    refreshAgGridServerSide() {
+        this.agGrid.api.refreshServerSide({purge: true});
+        if(this.myFoundset && this.myFoundset.serverSize) {
+            this.agGrid.api.setRowCount(this.myFoundset.serverSize);
+        }
     }
 
     getMainMenuItems(params: any) {
@@ -2230,7 +2233,7 @@ export class DataGrid extends NGGridDirective {
             this.startEditColumnIndex = this.getColumnIndex(currentEditCells[0].column.getColId());
         }
 
-        this.agGrid.api.refreshServerSide({purge: true});
+        this.refreshAgGridServerSide();
         this.dirtyCache = false;
         this.isRenderedAndSelectionReady = false;
         this.scrollToSelectionWhenSelectionReady = true;
@@ -3478,6 +3481,10 @@ export class DataGrid extends NGGridDirective {
         }
         this.log.debug(changeEvent);
 
+        if(changeEvent.serverFoundsetSizeChanged) {
+            this.agGrid.api.setRowCount(changeEvent.serverFoundsetSizeChanged.newValue);
+        }
+
         if(changeEvent.multiSelectChanged) {
             this.agGridOptions.rowSelection =  changeEvent.multiSelectChanged.newValue ? 'multiple' : 'single';
         }
@@ -3520,7 +3527,7 @@ export class DataGrid extends NGGridDirective {
                 if(this.sortHandlerPromises.length === 0) {
                     this.applySortModel(this.getSortModel());
                 } else {
-                    this.agGrid.api.refreshServerSide({purge: true});
+                    this.refreshAgGridServerSide();
                 }
                 this.isRenderedAndSelectionReady = false;
                 this.scrollToSelectionWhenSelectionReady = true;
@@ -4315,7 +4322,7 @@ class FoundsetServer {
                         });
                     } else { // set the grid sorting if foundset sort changed from the grid initialization (like doing foundset sort on form's onShow)
                         this.dataGrid.applySortModel(this.dataGrid.getSortModel());
-                        this.dataGrid.agGrid.api.refreshServerSide({purge: true});
+                        this.dataGrid.refreshAgGridServerSide();
                     }
                 } else {
                     this.getDataFromFoundset(foundsetRefManager, request, callback);
