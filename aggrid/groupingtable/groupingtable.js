@@ -3057,6 +3057,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					FoundsetDatasource.prototype.getRows = function(params) {
 						$log.debug('FoundsetDatasource.getRows: params = ', params);
 
+						var currentEditCells = gridOptions.api.getEditingCells();
+						if(currentEditCells && currentEditCells.length) {
+							gridOptions.api.stopEditing();
+						}
+
 						isDataLoading = true;
 
 						// the row group cols, ie the cols that the user has dragged into the 'group by' zone, eg 'Country' and 'Customerid'
