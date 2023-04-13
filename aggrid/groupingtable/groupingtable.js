@@ -5066,6 +5066,16 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							}
 						}
 
+						if(change[$foundsetTypeConstants.NOTIFY_SERVER_SIZE_CHANGED]) {
+							// update aggrid virtual cache max rows
+							var model = gridOptions.api.getModel();
+							if(model.rootNode.childrenCache) {
+								var virtualRowCount = model.rootNode.childrenCache.getVirtualRowCount();
+								model.rootNode.childrenCache.setVirtualRowCount(virtualRowCount, change[$foundsetTypeConstants.NOTIFY_SERVER_SIZE_CHANGED].newValue);
+								$scope.purge();
+							}
+						}
+
 						// gridOptions.api.purgeEnterpriseCache();
 						if (change[$foundsetTypeConstants.NOTIFY_SELECTED_ROW_INDEXES_CHANGED] && !requestSelectionPromises.length) {
 							$log.debug(idRandom + ' - 3. Request selection changed');
