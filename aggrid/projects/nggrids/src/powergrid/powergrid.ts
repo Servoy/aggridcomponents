@@ -818,11 +818,11 @@ export class PowerGrid extends NGGridDirective {
                     colDef.editable = column.editType !== 'CHECKBOX' ? (params: any) => this.isColumnEditable(params) : false;
 
                     if (column.editType === 'TEXTFIELD') {
-                        colDef.cellEditorFramework = TextEditor;
+                        colDef.cellEditor = TextEditor;
                     } else if (column.editType === 'DATEPICKER') {
-                        colDef.cellEditorFramework = DatePicker;
+                        colDef.cellEditor = DatePicker;
                     } else if (column.editType === 'FORM') {
-                        colDef.cellEditorFramework = FormEditor;
+                        colDef.cellEditor = FormEditor;
                         colDef.suppressKeyboardEvent = (params: any) => {
                             // grid should do nothing on ENTER and TAB
                             const gridShouldDoNothing = params.editing && (params.event.keyCode === 9 || params.event.keyCode === 13);

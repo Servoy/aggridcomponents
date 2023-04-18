@@ -319,7 +319,6 @@ export class DataGrid extends NGGridDirective {
             },
             debug: false,
             rowModelType: 'serverSide',
-            serverSideInfiniteScroll: true,
             rowGroupPanelShow: 'onlyWhenGrouping', // TODO expose property,
             onGridReady: () => {
                 this.log.debug('gridReady');
@@ -761,7 +760,8 @@ export class DataGrid extends NGGridDirective {
                             }
                         }
 
-                        if(this.isTableGrouped()) {
+                        // if the root foundset (manager) is already initialized & the view is grouped, reset all
+                        if(this.foundset && this.isTableGrouped()) {
                             this.purge();
                         }
 
@@ -1050,7 +1050,7 @@ export class DataGrid extends NGGridDirective {
 
     refreshAgGridServerSide() {
         this.agGrid.api.refreshServerSide({purge: true});
-        if(this.myFoundset && this.myFoundset.serverSize) {
+        if(!this.isTableGrouped() && this.myFoundset && this.myFoundset.serverSize) {
             this.agGrid.api.setRowCount(this.myFoundset.serverSize);
         }
     }
@@ -1150,15 +1150,15 @@ export class DataGrid extends NGGridDirective {
                 colDef.editable = column.editType !== 'CHECKBOX' ? this.isColumnEditable : false;
 
                 if(column.editType === 'TEXTFIELD') {
-                    colDef.cellEditorFramework = TextEditor;
+                    colDef.cellEditor = TextEditor;
                 } else if(column.editType === 'TYPEAHEAD') {
-                    colDef.cellEditorFramework = TypeaheadEditor;
+                    colDef.cellEditor = TypeaheadEditor;
                 } else if(column.editType === 'DATEPICKER') {
-                    colDef.cellEditorFramework = DatePicker;
+                    colDef.cellEditor = DatePicker;
                 } else if(column.editType === 'COMBOBOX') {
-                    colDef.cellEditorFramework = SelectEditor;
+                    colDef.cellEditor = SelectEditor;
                 } else if(column.editType === 'FORM') {
-                    colDef.cellEditorFramework = FormEditor;
+                    colDef.cellEditor = FormEditor;
                     colDef.suppressKeyboardEvent = (params: any) => {
                         // grid should do nothing on ENTER and TAB
                         const gridShouldDoNothing = params.editing && (params.event.keyCode === 9 || params.event.keyCode === 13);
@@ -3481,7 +3481,7 @@ export class DataGrid extends NGGridDirective {
         }
         this.log.debug(changeEvent);
 
-        if(changeEvent.serverFoundsetSizeChanged) {
+        if(!this.isTableGrouped() && changeEvent.serverFoundsetSizeChanged) {
             this.agGrid.api.setRowCount(changeEvent.serverFoundsetSizeChanged.newValue);
         }
 
