@@ -3743,7 +3743,11 @@ export class DataGrid extends NGGridDirective {
      *
      * @param columnindex column index in the model of the editing cell (0-based)
      */
-    requestFocus(columnindex: any) {
+    requestFocus(columnindexParam: any) {
+        let columnindex = parseInt(columnindexParam);
+        if (Number.isNaN(columnindex)) { 
+            columnindex = 0;
+        }
         if(columnindex < 0 || columnindex > this.columns.length - 1) {
             this.requestFocusColumnIndex = -1;
             this.log.warn('requestFocus API, invalid columnindex:' + columnindex);

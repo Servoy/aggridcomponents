@@ -1320,7 +1320,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                         var col = params.colDef.field ? getColumn(params.colDef.field) : null;
                         if(col && col.editType == 'CHECKBOX' && params.event.target.tagName == 'I' && isColumnEditable(params)) {
                             var v = parseInt(params.value);
-                            if(v == NaN) v = 0;						
+                            if(isNaN(v)) v = 0;
                             params.node.setDataValue(params.column.colId, v ? 0 : 1);
                         }
 

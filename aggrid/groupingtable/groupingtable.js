@@ -2653,7 +2653,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						if(value === NULL_VALUE) return "true";
 
 						var intValue = parseInt(value)
-						if (intValue !== NaN) { 
+						if (!isNaN(intValue)) { 
 						  return intValue > 0 ? 0 : 1;
 						}
 						$log.warn("Can't toggle value for checkbox editor from " + value);
@@ -2678,7 +2678,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						if(value === NULL_VALUE) return false;
 
 						var intValue = parseInt(value)
-						if (intValue !== NaN) { 
+						if (!isNaN(intValue)) { 
 						  return intValue > 0;
 						}
 						$log.warn("Can't make a boolean value for checkbox editor from " + value);
@@ -6511,7 +6511,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					 * Request focus on the given column
 					 * @param columnindex column index in the model of the editing cell (0-based)
 					 */
-					$scope.api.requestFocus = function(columnindex) {
+					$scope.api.requestFocus = function(columnindexParam) {
+						var columnindex = parseInt(columnindexParam);
+						if (isNaN(columnindex)) { 
+							columnindex = 0;
+						} 
 						if(columnindex < 0 || columnindex > $scope.model.columns.length - 1) {
 							requestFocusColumnIndex = -1;
 							$log.warn('requestFocus API, invalid columnindex:' + columnindex);
