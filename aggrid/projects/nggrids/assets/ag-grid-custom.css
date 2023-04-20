@@ -227,3 +227,7 @@
 .ag-table .tooltip-inner {
 	max-width: none !important;
 }
+
+.ag-selection-checkbox.ag-invisible {
+    display: none !important;
+}

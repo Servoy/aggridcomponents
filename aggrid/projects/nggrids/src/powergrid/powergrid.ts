@@ -228,7 +228,7 @@ export class PowerGrid extends NGGridDirective {
                 //                    valueFormatter: displayValueFormatter,
                 menuTabs: vMenuTabs,
                 headerCheckboxSelection: false, //$scope.model.multiSelect === true ? isFirstColumn : false,	// FIXME triggers a long loop of onRowSelection event when a new selection is made.
-                checkboxSelection: (params) => this.multiSelect === true ? this.isFirstColumn(params) : false,
+                checkboxSelection: this.multiSelect === true ? this.isFirstColumn : false,
                 sortable: this.enableSorting,
                 resizable: this.enableColumnResize,
                 tooltipComponent: CustomTooltip
@@ -306,7 +306,7 @@ export class PowerGrid extends NGGridDirective {
             getContextMenuItems: () => this.contextMenuItems,
 
             autoGroupColumnDef: {
-                cellRenderer: DatasetTableGroupCellRenderer,
+                //cellRenderer: DatasetTableGroupCellRenderer,
                 cellRendererParams: { suppressCount: false },
                 headerName: ' ',
                 cellClass: this.groupStyleClass
@@ -484,7 +484,7 @@ export class PowerGrid extends NGGridDirective {
             if (this.groupRowRendererFunc) {
                 groupRowRendererFunc = this.groupRowRendererFunc;
             }
-            this.agGridOptions.groupRowRenderer = DatasetTableGroupCellRenderer;
+            //this.agGridOptions.groupRowRenderer = DatasetTableGroupCellRenderer;
             this.agGridOptions.groupRowRendererParams = {
                 innerRenderer: groupRowRendererFunc
             };
@@ -2080,17 +2080,18 @@ class RemoteDatasource {
     }
 }
 
-class DatasetTableGroupCellRenderer extends GroupCellRenderer {
+// this workaround to remove the () from around the child count is not working anymore, and there does not seem to be another way to do it
+// class DatasetTableGroupCellRenderer extends GroupCellRenderer {
 
-    constructor() {
-        super();
-        this['updateChildCount'] = () => {
-            const allChildrenCount = this['displayedGroup'].allChildrenCount;
-            this['eChildCount'].innerHTML = allChildrenCount >= 0 ? '<span class="ag-group-child-count-prefix"></span>' + allChildrenCount
-                + '<span class="ag-group-child-count-suffix"></span>' : '';
-        };
-    }
-}
+//     constructor() {
+//         super();
+//         this['updateChildCount'] = () => {
+//             const allChildrenCount = this['displayedGroup'].allChildrenCount;
+//             this['eChildCount'].innerHTML = allChildrenCount >= 0 ? '<span class="ag-group-child-count-prefix"></span>' + allChildrenCount
+//                 + '<span class="ag-group-child-count-suffix"></span>' : '';
+//         };
+//     }
+// }
 
 export class PowerGridColumn extends BaseCustomObject {
     headerGroup: string;
