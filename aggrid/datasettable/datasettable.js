@@ -1225,7 +1225,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 function createValueFormatter(format, formatType) {
                     return function(params) {
                         if(params.value != undefined) {
-                            if(formatType == 'TEXT') {
+                            if(formatType == 'TEXT' && typeof params.value === 'string') {
                                 if(format == '|U') {
                                     return params.value.toUpperCase();
                                 } else if(format == '|L') {

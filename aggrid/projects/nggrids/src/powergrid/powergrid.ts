@@ -1615,7 +1615,7 @@ export class PowerGrid extends NGGridDirective {
             if (params.value !== undefined && params.value !== null) {
                 let v = params.value;
                 if (v.displayValue !== undefined) v = v.displayValue;
-                if (formatType === 'TEXT' && params.value) {
+                if (formatType === 'TEXT' && typeof params.value === 'string') {
                     if (format === '|U') {
                         return v.toUpperCase();
                     } else if (format === '|L') {
