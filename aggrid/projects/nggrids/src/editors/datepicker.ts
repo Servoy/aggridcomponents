@@ -99,7 +99,6 @@ export class DatePicker extends EditorDirective {
         const showCalendar = format.indexOf('y') >= 0 || format.indexOf('M') >= 0;
         const showTime = format.indexOf('h') >= 0 || format.indexOf('H') >= 0 || format.indexOf('m') >= 0;
         const showSecondsTimer = format.indexOf('s') >= 0;
-        this.config.display.components.useTwentyfourHour = !(format.indexOf('h') >= 0 || format.indexOf('a') >= 0 || format.indexOf('A') >= 0);
         this.config.display.components.decades = showCalendar;
         this.config.display.components.year = showCalendar;
         this.config.display.components.month = showCalendar;
@@ -108,7 +107,13 @@ export class DatePicker extends EditorDirective {
         this.config.display.components.minutes = showTime;
         this.config.display.components.seconds = showTime;
         this.config.display.components.seconds = showSecondsTimer;
-
+		if (format.indexOf('a') >= 0 || format.indexOf('A') >= 0 || format.indexOf('am') >= 0 || format.indexOf('AM') >= 0) {
+			this.config.localization.hourCycle = 'h12';
+		} else if (format.indexOf('H') >= 0) {
+			this.config.localization.hourCycle = 'h23';
+		} else if (format.indexOf('h') >= 0) {
+			this.config.localization.hourCycle = 'h12';
+		}
     }
 
     ngAfterViewInit(): void {
