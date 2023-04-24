@@ -3708,7 +3708,7 @@ export class DataGrid extends NGGridDirective {
      * @param foundsetindex foundset row index of the editing cell (1-based)
      * @param columnindex column index in the model of the editing cell (0-based)
      */
-    editCellAt = function(foundsetindex: any, columnindex: any) {
+    editCellAt(foundsetindex: any, columnindex: any) {
         if(this.isTableGrouped()) {
             this.log.warn('editCellAt API is not supported in grouped mode');
         } else if (foundsetindex < 1) {
