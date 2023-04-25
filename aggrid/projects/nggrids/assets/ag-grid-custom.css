@@ -231,3 +231,11 @@
 .ag-selection-checkbox.ag-invisible {
     display: none !important;
 }
+
+.ag-table .ag-row-selected {
+    background-color: rgba(33, 150, 243, 0.3);
+}
+
+.ag-table {
+    --ag-selected-row-background-color: none !important;
+}
