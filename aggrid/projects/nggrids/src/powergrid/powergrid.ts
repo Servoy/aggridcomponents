@@ -909,21 +909,19 @@ export class PowerGrid extends NGGridDirective {
 
         // clone target to avoid side effects
         let mergeConfig = {};
-        for (property in target) {
-            if (target.hasOwnProperty(property)) {
-                mergeConfig[property] = target[property];
+        if(target) {
+            for (property in target) {
+                if(target.hasOwnProperty(property)) {
+                    mergeConfig[property] = target[property];
+                }
             }
         }
 
-        if (source) {
-            if (mergeConfig) {
-                for (property in source) {
-                    if (source.hasOwnProperty(property)) {
-                        mergeConfig[property] = source[property];
-                    }
+        if(source) {
+            for (property in source) {
+                if (source.hasOwnProperty(property)) {
+                    mergeConfig[property] = source[property];
                 }
-            } else {
-                mergeConfig = source;
             }
         }
         return mergeConfig;
@@ -1674,16 +1672,14 @@ export class PowerGrid extends NGGridDirective {
     }
 
     getIconCheckboxEditor(state: any) {
-        let iconConfig = this.powergridService.iconConfig ? this.powergridService.iconConfig : null;
-        iconConfig = this.mergeConfig(iconConfig, this.iconConfig);
-        const checkboxEditorIconConfig = this.iconConfig ? iconConfig : this.iconConfig;
+        const checkboxEditorIconConfig = this.powergridService.iconConfig ? this.mergeConfig(this.powergridService.iconConfig, this.iconConfig) : this.iconConfig;
 
-        if (state) {
-            return checkboxEditorIconConfig && checkboxEditorIconConfig.iconEditorChecked && checkboxEditorIconConfig.iconEditorChecked !== 'glyphicon glyphicon-check' ?
-                checkboxEditorIconConfig.iconEditorChecked : 'far fa-check-square';
+        if(state) {
+            return checkboxEditorIconConfig && checkboxEditorIconConfig['iconEditorChecked'] && checkboxEditorIconConfig['iconEditorChecked'] !== 'glyphicon glyphicon-check' ?
+            checkboxEditorIconConfig['iconEditorChecked']: 'far fa-check-square';
         } else {
-            return checkboxEditorIconConfig && checkboxEditorIconConfig.iconEditorUnchecked && checkboxEditorIconConfig.iconEditorUnchecked !== 'glyphicon glyphicon-unchecked' ?
-                checkboxEditorIconConfig.iconEditorUnchecked : 'far fa-square';
+            return checkboxEditorIconConfig && checkboxEditorIconConfig['iconEditorUnchecked'] && checkboxEditorIconConfig['iconEditorUnchecked'] !== 'glyphicon glyphicon-unchecked' ?
+            checkboxEditorIconConfig['iconEditorUnchecked'] : 'far fa-square';
         }
     }
 

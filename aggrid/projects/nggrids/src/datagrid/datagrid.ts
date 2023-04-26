@@ -1536,21 +1536,19 @@ export class DataGrid extends NGGridDirective {
 
         // clone target to avoid side effects
         let mergeConfig = {};
-        for (property in target) {
-            if(target.hasOwnProperty(property)) {
-                mergeConfig[property] = target[property];
+        if(target) {
+            for (property in target) {
+                if(target.hasOwnProperty(property)) {
+                    mergeConfig[property] = target[property];
+                }
             }
         }
 
         if(source) {
-            if(mergeConfig) {
-                for (property in source) {
-                    if (source.hasOwnProperty(property)) {
-                        mergeConfig[property] = source[property];
-                    }
+            for (property in source) {
+                if (source.hasOwnProperty(property)) {
+                    mergeConfig[property] = source[property];
                 }
-            } else {
-                mergeConfig = source;
             }
         }
         return mergeConfig;
@@ -2823,24 +2821,20 @@ export class DataGrid extends NGGridDirective {
     }
 
     getIconRefreshData() {
-        let iconConfig = this.datagridService.iconConfig ? this.datagridService.iconConfig : null;
-        iconConfig = this.mergeConfig(iconConfig, this.iconConfig);
-        const refreshEditorIconConfig = this.iconConfig ? this.iconConfig : null;
+        const refreshEditorIconConfig = this.datagridService.iconConfig ? this.mergeConfig(this.datagridService.iconConfig, this.iconConfig) : this.iconConfig;
         return refreshEditorIconConfig && refreshEditorIconConfig['iconRefreshData'] &&  refreshEditorIconConfig['iconRefreshData'] !== 'glyphicon glyphicon-refresh' ?
             this.iconConfig['iconRefreshData'] : 'fa fa-sync';
     }
 
     getIconCheckboxEditor(state: any) {
-        let iconConfig = this.datagridService.iconConfig ? this.datagridService.iconConfig : null;
-        iconConfig = this.mergeConfig(iconConfig, this.iconConfig);
-        const checkboxEditorIconConfig = this.iconConfig ? iconConfig : this.iconConfig;
+        const checkboxEditorIconConfig = this.datagridService.iconConfig ? this.mergeConfig(this.datagridService.iconConfig, this.iconConfig) : this.iconConfig;
 
         if(state) {
-            return checkboxEditorIconConfig && checkboxEditorIconConfig.iconEditorChecked && checkboxEditorIconConfig.iconEditorChecked !== 'glyphicon glyphicon-check' ?
-            checkboxEditorIconConfig.iconEditorChecked : 'far fa-check-square';
+            return checkboxEditorIconConfig && checkboxEditorIconConfig['iconEditorChecked'] && checkboxEditorIconConfig['iconEditorChecked'] !== 'glyphicon glyphicon-check' ?
+            checkboxEditorIconConfig['iconEditorChecked']: 'far fa-check-square';
         } else {
-            return checkboxEditorIconConfig && checkboxEditorIconConfig.iconEditorUnchecked && checkboxEditorIconConfig.iconEditorUnchecked !== 'glyphicon glyphicon-unchecked' ?
-            checkboxEditorIconConfig.iconEditorUnchecked : 'far fa-square';
+            return checkboxEditorIconConfig && checkboxEditorIconConfig['iconEditorUnchecked'] && checkboxEditorIconConfig['iconEditorUnchecked'] !== 'glyphicon glyphicon-unchecked' ?
+            checkboxEditorIconConfig['iconEditorUnchecked'] : 'far fa-square';
         }
     }
 
