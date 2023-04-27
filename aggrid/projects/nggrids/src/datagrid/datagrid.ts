@@ -2961,7 +2961,7 @@ export class DataGrid extends NGGridDirective {
 
                     this.agGrid.api.forEachNode( (node) => {
                         if (foundsetIndexes.indexOf(node.rowIndex) !== -1) {
-                            node.setSelected(true);
+                            if(!node.isSelected()) node.setSelected(true);
                         }
                     });
                 } else {	// ctrlKey pressed, include row in multiselect
@@ -3481,6 +3481,8 @@ export class DataGrid extends NGGridDirective {
 
         if(changeEvent.multiSelectChanged) {
             this.agGridOptions.rowSelection =  changeEvent.multiSelectChanged.newValue ? 'multiple' : 'single';
+            // ag-grid does not update the rowSelection, force it via its internal api
+            this.agGrid.api['gridOptionsService'].set('rowSelection', this.agGridOptions.rowSelection, true);
         }
 
         if(!this.isRootFoundsetLoaded) {
