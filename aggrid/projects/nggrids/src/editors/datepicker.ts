@@ -30,7 +30,6 @@ export class DatePicker extends EditorDirective {
         useCurrent: false,
         display: {
             components: {
-                useTwentyfourHour: true,
                 decades: true,
                 year: true,
                 month: true,
@@ -64,7 +63,13 @@ export class DatePicker extends EditorDirective {
         super();
         this.config.localization.startOfTheWeek = getFirstDayOfWeek(servoyService.getLocaleObject() ? servoyService.getLocaleObject().full : servoyService.getLocale());
         const lts = DateTimeLuxon.now().setLocale(servoyService.getLocale()).toLocaleString(DateTimeLuxon.DATETIME_FULL).toUpperCase();
-        this.config.display.components.useTwentyfourHour = lts.indexOf('AM') >= 0 || lts.indexOf('PM') >= 0;
+        if (lts.indexOf('a') >= 0 || lts.indexOf('A') >= 0 || lts.indexOf('am') >= 0 || lts.indexOf('AM') >= 0) {
+            this.config.localization.hourCycle = 'h12';
+        } else if (lts.indexOf('H') >= 0) {
+            this.config.localization.hourCycle = 'h23';
+        } else if (lts.indexOf('h') >= 0) {
+            this.config.localization.hourCycle = 'h12';
+        }
         this.config.localization.locale = servoyService.getLocale();
         this.loadCalendarLocale(this.config.localization.locale);
     }
