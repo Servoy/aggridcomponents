@@ -64,6 +64,12 @@ const COLUMN_KEYS_TO_CHECK_FOR_CHANGES = [
     'columnDef'
 ];
 
+const GRID_EVENT_TYPES = {
+    GRID_READY: 'gridReady',
+    DISPLAYED_COLUMNS_CHANGED : 'displayedColumnsChanged',
+    GRID_COLUMNS_CHANGED: 'gridColumnsChanged'
+};
+
 @Component({
     selector: 'aggrid-datasettable',
     templateUrl: './powergrid.html'
@@ -104,6 +110,7 @@ export class PowerGrid extends NGGridDirective {
     @Input() groupMaxWidth: number;
     @Input() groupRowRendererFunc: any;
     @Input() responsiveHeight: number;
+    @Input() columnsAutoSizing: string;
     @Input() continuousColumnsAutoSizing: boolean;
 
     @Input() _internalColumnState: any;
@@ -292,7 +299,7 @@ export class PowerGrid extends NGGridDirective {
                 this.applyExpandedState();
 
                 this.agGridOptions.onDisplayedColumnsChanged = () => {
-                    this.sizeColumnsToFit();
+                    this.sizeColumnsToFit(GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED);
                     this.storeColumnsState();
                 };
                 if (this.onReady) {
@@ -300,7 +307,7 @@ export class PowerGrid extends NGGridDirective {
                 }
                 // without timeout the column don't fit automatically
                 this.setTimeout(() => {
-                    this.sizeColumnsToFit();
+                    this.sizeColumnsToFit(GRID_EVENT_TYPES.GRID_READY);
                 }, 150);
             },
             getContextMenuItems: () => this.contextMenuItems,
@@ -354,7 +361,9 @@ export class PowerGrid extends NGGridDirective {
             tabToNextCell: (params) => this.tabSelectionChangeNavigation(params),
             sideBar,
             enableBrowserTooltips: false,
-            onToolPanelVisibleChanged: () => this.sizeColumnsToFit(),
+            onToolPanelVisibleChanged: () => {
+                this.sizeColumnsToFit();
+            },
             onCellEditingStopped: (event) => {
                 // don't allow escape if cell data is invalid
                 if (this.onColumnDataChangePromise == null) {
@@ -544,7 +553,7 @@ export class PowerGrid extends NGGridDirective {
         this.agGrid.api.addEventListener('cellClicked', (params: any) => this.cellClickHandler(params));
         this.agGrid.api.addEventListener('cellDoubleClicked', (params: any) => this.onCellDoubleClicked(params));
         this.agGrid.api.addEventListener('cellContextMenu', (params: any) => this.onCellContextMenu(params));
-        this.agGrid.api.addEventListener('displayedColumnsChanged', () => this.sizeColumnsToFit());
+        this.agGrid.api.addEventListener('displayedColumnsChanged', () => this.sizeColumnsToFit(GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED));
 
         // listen to group changes
         this.agGrid.api.addEventListener('columnRowGroupChanged', (event: any) => this.onColumnRowGroupChanged(event));
@@ -1080,8 +1089,25 @@ export class PowerGrid extends NGGridDirective {
         return result;
     }
 
-    sizeColumnsToFit() {
-        this.agGrid.api.sizeColumnsToFit();
+    sizeColumnsToFit(eventType?: string) {
+        switch (this.columnsAutoSizing) {
+            case 'NONE':
+                break;
+            case 'AUTO_SIZE':
+                // calling auto-size upon displayedColumnsChanged runs in an endless loop
+                const skipEvents = [GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED];
+                // call auto-size only upon certain events
+                const autoSizeOnEvents = [GRID_EVENT_TYPES.GRID_READY];
+                if (eventType && autoSizeOnEvents.indexOf(eventType) > -1) {
+                    const skipHeader = this.agGridOptions.skipHeaderOnAutoSize === true ? true : false;
+                    this.agGrid.columnApi.autoSizeAllColumns(skipHeader);
+                }
+                break;
+            case 'SIZE_COLUMNS_TO_FIT':
+            default:
+                this.agGrid.api.sizeColumnsToFit();
+
+        }
         if (this.hasAutoHeightColumn) this.agGrid.api.resetRowHeights();
     }
 

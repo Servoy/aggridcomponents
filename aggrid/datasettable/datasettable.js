@@ -11,6 +11,13 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
         controller: function($scope, $element, $attrs) {
 
             function initGrid() {
+
+                var GRID_EVENT_TYPES = {
+                    GRID_READY: 'gridReady',
+                    DISPLAYED_COLUMNS_CHANGED : 'displayedColumnsChanged',
+                    GRID_COLUMNS_CHANGED: 'gridColumnsChanged'
+                }
+
                 var gridDiv = $element.find('.ag-table')[0];
                 var hasAutoHeightColumn = false;
                 var columnDefs = getColumnDefs();
@@ -289,7 +296,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                             applyExpandedState();
                         }
                         gridOptions.onDisplayedColumnsChanged = function() {
-                            sizeColumnsToFit();
+                            sizeColumnsToFit(GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED);
                             storeColumnsState();
                         };
                         if($scope.handlers.onReady) {
@@ -297,7 +304,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                         }
                         // without timeout the column don't fit automatically
                         setTimeout(function() {
-                            sizeColumnsToFit();
+                            sizeColumnsToFit(GRID_EVENT_TYPES.GRID_READY);
                         }, 150);
                     },
                     getContextMenuItems: getContextMenuItems,
@@ -1148,9 +1155,28 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     }
                 }
 
-                function sizeColumnsToFit() {
+                function sizeColumnsToFit(eventType) {
                     if($scope.model.visible) {
-                        gridOptions.api.sizeColumnsToFit();
+                        switch ($scope.model.columnsAutoSizing) {
+                            case "NONE":
+                                break;
+                            case "AUTO_SIZE":
+                                
+                                // calling auto-size upon displayedColumnsChanged runs in an endless loop 
+                                var skipEvents = [GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED];
+                                
+                                // call auto-size only upon certain events
+                                var autoSizeOnEvents = [GRID_EVENT_TYPES.GRID_READY];
+                            
+                                if (eventType && autoSizeOnEvents.indexOf(eventType) > -1) {
+                                    var skipHeader = gridOptions.skipHeaderOnAutoSize == true ? true : false;
+                                    gridOptions.columnApi.autoSizeAllColumns(skipHeader);
+                                }
+                                break;
+                            case "SIZE_COLUMNS_TO_FIT":
+                            default:
+                                gridOptions.api.sizeColumnsToFit();
+                        }
                         if(hasAutoHeightColumn) gridOptions.api.resetRowHeights();
                     }
                 }
@@ -1783,7 +1809,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 }
 
                 function onDisplayedColumnsChanged() {
-                    sizeColumnsToFit();
+                    sizeColumnsToFit(GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED);
                 }
 
                 /** 
