@@ -1635,6 +1635,7 @@ export class PowerGrid extends NGGridDirective {
     }
 
     createValueFormatter(format: any, formatType: any): any {
+        const _this: PowerGrid = this;
         return (params: any) => {
             if (params.value !== undefined && params.value !== null) {
                 let v = params.value;
@@ -1649,7 +1650,7 @@ export class PowerGrid extends NGGridDirective {
                 const formatDef = new Format();
                 formatDef.type = formatType;
                 formatDef.display = format.split('|')[0];
-                return params.context.componentParent.format(v, formatDef, false);
+                return _this.format(v, formatDef, false);
             }
             return '';
         };

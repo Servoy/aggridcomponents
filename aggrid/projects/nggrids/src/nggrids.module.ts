@@ -14,6 +14,7 @@ import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-mod
 import {  ServerSideRowModelModule } from '@ag-grid-enterprise/server-side-row-model';
 import {  ColumnsToolPanelModule } from '@ag-grid-enterprise/column-tool-panel';
 import { FiltersToolPanelModule } from '@ag-grid-enterprise/filter-tool-panel';
+import { ExcelExportModule } from '@ag-grid-enterprise/excel-export';
 import { MenuModule } from '@ag-grid-enterprise/menu';
 import { SideBarModule } from '@ag-grid-enterprise/side-bar';
 import { RowGroupingModule } from '@ag-grid-enterprise/row-grouping';
@@ -70,6 +71,7 @@ export class NGGridsModule {
             ColumnsToolPanelModule,
             MenuModule,
             FiltersToolPanelModule,
-            ClientSideRowModelModule]);
+            ClientSideRowModelModule,
+            ExcelExportModule]);
     }
 }
