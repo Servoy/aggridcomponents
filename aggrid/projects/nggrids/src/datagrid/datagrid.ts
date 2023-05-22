@@ -2878,6 +2878,11 @@ export class DataGrid extends NGGridDirective {
     }
 
     onSelectionChanged() {
+        if(this.selectionEvent && this.selectionEvent.event &&
+            this.selectionEvent.event.type === 'click' && this.selectionEvent.event.detail === 2) {
+                // double click event, ignore it, the selection is already set by the first click
+                return;
+        }
         if(this.agGridOptions.rowSelection === 'multiple') {
             this.multipleSelectionEvents.push(this.selectionEvent);
             this.onMultipleSelectionChangedEx();
