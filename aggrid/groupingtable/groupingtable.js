@@ -2650,7 +2650,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							case "f":
 								return "t";
 						}
-						if(value === NULL_VALUE) return "true";
+						if(value === NULL_VALUE) return 1;
 
 						var intValue = parseInt(value)
 						if (!isNaN(intValue)) { 

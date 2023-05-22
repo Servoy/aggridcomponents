@@ -1401,7 +1401,7 @@ export class DataGrid extends NGGridDirective {
             case 'f':
                 return 't';
         }
-        if(value === NULL_VALUE) return 'true';
+        if(value === NULL_VALUE) return 1;
 
         if(!Number.isNaN(value)) {
             return parseInt(value, 10) > 0 ? 0 : 1;
