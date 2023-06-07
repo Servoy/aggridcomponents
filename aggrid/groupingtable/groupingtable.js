@@ -1902,7 +1902,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 									//gridOptions.api.sizeColumnsToFit();
 									svySizeColumnsToFit();
 							}
-							
+							if($scope.model.columnsAutoSizing !== 'NONE' && !$scope.model.continuousColumnsAutoSizing && eventType === GRID_EVENT_TYPES.GRID_READY) {
+								$scope.model.columnsAutoSizing = 'NONE';
+								$scope.svyServoyapi.apply('columnsAutoSizing');
+							}
 							sizeHeader();
 						}
 					}

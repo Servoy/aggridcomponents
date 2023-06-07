@@ -57,7 +57,7 @@
 		"isEditableFunc": {"type": "clientfunction", "tags": {"doc": "Callback that returns the editable state of a cell."}},
 		"_internalAggCustomFuncs": { "type": "aggFuncInfo[]", "tags": {"scope" : "private"}},
 		"tabSeq": { "type": "tabseq", "tags": { "scope": "design" } },
-		"columnsAutoSizing": {"type": "string", "default" : null, "values": [{"SIZE_COLUMNS_TO_FIT":null}, {"AUTO_SIZE":"AUTO_SIZE"}, {"NONE":"NONE"}], "tags": {"doc": "Auto sizing for columns. SIZE_COLUMNS_TO_FIT: make the currently visible columns fit the screen. AUTO_SIZE: the grid will work out the best width to fit the contents of the 'visible' cells in the column. NONE: no auto sizing action performed"}},
+		"columnsAutoSizing": {"type": "string", "default" : null, "values": [{"SIZE_COLUMNS_TO_FIT":null}, {"AUTO_SIZE":"AUTO_SIZE"}, {"NONE":"NONE"}], "pushToServer": "allow", "tags": {"allowaccess": "enabled", "doc": "Auto sizing for columns. SIZE_COLUMNS_TO_FIT: make the currently visible columns fit the screen. AUTO_SIZE: the grid will work out the best width to fit the contents of the 'visible' cells in the column. NONE: no auto sizing action performed"}},
 		"continuousColumnsAutoSizing":  { "type": "boolean", "default": false, "tags": {"doc": "Size columns to fit whenever columns width are changed"} },
 		"onDragOverFunc": {"type": "clientfunction", "tags": {"doc": "Callback when dragging over a row - returns true whenever a drop is allowed."}}
 	},

@@ -113,6 +113,7 @@ export class DataGrid extends NGGridDirective {
     @Input() responsiveHeight: number;
     @Input() enabled: boolean;
     @Input() columnsAutoSizing: string;
+    @Output() columnsAutoSizingChange = new EventEmitter();
     @Input() continuousColumnsAutoSizing: boolean;
 
     @Input() toolPanelConfig: ToolPanelConfig;
@@ -973,6 +974,10 @@ export class DataGrid extends NGGridDirective {
                 default:
                     this.agGrid.api.sizeColumnsToFit();
 
+            }
+            if(this.columnsAutoSizing !== 'NONE' && !this.continuousColumnsAutoSizing && eventType === GRID_EVENT_TYPES.GRID_READY) {
+                this.columnsAutoSizing = 'NONE';
+                this.columnsAutoSizingChange.emit('NONE');
             }
             this.sizeHeader();
         }

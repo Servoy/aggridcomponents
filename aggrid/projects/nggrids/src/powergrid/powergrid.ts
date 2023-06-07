@@ -111,6 +111,7 @@ export class PowerGrid extends NGGridDirective {
     @Input() groupRowRendererFunc: any;
     @Input() responsiveHeight: number;
     @Input() columnsAutoSizing: string;
+    @Output() columnsAutoSizingChange = new EventEmitter();
     @Input() continuousColumnsAutoSizing: boolean;
 
     @Input() _internalColumnState: any;
@@ -1107,6 +1108,10 @@ export class PowerGrid extends NGGridDirective {
             default:
                 this.agGrid.api.sizeColumnsToFit();
 
+        }
+        if(this.columnsAutoSizing !== 'NONE' && !this.continuousColumnsAutoSizing && eventType === GRID_EVENT_TYPES.GRID_READY) {
+            this.columnsAutoSizing = 'NONE';
+            this.columnsAutoSizingChange.emit('NONE');
         }
         if (this.hasAutoHeightColumn) this.agGrid.api.resetRowHeights();
     }
