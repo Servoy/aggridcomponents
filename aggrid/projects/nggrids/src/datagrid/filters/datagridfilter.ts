@@ -154,6 +154,6 @@ export class DatagridFilterDirective implements AgFilterComponent {
     }
 
     suppressAndOrCondition(): boolean {
-      return this.params['suppressAndOrCondition'];
+      return this.params['suppressAndOrCondition'] === true;
     }
 }

@@ -586,7 +586,7 @@ export class DataGrid extends NGGridDirective {
         }
 
         if (!this.showLoadingIndicator) {
-            this.agGridOptions.loadingCellRendererFramework = BlankLoadingCellRendrer;
+            this.agGridOptions.loadingCellRenderer = BlankLoadingCellRendrer;
         }
 
         // set all custom icons
@@ -1190,7 +1190,7 @@ export class DataGrid extends NGGridDirective {
             }
 
             if (column.filterType) {
-                colDef.filterParams = { buttons: ['apply', 'clear'], newRowsAction: 'keep', suppressAndOrCondition: false, caseSensitive: false };
+                colDef.filterParams = { buttons: ['apply', 'clear'], newRowsAction: 'keep', caseSensitive: false };
 
                 if(column.filterType === 'TEXT') {
                     colDef.filter = 'agTextColumnFilter';

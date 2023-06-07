@@ -819,7 +819,7 @@ export class PowerGrid extends NGGridDirective {
                     } else if (column.filterType === 'DATE') {
                         colDef.filter = 'agDateColumnFilter';
                     }
-                    colDef.filterParams = { buttons: ['apply', 'clear'], newRowsAction: 'keep', suppressAndOrCondition: false, caseSensitive: false };
+                    colDef.filterParams = { buttons: ['apply', 'clear'], newRowsAction: 'keep', caseSensitive: false };
                 }
 
                 colDef.suppressMenu = column.enableRowGroup === false && column.filterType === undefined;
