@@ -268,6 +268,13 @@
 			}],
 	        "returns": "column"
 	    },
+	    "getColumnById" : {
+			"parameters": [{
+				"name": "colId",
+				"type": "string"
+			}],
+			"returns": "column"
+		},
 	    "getColumnIndex" : {
 			"parameters": [{
 				"name": "colId",

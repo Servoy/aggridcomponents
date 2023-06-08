@@ -109,6 +109,19 @@ function getColumn(index) {
 }
 
 /**
+ * Gets the column with id colId
+ * 
+ * @param colId id of the column
+ * 
+ * @example
+ *	%%prefix%%%%elementName%%.getColumnById('myid')
+ *	
+ * @return {column}
+ */ 
+ function getColumnById(colId) {
+ }
+
+/**
  * Adds new column at specified index. Index is 0 based.
  * 
  * @param dataproviderid dataprovider of the column
