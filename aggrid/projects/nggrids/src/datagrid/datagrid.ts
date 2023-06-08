@@ -870,7 +870,7 @@ export class DataGrid extends NGGridDirective {
                             // need to clear it, so the watch can be used, if columnState changes, and we want to apply the same _internalAutoSizeState again
                             this._internalAutoSizeState = false;
                             this._internalAutoSizeStateChange.emit(this._internalAutoSizeState);
-                            this.agGridOptions.columnApi.autoSizeAllColumns(false);
+                            this.autoSizeColumns(false);
                         }
                         break;
                     case 'enabled':
@@ -951,6 +951,18 @@ export class DataGrid extends NGGridDirective {
         return value;
     }
 
+
+    autoSizeColumns(skipHeader: boolean) {
+        const noFlexColumns = [];
+        for(const col of this.agGrid.columnApi.getAllDisplayedColumns()) {
+            const colDef = col.getColDef();
+            if(colDef['flex'] === undefined) {
+                noFlexColumns.push(col);
+            }
+        }
+        this.agGrid.columnApi.autoSizeColumns(noFlexColumns, skipHeader);
+    }
+
     /**`
      * Resize header and all columns so they can fit the horizontal space
      *  */
@@ -967,7 +979,7 @@ export class DataGrid extends NGGridDirective {
                     const autoSizeOnEvents = [GRID_EVENT_TYPES.GRID_READY];
                     if (eventType && autoSizeOnEvents.indexOf(eventType) > -1) {
                         const skipHeader = this.agGridOptions.skipHeaderOnAutoSize === true ? true : false;
-                        this.agGrid.columnApi.autoSizeAllColumns(skipHeader);
+                        this.autoSizeColumns(skipHeader);
                     }
                     break;
                 case 'SIZE_COLUMNS_TO_FIT':

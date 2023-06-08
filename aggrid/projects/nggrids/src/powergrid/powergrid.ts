@@ -1101,7 +1101,7 @@ export class PowerGrid extends NGGridDirective {
                 const autoSizeOnEvents = [GRID_EVENT_TYPES.GRID_READY];
                 if (eventType && autoSizeOnEvents.indexOf(eventType) > -1) {
                     const skipHeader = this.agGridOptions.skipHeaderOnAutoSize === true ? true : false;
-                    this.agGrid.columnApi.autoSizeAllColumns(skipHeader);
+                    this.autoSizeColumns(skipHeader);
                 }
                 break;
             case 'SIZE_COLUMNS_TO_FIT':
@@ -1910,9 +1910,20 @@ export class PowerGrid extends NGGridDirective {
      */
     autoSizeAllColumns() {
         if (this.isGridReady && this.agGridOptions) {
-            this.agGridOptions.columnApi.autoSizeAllColumns(false);
+            this.autoSizeColumns(false);
         }
     }
+
+    autoSizeColumns(skipHeader: boolean) {
+        const noFlexColumns = [];
+        for(const col of this.agGrid.columnApi.getAllDisplayedColumns()) {
+            const colDef = col.getColDef();
+            if(colDef['flex'] === undefined) {
+                noFlexColumns.push(col);
+            }
+        }
+        this.agGrid.columnApi.autoSizeColumns(noFlexColumns, skipHeader);
+    }    
 
     onCellValueChanged(params: any) {
         const rowIndex = params.node.rowIndex;
