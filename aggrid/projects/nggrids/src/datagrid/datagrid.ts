@@ -3491,7 +3491,7 @@ export class DataGrid extends NGGridDirective {
 
     /** Listener for the root foundset */
     changeListener(changeEvent: FoundsetChangeEvent) {
-        if (changeEvent.requestInfos && (changeEvent.requestInfos.includes('getDataFromFoundset') || changeEvent.requestInfos.includes('filterMyFoundset'))) {
+        if (changeEvent.requestInfos && (changeEvent.requestInfos.includes(this.getRequestInfoWithId('getDataFromFoundset')) || changeEvent.requestInfos.includes(this.getRequestInfoWithId('filterMyFoundset')))) {
             this.log.debug('changes originate from our "getDataFromFoundset" or "filterMyFoundset", skip root foundset change handler');
             return;
         }
@@ -3628,6 +3628,10 @@ export class DataGrid extends NGGridDirective {
             return column.format;
         }
         return null;
+    }
+
+    getRequestInfoWithId(requestInfo: string): string {
+        return requestInfo + '-' + this.servoyApi.getMarkupId();
     }
 
     /***********************************************************************************************************************************
@@ -3981,7 +3985,7 @@ class FoundsetManager {
             // add the change listener to the component
             const _this = this;
             this.removeListenerFunction = foundset.addChangeListener((change: FoundsetChangeEvent) => {
-                if (change.requestInfos && change.requestInfos.includes('getDataFromFoundset')) {
+                if (change.requestInfos && change.requestInfos.includes(this.dataGrid.getRequestInfoWithId('getDataFromFoundset'))) {
                     // changes originate from our 'getDataFromFoundset', skip handling
                     return;
                 }
@@ -4241,7 +4245,7 @@ class FoundsetServer {
             }
 
             const filterPromise = this.dataGrid.servoyApi.callServerSideApi('filterMyFoundset', filterMyFoundsetArg);
-            filterPromise['requestInfo'] = 'filterMyFoundset';
+            filterPromise['requestInfo'] = this.dataGrid.getRequestInfoWithId('filterMyFoundset');
             allPromises.push(filterPromise);
         }
 
@@ -4398,7 +4402,7 @@ class FoundsetServer {
 
             this.dataGrid.log.debug('Load async ' + requestViewPortStartIndex + ' - ' + requestViewPortEndIndex + ' with size ' + size);
             const promise = foundsetManager.loadExtraRecordsAsync(requestViewPortStartIndex, size);
-            promise.requestInfo = 'getDataFromFoundset';
+            promise.requestInfo = this.dataGrid.getRequestInfoWithId('getDataFromFoundset');
             promise.then(() => {
 
                 // load complete

@@ -3311,7 +3311,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								filterMyFoundsetArg.push(sUpdatedFilterModel);
 							}
 							filterPromise = $scope.svyServoyapi.callServerSideApi("filterMyFoundset", filterMyFoundsetArg);
-							filterPromise.requestInfo = "filterMyFoundset";
+							filterPromise.requestInfo = getRequestInfoWithId("filterMyFoundset");
 							filterPromise.finally(
 								function() {
 									filterPromise = null;
@@ -3478,7 +3478,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 								$log.debug('Load async ' + requestViewPortStartIndex + ' - ' + requestViewPortEndIndex + ' with size ' + size);
 								var promise = foundsetManager.loadExtraRecordsAsync(requestViewPortStartIndex, size, false);
-								promise.requestInfo = "getDataFromFoundset";
+								promise.requestInfo = getRequestInfoWithId("getDataFromFoundset");
 								promise.then(function() {
 
 									// load complete
@@ -3931,7 +3931,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						}
 
 						var foundsetListener = function(change) {
-							if (change.requestInfos && change.requestInfos.includes('getDataFromFoundset')) {
+							if (change.requestInfos && change.requestInfos.includes(getRequestInfoWithId('getDataFromFoundset'))) {
 								// changes originate from our 'getDataFromFoundset', skip handling
 								return;
 							}
@@ -4957,7 +4957,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 					/** Listener for the root foundset */
 					function changeListener(change) {
-						if (change.requestInfos && (change.requestInfos.includes('getDataFromFoundset') || change.requestInfos.includes('filterMyFoundset'))) {
+						if (change.requestInfos && (change.requestInfos.includes(getRequestInfoWithId('getDataFromFoundset')) || change.requestInfos.includes(getRequestInfoWithId('filterMyFoundset')))) {
 							$log.debug("changes originate from our 'getDataFromFoundset' or 'filterMyFoundset', skip root foundset change handler");
 							return;
 						}
@@ -6402,6 +6402,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							}
 						}
 						return groupedSelection;
+					}
+
+					function getRequestInfoWithId(requestInfo) {
+						return requestInfo + '-' + $scope.model.svyMarkupId;
 					}
 
 					/***********************************************************************************************************************************
