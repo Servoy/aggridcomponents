@@ -102,6 +102,8 @@ export class DataGrid extends NGGridDirective {
     @Output() _internalExpandedStateChange = new EventEmitter();
     @Input() _internalAutoSizeState: any;
     @Output() _internalAutoSizeStateChange = new EventEmitter();
+    @Input() _internalSizeColumnsToFitState: any;
+    @Output() _internalSizeColumnsToFitStateChange = new EventEmitter();    
     @Input() enableSorting: boolean;
     @Input() enableColumnResize: boolean;
     @Input() enableColumnMove: boolean;
@@ -460,7 +462,7 @@ export class DataGrid extends NGGridDirective {
                 }
             },
             onColumnResized: (e: ColumnResizedEvent) => {
-                if(this.continuousColumnsAutoSizing && e.source === 'uiColumnDragged') {
+                if(this.continuousColumnsAutoSizing && e.source === 'uiColumnResized') {
                     if(this.sizeHeaderAndColumnsToFitTimeout !== null) {
                         clearTimeout(this.sizeHeaderAndColumnsToFitTimeout);
                     }
@@ -871,6 +873,14 @@ export class DataGrid extends NGGridDirective {
                             this._internalAutoSizeState = false;
                             this._internalAutoSizeStateChange.emit(this._internalAutoSizeState);
                             this.autoSizeColumns(false);
+                        }
+                        break;
+                    case '_internalSizeColumnsToFitState':
+                        if(this.isGridReady && (change.currentValue === true)) {
+                            // need to clear it, so the watch can be used, if columnState changes, and we want to apply the same _internalSizeColumnsToFitState again
+                            this._internalSizeColumnsToFitState = false;
+                            this._internalSizeColumnsToFitStateChange.emit(this._internalSizeColumnsToFitState);
+                            this.agGrid.api.sizeColumnsToFit();
                         }
                         break;
                     case 'enabled':

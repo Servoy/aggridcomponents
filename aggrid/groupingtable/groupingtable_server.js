@@ -772,6 +772,14 @@ $scope.api.autoSizeAllColumns = function() {
 }
 
 /**
+ * Size columns to fit viewport.
+ * 
+ */
+$scope.api.sizeColumnsToFit = function() {
+	$scope.model._internalSizeColumnsToFitState = true;
+}
+
+/**
  * Returns the current state of the columns (width, position, grouping state) as a json string
  * that can be used to restore to this state using restoreColumnState
  * 

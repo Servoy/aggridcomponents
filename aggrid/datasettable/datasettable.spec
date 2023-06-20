@@ -375,6 +375,12 @@
             "parameters": [
             ]
         },
+		"sizeColumnsToFit" : {
+            "delayUntilFormLoads": true,
+            "discardPreviouslyQueuedSimilarCalls": true,
+            "parameters": [
+            ]
+		},		
 		"newRows": {
 			"parameters": [
 				{ "name": "rowsData", "type": "object[]"},

@@ -300,7 +300,7 @@ export class PowerGrid extends NGGridDirective {
                 this.applyExpandedState();
 
                 this.agGridOptions.onDisplayedColumnsChanged = () => {
-                    this.sizeColumnsToFit(GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED);
+                    this.svySizeColumnsToFit(GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED);
                     this.storeColumnsState();
                 };
                 if (this.onReady) {
@@ -308,7 +308,7 @@ export class PowerGrid extends NGGridDirective {
                 }
                 // without timeout the column don't fit automatically
                 this.setTimeout(() => {
-                    this.sizeColumnsToFit(GRID_EVENT_TYPES.GRID_READY);
+                    this.svySizeColumnsToFit(GRID_EVENT_TYPES.GRID_READY);
                 }, 150);
             },
             getContextMenuItems: () => this.contextMenuItems,
@@ -323,7 +323,7 @@ export class PowerGrid extends NGGridDirective {
                 this.setTimeout(() => {
                     // if not yet destroyed
                     if (this.agGrid.gridOptions.onGridSizeChanged) {
-                        this.sizeColumnsToFit();
+                        this.svySizeColumnsToFit();
                     }
                 }, 150);
             },
@@ -333,7 +333,7 @@ export class PowerGrid extends NGGridDirective {
             //                onColumnVisible: storeColumnsState,			 covered by onDisplayedColumnsChanged
             //                onColumnPinned: storeColumnsState,			 covered by onDisplayedColumnsChanged
             onColumnResized: (e: ColumnResizedEvent) => {   // NOT covered by onDisplayedColumnsChanged
-                if(this.continuousColumnsAutoSizing && e.source === 'uiColumnDragged') {
+                if(this.continuousColumnsAutoSizing && e.source === 'uiColumnResized') {
                     if(this.sizeColumnsToFitTimeout !== null) {
                         clearTimeout(this.sizeColumnsToFitTimeout);
                     }
@@ -344,7 +344,7 @@ export class PowerGrid extends NGGridDirective {
                         // during the call and then reset it at the end
                         const columnSetWidth = e.column.getColDef().width;
                         e.column.getColDef().width = e.column.getActualWidth();
-                        this.sizeColumnsToFit();
+                        this.svySizeColumnsToFit();
                         if(columnSetWidth === undefined) delete e.column.getColDef().width;
                         else e.column.getColDef().width = columnSetWidth;
                         this.storeColumnsState();
@@ -363,7 +363,7 @@ export class PowerGrid extends NGGridDirective {
             sideBar,
             enableBrowserTooltips: false,
             onToolPanelVisibleChanged: () => {
-                this.sizeColumnsToFit();
+                this.svySizeColumnsToFit();
             },
             onCellEditingStopped: (event) => {
                 // don't allow escape if cell data is invalid
@@ -554,7 +554,7 @@ export class PowerGrid extends NGGridDirective {
         this.agGrid.api.addEventListener('cellClicked', (params: any) => this.cellClickHandler(params));
         this.agGrid.api.addEventListener('cellDoubleClicked', (params: any) => this.onCellDoubleClicked(params));
         this.agGrid.api.addEventListener('cellContextMenu', (params: any) => this.onCellContextMenu(params));
-        this.agGrid.api.addEventListener('displayedColumnsChanged', () => this.sizeColumnsToFit(GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED));
+        this.agGrid.api.addEventListener('displayedColumnsChanged', () => this.svySizeColumnsToFit(GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED));
 
         // listen to group changes
         this.agGrid.api.addEventListener('columnRowGroupChanged', (event: any) => this.onColumnRowGroupChanged(event));
@@ -644,7 +644,7 @@ export class PowerGrid extends NGGridDirective {
                                                     this.agGridOptions.columnApi.setColumnVisible(colId, newPropertyValue);
                                                 } else {
                                                     this.agGridOptions.columnApi.setColumnWidth(colId, newPropertyValue);
-                                                    this.sizeColumnsToFit();
+                                                    this.svySizeColumnsToFit();
                                                 }
                                             }
                                         }
@@ -1090,7 +1090,7 @@ export class PowerGrid extends NGGridDirective {
         return result;
     }
 
-    sizeColumnsToFit(eventType?: string) {
+    svySizeColumnsToFit(eventType?: string) {
         switch (this.columnsAutoSizing) {
             case 'NONE':
                 break;
@@ -1924,6 +1924,15 @@ export class PowerGrid extends NGGridDirective {
         }
         this.agGrid.columnApi.autoSizeColumns(noFlexColumns, skipHeader);
     }    
+
+    /**
+     *   Size columns to fit viewport.
+     */
+    sizeColumnsToFit() {
+        if (this.isGridReady && this.agGridOptions) {
+            this.agGrid.api.sizeColumnsToFit();
+        }
+    }
 
     onCellValueChanged(params: any) {
         const rowIndex = params.node.rowIndex;

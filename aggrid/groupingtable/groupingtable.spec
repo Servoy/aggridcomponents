@@ -22,6 +22,7 @@
 		"columnState": { "type": "string", "tags": {"scope" : "private", "allowaccess": "enabled"}, "pushToServer": "allow"},
 		"columnStateOnError": { "type": "function", "tags": {"scope" : "private", "allowaccess": "enabled"}},
 		"_internalAutoSizeState": { "type": "boolean", "tags": {"scope" : "private", "allowaccess": "enabled"}, "pushToServer": "allow"},
+		"_internalSizeColumnsToFitState": { "type": "boolean", "tags": {"scope" : "private", "allowaccess": "enabled"}, "pushToServer": "allow"},
 		"_internalColumnState": { "type": "string", "tags": {"scope" : "private", "allowaccess": "enabled"}, "pushToServer": "allow"},
 		"_internalExpandedState": { "type": "object", "tags": {"scope" : "private", "allowaccess": "enabled"}, "pushToServer": "allow"},
 		"restoreStates": { "type": "map", "tags": {"scope" : "private"}},
@@ -255,6 +256,10 @@
 			]
 		},
 		"autoSizeAllColumns" : {
+			"parameters": [
+			]
+		},
+		"sizeColumnsToFit" : {
 			"parameters": [
 			]
 		},

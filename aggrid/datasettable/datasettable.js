@@ -2475,6 +2475,16 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                         gridOptions.columnApi.autoSizeAllColumns(false);
                     }
                 }
+
+                /**
+                 * Size columns to fit viewport.
+                 * 
+                 */
+                $scope.api.sizeColumnsToFit = function () {
+                    if (isGridReady && gridOptions) {
+                        gridOptions.api.sizeColumnsToFit();
+                    }
+                }
             }
             if($scope.model.visible) {
                 initGrid();

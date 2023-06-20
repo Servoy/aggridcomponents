@@ -3757,6 +3757,15 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						}
 					});	
 
+					$scope.$watch("model._internalSizeColumnsToFitState", function(newValue, oldValue) {
+						if(isGridReady && (newValue === true)) {
+							// need to clear it, so the watch can be used, if columnState changes, and we want to apply the same _internalSizeColumnsToFitState again
+							$scope.model._internalSizeColumnsToFitState = false;
+							$scope.svyServoyapi.apply('_internalSizeColumnsToFitState');
+							svySizeColumnsToFit();
+						}
+					});						
+
 					$scope.$watch("model.enabled", function(newValue, oldValue) {
 						if(isGridReady) {
 							enableRowSelection(newValue);
