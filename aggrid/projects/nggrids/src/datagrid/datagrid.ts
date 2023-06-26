@@ -229,6 +229,7 @@ export class DataGrid extends NGGridDirective {
     // id of the root foundset needed when the foundset is changed as there is no way to get the previous foundset id then to check for change
     myFoundsetId: any;
 
+    isColumnsFirstChange = true;
     previousColumns: any[];
 
     // currently set aggrid-filter
@@ -785,7 +786,7 @@ export class DataGrid extends NGGridDirective {
                         });
                         break;
                     case 'columns':
-                        if(!change.firstChange) {
+                        if(!this.isColumnsFirstChange) {
                             if(!isEqualWith(change.currentValue, change.previousValue, (objValue: any, othValue: any, key: any) => {
                                 if(key && COLUMN_KEYS_TO_SKIP_IN_CHANGES.indexOf(key) !== -1) {
                                     return true;
@@ -843,6 +844,8 @@ export class DataGrid extends NGGridDirective {
                                     }
                                 }
                             }
+                        } else {
+                            this.isColumnsFirstChange = true;
                         }
                         if(change.currentValue) {
                             this.previousColumns = [];

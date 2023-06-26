@@ -161,6 +161,7 @@ export class PowerGrid extends NGGridDirective {
 
     hasAutoHeightColumn = false;
 
+    isColumnsFirstChange = true;
     previousColumns: any[];
 
     isEditableCallback: any;
@@ -603,7 +604,7 @@ export class PowerGrid extends NGGridDirective {
                         }
                         break;
                     case 'columns':
-                        if (!change.firstChange) {
+                        if (!this.isColumnsFirstChange) {
                             if(!isEqualWith(change.currentValue, change.previousValue) ||
                                 (change.currentValue && this.previousColumns && change.currentValue.length !== this.previousColumns.length)) {
                                 this.updateColumnDefs();
@@ -651,6 +652,8 @@ export class PowerGrid extends NGGridDirective {
                                     }
                                 }
                             }
+                        } else {
+                            this.isColumnsFirstChange = true;
                         }
                         if(change.currentValue) {
                             this.previousColumns = [];
