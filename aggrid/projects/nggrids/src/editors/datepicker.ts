@@ -123,28 +123,30 @@ export class DatePicker extends EditorDirective {
 
     ngAfterViewInit(): void {
         if (this.selectedValue) this.config.viewDate = DateTime.convert(this.selectedValue, null, this.config.localization);
-        this.picker = new TempusDominus(this.inputElementRef.nativeElement, this.config);
-        this.picker.dates.formatInput =  (date: DateTime) => this.ngGrid.format(date, this.format, false);
-        this.picker.dates.parseInput =  (value: string) => {
-            const parsed = this.formattingService.parse(value?value.trim():null, this.format, true, this.selectedValue);
-            if (parsed instanceof Date && !isNaN(parsed.getTime())) return  new DateTime(parsed);
-            return null;
-        };
-        if ( this.config.viewDate ) this.picker.dates.setValue( this.config.viewDate );
-        this.picker.subscribe(Namespace.events.change, (event) => this.dateChanged(event));
-        setTimeout(() => {
-            this.inputElementRef.nativeElement.select();
-            this.picker.show();
-            const dateContainer = this.doc.getElementsByClassName('tempus-dominus-widget calendarWeeks show');
-             if (dateContainer && dateContainer.length) {
-            dateContainer[0].classList.add('ag-custom-component-popup');
+        if(!this.ngGrid.isInFindMode()) {
+            this.picker = new TempusDominus(this.inputElementRef.nativeElement, this.config);
+            this.picker.dates.formatInput =  (date: DateTime) => this.ngGrid.format(date, this.format, false);
+            this.picker.dates.parseInput =  (value: string) => {
+                const parsed = this.formattingService.parse(value?value.trim():null, this.format, true, this.selectedValue);
+                if (parsed instanceof Date && !isNaN(parsed.getTime())) return  new DateTime(parsed);
+                return null;
+            };
+            if ( this.config.viewDate ) this.picker.dates.setValue( this.config.viewDate );
+            this.picker.subscribe(Namespace.events.change, (event) => this.dateChanged(event));
+            setTimeout(() => {
+                this.inputElementRef.nativeElement.select();
+                this.picker.show();
+                const dateContainer = this.doc.getElementsByClassName('tempus-dominus-widget calendarWeeks show');
+                if (dateContainer && dateContainer.length) {
+                    dateContainer[0].classList.add('ag-custom-component-popup');
+                }
+            }, 0);
+            this.picker.subscribe(Namespace.events.hide, () => this.params.stopEditing());
         }
-        }, 0);
-         this.picker.subscribe(Namespace.events.hide, () => this.params.stopEditing());
     }
 
     ngOnDestroy() {
-        if (this.picker !== null) this.picker.dispose();
+        if (this.picker) this.picker.dispose();
     }
 
     isPopup(): boolean {
@@ -153,9 +155,13 @@ export class DatePicker extends EditorDirective {
 
     // returns the new value after editing
     getValue(): Date {
-        const parsed = this.formattingService.parse(this.inputElementRef.nativeElement.value, this.format, true, this.selectedValue);
-        if (parsed instanceof Date && !isNaN(parsed.getTime())) return parsed;
-        return null;
+        if(this.ngGrid.isInFindMode()) {
+            return this.inputElementRef.nativeElement.value;
+        } else {
+            const parsed = this.formattingService.parse(this.inputElementRef.nativeElement.value, this.format, true, this.selectedValue);
+            if (parsed instanceof Date && !isNaN(parsed.getTime())) return parsed;
+            return null;
+        }
     }
 
     public dateChanged(event: any) {
