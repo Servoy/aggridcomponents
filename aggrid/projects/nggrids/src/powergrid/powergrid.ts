@@ -1472,6 +1472,10 @@ export class PowerGrid extends NGGridDirective {
         return param.node.rowIndex;
     }
 
+    isInFindMode(): boolean {
+        return false;
+    }
+
     /**
      * add expanded node to cache
      * see onRowGroupOpened

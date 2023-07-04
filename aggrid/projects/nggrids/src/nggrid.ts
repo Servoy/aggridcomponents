@@ -56,6 +56,8 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
     abstract getColumnFormat(field: any): any;
 
     abstract getEditingRowIndex(param: any): number;
+
+    abstract isInFindMode(): boolean;
 }
 
 export class IconConfig extends BaseCustomObject {

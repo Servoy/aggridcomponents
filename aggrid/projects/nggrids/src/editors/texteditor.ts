@@ -125,7 +125,7 @@ export class TextEditor extends EditorDirective {
     getValue(): any {
         let displayValue = this.elementRef.nativeElement.value;
 
-        if(this.format) {
+        if(this.format && !this.ngGrid.isInFindMode()) {
             const editFormat = this.format.edit ? this.format.edit : this.format.display;
             if(editFormat) {
                 displayValue = this.ngGrid.formattingService.unformat(displayValue, editFormat, this.format.type, this.initialValue);
