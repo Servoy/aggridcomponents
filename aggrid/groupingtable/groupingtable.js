@@ -1153,7 +1153,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					function onCellClicked(params) {
 						$log.debug(params);
 						var col = params.colDef.field ? getColumn(params.colDef.field) : null;
-						if(col && col.editType == 'CHECKBOX' && params.event.target.tagName == 'I' && isColumnEditable(params)) {
+						if(col && col.editType == 'CHECKBOX' && params.colDef.editable && params.event.target.tagName == 'I' && isColumnEditable(params)) {
 							params.node.setDataValue(params.column.colId, getCheckboxEditorToggleValue(params.value));
 						}
 						if ($scope.handlers.onCellClick) {
@@ -5665,7 +5665,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							colDef.suppressMenu = column.enableRowGroup === false && column.filterType == undefined;
 
 							if (column.editType) {
-								colDef.editable = column.editType != 'CHECKBOX' ? isColumnEditable : false;
+								colDef.editable = column.editType != 'CHECKBOX' ? isColumnEditable : true;
 
 								if(column.editType == 'TEXTFIELD' || column.editType == 'TYPEAHEAD') {
 									colDef.cellEditor = getTextEditor();

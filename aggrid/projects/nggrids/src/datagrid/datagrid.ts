@@ -1177,7 +1177,7 @@ export class DataGrid extends NGGridDirective {
             colDef.suppressMenu = column.enableRowGroup === false && column.filterType === undefined;
 
             if (column.editType) {
-                colDef.editable = column.editType !== 'CHECKBOX' ? this.isColumnEditable : false;
+                colDef.editable = column.editType !== 'CHECKBOX' ? this.isColumnEditable : true;
 
                 if(column.editType === 'TEXTFIELD') {
                     colDef.cellEditor = TextEditor;
@@ -3106,7 +3106,7 @@ export class DataGrid extends NGGridDirective {
     onCellClicked(params: any) {
         this.log.debug(params);
         const col = params.colDef.field ? this.getColumn(params.colDef.field) : null;
-        if(col && col.editType === 'CHECKBOX' && params.event.target.tagName === 'I' && this.isColumnEditable(params)) {
+        if(col && col.editType === 'CHECKBOX' && params.colDef.editable && params.event.target.tagName === 'I' && this.isColumnEditable(params)) {
             params.node.setDataValue(params.column.colId, this.getCheckboxEditorToggleValue(params.value));
         }
         if (this.onCellClick) {

@@ -1046,7 +1046,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                         colDef.suppressMenu = column.enableRowGroup === false && column.filterType == undefined;
 
                         if (column.editType) {
-                            colDef.editable = column.editType != 'CHECKBOX' ? isColumnEditable : false;
+                            colDef.editable = column.editType != 'CHECKBOX' ? isColumnEditable : true;
 
                             if(column.editType == 'TEXTFIELD') {
                                 colDef.cellEditor = getTextEditor();
@@ -1348,7 +1348,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
 
                     function onCellClicked(params) {
                         var col = params.colDef.field ? getColumn(params.colDef.field) : null;
-                        if(col && col.editType == 'CHECKBOX' && params.event.target.tagName == 'I' && isColumnEditable(params)) {
+                        if(col && col.editType == 'CHECKBOX' && params.colDef.editable && params.event.target.tagName == 'I' && isColumnEditable(params)) {
                             var v = parseInt(params.value);
                             if(isNaN(v)) v = 0;
                             params.node.setDataValue(params.column.colId, v ? 0 : 1);

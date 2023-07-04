@@ -828,7 +828,7 @@ export class PowerGrid extends NGGridDirective {
                 colDef.suppressMenu = column.enableRowGroup === false && column.filterType === undefined;
 
                 if (column.editType) {
-                    colDef.editable = column.editType !== 'CHECKBOX' ? (params: any) => this.isColumnEditable(params) : false;
+                    colDef.editable = column.editType !== 'CHECKBOX' ? (params: any) => this.isColumnEditable(params) : true;
 
                     if (column.editType === 'TEXTFIELD') {
                         colDef.cellEditor = TextEditor;
@@ -1271,7 +1271,7 @@ export class PowerGrid extends NGGridDirective {
 
     onCellClicked(params: any) {
         const col = params.colDef.field ? this.getColumn(params.colDef.field) : null;
-        if (col && col.editType === 'CHECKBOX' && params.event.target.tagName === 'I' && this.isColumnEditable(params)) {
+        if (col && col.editType === 'CHECKBOX' && params.colDef.editable && params.event.target.tagName === 'I' && this.isColumnEditable(params)) {
             let v = parseInt(params.value, 10);
             if (isNaN(v)) v = 0;
             params.node.setDataValue(params.column.colId, v ? 0 : 1);
