@@ -5,13 +5,14 @@ import { Component } from '@angular/core';
 import { NgbTypeahead, NgbTypeaheadConfig } from '@ng-bootstrap/ng-bootstrap';
 import { merge, Observable, of, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, switchMap } from 'rxjs/operators';
-import { FormattingService } from '@servoy/public';
+import { FormattingService, IPopupSupportComponent } from '@servoy/public';
 import { EditorDirective } from './editor';
 
 @Component({
     selector: 'aggrid-typeahededitor',
     template: `
       <input class="ag-table-typeahed-editor-input"
+        [svyTabFix]="this"
         [value]="initialDisplayValue"
         [maxLength]="maxLength"
         [style.width.px]="width"
@@ -22,7 +23,7 @@ import { EditorDirective } from './editor';
         #instance="ngbTypeahead" #element>
     `
 })
-export class TypeaheadEditor extends EditorDirective {
+export class TypeaheadEditor extends EditorDirective implements IPopupSupportComponent{
 
   @ViewChild('instance') instance: NgbTypeahead;
   @Input() initialDisplayValue: any;
@@ -232,6 +233,11 @@ export class TypeaheadEditor extends EditorDirective {
     }
     return this.formatService.format(result, this.format, false);
   };
+
+
+  closePopup(){
+    this.instance.dismissPopup();
+  }
 
   private findDisplayValue(vl: any, displayValue: any) {
     if(vl) {
