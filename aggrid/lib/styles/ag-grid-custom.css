@@ -212,3 +212,7 @@
 .ag-table .tooltip-inner {
 	max-width: none !important;
 }
+
+.ag-selection-checkbox + span {
+    width: 100%;
+}
