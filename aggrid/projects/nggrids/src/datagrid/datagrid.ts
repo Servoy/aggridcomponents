@@ -845,7 +845,7 @@ export class DataGrid extends NGGridDirective {
                                 }
                             }
                         } else {
-                            this.isColumnsFirstChange = true;
+                            this.isColumnsFirstChange = false;
                         }
                         if(change.currentValue) {
                             this.previousColumns = [];
