@@ -53,10 +53,6 @@
 	display: block;
 }
 
-.ag-cell-focus, .ag-cell {
-    border: none !important;
-}
-
 #nggridformeditor > * > .svy-respform {
 	height: 100%;
 }

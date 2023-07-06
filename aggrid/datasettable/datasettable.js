@@ -261,7 +261,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     rowSelection: $scope.model.multiSelect === true ? 'multiple' : 'single',
                     rowDeselection: false,
     //                suppressRowClickSelection: rowGroupColsDefault.length === 0 ? false : true,
-                    suppressCellSelection: false, // TODO implement focus lost/gained
+                    suppressCellSelection: true, // TODO implement focus lost/gained
                     enableRangeSelection: false,
                     suppressRowClickSelection: !$scope.model.enabled,
 

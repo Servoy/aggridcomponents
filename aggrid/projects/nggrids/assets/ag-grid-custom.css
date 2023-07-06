@@ -236,6 +236,7 @@
     background-color: rgba(33, 150, 243, 0.3);
 }
 
-.ag-table {
-    --ag-selected-row-background-color: none !important;
+.ag-table.ag-theme-alpine {
+    --ag-selected-row-background-color: none;
+    --ag-range-selection-border-style: none;
 }

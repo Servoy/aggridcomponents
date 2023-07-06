@@ -25,10 +25,6 @@
 }
 */
 
-.ag-cell-focus, .ag-cell {
-    border: none !important;
-}
-
 .design-mode {
 	display: block;
 }
