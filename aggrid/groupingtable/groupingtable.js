@@ -3061,7 +3061,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						$log.debug('FoundsetDatasource.getRows: params = ', params);
 
 						var currentEditCells = gridOptions.api.getEditingCells();
-						if(currentEditCells && currentEditCells.length) {
+						if(currentEditCells && currentEditCells.length &&
+							(currentEditCells[0].rowIndex < gridOptions.api.getFirstDisplayedRow() || currentEditCells[0].rowIndex > gridOptions.api.getLastDisplayedRow())) {
 							gridOptions.api.stopEditing();
 						}
 
