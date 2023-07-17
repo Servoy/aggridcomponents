@@ -828,8 +828,6 @@ export class PowerGrid extends NGGridDirective {
                 colDef.suppressMenu = column.enableRowGroup === false && column.filterType === undefined;
 
                 if (column.editType) {
-                    colDef.editable = column.editType !== 'CHECKBOX' ? (params: any) => this.isColumnEditable(params) : true;
-
                     if (column.editType === 'TEXTFIELD') {
                         colDef.cellEditor = TextEditor;
                     } else if (column.editType === 'DATEPICKER') {
@@ -885,6 +883,10 @@ export class PowerGrid extends NGGridDirective {
                             colDef[property] = columnOptions[property];
                         }
                     }
+                }
+
+                if (column.editType && (colDef['editable'] === undefined || colDef['editable']) === true) {
+                    colDef.editable = (params: any) => this.isColumnEditable(params);
                 }
 
                 if (colDef['autoHeight'] && !this.hasAutoHeightColumn) {
@@ -951,6 +953,10 @@ export class PowerGrid extends NGGridDirective {
     isColumnEditable(args: any) {
         // skip pinned (footer) nodes
         if(args.node.rowPinned) return false;
+        const col = args.colDef.field ? this.getColumn(args.colDef.field) : null;
+        if(col && col.editType === 'CHECKBOX' && (!args.event || args.event.target.tagName !== 'I')) {
+            return false;
+        }
         if(this.enabled && !this.readOnly) {
             if(this.isEditableCallback) {
                 return this.isEditableCallback(args);
@@ -1271,7 +1277,7 @@ export class PowerGrid extends NGGridDirective {
 
     onCellClicked(params: any) {
         const col = params.colDef.field ? this.getColumn(params.colDef.field) : null;
-        if (col && col.editType === 'CHECKBOX' && params.colDef.editable && params.event.target.tagName === 'I' && this.isColumnEditable(params)) {
+        if (col && col.editType === 'CHECKBOX' && params.colDef.editable && this.isColumnEditable(params)) {
             let v = parseInt(params.value, 10);
             if (isNaN(v)) v = 0;
             params.node.setDataValue(params.column.colId, v ? 0 : 1);

@@ -1177,8 +1177,6 @@ export class DataGrid extends NGGridDirective {
             colDef.suppressMenu = column.enableRowGroup === false && column.filterType === undefined;
 
             if (column.editType) {
-                colDef.editable = column.editType !== 'CHECKBOX' ? this.isColumnEditable : true;
-
                 if(column.editType === 'TEXTFIELD') {
                     colDef.cellEditor = TextEditor;
                 } else if(column.editType === 'TYPEAHEAD') {
@@ -1284,6 +1282,10 @@ export class DataGrid extends NGGridDirective {
                         colDef[property] = columnOptions[property];
                     }
                 }
+            }
+
+            if (column.editType && (colDef['editable'] === undefined || colDef['editable']) === true) {
+                colDef.editable = this.isColumnEditable;
             }
 
             if(column.headerGroup) {
@@ -2342,6 +2344,11 @@ export class DataGrid extends NGGridDirective {
         // if read-only and no r-o columns
         if(_this.readOnly && !_this.readOnlyColumnIds) return false;
 
+        const col = args.colDef.field ? _this.getColumn(args.colDef.field) : null;
+        if(col && col.editType === 'CHECKBOX' && (!args.event || args.event.target.tagName !== 'I')) {
+            return false;
+        }
+
         const rowGroupCols = _this.getRowGroupColumns();
         for (const rowGroupCol of rowGroupCols) {
             if (args.colDef.field === rowGroupCol.colDef.field) {
@@ -3110,7 +3117,7 @@ export class DataGrid extends NGGridDirective {
     onCellClicked(params: any) {
         this.log.debug(params);
         const col = params.colDef.field ? this.getColumn(params.colDef.field) : null;
-        if(col && col.editType === 'CHECKBOX' && params.colDef.editable && params.event.target.tagName === 'I' && this.isColumnEditable(params)) {
+        if(col && col.editType === 'CHECKBOX' && params.colDef.editable && this.isColumnEditable(params)) {
             params.node.setDataValue(params.column.colId, this.getCheckboxEditorToggleValue(params.value));
         }
         if (this.onCellClick) {
