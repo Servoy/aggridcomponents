@@ -1046,8 +1046,6 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                         colDef.suppressMenu = column.enableRowGroup === false && column.filterType == undefined;
 
                         if (column.editType) {
-                            colDef.editable = column.editType != 'CHECKBOX' ? isColumnEditable : true;
-
                             if(column.editType == 'TEXTFIELD') {
                                 colDef.cellEditor = getTextEditor();
                             }
@@ -1090,6 +1088,10 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                             }
                         }
 
+                        if (column.editType && (colDef['editable'] === undefined || colDef['editable']) === true) {
+                            colDef.editable = isColumnEditable;
+                        }
+
                         if(colDef['autoHeight'] && !hasAutoHeightColumn) {
                             hasAutoHeightColumn = true;
                         }
@@ -1122,6 +1124,10 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 function isColumnEditable(args) {
                     // skip pinned (footer) nodes
 					if(args.node.rowPinned) return false;
+                    var col = args.colDef.field ? getColumn(args.colDef.field) : null;
+                    if(col && col.editType === 'CHECKBOX' && (!args.event || args.event.target.tagName !== 'I')) {
+                        return false;
+                    }                    
                     if($scope.model.enabled && !$scope.model.readOnly) {
                         if(isEditableFunc) {
                             return isEditableFunc(args);
@@ -1348,7 +1354,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
 
                     function onCellClicked(params) {
                         var col = params.colDef.field ? getColumn(params.colDef.field) : null;
-                        if(col && col.editType == 'CHECKBOX' && params.colDef.editable && params.event.target.tagName == 'I' && isColumnEditable(params)) {
+                        if(col && col.editType == 'CHECKBOX' && params.colDef.editable && isColumnEditable(params)) {
                             var v = parseInt(params.value);
                             if(isNaN(v)) v = 0;
                             params.node.setDataValue(params.column.colId, v ? 0 : 1);

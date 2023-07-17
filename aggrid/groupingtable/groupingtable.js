@@ -1153,7 +1153,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					function onCellClicked(params) {
 						$log.debug(params);
 						var col = params.colDef.field ? getColumn(params.colDef.field) : null;
-						if(col && col.editType == 'CHECKBOX' && params.colDef.editable && params.event.target.tagName == 'I' && isColumnEditable(params)) {
+						if(col && col.editType == 'CHECKBOX' && params.colDef.editable && isColumnEditable(params)) {
 							params.node.setDataValue(params.column.colId, getCheckboxEditorToggleValue(params.value));
 						}
 						if ($scope.handlers.onCellClick) {
@@ -5458,6 +5458,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						// if read-only and no r-o columns
 						if($scope.model.readOnly && !$scope.model.readOnlyColumnIds) return false;
 
+						var col = args.colDef.field ? getColumn(args.colDef.field) : null;
+						if(col && col.editType === 'CHECKBOX' && (!args.event || args.event.target.tagName !== 'I')) {
+							return false;
+						}
+
 						var rowGroupCols = getRowGroupColumns();
 						for (var i = 0; i < rowGroupCols.length; i++) {
 							if (args.colDef.field == rowGroupCols[i].colDef.field) {
@@ -5666,8 +5671,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							colDef.suppressMenu = column.enableRowGroup === false && column.filterType == undefined;
 
 							if (column.editType) {
-								colDef.editable = column.editType != 'CHECKBOX' ? isColumnEditable : true;
-
 								if(column.editType == 'TEXTFIELD' || column.editType == 'TYPEAHEAD') {
 									colDef.cellEditor = getTextEditor();
 									colDef.cellEditorParams = {
@@ -5747,6 +5750,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 										colDef[property] = columnOptions[property];
 									}
 								}
+							}
+
+							if (column.editType && (colDef['editable'] === undefined || colDef['editable']) === true) {
+								colDef.editable = isColumnEditable;
 							}
 
 							if(column.headerGroup) {
