@@ -196,6 +196,7 @@ export class DataGrid extends NGGridDirective {
     agMainMenuItemsConfig: any;
     agArrowsUpDownMoveWhenEditing: any;
     agEditNextCellOnEnter = false;
+    agContinuousColumnsAutoSizing = false;
 
     // position of cell with invalid data as reported by the return of onColumnDataChange
     invalidCellDataIndex = { rowIndex: -1, colKey: ''};
@@ -258,6 +259,9 @@ export class DataGrid extends NGGridDirective {
         if(this.datagridService.editNextCellOnEnter) {
             this.agEditNextCellOnEnter = this.datagridService.editNextCellOnEnter;
         }
+        if(this.datagridService.continuousColumnsAutoSizing) {
+            this.agContinuousColumnsAutoSizing = this.datagridService.continuousColumnsAutoSizing;
+        }
 
         toolPanelConfig = this.mergeConfig(toolPanelConfig, this.toolPanelConfig);
         iconConfig = this.mergeConfig(iconConfig, this.iconConfig);
@@ -270,6 +274,9 @@ export class DataGrid extends NGGridDirective {
         }
         if(this.editNextCellOnEnter) {
             this.agEditNextCellOnEnter = this.editNextCellOnEnter;
+        }
+        if(this.continuousColumnsAutoSizing) {
+            this.agContinuousColumnsAutoSizing = this.continuousColumnsAutoSizing;
         }
 
         const vMenuTabs = ['generalMenuTab', 'filterMenuTab'];
@@ -463,7 +470,7 @@ export class DataGrid extends NGGridDirective {
                 }
             },
             onColumnResized: (e: ColumnResizedEvent) => {
-                if(this.continuousColumnsAutoSizing && e.source === 'uiColumnResized') {
+                if(this.agContinuousColumnsAutoSizing && e.source === 'uiColumnResized') {
                     if(this.sizeHeaderAndColumnsToFitTimeout !== null) {
                         clearTimeout(this.sizeHeaderAndColumnsToFitTimeout);
                     }
@@ -1000,7 +1007,7 @@ export class DataGrid extends NGGridDirective {
                     this.agGrid.api.sizeColumnsToFit();
 
             }
-            if(this.columnsAutoSizing !== 'NONE' && !this.continuousColumnsAutoSizing && eventType === GRID_EVENT_TYPES.GRID_READY) {
+            if(this.columnsAutoSizing !== 'NONE' && !this.agContinuousColumnsAutoSizing && eventType === GRID_EVENT_TYPES.GRID_READY) {
                 this.columnsAutoSizing = 'NONE';
                 this.columnsAutoSizingChange.emit('NONE');
             }

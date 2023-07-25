@@ -32,6 +32,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 var userGridOptions = null;
                 var localeText = null;
                 var mainMenuItemsConfig = null;
+                var continuousColumnsAutoSizing = false;
                 if($injector.has('ngPowerGrid')) {
                     var datasettableDefaultConfig = $services.getServiceScope('ngPowerGrid').model;
                     if(datasettableDefaultConfig.toolPanelConfig) {
@@ -48,7 +49,10 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     }
                     if(datasettableDefaultConfig.mainMenuItemsConfig) {
                         mainMenuItemsConfig = datasettableDefaultConfig.mainMenuItemsConfig;
-                    }                
+                    }
+                    if(datasettableDefaultConfig.continuousColumnsAutoSizing) {
+                        continuousColumnsAutoSizing = datasettableDefaultConfig.continuousColumnsAutoSizing;
+                    }                    
                 }
 
                 var config = $scope.model;
@@ -155,6 +159,10 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 localeText = mergeConfig(localeText, config.localeText);
                 mainMenuItemsConfig = mergeConfig(mainMenuItemsConfig, config.mainMenuItemsConfig);
                 
+                if(config.continuousColumnsAutoSizing) {
+                    continuousColumnsAutoSizing = config.continuousColumnsAutoSizing;
+                }
+
                 var vMenuTabs = ['generalMenuTab','filterMenuTab'];
                 
                 if(config.showColumnsMenuTab) vMenuTabs.push('columnsMenuTab');
@@ -328,7 +336,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
     //                onColumnVisible: storeColumnsState,			 covered by onDisplayedColumnsChanged
     //                onColumnPinned: storeColumnsState,			 covered by onDisplayedColumnsChanged
                     onColumnResized: function(e) {				 // NOT covered by onDisplayedColumnsChanged
-						if($scope.model.continuousColumnsAutoSizing && e.source === 'uiColumnDragged') {
+						if(continuousColumnsAutoSizing && e.source === 'uiColumnDragged') {
 							if(sizeColumnsToFitTimeout !== null) {
 								clearTimeout(sizeColumnsToFitTimeout);
 							}
@@ -1183,7 +1191,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                             default:
                                 gridOptions.api.sizeColumnsToFit();
                         }
-                        if($scope.model.columnsAutoSizing !== 'NONE' && !$scope.model.continuousColumnsAutoSizing && eventType === GRID_EVENT_TYPES.GRID_READY) {
+                        if($scope.model.columnsAutoSizing !== 'NONE' && !continuousColumnsAutoSizing && eventType === GRID_EVENT_TYPES.GRID_READY) {
                             $scope.model.columnsAutoSizing = 'NONE';
                             $scope.svyServoyapi.apply('columnsAutoSizing');
                         }                        
