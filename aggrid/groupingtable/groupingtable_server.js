@@ -409,34 +409,36 @@ function filterFoundset(foundset, sFilterModel) {
 		query = foundset.getQuery();
 	}
 
-	for(var i = 0; i < $scope.model.columns.length; i++) {
-		var dp = $scope.model.columns[i].dataprovider;
-		var filter = filterModel[i];
-		if(filter) {
-			var whereClauseForDP = null;
-			if(filter["operator"]) {
-				var whereClause1ForDP = null;
-				var whereClause2ForDP = null;
-				if(filter["condition1"]) {
-					whereClause1ForDP = getFilterWhereClauseForDataprovider(query, filter["condition1"], dp, $scope.model.columns[i].format);
-				}
-				if(filter["condition2"]) {
-					whereClause2ForDP = getFilterWhereClauseForDataprovider(query, filter["condition2"], dp, $scope.model.columns[i].format);
-				}
-				if(whereClause1ForDP && whereClause2ForDP) {
-					if(filter["operator"] == "AND") {
-						whereClauseForDP = query.and.add(whereClause1ForDP).add(whereClause2ForDP);
-					} else if(filter["operator"] == "OR") {
-						whereClauseForDP = query.or.add(whereClause1ForDP).add(whereClause2ForDP);
+	if($scope.model.columns) {
+		for(var i = 0; i < $scope.model.columns.length; i++) {
+			var dp = $scope.model.columns[i].dataprovider;
+			var filter = filterModel[i];
+			if(filter) {
+				var whereClauseForDP = null;
+				if(filter["operator"]) {
+					var whereClause1ForDP = null;
+					var whereClause2ForDP = null;
+					if(filter["condition1"]) {
+						whereClause1ForDP = getFilterWhereClauseForDataprovider(query, filter["condition1"], dp, $scope.model.columns[i].format);
 					}
+					if(filter["condition2"]) {
+						whereClause2ForDP = getFilterWhereClauseForDataprovider(query, filter["condition2"], dp, $scope.model.columns[i].format);
+					}
+					if(whereClause1ForDP && whereClause2ForDP) {
+						if(filter["operator"] == "AND") {
+							whereClauseForDP = query.and.add(whereClause1ForDP).add(whereClause2ForDP);
+						} else if(filter["operator"] == "OR") {
+							whereClauseForDP = query.or.add(whereClause1ForDP).add(whereClause2ForDP);
+						}
+					}
+				} else {
+					whereClauseForDP = getFilterWhereClauseForDataprovider(query, filter, dp, $scope.model.columns[i].format);
 				}
-			} else {
-				whereClauseForDP = getFilterWhereClauseForDataprovider(query, filter, dp, $scope.model.columns[i].format);
-			}
 
-			if(whereClauseForDP) {
-				if(!isFilterSet) isFilterSet = true;
-				query.where.add(whereClauseForDP);
+				if(whereClauseForDP) {
+					if(!isFilterSet) isFilterSet = true;
+					query.where.add(whereClauseForDP);
+				}
 			}
 		}
 	}
