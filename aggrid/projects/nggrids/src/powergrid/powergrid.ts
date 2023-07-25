@@ -140,6 +140,7 @@ export class PowerGrid extends NGGridDirective {
 
     agGridOptions: GridOptions;
     agMainMenuItemsConfig: any;
+    agContinuousColumnsAutoSizing = false;
 
     /**
      * Store the state of the table. TODO to be persisted
@@ -184,11 +185,19 @@ export class PowerGrid extends NGGridDirective {
         let localeText = this.powergridService.localeText ? this.powergridService.localeText : null;
         const mainMenuItemsConfig = this.powergridService.mainMenuItemsConfig ? this.powergridService.mainMenuItemsConfig : null;
 
+        if(this.powergridService.continuousColumnsAutoSizing) {
+            this.agContinuousColumnsAutoSizing = this.powergridService.continuousColumnsAutoSizing;
+        }
+
         toolPanelConfig = this.mergeConfig(toolPanelConfig, this.toolPanelConfig);
         iconConfig = this.mergeConfig(iconConfig, this.iconConfig);
         userGridOptions = this.mergeConfig(userGridOptions, this.gridOptions);
         localeText = this.mergeConfig(localeText, this.localeText);
         this.agMainMenuItemsConfig = this.mergeConfig(mainMenuItemsConfig, this.mainMenuItemsConfig);
+
+        if(this.continuousColumnsAutoSizing) {
+            this.agContinuousColumnsAutoSizing = this.continuousColumnsAutoSizing;
+        }
 
         const vMenuTabs = ['generalMenuTab', 'filterMenuTab'] as ColumnMenuTab[];
 
@@ -334,7 +343,7 @@ export class PowerGrid extends NGGridDirective {
             //                onColumnVisible: storeColumnsState,			 covered by onDisplayedColumnsChanged
             //                onColumnPinned: storeColumnsState,			 covered by onDisplayedColumnsChanged
             onColumnResized: (e: ColumnResizedEvent) => {   // NOT covered by onDisplayedColumnsChanged
-                if(this.continuousColumnsAutoSizing && e.source === 'uiColumnResized') {
+                if(this.agContinuousColumnsAutoSizing && e.source === 'uiColumnResized') {
                     if(this.sizeColumnsToFitTimeout !== null) {
                         clearTimeout(this.sizeColumnsToFitTimeout);
                     }
@@ -1118,7 +1127,7 @@ export class PowerGrid extends NGGridDirective {
                 this.agGrid.api.sizeColumnsToFit();
 
         }
-        if(this.columnsAutoSizing !== 'NONE' && !this.continuousColumnsAutoSizing && eventType === GRID_EVENT_TYPES.GRID_READY) {
+        if(this.columnsAutoSizing !== 'NONE' && !this.agContinuousColumnsAutoSizing && eventType === GRID_EVENT_TYPES.GRID_READY) {
             this.columnsAutoSizing = 'NONE';
             this.columnsAutoSizingChange.emit('NONE');
         }

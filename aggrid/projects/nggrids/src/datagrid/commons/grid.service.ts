@@ -8,6 +8,7 @@ export class GridService {
     public localeText: any;
     public columnOptions: any;
     public mainMenuItemsConfig: any;
+    public continuousColumnsAutoSizing: boolean;
 
     private dragData: any[];
 
