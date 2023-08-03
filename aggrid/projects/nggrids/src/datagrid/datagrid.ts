@@ -693,7 +693,7 @@ export class DataGrid extends NGGridDirective {
                     if(focuseFromEl && (focuseFromEl.classList.contains('ag-cell') || focuseFromEl.classList.contains('ag-header-cell'))) { // focuse out from the grid
                         this.agGrid.api.clearFocusedCell();
                     } else {
-						if (!this.foundset.foundset) {
+						if (!this.foundset || !this.foundset.foundset) {
 							return;
 						}
 						const selectedNodes = this.agGrid.api.getSelectedNodes();
