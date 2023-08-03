@@ -6130,7 +6130,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							for (var i = 0; i < sortModel.length; i++) {
 								var sortModelCol = sortModel[i];
 								var column = getColumn(sortModelCol.colId);
-								if (column) {
+								if (column && column.dataprovider) {
 									var columnName = column.dataprovider.idForFoundset;
 									if(addedColumnNames.indexOf(columnName) == -1) {
 										addedColumnNames.push(columnName);
