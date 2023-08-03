@@ -2266,7 +2266,7 @@ export class DataGrid extends NGGridDirective {
             this.groupManager.removeFoundsetRefAtLevel(0);
         }
         // reset root foundset
-        this.foundset.foundset = this.myFoundset;
+        if(this.foundset) this.foundset.foundset = this.myFoundset;
 
         const currentEditCells = this.agGrid.api.getEditingCells();
         if(currentEditCells.length !== 0) {

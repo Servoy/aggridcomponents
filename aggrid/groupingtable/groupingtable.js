@@ -156,7 +156,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							groupManager.removeFoundsetRefAtLevel(0);
 						}
 						// reset root foundset
-						foundset.foundset = $scope.model.myFoundset;
+						if(foundset) foundset.foundset = $scope.model.myFoundset;
 
                         if(gridOptions.api) {
                             var currentEditCells = gridOptions.api.getEditingCells();
