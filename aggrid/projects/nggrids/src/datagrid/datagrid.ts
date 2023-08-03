@@ -2159,7 +2159,7 @@ export class DataGrid extends NGGridDirective {
             for (let i = 0; i < sortModel.length; i++) {
                 const sortModelCol = sortModel[i];
                 const column = this.getColumn(sortModelCol.colId);
-                if (column) {
+                if (column && column.dataprovider) {
                     const columnName = column.dataprovider.idForFoundset;
                     if(addedColumnNames.indexOf(columnName) === -1) {
                         addedColumnNames.push(columnName);
