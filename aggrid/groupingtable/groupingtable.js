@@ -1005,19 +1005,19 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					function onSelectionChangedEx(selectionEvent) {
 						// Don't trigger foundset selection if table is grouping
 						if (isTableGrouped()) {
-							var groupedSelection  = getGroupedSelection();
-							if(groupedSelection && groupedSelection.length) {
-								if(!$scope.model._internalGroupedSelection) $scope.model._internalGroupedSelection = []; else $scope.model._internalGroupedSelection.length = 0;
+							var groupedSelection = getGroupedSelection();
+							if (groupedSelection && groupedSelection.length) {
+								if (!$scope.model._internalGroupedSelection) $scope.model._internalGroupedSelection = []; else $scope.model._internalGroupedSelection.length = 0;
 								groupedSelection.forEach(function(record) {
 									$scope.model._internalGroupedSelection.push(record);
 								});
 								$scope.svyServoyapi.apply('_internalGroupedSelection');
-							}							
+									}
 							// Trigger event on selection change in grouo mode
 							if ($scope.handlers.onSelectedRowsChanged) {
 								$scope.handlers.onSelectedRowsChanged();
 							}
-							
+
 							return;
 						}
 
@@ -5104,12 +5104,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 				
 								$scope.model._internalGroupedSelection.forEach (function(record) {
 									var _svyRowIdSplit = record._svyRowId.split(';');
-									selectedRecordsPKs.push(_svyRowIdSplit[0]);
+									_svyRowIdSplit.pop();	// fix for composite pks
+									selectedRecordsPKs.push(_svyRowIdSplit.join(';'));
 								});
 								gridOptions.api.forEachNode( function(node) {
 									if(!node.group && node.data && node.data._svyRowId) {
 										var _svyRowIdSplit = node.data._svyRowId.split(';');
-										if(selectedRecordsPKs.indexOf(_svyRowIdSplit[0]) !== -1) {
+										_svyRowIdSplit.pop();	// fix for composite pks
+										if(selectedRecordsPKs.indexOf(_svyRowIdSplit.join(';')) !== -1) {
 											selectedNodes.push(node);
 										}
 									}
@@ -5162,7 +5164,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								isSelectedRowIndexesChanged = true;
 							}
 						}
-
+						
 						return isSelectedRowIndexesChanged;
 					}
 
@@ -5177,10 +5179,36 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							return;
 						}
 						
-						if(isTableGrouped()) {
+						if (isTableGrouped()) {
 							var selectedNodes = gridOptions.api.getSelectedNodes();
-							if(selectedNodes && selectedNodes.length) {
-								gridOptions.api.ensureNodeVisible(selectedNodes[0]);
+							if (selectedNodes && selectedNodes.length) {
+
+								if ($scope.model._internalGroupedSelection && $scope.model._internalGroupedSelection.length 
+										&& selectedNodes[0].data._svyRowId == $scope.model._internalGroupedSelection[0]._svyRowId) {
+
+									var found = false;
+									// scroll to selection in group mode only if record exists in loaded foundsets to avoid cycle with scrollToSelection
+									var groupFoundset = getFoundSetByFoundsetUUID(selectedNodes[0].data._svyFoundsetUUID);
+									if (groupFoundset) {
+
+										var _nodeRowIdSplit = selectedNodes[0].data._svyRowId.split(";");
+										_nodeRowIdSplit.pop();
+										_nodeRowIdSplit = _nodeRowIdSplit.join(";");
+
+										for (var i = 0; i < groupFoundset.viewPort.rows.length; i++) {
+											var _svyRowIdSplit = groupFoundset.viewPort.rows[i]._svyRowId.split(";");
+											_svyRowIdSplit.pop();
+											if (_nodeRowIdSplit == _svyRowIdSplit.join(";")) {
+												found = true;
+												break;
+											}
+										}
+									}
+									
+									if (found) {
+										gridOptions.api.ensureNodeVisible(selectedNodes[0]);
+									}
+								}
 							}
 						} else {
 
@@ -5209,7 +5237,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							}
 						}
 					}
-
+					
 					/**
 					 * Returns true if table is grouping
 					 * @return {Boolean}
