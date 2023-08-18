@@ -5222,14 +5222,16 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							// search if the _internalGroupedSelection is still on foundset, means the selection has not changed
 							var record = $scope.model._internalGroupedSelection[0];
 							var foundsetHash = getFoundSetByFoundsetUUID(record.foundsetId);
-							var rowIndex = foundsetHash.selectedRowIndexes[0];
-							if ($scope._internalGroupedSelectionStartIndex) {
-							 	rowIndex = rowIndex - (foundsetHash.viewPort.startIndex - $scope._internalGroupedSelectionStartIndex);
-							}
-							
-							if (foundsetHash && foundsetHash.selectedRowIndexes.length && foundsetHash.viewPort.rows[rowIndex]) {
-								if (foundsetHash.viewPort.rows[rowIndex]._svyRowId == record._svyRowId) {
-									groupedRowFound = true;
+								if (foundsetHash) {
+								var rowIndex = foundsetHash.selectedRowIndexes[0];
+								if ($scope._internalGroupedSelectionStartIndex) {
+								 	rowIndex = rowIndex - (foundsetHash.viewPort.startIndex - $scope._internalGroupedSelectionStartIndex);
+								}
+								
+								if (foundsetHash && foundsetHash.selectedRowIndexes.length && foundsetHash.viewPort.rows[rowIndex]) {
+									if (foundsetHash.viewPort.rows[rowIndex]._svyRowId == record._svyRowId) {
+										groupedRowFound = true;
+									}
 								}
 							}
 
