@@ -1014,12 +1014,39 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						if (isTableGrouped()) {
 							var groupedSelection = getGroupedSelection();
 							if (groupedSelection && groupedSelection.length) {
+								// prevent loop with _internalGroupedSelectionUpdating watch;
 								if (!$scope.model._internalGroupedSelection) $scope.model._internalGroupedSelection = []; else $scope.model._internalGroupedSelection.length = 0;
 								groupedSelection.forEach(function(record) {
 									$scope.model._internalGroupedSelection.push(record);
 								});
 								$scope.svyServoyapi.apply('_internalGroupedSelection');
+
+								// select also record in grouped foundset; useful to know if _internalGroupedSelection matches foundset selection upon user's scroll
+
+								// No need for multiselect, just look at the first selected record.
+
+								// find record in grouped foundset
+								if (groupedSelection[0]) {
+									var groupedFoundsetIndexes = [];
+									var foundsetHash = getFoundSetByFoundsetUUID(groupedSelection[0].foundsetId);
+
+									for (var i = 0; i < foundsetHash.viewPort.rows.length; i++) {
+										if (foundsetHash.viewPort.rows[i]._svyRowId == groupedSelection[0]._svyRowId) {
+											groupedFoundsetIndexes.push(i);
+											break;
+										}
 									}
+
+									// request selection update
+									if (foundsetHash && groupedFoundsetIndexes.length) {
+										foundsetHash.requestSelectionUpdate(groupedFoundsetIndexes).then(function () {
+											// TODO do i need to do anything to prevent cycle with foundset index change listener ?
+											$scope._internalGroupedSelectionStartIndex = foundsetHash.viewPort.startIndex;
+										});
+									}
+								}
+									}
+							
 							// Trigger event on selection change in grouo mode
 							if ($scope.handlers.onSelectedRowsChanged) {
 								$scope.handlers.onSelectedRowsChanged();
@@ -5099,8 +5126,12 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						// gridOptions.api.purgeEnterpriseCache();
 						if (change[$foundsetTypeConstants.NOTIFY_SELECTED_ROW_INDEXES_CHANGED] && !requestSelectionPromises.length) {
 							$log.debug(idRandom + ' - 3. Request selection changed');
-							selectedRowIndexesChanged();
+							var isReallyChanged = selectedRowIndexesChanged();
+							if (isTableGrouped()) {
+								if (isReallyChanged) scrollToSelection();
+							} else {
 							scrollToSelection();
+						}
 						}
 
 					}
@@ -5185,6 +5216,33 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							}
 						}
 						
+						if (isTableGrouped() && isSelectedRowIndexesChanged && $scope.model._internalGroupedSelection && $scope.model._internalGroupedSelection.length) {
+														
+							var groupedRowFound = false;
+							// search if the _internalGroupedSelection is still on foundset, means the selection has not changed
+							var record = $scope.model._internalGroupedSelection[0];
+							var foundsetHash = getFoundSetByFoundsetUUID(record.foundsetId);
+							var rowIndex = foundsetHash.selectedRowIndexes[0];
+							if ($scope._internalGroupedSelectionStartIndex) {
+							 	rowIndex = rowIndex - (foundsetHash.viewPort.startIndex - $scope._internalGroupedSelectionStartIndex);
+							}
+							
+							if (foundsetHash && foundsetHash.selectedRowIndexes.length && foundsetHash.viewPort.rows[rowIndex]) {
+								if (foundsetHash.viewPort.rows[rowIndex]._svyRowId == record._svyRowId) {
+									groupedRowFound = true;
+								}
+							}
+
+							// if _internalGroupedSelection matches foundset selection, is assumed selection has not changed
+							if (groupedRowFound) {
+								isSelectedRowIndexesChanged = false;
+							} else {
+//								console.log("Grouped Row NOT MATCHIN FOUNDSET SELECTION");
+//								console.log( $scope.model._internalGroupedSelection)
+							}
+							
+						}
+
 						return isSelectedRowIndexesChanged;
 					}
 
