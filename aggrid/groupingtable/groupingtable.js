@@ -203,6 +203,19 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						refreshEditorIconConfig.iconRefreshData : "glyphicon glyphicon-refresh";
 					}
 
+					$scope.getStyleClass = function() {
+						if($scope.model.styleClass) {
+							var styleClassA = $scope.model.styleClass.split(" ");
+							for(var i = 0; i < styleClassA.length; i++) {
+								if(styleClassA[i] === 'ag-theme-alpine') {
+									styleClassA[i] = 'ag-theme-bootstrap';
+								}								
+							}
+							return styleClassA.join(" ");
+						}
+						return $scope.model.styleClass;
+					}
+
 					function getIconCheckboxEditor(state) {
 						var checkboxEditorIconConfig = iconConfig ? iconConfig : $scope.model.iconConfig;
 						

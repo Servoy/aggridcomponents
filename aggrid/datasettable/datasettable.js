@@ -189,6 +189,19 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     return (!$scope.model.columns || $scope.model.columns.length == 0) && $scope.svyServoyapi.isInDesigner();
                 }
 
+                $scope.getStyleClass = function() {
+                    if($scope.model.styleClass) {
+                        var styleClassA = $scope.model.styleClass.split(" ");
+                        for(var i = 0; i < styleClassA.length; i++) {
+                            if(styleClassA[i] === 'ag-theme-alpine') {
+                                styleClassA[i] = 'ag-theme-bootstrap';
+                            }								
+                        }
+                        return styleClassA.join(" ");
+                    }
+                    return $scope.model.styleClass;
+                }                
+
                 /**
                  * Store the state of the table.
                  * */
