@@ -480,7 +480,7 @@
 			"stopEditingOnChange" : {"type": "boolean", "default" : false},
 			"filterType": {"type": "string", "values": [{"NONE":null}, {"TEXT":"TEXT"}, {"NUMBER":"NUMBER"}, {"DATE":"DATE"}, {"VALUELIST":"VALUELIST"}, {"RADIO":"RADIO"}]},
 			"id": {"type" : "string", "tags": {"wizard": {"prefill" : "dataprovider", "unique": true}, "showInOutlineView": true, "doc": "Used to set the column id (colId) property in the serialized column state json string of getColumnState and onColumnStateChanged" }},
-			"columnDef": {"type" : "map", "tags": {"doc": "Map where additional column properties of ag-grid can be set", "value_types": {"valueGetter": "clientfunction"}}},
+			"columnDef": {"type" : "json", "tags": {"doc": "Map where additional column properties of ag-grid can be set", "value_types": {"valueGetter": "clientfunction"}}},
 			"showAs": { "type": "string", "values": [{"text":null}, {"html":"html"}, {"sanitizedHtml":"sanitizedHtml"}] },
 			"dndSource" : {"type": "boolean", "default" : false, "tags": {"doc": "Allow dragging"}},
 			"dndSourceDataprovider" : { "type": "dataprovider", "forFoundset": "myFoundset", "tags": {"doc": "Boolean dataprovider for allow/disallow dragging."}}

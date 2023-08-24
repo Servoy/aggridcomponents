@@ -51,6 +51,11 @@
 
 .ag-radio-filter {
 	display: block;
+	padding: 2px;
+}
+
+.ag-floating-filter .ag-radio-filter {
+	display: inline-flex;
 }
 
 #nggridformeditor > * > .svy-respform {

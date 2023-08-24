@@ -950,7 +950,7 @@ export class DataGrid extends NGGridDirective {
         if (!params.data) {
             return undefined;
         }
-        let value = params.data[field];
+        let value = params.value !== undefined ? params.value: params.data[field];
         if (value && value.displayValue !== undefined) {
             value = value.displayValue;
         }
@@ -1231,9 +1231,13 @@ export class DataGrid extends NGGridDirective {
                 } else if(column.filterType === 'VALUELIST') {
                     colDef.filter = 'valuelistFilter';
                     colDef.filterParams['suppressAndOrCondition'] = true;
+                    colDef.floatingFilterComponent = 'valuelistFilter';
+                    //colDef.floatingFilterComponentParams = { suppressFilterButton : true};
                 } else if(column.filterType === 'RADIO') {
                     colDef.filter = 'radioFilter';
                     colDef.filterParams['suppressAndOrCondition'] = true;
+                    colDef.floatingFilterComponent = 'radioFilter';
+                    //colDef.floatingFilterComponentParams = { suppressFilterButton : true};
                 }
             }
 

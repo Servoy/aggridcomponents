@@ -55,6 +55,15 @@ export class RadioFilter extends DatagridFilterDirective {
       return filterUIValue;
     }
 
+    setFilterUIValue(value) {
+      for(const nativeRadio of this.elementRef.nativeElement.children) {
+        if(nativeRadio.children[0].value === value) {
+          nativeRadio.children[0].checked = true;
+          break;
+        }
+      }
+    }
+
     getSecondFilterUIValue(): any {
       let filterUIValue = null;
       for(const nativeRadio of this.element1Ref.nativeElement.children) {

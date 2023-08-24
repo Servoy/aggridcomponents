@@ -11,7 +11,7 @@ import { DatagridFilterDirective } from './datagridfilter';
       <div><div class="ag-filter-body-wrapper">
         <div class="ag-filter-body">
           <div class="ag-input-wrapper">
-            <input class="ag-filter-filter" type="text" id="filterText" autocomplete="off"
+            <input class="ag-filter-filter ag-input-field-input" type="text" id="filterText" autocomplete="off"
                 [ngbTypeahead]="filterValues"
                 (selectItem)="valueChanged()"
                 [resultFormatter]="resultFormatter"
@@ -25,7 +25,7 @@ import { DatagridFilterDirective } from './datagridfilter';
         <div *ngIf="!suppressAndOrCondition()" class="ag-filter-condition"><label>OR</label></div>
         <div *ngIf="!suppressAndOrCondition()" class="ag-filter-body">
           <div class="ag-input-wrapper">
-            <input class="ag-filter-filter" type="text" id="filterText1" autocomplete="off"
+            <input class="ag-filter-filter ag-input-field-input" type="text" id="filterText1" autocomplete="off"
                 [ngbTypeahead]="filterValues1"
                 (selectItem)="valueChanged()"
                 [resultFormatter]="resultFormatter"
@@ -98,6 +98,10 @@ export class ValuelistFilter extends DatagridFilterDirective {
 
     getFilterUIValue(): any {
       return this.elementRef.nativeElement.value;
+    }
+
+    setFilterUIValue(value) {
+      this.elementRef.nativeElement.value = value;
     }
 
     getSecondFilterUIValue(): any {
