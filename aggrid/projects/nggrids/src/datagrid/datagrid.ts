@@ -2602,7 +2602,10 @@ export class DataGrid extends NGGridDirective {
 
                 // set selected cell on next non-group row cells
                 if(nextRow && suggestedNextCell && !isPinnedBottom) {  	// don't change selection if row is pinned to the bottom (footer)
-                    if(!nextRow.id) return null; // row cannot be selected (happens when arrow key is kept pressed, and the row is not yet rendered), skip suggestion
+                    if(!nextRow.id) { // row cannot be selected (happens when arrow key is kept pressed, and the row is not yet rendered), skip suggestion
+                        this.agGrid.api.ensureNodeVisible(nextRow);
+                        return null;
+                    }
                     this.selectionEvent = { type: 'key', event: params.event };
                     nextRow.setSelected(true, true);
                     suggestedNextCell.rowIndex = newIndex;
@@ -2618,7 +2621,10 @@ export class DataGrid extends NGGridDirective {
 
                 // set selected cell on previous non-group row cells
                 if(nextRow && suggestedNextCell) {
-                    if(!nextRow.id) return null; // row cannot be selected (happens when arrow key is kept pressed, and the row is not yet rendered), skip suggestion
+                    if(!nextRow.id) { // row cannot be selected (happens when arrow key is kept pressed, and the row is not yet rendered), skip suggestion
+                        this.agGrid.api.ensureNodeVisible(nextRow);
+                        return null;
+                    }
                     this.selectionEvent = { type: 'key', event: params.event };
                     nextRow.setSelected(true, true);
                     suggestedNextCell.rowIndex = newIndex;
