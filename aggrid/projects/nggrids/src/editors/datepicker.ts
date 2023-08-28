@@ -142,6 +142,10 @@ export class DatePicker extends EditorDirective {
                 }
             }, 0);
             this.picker.subscribe(Namespace.events.hide, () => this.params.stopEditing());
+        } else {
+            setTimeout(() => {
+                this.inputElementRef.nativeElement.select();
+            }, 0);
         }
     }
 
