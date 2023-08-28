@@ -231,6 +231,8 @@ export class DataGrid extends NGGridDirective {
     // currently set aggrid-filter
     filterModel = null;
 
+    isSingleClickEdit = false;
+
     constructor(renderer: Renderer2, public cdRef: ChangeDetectorRef, logFactory: LoggerFactory,
         private servoyService: ServoyPublicService, public formattingService: FormattingService, public ngbTypeaheadConfig: NgbTypeaheadConfig,
         private datagridService: DatagridService, private sanitizer: DomSanitizer, @Inject(DOCUMENT) private doc: Document) {
@@ -623,6 +625,10 @@ export class DataGrid extends NGGridDirective {
                     this.agGridOptions[property] = userGridOptions[property];
                 }
             }
+        }
+
+        if(this.agGridOptions.singleClickEdit) {
+            this.isSingleClickEdit = true;
         }
 
         // handle options that are dependent on gridOptions
@@ -3568,6 +3574,10 @@ export class DataGrid extends NGGridDirective {
                     this.initRootFoundset();
                 });
             } else {
+                if(!this.isSingleClickEdit) {
+                    this.agGridOptions.singleClickEdit = this.isInFindMode();
+                }
+
                 let viewportChangedRows: any = null;
                 if(changeEvent.viewportRowsCompletelyChanged) {
                     viewportChangedRows = changeEvent.viewportRowsCompletelyChanged;
