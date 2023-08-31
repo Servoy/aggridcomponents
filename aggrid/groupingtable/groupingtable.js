@@ -328,6 +328,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					// currently set aggrid-filter
 					$scope.filterModel = null;
 
+					$scope.isSingleClickEdit = false;
+
 					// currenlty executing filter's promise
 					var filterPromise = null;
 
@@ -906,6 +908,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								gridOptions[property] = userGridOptions[property];
 							}
 						}
+					}
+
+					if(gridOptions.singleClickEdit) {
+						$scope.isSingleClickEdit = true;
 					}
 
 					// handle options that are dependent on gridOptions
@@ -2071,6 +2077,26 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						} else return null;
 					}
 
+					function findModeEventListener(event) {
+						if(event.keyCode === 13) {
+							gridOptions.api.stopEditing();
+							event.stopPropagation();
+							setTimeout(function() {
+								// Create a new keyboard event with the "Enter" key
+								var enterKeyEvent = new KeyboardEvent("keydown", {
+									key: "Enter",
+									code: "Enter",
+									which: 13,
+									keyCode: 13,
+									bubbles: true,
+									cancelable: true
+								});
+								// Dispatch the event on the target element
+								gridDiv.dispatchEvent(enterKeyEvent);
+							}, 0);
+						}
+					}
+
 					function getTextEditor() {
 						// function to act as a class
 						function TextEditor() {}
@@ -2240,6 +2266,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								this.eInput.addEventListener('keydown', this.keyDownListener);
 							}
 
+							if(isInFindMode()) {
+								this.eInput.addEventListener('keydown', findModeEventListener);
+							}
+
 							this.keyPressListener = function (event) {
 								var isNavigationLeftRightKey = event.keyCode === 37 || event.keyCode === 39;
 								var isNavigationUpDownEntertKey = event.keyCode === 38 || event.keyCode === 40 || event.keyCode === 13;
@@ -2309,7 +2339,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 									}
 								}
 							}
-							if(this.format) {
+							if(this.format && !isInFindMode()) {
 								var editFormat = this.format.edit ? this.format.edit : this.format.display;
 								if(editFormat) {
 									displayValue = $formatterUtils.unformat(displayValue, editFormat, this.format.type, this.initialValue);
@@ -2379,6 +2409,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 						TextEditor.prototype.destroy = function() {
 							this.eInput.removeEventListener('keydown', this.keyDownListener);
+							this.eInput.removeEventListener('keydown', findModeEventListener);
 							$(this.eInput).off('keypress', this.keyPressListener);
 							if(this.editType == 'TYPEAHEAD') {
 								var ariaId = $(this.eInput).attr('aria-owns');
@@ -2402,104 +2433,108 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							this.eInput = document.createElement('input');
 							this.eInput.className = "ag-cell-edit-input";
 
-							var options = {
-								widgetParent: $(document.body),
-								useCurrent : false,
-								useStrict : true,
-								showClear : true,
-								ignoreReadonly : true,
-								showTodayButton: true,
-								calendarWeeks: true,
-								showClose: true,
-								icons: {
-									close: 'glyphicon glyphicon-ok'
-								}
-							};
-
-							var locale = $sabloApplication.getLocale();
-							if (locale.language) {
-								options.locale = locale.language;
-							}
-							
-							var showISOWeeks = $applicationService.getUIProperty('ngCalendarShowISOWeeks');
-							if (showISOWeeks)
-							{
-								options.isoCalendarWeeks = true;
-							}	
-							
-							$(this.eInput).datetimepicker(options);
-
-							var theDateTimePicker = $(this.eInput).data('DateTimePicker');
-							this.hasMask = false;
-							var column = getColumn(params.column.colId);
-							if (column && column.format && column.format.edit && column.format.isMask) {
-								this.hasMask = true;
-								this.maskSettings = {};
-								this.maskSettings.placeholder = column.format.placeHolder ? column.format.placeHolder : " ";
-								if (column.format.allowedCharacters)
-									this.maskSettings.allowedCharacters = column.format.allowedCharacters;
-
-								theDateTimePicker.format(moment().toMomentFormatString(column.format.display));
-								this.eInput.value = formatFilter(params.value, column.format.display, 'DATETIME');
-								this.maskEditFormat = column.format.edit;
-							} else {
-								var editFormat = 'MM/dd/yyyy hh:mm a';
-								if(column && column.format) {
-									editFormat = column.format.edit ? column.format.edit : column.format.display;
-								}
-								theDateTimePicker.format(moment().toMomentFormatString(editFormat));
-								this.eInput.value = formatFilter(params.value, editFormat, 'DATETIME');
-								
-								// set key binds
-								$(this.eInput).keydown(datepickerKeyDown);
-								
-								// key binds handler
-								function datepickerKeyDown(e) {
-									if (e.shiftKey || e.ctrlKey || e.altKey || e.metaKey) {
-										return true;
+							if(!isInFindMode()) {
+								var options = {
+									widgetParent: $(document.body),
+									useCurrent : false,
+									useStrict : true,
+									showClear : true,
+									ignoreReadonly : true,
+									showTodayButton: true,
+									calendarWeeks: true,
+									showClose: true,
+									icons: {
+										close: 'glyphicon glyphicon-ok'
 									}
-									
-									switch (e.keyCode) {
-									case 89: // y Yesterday
-										var x = $(e.target).data('DateTimePicker');
-										x.date(moment().add(-1, 'days'));
-										e.stopPropagation();
-										e.preventDefault();
-										break;
-									case 66: // b Beginning ot the month
-										var x = $(e.target).data('DateTimePicker');
-										x.date(moment().startOf('month'));
-										e.stopPropagation();
-										e.preventDefault();
-										break;
-									case 69: // e End of the month
-										var x = $(e.target).data('DateTimePicker');
-										x.date(moment().endOf('month'));
-										e.stopPropagation();
-										e.preventDefault();
-										break;
-									case 107: // + Add 1 day
-										var x = $(e.target).data('DateTimePicker');
-										if (x.date()) {
-											x.date(x.date().clone().add(1, 'd'));
-										}
-										e.stopPropagation();
-										e.preventDefault();
-										break;
-									case 109: // - Subtract 1 day
-										var x = $(e.target).data('DateTimePicker');
-										if (x.date()) {
-											x.date(x.date().clone().subtract(1, 'd'));
-										}
-										e.stopPropagation();
-										e.preventDefault();
-										break;
-									default:
-										break;
-									}
-										
-									return true;
 								};
+
+								var locale = $sabloApplication.getLocale();
+								if (locale.language) {
+									options.locale = locale.language;
+								}
+								
+								var showISOWeeks = $applicationService.getUIProperty('ngCalendarShowISOWeeks');
+								if (showISOWeeks)
+								{
+									options.isoCalendarWeeks = true;
+								}	
+								
+								$(this.eInput).datetimepicker(options);
+
+								var theDateTimePicker = $(this.eInput).data('DateTimePicker');
+								this.hasMask = false;
+								var column = getColumn(params.column.colId);
+								if (column && column.format && column.format.edit && column.format.isMask) {
+									this.hasMask = true;
+									this.maskSettings = {};
+									this.maskSettings.placeholder = column.format.placeHolder ? column.format.placeHolder : " ";
+									if (column.format.allowedCharacters)
+										this.maskSettings.allowedCharacters = column.format.allowedCharacters;
+
+									theDateTimePicker.format(moment().toMomentFormatString(column.format.display));
+									this.eInput.value = formatFilter(params.value, column.format.display, 'DATETIME');
+									this.maskEditFormat = column.format.edit;
+								} else {
+									var editFormat = 'MM/dd/yyyy hh:mm a';
+									if(column && column.format) {
+										editFormat = column.format.edit ? column.format.edit : column.format.display;
+									}
+									theDateTimePicker.format(moment().toMomentFormatString(editFormat));
+									this.eInput.value = formatFilter(params.value, editFormat, 'DATETIME');
+									
+									// set key binds
+									$(this.eInput).keydown(datepickerKeyDown);
+									
+									// key binds handler
+									function datepickerKeyDown(e) {
+										if (e.shiftKey || e.ctrlKey || e.altKey || e.metaKey) {
+											return true;
+										}
+										
+										switch (e.keyCode) {
+										case 89: // y Yesterday
+											var x = $(e.target).data('DateTimePicker');
+											x.date(moment().add(-1, 'days'));
+											e.stopPropagation();
+											e.preventDefault();
+											break;
+										case 66: // b Beginning ot the month
+											var x = $(e.target).data('DateTimePicker');
+											x.date(moment().startOf('month'));
+											e.stopPropagation();
+											e.preventDefault();
+											break;
+										case 69: // e End of the month
+											var x = $(e.target).data('DateTimePicker');
+											x.date(moment().endOf('month'));
+											e.stopPropagation();
+											e.preventDefault();
+											break;
+										case 107: // + Add 1 day
+											var x = $(e.target).data('DateTimePicker');
+											if (x.date()) {
+												x.date(x.date().clone().add(1, 'd'));
+											}
+											e.stopPropagation();
+											e.preventDefault();
+											break;
+										case 109: // - Subtract 1 day
+											var x = $(e.target).data('DateTimePicker');
+											if (x.date()) {
+												x.date(x.date().clone().subtract(1, 'd'));
+											}
+											e.stopPropagation();
+											e.preventDefault();
+											break;
+										default:
+											break;
+										}
+											
+										return true;
+									};
+								}
+							} else {
+								this.eInput.addEventListener('keydown', findModeEventListener);
 							}
 						};
 					
@@ -2521,14 +2556,19 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 						// returns the new value after editing
 						Datepicker.prototype.getValue = function() {
-							$(this.eInput).change();
-							var theDateTimePicker = $(this.eInput).data('DateTimePicker');
-							var selectedDate = theDateTimePicker.date();
-							return selectedDate ? selectedDate.toDate() : null;
+							if(isInFindMode()) {
+								return this.eInput.value;
+							} else {
+								$(this.eInput).change();
+								var theDateTimePicker = $(this.eInput).data('DateTimePicker');
+								var selectedDate = theDateTimePicker.date();
+								return selectedDate ? selectedDate.toDate() : null;
+							}
 						};
 					
 						// any cleanup we need to be done here
 						Datepicker.prototype.destroy = function() {
+							this.eInput.removeEventListener('keydown', findModeEventListener);
 							var theDateTimePicker = $(this.eInput).data('DateTimePicker');
 							if(theDateTimePicker) theDateTimePicker.destroy();
 						};
@@ -2589,6 +2629,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								event.stopPropagation();
 							};
 							this.eSelect.addEventListener('mousedown', this.mouseListener);
+							if(isInFindMode()) {
+								this.eSelect.addEventListener('keydown', findModeEventListener);
+							}							
 						}
 
 						// gets called once when grid ready to insert the element
@@ -2607,6 +2650,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						};
 
 						SelectEditor.prototype.destroy = function() {
+							this.eSelect.removeEventListener('keydown', findModeEventListener);
 							this.eSelect.removeEventListener('keydown', this.keyListener);
 							this.eSelect.removeEventListener('mousedown', this.mouseListener);
 						};
@@ -2668,6 +2712,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						};
 
 						return FormEditor;
+					}
+
+					function isInFindMode() {
+						return foundset && foundset.isRoot && foundset.foundset['findMode'];
 					}
 
 					function getCheckboxEditorToggleValue(value) {
@@ -5071,6 +5119,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 									initRootFoundset();
 								});
 							} else {
+								if(!$scope.isSingleClickEdit) {
+									gridOptions.singleClickEdit = isInFindMode();
+								}								
 								var viewportChangedRows = null;
 								if(change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROWS_COMPLETELY_CHANGED]) {
 									viewportChangedRows = change[$foundsetTypeConstants.NOTIFY_VIEW_PORT_ROWS_COMPLETELY_CHANGED];
@@ -5542,6 +5593,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 						// not enabled/security-accesible
 						if(!$scope.model.enabled) return false;
+
+						if(isInFindMode()) {
+							return true;
+						}
 
 						// if read-only and no r-o columns
 						if($scope.model.readOnly && !$scope.model.readOnlyColumnIds) return false;

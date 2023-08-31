@@ -36,6 +36,8 @@ export class TypeaheadEditor extends EditorDirective {
   initParams: any;
   valuelistValues: any;
 
+  findModeListener: any;
+
   constructor(private formatService: FormattingService, config: NgbTypeaheadConfig) {
     super();
     config.container = 'body';
@@ -165,7 +167,21 @@ export class TypeaheadEditor extends EditorDirective {
     }
     setTimeout(() => {
       this.elementRef.nativeElement.focus();
+      if(this.ngGrid.isInFindMode()) {
+        this.findModeListener = (e: KeyboardEvent) => {
+          if(e.keyCode === 13) {
+            this.ngGrid.agGrid.api.stopEditing();
+          }
+        };
+        this.elementRef.nativeElement.addEventListener('keydown', this.findModeListener);
+      }
     }, 0);
+  }
+
+  ngOnDestroy() {
+    if(this.ngGrid.isInFindMode()) {
+      this.elementRef.nativeElement.removeEventListener('keydown', this.findModeListener);
+    }
   }
 
   // returns the new value after editing

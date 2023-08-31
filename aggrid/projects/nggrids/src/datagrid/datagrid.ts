@@ -2315,6 +2315,10 @@ export class DataGrid extends NGGridDirective {
         // not enabled/security-accesible
         if(!_this.enabled) return false;
 
+        if(_this.isInFindMode()) {
+            return true;
+        }
+
         // if read-only and no r-o columns
         if(_this.readOnly && !_this.readOnlyColumnIds) return false;
 
