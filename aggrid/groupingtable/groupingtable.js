@@ -4874,8 +4874,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							var sortColumnDirection;
 							var sortModel = gridOptions.api.getSortModel();
 							if(sortModel && sortModel[0]) {
-								sortColumn = getColumnIndex(sortModel[0].colId);
-								sortColumnDirection = sortModel[0].sort;
+								var sortColumnIdx = getColumnIndex(sortModel[0].colId);
+								if(sortColumnIdx > -1 && $scope.model.columns[sortColumnIdx].dataprovider !== undefined) {
+									sortColumn = sortColumnIdx;
+									sortColumnDirection = sortModel[0].sort;
+								}
 							}
 
 							childFoundsetPromise = $scope.svyServoyapi.callServerSideApi("getGroupedFoundsetUUID",
@@ -5812,7 +5815,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							}
 
 							// column grouping
-							colDef.enableRowGroup = column.enableRowGroup;
+							colDef.enableRowGroup = column.enableRowGroup && column.dataprovider !== undefined;
 							if (column.rowGroupIndex >= 0) colDef.rowGroupIndex = column.rowGroupIndex;
 							if (column.width || column.width === 0) colDef.width = column.width;
 							
@@ -5831,7 +5834,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							// column sort
 							if (column.enableSort === false) colDef.sortable = false;
 
-							colDef.suppressMenu = column.enableRowGroup === false && column.filterType == undefined;
+							colDef.suppressMenu = colDef.enableRowGroup === false && column.filterType == undefined;
 
 							if (column.editType) {
 								if(column.editType == 'TEXTFIELD' || column.editType == 'TYPEAHEAD') {

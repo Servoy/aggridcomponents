@@ -1166,7 +1166,7 @@ export class DataGrid extends NGGridDirective {
             }
 
             // column grouping
-            colDef.enableRowGroup = column.enableRowGroup;
+            colDef.enableRowGroup = column.enableRowGroup && column.dataprovider !== undefined;
             if (column.rowGroupIndex >= 0) colDef.rowGroupIndex = column.rowGroupIndex;
             if (column.width) colDef.width = column.width;
 
@@ -1187,7 +1187,7 @@ export class DataGrid extends NGGridDirective {
             // column sort
             if (column.enableSort === false) colDef.sortable = false;
 
-            colDef.suppressMenu = column.enableRowGroup === false && column.filterType === undefined;
+            colDef.suppressMenu = colDef.enableRowGroup === false && column.filterType === undefined;
 
             if (column.editType) {
                 if(column.editType === 'TEXTFIELD') {
@@ -4882,8 +4882,11 @@ class GroupManager {
         let sortColumnDirection: any;
         const sortModel = this.dataGrid.getAgGridSortModel();
         if(sortModel && sortModel[0]) {
-            sortColumn = this.dataGrid.getColumnIndex(sortModel[0].colId);
-            sortColumnDirection = sortModel[0].sort;
+            const sortColumnIdx = this.dataGrid.getColumnIndex(sortModel[0].colId);
+            if(sortColumnIdx > -1 && this.dataGrid.columns[sortColumnIdx].dataprovider !== undefined) {
+                sortColumn = sortColumnIdx;
+                sortColumnDirection = sortModel[0].sort;
+            }
         }
 
         const childFoundsetPromise = this.dataGrid.servoyApi.callServerSideApi('getGroupedFoundsetUUID',
