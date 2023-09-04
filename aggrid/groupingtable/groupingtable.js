@@ -5119,7 +5119,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								// because ag-grid will reload its newly sorted data
 								return;
 							} else if (newSort == oldSort && !newSort && !oldSort) {
-								$log.warn("this should not be happening");
+								$log.warn("myFoundset sort changed event received but the sorting is the same, this means the column is not sortable (ex.: it is a calculation column)");
 							}
 						}
 

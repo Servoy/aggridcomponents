@@ -3605,7 +3605,7 @@ export class DataGrid extends NGGridDirective {
                 // because ag-grid will reload its newly sorted data
                 return;
             } else if (newSort === oldSort && !newSort && !oldSort) {
-                this.log.warn('this should not be happening');
+                this.log.warn('myFoundset sort changed event received but the sorting is the same, this means the column is not sortable (ex.: it is a calculation column)');
             }
         }
 

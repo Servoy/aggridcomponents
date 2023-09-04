@@ -569,28 +569,32 @@ function getFilterWhereClauseForDataprovider(query, filter, dp, columnFormat) {
 
 		whereClause = whereClause == null ? query.columns[aDP[aDP.length - 1]] : whereClause.columns[aDP[aDP.length - 1]];
 
-		if(useIgnoreCase) {
-			whereClause = whereClause["lower"];
-			value = value.toLowerCase();
-		}
-		if(useNot) {
-			whereClause = whereClause["not"];
-		}
-		var whereClause2 = null;
-		if(value === '^') {
-			whereClause = whereClause["isNull"];
-		} else if(value === '^=') {
-			whereClause2 = whereClause["eq"]('');
-			whereClause = whereClause["isNull"];
-		} else {
-			whereClause = op == "between" ? whereClause[op](value[0], value[1]) : whereClause[op](value);
-		}
-		if(whereClause2) {
-			if(useNot) {
-				whereClause = query.and.add(whereClause).add(whereClause2);
-			} else {
-				whereClause = query.or.add(whereClause).add(whereClause2);
+		if(whereClause) {
+			if(useIgnoreCase) {
+				whereClause = whereClause["lower"];
+				value = value.toLowerCase();
 			}
+			if(useNot) {
+				whereClause = whereClause["not"];
+			}
+			var whereClause2 = null;
+			if(value === '^') {
+				whereClause = whereClause["isNull"];
+			} else if(value === '^=') {
+				whereClause2 = whereClause["eq"]('');
+				whereClause = whereClause["isNull"];
+			} else {
+				whereClause = op == "between" ? whereClause[op](value[0], value[1]) : whereClause[op](value);
+			}
+			if(whereClause2) {
+				if(useNot) {
+					whereClause = query.and.add(whereClause).add(whereClause2);
+				} else {
+					whereClause = query.or.add(whereClause).add(whereClause2);
+				}
+			}
+		} else {
+			console.warn('Cannot filter on "' + dp + '", the column does not exist or it is a calculation column.');
 		}
 	}
 	return whereClause;
