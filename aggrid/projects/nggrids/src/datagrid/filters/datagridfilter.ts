@@ -2,6 +2,7 @@ import { AgFloatingFilterComponent } from '@ag-grid-community/angular';
 import { FilterChangedEvent, IFilterParams, IFloatingFilterParams, IFloatingFilterParent } from '@ag-grid-community/core';
 import { Directive, ElementRef, ViewChild } from '@angular/core';
 import { DataGrid, NULL_VALUE } from '../datagrid';
+import { Deferred } from '@servoy/public';
 
 @Directive()
 export class DatagridFilterDirective implements AgFloatingFilterComponent, IFloatingFilterParent {
@@ -18,6 +19,8 @@ export class DatagridFilterDirective implements AgFloatingFilterComponent, IFloa
     txtClearFilter: string;
     txtApplyFilter: string;
     isFloating: boolean;
+
+    valuelistValuesDefer: Deferred<any>;
 
     constructor() {
         this.instance = this;
@@ -38,6 +41,7 @@ export class DatagridFilterDirective implements AgFloatingFilterComponent, IFloa
         this.txtApplyFilter = this.dataGrid.agGridOptions['localeText'] && this.dataGrid.agGridOptions['localeText']['applyFilter'] ?
           this.dataGrid.agGridOptions['localeText'] && this.dataGrid.agGridOptions['localeText']['applyFilter'] : 'Apply Filter';
 
+        this.valuelistValuesDefer = new Deferred();
         const valuelist = this.getValuelistFromGrid();
         if (valuelist) {
           valuelist.filterList('').subscribe((valuelistValues) => {
@@ -46,8 +50,12 @@ export class DatagridFilterDirective implements AgFloatingFilterComponent, IFloa
               this.valuelistValues.splice(0, 0, NULL_VALUE);
             }
             this.dataGrid.cdRef.detectChanges();
+            this.valuelistValuesDefer.resolve(this.valuelistValues);
           });
+        } else {
+          this.valuelistValuesDefer.resolve(null);
         }
+
         const column = this.dataGrid.getColumn(this.params.column.getColId());
         if(column && column.format) {
             this.format = column.format;
@@ -69,8 +77,10 @@ export class DatagridFilterDirective implements AgFloatingFilterComponent, IFloa
 
     onApplyFilter() {
       if(this.isFloating) {
-        this.floatingParams.parentFilterInstance((instance) => {
-          instance.onFloatingFilterChanged('equals', this.getFilterUIValue());
+        this.floatingParams.parentFilterInstance((instance: DatagridFilterDirective) => {
+          instance.valuelistValuesDefer.promise.then(() => {
+            instance.onFloatingFilterChanged('equals', this.getFilterUIValue());
+          });
         });
       } else {
         this.doFilter();
