@@ -41,7 +41,7 @@
 		"showColumnsMenuTab": {"type": "boolean", "default" : false, "tags" : {"scope": "design", "doc": "If the column selection panel should be shown in the column menu"}},
 		"toolPanelConfig": { "type": "toolPanelConfig", "tags": { "scope": "design" } },
 		"iconConfig": { "type": "iconConfig", "tags": { "scope": "design" } },
-		"gridOptions": {"type": "map", "tags": {"doc": "Map where additional grid properties of ag-grid can be set"}},
+		"gridOptions": {"type": "json", "tags": {"doc": "Map where additional grid properties of ag-grid can be set"}},
 		"localeText": {"type": "map", "tags": {"doc": "Map where locales of ag-grid can be set"}},
 		"readOnly": {"type": "boolean", "default": false},
 		"enabled" : {"type": "enabled", "blockingOn": false, "default": true},

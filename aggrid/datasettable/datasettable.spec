@@ -45,7 +45,7 @@
 		"headerHeight" : {"type" : "int", "default": 33, "tags": {"scope": "design"}},
 		"showColumnsMenuTab": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},
 		"toolPanelConfig": { "type": "toolPanelConfig", "tags": { "scope": "design" }},
-		"gridOptions": {"type": "map", "tags": {"doc": "Map where additional grid properties of ag-grid can be set"}},
+		"gridOptions": {"type": "json", "tags": {"doc": "Map where additional grid properties of ag-grid can be set"}},
 		"localeText": {"type": "map", "tags": {"doc": "Map where locales of ag-grid can be set"}},
 		"groupRowRendererFunc": { "type": "clientfunction", "tags": {"doc": "Function to customize group row rendering when gridOptions.groupUseEntireRow is set to true"}},
 		"mainMenuItemsConfig": { "type": "mainMenuItemsConfig", "tags": { "scope": "design" } },
