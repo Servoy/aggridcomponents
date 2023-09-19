@@ -122,8 +122,8 @@ export class DatePicker extends EditorDirective {
     }
 
     ngAfterViewInit(): void {
-        if (this.selectedValue) this.config.viewDate = DateTime.convert(this.selectedValue, null, this.config.localization);
         if(!this.ngGrid.isInFindMode()) {
+            if (this.selectedValue) this.config.viewDate = DateTime.convert(this.selectedValue, null, this.config.localization);
             this.picker = new TempusDominus(this.inputElementRef.nativeElement, this.config);
             this.picker.dates.formatInput =  (date: DateTime) => this.ngGrid.format(date, this.format, false);
             this.picker.dates.parseInput =  (value: string) => {
