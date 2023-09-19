@@ -31,7 +31,7 @@
 		"styleClass": { "type": "styleclass", "default" : "ag-theme-alpine"},
 		"visible": "visible",
 		"enableColumnResize": { "type": "boolean", "default": true, "tags": {"scope": "design"}},
-		"enableSorting": { "type": "boolean", "default": true, "tags": {"scope": "design", "doc": "Enable column sorting by clickin on the column's header"}},
+		"enableSorting": { "type": "boolean", "default": true, "tags": {"scope": "design", "doc": "Enable column sorting by clicking on the column's header"}},
 		"pivotMode": { "type": "boolean", "default": false, "tags": {"scope": "design", "doc": "Pivoting allows you to take a columns values and turn them into columns"}},
 		"iconConfig": { "type": "iconConfig"},
 		"groupStyleClass" : {"type": "styleclass"},
