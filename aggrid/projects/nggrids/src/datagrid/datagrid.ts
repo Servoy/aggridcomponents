@@ -485,15 +485,19 @@ export class DataGrid extends NGGridDirective {
                         // agGrid.api.sizeColumnsToFit from sizeHeaderAndColumnsToFit uses the width from
                         // the column def instead of the actual width to calculate the layout, so set it
                         // during the call and then reset it at the end
-                        let columnSetWidth;
+                        let columnSetWidth, suppressSizeToFit;
                         if(e.column) {
                             columnSetWidth = e.column.getColDef().width;
                             e.column.getColDef().width = e.column.getActualWidth();
+                            suppressSizeToFit = e.column.getColDef().suppressSizeToFit;
+                            e.column.getColDef().suppressSizeToFit = true;
                         }
                         this.sizeHeaderAndColumnsToFit();
                         if(e.column) {
                             if(columnSetWidth === undefined) delete e.column.getColDef().width;
                             else e.column.getColDef().width = columnSetWidth;
+                            if(suppressSizeToFit === undefined) delete e.column.getColDef().suppressSizeToFit;
+                            else e.column.getColDef().suppressSizeToFit = suppressSizeToFit;
                         }
                         this.storeColumnsState();
                     }, 500);
