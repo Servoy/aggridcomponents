@@ -268,6 +268,7 @@ export class PowerGrid extends NGGridDirective {
             suppressContextMenu: false,
             suppressMovableColumns: false, // TODO persist column order changes
             suppressAutoSize: true,
+            colResizeDefault: 'shift',
             autoSizePadding: 25,
             suppressFieldDotNotation: true,
 

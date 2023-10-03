@@ -393,6 +393,7 @@ export class DataGrid extends NGGridDirective {
             suppressContextMenu: false,
             suppressMovableColumns: !this.enableColumnMove,
             suppressAutoSize: true,
+            colResizeDefault: 'shift',
             autoSizePadding: 25,
             suppressFieldDotNotation: true,
 
