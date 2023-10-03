@@ -1,4 +1,4 @@
-import { GridOptions, GetRowIdParams, IRowDragItem, DndSourceCallbackParams, IRowNode, ColumnResizedEvent } from '@ag-grid-community/core';
+import { GridOptions, GetRowIdParams, IRowDragItem, DndSourceCallbackParams, ColumnResizedEvent, RowSelectedEvent, SelectionChangedEvent } from '@ag-grid-community/core';
 import { ChangeDetectionStrategy, ChangeDetectorRef, ElementRef, EventEmitter, Inject, Input, Output, Renderer2, SecurityContext, SimpleChanges } from '@angular/core';
 import { Component, ViewChild } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
@@ -109,6 +109,7 @@ export class DataGrid extends NGGridDirective {
     @Input() enableColumnMove: boolean;
     @Input() rowHeight: number;
     @Input() groupUseEntireRow: boolean;
+    @Input() groupCheckbox: boolean;
     @Input() showGroupCount: boolean;
     @Input() styleClass: string;
     @Input() tabSeq: number;
@@ -134,8 +135,10 @@ export class DataGrid extends NGGridDirective {
     @Input() restoreStates: any;
     @Input() _internalFilterModel: any;
     @Output() _internalFilterModelChange = new EventEmitter();
-    @Input() _internalGroupedSelection: any;
-    @Output() _internalGroupedSelectionChange = new EventEmitter();
+    @Input() _internalGroupRowsSelection: any;
+    @Output() _internalGroupRowsSelectionChange = new EventEmitter();
+    @Input() _internalGroupSelection: any;
+    @Output() _internalGroupSelectionChange = new EventEmitter();
 
     @Input() onCellClick: any;
     @Input() onCellDoubleClick: any;
@@ -570,6 +573,17 @@ export class DataGrid extends NGGridDirective {
             };
         }
 
+        if(this.groupCheckbox) {
+            this.agGridOptions.autoGroupColumnDef = {
+                cellRendererParams: {
+                    checkbox: true
+                }
+            };
+            this.agGridOptions.rowSelection = 'multiple';
+            this.agGridOptions.rowMultiSelectWithClick = true;
+            this.agGridOptions.groupDisplayType = 'singleColumn';
+        }
+
         // check if we have filters
         for(let i = 0; this.agGridOptions.sideBar && this.agGridOptions.sideBar['toolPanels'] && i < columnDefs.length; i++) {
             // suppress the side filter if the suppressColumnFilter is set to true
@@ -717,8 +731,12 @@ export class DataGrid extends NGGridDirective {
         }
 
         // register listener for selection changed
-        this.agGrid.api.addEventListener('selectionChanged', () => {
-         this.onSelectionChanged();
+        this.agGrid.api.addEventListener('selectionChanged', (e: SelectionChangedEvent) => {
+         this.onSelectionChanged(e);
+        });
+
+        this.agGrid.api.addEventListener('rowSelected', (e: RowSelectedEvent) => {
+            this.onRowSelected(e);
         });
 
         this.agGrid.api.addEventListener('cellClicked', (params: any) => {
@@ -912,7 +930,8 @@ export class DataGrid extends NGGridDirective {
                             this._internalFilterModelChange.emit(this._internalFilterModel);
                         }
                         break;
-                    case '_internalGroupedSelection':
+                    case '_internalGroupSelection':
+                    case '_internalGroupRowsSelection':
                         if(this.isGridReady) {
                             if(this.selectedRowIndexesChanged()) {
                                 this.scrollToSelection();
@@ -1751,22 +1770,31 @@ export class DataGrid extends NGGridDirective {
 
         const selectedNodes = new Array();
         if (this.isTableGrouped()) {
-            if(this._internalGroupedSelection && this._internalGroupedSelection.length) {
-                const selectedRecordsPKs = new Array();
-
-                this._internalGroupedSelection.forEach(record => {
+            const selectedRecordsPKs = new Array();
+            if(this._internalGroupRowsSelection && this._internalGroupRowsSelection.length) {
+                this._internalGroupRowsSelection.forEach(record => {
                     const _svyRowIdSplit = record._svyRowId.split(';');
                     selectedRecordsPKs.push(_svyRowIdSplit[0]);
                 });
-                this.agGrid.api.forEachNode( (node: any) => {
-                    if(!node.group && node.data && node.data._svyRowId) {
+            }
+
+            this.agGrid.api.forEachNode( (node: any) => {
+                if(node.data && node.data._svyRowId) {
+                    if(node.group && this._internalGroupSelection && this._internalGroupSelection.length) {
+                        for(const selectedGroup of this._internalGroupSelection) {
+                            if(selectedGroup.colId === node.rowGroupColumn.getColId() && selectedGroup.groupkey === node.data[node.field]) {
+                                node.setSelected(true);
+                                break;
+                            }
+                        }
+                    } else {
                         const _svyRowIdSplit = node.data._svyRowId.split(';');
                         if(selectedRecordsPKs.indexOf(_svyRowIdSplit[0]) !== -1) {
                             selectedNodes.push(node);
                         }
                     }
-                });
-            } else return false;
+                }
+            });
         } else {
             if (!foundsetManager) {
                 foundsetManager = this.foundset;
@@ -1800,7 +1828,7 @@ export class DataGrid extends NGGridDirective {
 
 
         for (const oldSelectedNode of oldSelectedNodes) {
-            if(selectedNodes.indexOf(oldSelectedNode) === -1) {
+            if(!oldSelectedNode.group && selectedNodes.indexOf(oldSelectedNode) === -1) {
                 this.selectionEvent = null;
                 oldSelectedNode.setSelected(false);
                 isSelectedRowIndexesChanged = true;
@@ -2945,46 +2973,54 @@ export class DataGrid extends NGGridDirective {
         }
     }
 
-    onSelectionChanged() {
-        if(this.selectionEvent && this.selectionEvent.event &&
-            this.selectionEvent.event.type === 'click' && this.selectionEvent.event.detail === 2) {
+    onSelectionChanged(e: SelectionChangedEvent) {
+        if(!this.selectionEvent || (this.selectionEvent && this.selectionEvent.event &&
+            this.selectionEvent.event.type === 'click' && this.selectionEvent.event.detail === 2)) {
                 // double click event, ignore it, the selection is already set by the first click
                 return;
         }
         if(this.agGridOptions.rowSelection === 'multiple') {
             this.multipleSelectionEvents.push(this.selectionEvent);
-            this.onMultipleSelectionChangedEx();
+            this.onMultipleSelectionChangedEx(e);
         } else {
             if(this.onSelectionChangedTimeout) {
                 clearTimeout(this.onSelectionChangedTimeout);
             }
             this.onSelectionChangedTimeout = this.setTimeout(() => {
                     this.onSelectionChangedTimeout = null;
-                    this.onSelectionChangedEx(this.selectionEvent);
+                    this.onSelectionChangedEx(this.selectionEvent, e);
             }, 250);
         }
     }
 
-    onMultipleSelectionChangedEx() {
+    onMultipleSelectionChangedEx(e?: SelectionChangedEvent) {
         if(!this.requestSelectionPromises.length && this.multipleSelectionEvents.length) {
-            this.onSelectionChangedEx(this.multipleSelectionEvents.shift());
+            this.onSelectionChangedEx(this.multipleSelectionEvents.shift(), e);
         }
     }
 
-    onSelectionChangedEx(selectionEvent: any) {
+    onSelectionChangedEx(selectionEvent: any, agGridSelectionEvent: SelectionChangedEvent) {
         // Don't trigger foundset selection if table is grouping
         if (this.isTableGrouped()) {
-            const groupedSelection  = this.internalGetGroupedSelection();
-            if(groupedSelection && groupedSelection.length) {
-                if(!this._internalGroupedSelection) this._internalGroupedSelection = []; else this._internalGroupedSelection.length = 0;
-                groupedSelection.forEach(record => {
-                    this._internalGroupedSelection.push(record);
-                });
-                this._internalGroupedSelectionChange.emit(this._internalGroupedSelection);
-            }
-            // Trigger event on selection change in grouo mode
-            if (this.onSelectedRowsChanged) {
-                this.onSelectedRowsChanged();
+            if(selectionEvent) {
+                const groupSelection  = this.internalGetGroupSelection();
+                if(groupSelection) {
+                    if(!this._internalGroupRowsSelection) this._internalGroupRowsSelection = []; else this._internalGroupRowsSelection.length = 0;
+                    groupSelection.groupRowsSelection.forEach(record => {
+                        this._internalGroupRowsSelection.push(record);
+                    });
+                    this._internalGroupRowsSelectionChange.emit(this._internalGroupRowsSelection);
+
+                    if(!this._internalGroupSelection) this._internalGroupSelection = []; else this._internalGroupSelection.length = 0;
+                    groupSelection.groupSelection.forEach(group => {
+                        this._internalGroupSelection.push(group);
+                    });
+                    this._internalGroupSelectionChange.emit(this._internalGroupSelection);                    
+                }
+                // Trigger event on selection change in grouo mode
+                if (this.onSelectedRowsChanged && agGridSelectionEvent.source !== 'checkboxSelected') {
+                    this.onSelectedRowsChanged();
+                }
             }
 
             return;
@@ -3110,6 +3146,12 @@ export class DataGrid extends NGGridDirective {
             this.scrollToSelection();
         }
 
+    }
+
+    onRowSelected(e: RowSelectedEvent) {
+        if(e.source === "checkboxSelected" && e.node.group && this.onSelectedRowsChanged) {
+            this.onSelectedRowsChanged(true, e.node.rowGroupColumn.getColId(), e.node.data[e.node.field], e.node.isSelected());
+        }
     }
 
     cellClickHandler(params: any) {
@@ -3765,18 +3807,27 @@ export class DataGrid extends NGGridDirective {
     /**
      * Returns the selected rows when in grouping mode
      */
-    internalGetGroupedSelection() {
-        let groupedSelection = null;
+    internalGetGroupSelection() {
+        let selection = null;
         if(this.isTableGrouped()) {
-            groupedSelection = new Array();
+            const groupSelection = new Array();
+            const groupRowsSelection = new Array();
             const selectedNodes = this.agGrid.api.getSelectedNodes();
             for(const node of selectedNodes) {
                 if(node) {
-                    groupedSelection.push({ foundsetId: node.data._svyFoundsetUUID, _svyRowId: node.data._svyRowId, svyType: 'record' });
+                    if(node.group) {
+                        groupSelection.push({colId: node.rowGroupColumn.getColId(), groupkey: node.data[node.field]});
+                    } else {
+                        groupRowsSelection.push({ foundsetId: node.data._svyFoundsetUUID, _svyRowId: node.data._svyRowId, svyType: 'record' });
+                    }
                 }
             }
+            selection = {
+                groupSelection,
+                groupRowsSelection
+            }
         }
-        return groupedSelection;
+        return selection;
     }
 
     /**

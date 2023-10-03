@@ -34,6 +34,7 @@
 		"enableColumnMove": { "type": "boolean", "default": true, "tags": {"scope": "design", "doc": "If moving of columns is enabled"}},
 		"enableSorting": { "type": "boolean", "default": true, "tags": {"scope": "design", "doc": "Enable column sorting by clickin on the column's header"}},
 		"groupUseEntireRow" : {"type": "boolean", "default" : true, "tags" : {"scope": "design", "doc": "When true the group takes the entire row"}},
+		"groupCheckbox" : {"type": "boolean", "default" : false, "tags" : {"scope": "design", "doc": "When true the group has checkbox for selecting/unselecting all child rows "}},
 		"tooltipTextRefreshData" : { "type": "tagstring", "default" : "Refresh for latest data !", "tags": {"doc": "Tooltip text shown when hovering the refresh button"}},
 		"visible": "visible",
 		"hashedFoundsets": { "type": "hashedFoundset[]", "default": [], "tags": {"scope": "private", "allowaccess": "enabled"}, "pushToServer": "shallow"},
@@ -57,12 +58,29 @@
 		"tabSeq": { "type": "tabseq", "tags": { "scope": "design" } },
 		"onDragOverFunc": {"type": "clientfunction", "tags": {"doc": "Callback when dragging over a row - returns true whenever a drop is allowed."}},
 		"_internalFilterModel": { "type": "object", "tags": {"scope" : "private", "allowaccess": "enabled"}, "pushToServer": "allow" },
-		"_internalGroupedSelection": { "type": "record[]", "tags": {"scope" : "private"}, "pushToServer": "allow"}
+		"_internalGroupRowsSelection": { "type": "record[]", "tags": {"scope" : "private"}, "pushToServer": "allow"},
+		"_internalGroupSelection": { "type": "object[]", "tags": {"scope" : "private"}, "pushToServer": "allow"}
 	},
 	"handlers" : {
     	"onSelectedRowsChanged": {
 			"doc": "Called when the selected rows have changed.",
-			"parameters": []
+			"parameters": [{
+				"name": "isgroupselection",
+				"type": "boolean",
+				"optional": true
+			},{
+				"name": "groupcolumnid",
+				"type": "string",
+				"optional": true
+			},{
+				"name": "groupkey",
+				"type": "object",
+				"optional": true
+			},{
+				"name": "groupselection",
+				"type": "boolean",
+				"optional": true
+			}]
 		},
 		"onCellClick": {
 			"doc": "Called when the mouse is clicked on a row/cell (foundset and column indexes are given)\nthe foundsetindex is always -1 when there are grouped rows",
@@ -323,6 +341,15 @@
 				"type": "record[]"
 			}]
 		},
+		"getGroupSelection": {
+			"returns": "object[]"
+		},
+		"setGroupSelection": {
+			"parameters": [{
+				"name": "groups",
+				"type": "object[]"
+			}]
+		},		
 		"editCellAt": {
 			"parameters": [{
 				"name": "foundsetindex",

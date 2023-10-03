@@ -953,15 +953,31 @@ $scope.api.setFilterModel = function(filterModel) {
  * Set the selection in grouping mode. The table must be already in grouping mode,
  * and the record already loaded (the group of the record expanded - see: setExpandedGroups)
  *
- * @param {Object} value form editor value
+ * @param {Object} value selected records
  */
 $scope.api.setGroupedSelection = function(selectedRecords) {
-	$scope.model._internalGroupedSelection = selectedRecords;
+	$scope.model._internalGroupRowsSelection = selectedRecords;
 }
 
 /**
  * Returns the selected rows when in grouping mode
  */
 $scope.api.getGroupedSelection = function() {
-	return $scope.model._internalGroupedSelection;
+	return $scope.model._internalGroupRowsSelection;
+}
+
+/**
+ * Set the selected groups when using groupCheckbox property
+ *
+ * @param {Object} value selected groups (array of object returned ny getGroupSelection)
+ */
+$scope.api.setGroupSelection = function(selectedGroups) {
+	$scope.model._internalGroupSelection = selectedGroups;
+}
+
+/**
+ * Returns the selected groups when using groupCheckbox property
+ */
+$scope.api.getGroupSelection = function() {
+	return $scope.model._internalGroupSelection;
 }
