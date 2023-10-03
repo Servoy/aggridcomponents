@@ -353,11 +353,16 @@ export class PowerGrid extends NGGridDirective {
                         // agGrid.api.sizeColumnsToFit from sizeHeaderAndColumnsToFit uses the width from
                         // the column def instead of the actual width to calculate the layout, so set it
                         // during the call and then reset it at the end
-                        const columnSetWidth = e.column.getColDef().width;
-                        e.column.getColDef().width = e.column.getActualWidth();
+                        let columnSetWidth;
+                        if(e.column) {
+                            columnSetWidth = e.column.getColDef().width;
+                            e.column.getColDef().width = e.column.getActualWidth();
+                        }
                         this.svySizeColumnsToFit();
-                        if(columnSetWidth === undefined) delete e.column.getColDef().width;
-                        else e.column.getColDef().width = columnSetWidth;
+                        if(e.column) {
+                            if(columnSetWidth === undefined) delete e.column.getColDef().width;
+                            else e.column.getColDef().width = columnSetWidth;
+                        }
                         this.storeColumnsState();
                     }, 500);
                 } else {
