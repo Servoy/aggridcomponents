@@ -1,4 +1,4 @@
-import { GridOptions, GroupCellRenderer, GetRowIdParams, ColumnMenuTab, ColumnResizedEvent } from '@ag-grid-community/core';
+import { GridOptions, GroupCellRenderer, GetRowIdParams, ColumnMenuTab, ColumnResizedEvent, ColDef, Column } from '@ag-grid-community/core';
 import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Inject, Input, Output, Renderer2, SecurityContext, SimpleChanges, ViewChild } from '@angular/core';
 import { BaseCustomObject, Format, FormattingService, ICustomArray } from '@servoy/public';
 import { LoggerFactory } from '@servoy/public';
@@ -268,7 +268,6 @@ export class PowerGrid extends NGGridDirective {
             suppressContextMenu: false,
             suppressMovableColumns: false, // TODO persist column order changes
             suppressAutoSize: true,
-            colResizeDefault: 'shift',
             autoSizePadding: 25,
             suppressFieldDotNotation: true,
 
@@ -353,23 +352,47 @@ export class PowerGrid extends NGGridDirective {
                         // agGrid.api.sizeColumnsToFit from sizeHeaderAndColumnsToFit uses the width from
                         // the column def instead of the actual width to calculate the layout, so set it
                         // during the call and then reset it at the end
-                        let columnSetWidth, suppressSizeToFit;
-                        if(e.column) {
-                            columnSetWidth = e.column.getColDef().width;
-                            e.column.getColDef().width = e.column.getActualWidth();
-                            suppressSizeToFit = e.column.getColDef().suppressSizeToFit;
-                            e.column.getColDef().suppressSizeToFit = true;
+                        
+                        let displayedColumns = this.agGrid.columnApi.getAllDisplayedColumns();
+                        let suppressSizeToFit: boolean, colDef: ColDef;
+
+                        if (e.column) {
+                            //make sure this column is skipped when resizing, so it gets the exact size the user has dragged it to
+                            colDef = e.column.getColDef();
+                            suppressSizeToFit = colDef.suppressSizeToFit;
+                            colDef.suppressSizeToFit = true;
                         }
+
+                        //store design time values
+                        let columnSetWidth = [], displayedColDef: ColDef, colWidth: Number, totalColWidth = 0;
+                        displayedColumns.forEach((displayedCol: Column, arrayIndex, array) => {
+                            displayedColDef = this.agGrid.api.getColumnDef(displayedCol.getColId());
+                            columnSetWidth.push(displayedColDef.width);
+                            displayedColDef.width = displayedCol.getActualWidth();
+                        });
+
+                        //let the grid resize to fill the viewport based on actual width
                         this.svySizeColumnsToFit();
-                        if(e.column) {
-                            if(columnSetWidth === undefined) delete e.column.getColDef().width;
-                            else e.column.getColDef().width = columnSetWidth;
-                            if(suppressSizeToFit === undefined) delete e.column.getColDef().suppressSizeToFit;
-                            else e.column.getColDef().suppressSizeToFit = suppressSizeToFit;
+                        
+                        //restore design time values
+                        displayedColumns.forEach((displayedCol: Column, arrayIndex) => {
+                            displayedColDef = this.agGrid.api.getColumnDef(displayedCol.getColId());
+                            displayedColDef.width = columnSetWidth[arrayIndex];
+                        });
+
+                        if (colDef) {
+                            //remove / restore original suppressSizeToFit setting of the column resized
+                            if (suppressSizeToFit === undefined) {
+                                delete colDef.suppressSizeToFit;
+                            } else {
+                                colDef.suppressSizeToFit = suppressSizeToFit;
+                            }
                         }
+
                         this.storeColumnsState();
                     }, 500);
                 } else {
+                    this.sizeHeader();
                     this.storeColumnsState();
                 }
             },
