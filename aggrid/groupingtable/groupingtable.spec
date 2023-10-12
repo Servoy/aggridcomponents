@@ -478,7 +478,7 @@
 	"types" : {
 		"column" : {
 			"footerText" : {"type" : "tagstring", "forFoundset": "myFoundset"},
-			"headerTitle": {"type" : "titlestring", "for": "dataprovider", "tags": { "wizard": "4", "useAsCaptionInDeveloper" : true, "captionPriority" : 1, "showInOutlineView": true }},
+			"headerTitle": {"type" : "titlestring", "for": "dataprovider", "tags": { "wizard": "4", "useAsCaptionInDeveloper" : true, "captionPriority" : 1, "showInOutlineView": true, "doc": "If the column has a database linked dataprovider, the default value of the headerTitle is the title text of the database column or if that is not set, the database column name." }},
 			"footerStyleClass" : {"type" : "styleclass"},
 			"headerStyleClass" : {"type" : "styleclass"},
 			"headerTooltip" : {"type" : "tagstring"},
