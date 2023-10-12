@@ -99,7 +99,7 @@ export class DatePicker extends EditorDirective {
                 this.format.display = 'MM/dd/yyyy hh:mm a';
             }
         }
-        const format = this.format.edit ? this.format.edit : this.format.display;
+        const format = this.format.edit && !this.format.isMask ? this.format.edit : this.format.display;
 
         const showCalendar = format.indexOf('y') >= 0 || format.indexOf('M') >= 0;
         const showTime = format.indexOf('h') >= 0 || format.indexOf('H') >= 0 || format.indexOf('m') >= 0;
@@ -162,7 +162,7 @@ export class DatePicker extends EditorDirective {
         if(this.ngGrid.isInFindMode()) {
             return this.inputElementRef.nativeElement.value;
         } else {
-            const parsed = this.formattingService.parse(this.inputElementRef.nativeElement.value, this.format, true, this.selectedValue);
+            const parsed = this.formattingService.parse(this.inputElementRef.nativeElement.value, this.format, false, this.selectedValue);
             if (parsed instanceof Date && !isNaN(parsed.getTime())) return parsed;
             return null;
         }
