@@ -59,7 +59,7 @@
 		"onDragOverFunc": {"type": "clientfunction", "tags": {"doc": "Callback when dragging over a row - returns true whenever a drop is allowed."}},
 		"_internalFilterModel": { "type": "object", "tags": {"scope" : "private", "allowaccess": "enabled"}, "pushToServer": "allow" },
 		"_internalGroupRowsSelection": { "type": "record[]", "tags": {"scope" : "private"}, "pushToServer": "allow"},
-		"_internalGroupSelection": { "type": "object[]", "tags": {"scope" : "private"}, "pushToServer": "allow"}
+		"_internalCheckboxGroupSelection": { "type": "object[]", "tags": {"scope" : "private"}, "pushToServer": "allow"}
 	},
 	"handlers" : {
     	"onSelectedRowsChanged": {
@@ -341,10 +341,10 @@
 				"type": "record[]"
 			}]
 		},
-		"getGroupSelection": {
+		"getCheckboxGroupSelection": {
 			"returns": "object[]"
 		},
-		"setGroupSelection": {
+		"setCheckboxGroupSelection": {
 			"parameters": [{
 				"name": "groups",
 				"type": "object[]"
@@ -484,6 +484,7 @@
 			"headerTooltip" : {"type" : "tagstring"},
 			"headerGroup": {"type" : "tagstring", "tags": {"doc": "Header group, that this column will be part of"}},
 			"headerGroupStyleClass" : {"type" : "styleclass"},
+			"headerCheckbox" : {"type": "boolean", "default" : false, "tags" : {"scope": "design", "doc": "When true the column has checkbox for selecting/unselecting all rows"}},
 			"dataprovider": { "type": "dataprovider", "forFoundset": "myFoundset", "resolveValuelist" : true, "pushToServer" : "allow", "tags": { "wizard": "1", "useAsCaptionInDeveloper" : true, "captionPriority" : 2 }},
 			"tooltip": { "type": "dataprovider", "forFoundset": "myFoundset"},
 			"styleClass" : {"type" : "styleclass","tags": {"wizard": {"order": "3", "values":[{"name": "Pencil icon", "cls": "fa fa-pencil"}, {"name": "Trash icon", "cls": "fa fa-trash"}, {"name": "Eye icon", "cls": "fa fa-eye"}, {"name": "Gear icon", "cls": "fa fa-gear"}] }} },

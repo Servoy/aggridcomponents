@@ -967,17 +967,17 @@ $scope.api.getGroupedSelection = function() {
 }
 
 /**
- * Set the selected groups when using groupCheckbox property
+ * Set the selected headers/groups when using headerCheckbox/groupCheckbox property
  *
- * @param {Object} value selected groups (array of object returned ny getGroupSelection)
+ * @param {Object} selectedGroups selected headers/groups (array of object returned by getCheckboxGroupSelection of type {colId: 'columnid', groupkey: 'groupkey'}, groupkey  should be not added for headers)
  */
-$scope.api.setGroupSelection = function(selectedGroups) {
-	$scope.model._internalGroupSelection = selectedGroups;
+$scope.api.setCheckboxGroupSelection = function(selectedGroups) {
+	$scope.model._internalCheckboxGroupSelection = selectedGroups;
 }
 
 /**
- * Returns the selected groups when using groupCheckbox property
+ * Returns the selected groups when using headerCheckbox/groupCheckbox property, an array of object of type {colId: 'columnid', groupkey: 'groupkey'}; groupkey is not added for headers
  */
-$scope.api.getGroupSelection = function() {
-	return $scope.model._internalGroupSelection;
+$scope.api.getCheckboxGroupSelection = function() {
+	return $scope.model._internalCheckboxGroupSelection;
 }

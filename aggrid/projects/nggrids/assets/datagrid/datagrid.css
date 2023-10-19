@@ -61,3 +61,7 @@
 #nggridformeditor > * > .svy-respform {
 	height: 100%;
 }
+
+.svy-header-checkbox {
+	margin-right: 10px;
+}

@@ -137,8 +137,8 @@ export class DataGrid extends NGGridDirective {
     @Output() _internalFilterModelChange = new EventEmitter();
     @Input() _internalGroupRowsSelection: any;
     @Output() _internalGroupRowsSelectionChange = new EventEmitter();
-    @Input() _internalGroupSelection: any;
-    @Output() _internalGroupSelectionChange = new EventEmitter();
+    @Input() _internalCheckboxGroupSelection: any;
+    @Output() _internalCheckboxGroupSelectionChange = new EventEmitter();
 
     @Input() onCellClick: any;
     @Input() onCellDoubleClick: any;
@@ -702,6 +702,61 @@ export class DataGrid extends NGGridDirective {
         }
     }
 
+    ngAfterViewInit() {
+        super.ngAfterViewInit();
+        if(!this.isTableGrouped()) {
+            this.setupHeaderCheckbox(true);
+        }
+    }
+
+    private setupHeaderCheckbox(addClickListener?: boolean): void {
+        for(let i = 0; i < this.columns.length; i++) {
+            if(this.columns[i].headerCheckbox) {
+                let ch = this.doc.getElementById(this.servoyApi.getMarkupId() + '-headerCheck-' + i);
+                if(ch) {
+                    let colId = this.columns[i].id;
+                    if (!colId) {
+                        colId = this.getColumnID(this.columns[i], i);
+                    }
+                    let isChecked = false;
+                    if(this._internalCheckboxGroupSelection) {
+                        for(let i = 0; i < this._internalCheckboxGroupSelection.length; i++) {
+                            if(this._internalCheckboxGroupSelection[i].colId === colId && this._internalCheckboxGroupSelection[i].groupkey === undefined) {
+                                isChecked = true;
+                                break;
+                            }
+                        }
+                    }
+                    ch['checked'] = isChecked;
+                    if(addClickListener) {
+                        ch.addEventListener('click', (event: Event) => {
+                            this.onHeaderCheckClick(colId, event);
+                            event.stopPropagation();
+                        });
+                    }
+                };
+            }
+        }
+    }
+
+    private onHeaderCheckClick(colId: any, event: Event): void {
+        if(!this._internalCheckboxGroupSelection) this._internalCheckboxGroupSelection = []; else this._internalCheckboxGroupSelection.length = 0;
+        if(event.target['checked'] === true) {
+            this._internalCheckboxGroupSelection.push({colId: colId});
+        } else {
+            for(let i = 0; i < this._internalCheckboxGroupSelection.length; i++) {
+                if(this._internalCheckboxGroupSelection[i].colId === colId && this._internalCheckboxGroupSelection[i].groupkey === undefined) {
+                    this._internalCheckboxGroupSelection.splice(i, 1);
+                    break;
+                }
+            }
+        }
+        this._internalCheckboxGroupSelectionChange.emit(this._internalCheckboxGroupSelection);
+        if(this.onSelectedRowsChanged) {
+            this.onSelectedRowsChanged(true, colId, null, event.target['checked'] === true);
+        }
+    }
+
     svyOnInit() {
         super.svyOnInit();
         // TODO:
@@ -783,7 +838,10 @@ export class DataGrid extends NGGridDirective {
 
         // // listen to group changes
         this.agGrid.api.addEventListener('columnRowGroupChanged', (params: any) => {
-         this.onColumnRowGroupChanged(params);
+            if(!this.isTableGrouped()) {
+                this.setupHeaderCheckbox(true);
+            }
+            this.onColumnRowGroupChanged(params);
         });
 
         // listen to group collapsed
@@ -962,12 +1020,13 @@ export class DataGrid extends NGGridDirective {
                             this._internalFilterModelChange.emit(this._internalFilterModel);
                         }
                         break;
-                    case '_internalGroupSelection':
+                    case '_internalCheckboxGroupSelection':
                     case '_internalGroupRowsSelection':
                         if(this.isGridReady) {
-                            if(this.selectedRowIndexesChanged()) {
+                            if(property === '_internalCheckboxGroupSelection' && !this.isTableGrouped()) {
+                                this.setupHeaderCheckbox();
+                            } else if(this.selectedRowIndexesChanged())
                                 this.scrollToSelection();
-                            }
                         }
                         break;
                 }
@@ -1354,6 +1413,26 @@ export class DataGrid extends NGGridDirective {
 
             if (column.editType && (colDef['editable'] === undefined || colDef['editable']) === true) {
                 colDef.editable = this.isColumnEditable;
+            }
+
+            if(column.headerCheckbox) {
+                colDef.headerComponentParams = {
+                    template:
+                    '<div class="ag-cell-label-container" role="presentation">' +
+                    '    <span ref="eMenu" class="ag-header-icon ag-header-cell-menu-button" aria-hidden="true"></span>' +
+                    '    <div ref="eLabel" class="ag-header-cell-label" role="presentation">' +
+                    '        <div class="svy-header-checkbox">' +
+                    '            <input class="ag-input-field-input ag-checkbox-input" type="checkbox" id="' + this.servoyApi.getMarkupId() + '-headerCheck-' + i + '">' +
+                    '        </div>' +
+                    '        <span ref="eText" class="ag-header-cell-text"></span>' +
+                    '        <span ref="eFilter" class="ag-header-icon ag-header-label-icon ag-filter-icon" aria-hidden="true"></span>' +
+                    '        <span ref="eSortOrder" class="ag-header-icon ag-header-label-icon ag-sort-order" aria-hidden="true"></span>' +
+                    '        <span ref="eSortAsc" class="ag-header-icon ag-header-label-icon ag-sort-ascending-icon" aria-hidden="true"></span>' +
+                    '        <span ref="eSortDesc" class="ag-header-icon ag-header-label-icon ag-sort-descending-icon" aria-hidden="true"></span>' +
+                    '        <span ref="eSortNone" class="ag-header-icon ag-header-label-icon ag-sort-none-icon" aria-hidden="true"></span>' +
+                    '    </div>' +
+                    '</div>'
+                }    
             }
 
             if(column.headerGroup) {
@@ -1812,8 +1891,8 @@ export class DataGrid extends NGGridDirective {
 
             this.agGrid.api.forEachNode( (node: any) => {
                 if(node.data && node.data._svyRowId) {
-                    if(node.group && this._internalGroupSelection && this._internalGroupSelection.length) {
-                        for(const selectedGroup of this._internalGroupSelection) {
+                    if(node.group && this._internalCheckboxGroupSelection && this._internalCheckboxGroupSelection.length) {
+                        for(const selectedGroup of this._internalCheckboxGroupSelection) {
                             if(selectedGroup.colId === node.rowGroupColumn.getColId() && selectedGroup.groupkey === node.data[node.field]) {
                                 node.setSelected(true);
                                 break;
@@ -3043,11 +3122,19 @@ export class DataGrid extends NGGridDirective {
                     });
                     this._internalGroupRowsSelectionChange.emit(this._internalGroupRowsSelection);
 
-                    if(!this._internalGroupSelection) this._internalGroupSelection = []; else this._internalGroupSelection.length = 0;
+                    if(!this._internalCheckboxGroupSelection) {
+                        const selectedHeaderCheckbox = [];
+                        for(let i = 0; i < this._internalCheckboxGroupSelection.length; i++) {
+                            if(this._internalCheckboxGroupSelection[i].groupkey === undefined) {
+                                selectedHeaderCheckbox.push(this._internalCheckboxGroupSelection[i]);
+                            }
+                        }
+                        this._internalCheckboxGroupSelection = new Array(selectedHeaderCheckbox);
+                    }
                     groupSelection.groupSelection.forEach(group => {
-                        this._internalGroupSelection.push(group);
+                        this._internalCheckboxGroupSelection.push(group);
                     });
-                    this._internalGroupSelectionChange.emit(this._internalGroupSelection);                    
+                    this._internalCheckboxGroupSelectionChange.emit(this._internalCheckboxGroupSelection);                    
                 }
                 // Trigger event on selection change in grouo mode
                 if (this.onSelectedRowsChanged && agGridSelectionEvent.source !== 'checkboxSelected') {
@@ -5585,6 +5672,7 @@ export class DataGridColumn extends BaseCustomObject {
     showAs: string;
     dndSource: boolean;
     dndSourceDataprovider: boolean;
+    headerCheckbox: boolean;
 }
 
 export class GroupedColumn extends BaseCustomObject {
