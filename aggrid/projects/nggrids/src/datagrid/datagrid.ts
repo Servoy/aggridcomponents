@@ -1439,6 +1439,7 @@ export class DataGrid extends NGGridDirective {
                 if(!colGroups[column.headerGroup]) {
                     colGroups[column.headerGroup] = {};
                     colGroups[column.headerGroup]['headerClass'] = column.headerGroupStyleClass;
+                    colGroups[column.headerGroup]['headerIndex'] = column.headerGroupIndex;
                     colGroups[column.headerGroup]['children'] = [];
 
                 }
@@ -1454,7 +1455,11 @@ export class DataGrid extends NGGridDirective {
                 group.headerName = groupName;
                 group.headerClass = colGroups[groupName]['headerClass'];
                 group.children = colGroups[groupName]['children'];
-                colDefs.push(group);
+                if(colGroups[groupName]['headerIndex'] > -1 && colGroups[groupName]['headerIndex'] < colDefs.length) {
+                    colDefs.splice(colGroups[groupName]['headerIndex'], 0, group);
+                } else {
+                    colDefs.push(group);
+                }
             }
         }
 
@@ -5645,6 +5650,7 @@ export class DataGridColumn extends BaseCustomObject {
     headerStyleClass: string;
     headerTooltip: string;
     headerGroup: string;
+    headerGroupIndex: number;
     headerGroupStyleClass: string;
     dataprovider: any;
     tooltip: any;

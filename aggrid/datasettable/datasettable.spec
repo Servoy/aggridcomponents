@@ -423,6 +423,7 @@
 			"footerStyleClass" : {"type" : "styleclass"},
 			"headerGroup": {"type" : "tagstring", "tags": {"doc": "Header group, that this column will be part of"}},
 			"headerGroupStyleClass" : {"type" : "styleclass"},
+			"headerGroupIndex" : {"type" : "int", "default" : -1, "Position of header group, 0-based"; by default it is placed at the end"},
 			"headerTitle": {"type" : "tagstring", "tags": { "useAsCaptionInDeveloper" : true, "captionPriority" : 1, "showInOutlineView": true }},
 			"headerStyleClass" : {"type" : "styleclass"},
 			"headerTooltip": {"type" : "tagstring"},
