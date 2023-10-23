@@ -54,6 +54,11 @@ export class SelectEditor extends EditorDirective {
         }
     }
 
+    ngAfterViewInit(): void {
+        setTimeout(() => {
+            this.elementRef.nativeElement.focus();
+        }, 0);
+    }
     // returns the new value after editing
     getValue(): any {
         const displayValue = this.elementRef.nativeElement.selectedIndex > -1 ? this.elementRef.nativeElement.options[this.elementRef.nativeElement.selectedIndex].text : '';
