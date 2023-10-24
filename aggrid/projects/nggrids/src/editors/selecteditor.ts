@@ -31,27 +31,70 @@ export class SelectEditor extends EditorDirective {
     agInit(params: ICellEditorParams): void {
         super.agInit(params);
 
-        const vl = this.ngGrid.getValuelist(params);
+        let vl = this.ngGrid.getValuelist(params);
         if (vl) {
             let v = params.value;
             if (v && v.displayValue !== undefined) {
                 v = v.displayValue;
             }
             vl.filterList('').subscribe((valuelistValues: any) => {
-                valuelistValues.forEach((value: any) => {
-                    const option = this.doc.createElement('option');
-                    option.value = value.realValue == null ? '_SERVOY_NULL' : value.realValue;
-                    option.text = value.displayValue;
-                    if (v != null && v.toString() === value.displayValue) {
-                        option.selected = true;
-                        if(value.realValue !== undefined && params.value['realValue'] === undefined) {
-                            params.node['data'][params.column.getColDef()['field']] = {realValue: value.realValue, displayValue: v};
+                let hasRealValues = false;
+                for (const item of valuelistValues) {
+                  if (item.realValue !== item.displayValue) {
+                    hasRealValues = true;
+                    break;
+                  }
+                }
+
+                // make sure initial value has the "realValue" set, so when oncolumndatachange is called
+                // the previous value has the "realValue"
+                if(hasRealValues && params.value && (params.value['realValue'] === undefined)) {
+                    let rv = params.value;
+                    let rvFound = false;
+                    for (const item of valuelistValues) {
+                        if (item.displayValue === params.value) {
+                            rv = item.realValue;
+                            rvFound = true;
+                            break;
                         }
                     }
-                    this.elementRef.nativeElement.appendChild(option);
-                });
+                    // it could be the valuelist does not have all the entries on the client
+                    // try to get the entry using a filter call to the server
+                    if(!rvFound) {
+                        vl = this.ngGrid.getValuelist(params);
+                        vl.filterList(params.value).subscribe((valuelistWithInitialValue: any) => {
+                            for (const item of valuelistWithInitialValue) {
+                                if (item.displayValue === params.value) {
+                                    rv = item.realValue;
+                                    break;
+                                }
+                            }
+                            params.node['data'][params.column.getColDef()['field']] = {realValue: rv, displayValue: params.value};
+                            let newValuelistValues = valuelistValues.slice();
+                            newValuelistValues.push({realValue: rv, displayValue: params.value});
+                            this.createSelectOptions(newValuelistValues, v);
+                        });
+                    } else {
+                        params.node['data'][params.column.getColDef()['field']] = {realValue: rv, displayValue: params.value};
+                        this.createSelectOptions(valuelistValues, v);
+                    }
+                } else {
+                    this.createSelectOptions(valuelistValues, v);
+                }
             });
         }
+    }
+
+    createSelectOptions(valuelistValues: any[], selectedValue: any) {
+        valuelistValues.forEach((value: any) => {
+            const option = this.doc.createElement('option');
+            option.value = value.realValue == null ? '_SERVOY_NULL' : value.realValue;
+            option.text = value.displayValue;
+            if (selectedValue != null && selectedValue.toString() === value.displayValue) {
+                option.selected = true;
+            }
+            this.elementRef.nativeElement.appendChild(option);
+        });
     }
 
     ngAfterViewInit(): void {
