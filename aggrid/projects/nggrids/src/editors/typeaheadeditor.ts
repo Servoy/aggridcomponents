@@ -73,7 +73,7 @@ export class TypeaheadEditor extends EditorDirective implements IPopupSupportCom
     }
 
     let valuelist = this.ngGrid.getValuelist(params);
-    if (valuelist) {
+    if (valuelist && this.ngGrid.hasValuelistResolvedDisplayData()) {
       valuelist.filterList('').subscribe((valuelistValues: any) => {
         this.valuelistValues = valuelistValues;
         let hasRealValues = false;
@@ -120,9 +120,8 @@ export class TypeaheadEditor extends EditorDirective implements IPopupSupportCom
       this.initialValue = this.initialValue.displayValue;
     }
     let v = this.initialValue;
-    const column = this.ngGrid.getColumn(params.column.getColId());
-    if(column && column.format) {
-        this.format = column.format;
+    this.format = this.ngGrid.getColumnFormat(params.column.getColId());
+    if(this.format) {
         if (this.format.maxLength) {
             this.maxLength = this.format.maxLength;
         }

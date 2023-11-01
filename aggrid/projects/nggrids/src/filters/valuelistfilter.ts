@@ -2,8 +2,8 @@ import { Component, ViewChild } from '@angular/core';
 import { NgbTypeahead } from '@ng-bootstrap/ng-bootstrap';
 import { merge, Observable, of, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, switchMap } from 'rxjs/operators';
-import { NULL_VALUE } from '../datagrid';
-import { DatagridFilterDirective } from './datagridfilter';
+import { FilterDirective } from './filter';
+import { NULL_VALUE } from '../datagrid/datagrid';
 
 @Component({
     selector: 'aggrid-datagrid-valuelistfilter',
@@ -42,11 +42,11 @@ import { DatagridFilterDirective } from './datagridfilter';
           <button type="button" id="btnApplyFilter" (click)="onApplyFilter()">{{ txtApplyFilter }}</button>
       </div></div>
       <ng-template #rt let-r="result" let-t="term">
-        <ngb-highlight [result]="r.displayValue" [term]="t"></ngb-highlight>
+        <ngb-highlight [result]="getFormatedDisplayValue(r.displayValue)" [term]="t"></ngb-highlight>
       </ng-template>
     `
 })
-export class ValuelistFilter extends DatagridFilterDirective {
+export class ValuelistFilter extends FilterDirective {
 
     @ViewChild('instance') instance: NgbTypeahead;
     @ViewChild('instance1') instance1: NgbTypeahead;
@@ -60,7 +60,7 @@ export class ValuelistFilter extends DatagridFilterDirective {
     doFilterValues(text$: Observable<string>, inputFocus$: any) {
       const debouncedText$ = text$.pipe(debounceTime(200), distinctUntilChanged());
       return merge(debouncedText$, inputFocus$).pipe( switchMap(term => {
-          const valuelist = this.getValuelistFromGrid();
+          const valuelist = this.ngGrid.getValuelistForFilter(this.params);
           let valuelistObs: Observable<readonly any[]>;
           if(valuelist) {
             valuelistObs = valuelist.filterList(term);
@@ -79,7 +79,7 @@ export class ValuelistFilter extends DatagridFilterDirective {
 
     resultFormatter = (result: {displayValue: string; realValue: any}) => {
       if (result.displayValue === null) return '';
-      return this.dataGrid.format(result.displayValue, this.format, false);
+      return this.ngGrid.format(result.displayValue, this.format, false);
     };
 
     inputFormatter = (result: any) => {
@@ -93,7 +93,7 @@ export class ValuelistFilter extends DatagridFilterDirective {
           result = value.displayValue;
         }
       }
-      return this.dataGrid.format(result, this.format, false);
+      return this.ngGrid.format(result, this.format, false);
     };
 
     getFilterUIValue(): any {

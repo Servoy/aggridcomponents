@@ -9,8 +9,8 @@ import { FormEditor } from '../editors/formeditor';
 import { SelectEditor } from '../editors/selecteditor';
 import { TextEditor } from '../editors/texteditor';
 import { TypeaheadEditor } from '../editors/typeaheadeditor';
-import { RadioFilter } from './filters/radiofilter';
-import { ValuelistFilter } from './filters/valuelistfilter';
+import { RadioFilter } from '../filters/radiofilter';
+import { ValuelistFilter } from '../filters/valuelistfilter';
 import { IconConfig, MainMenuItemsConfig, NGGridDirective, ToolPanelConfig } from '../nggrid';
 import { DOCUMENT } from '@angular/common';
 import { BlankLoadingCellRendrer } from './renderers/blankloadingcellrenderer';
@@ -154,7 +154,6 @@ export class DataGrid extends NGGridDirective {
     // used in HTML template to toggle sync button
     @Output() isGroupView = false;
 
-    agGridOptions: GridOptions;
     foundset: FoundsetManager;
     groupManager: GroupManager;
 
@@ -2443,6 +2442,10 @@ export class DataGrid extends NGGridDirective {
         //					}
     }
 
+    hasValuelistResolvedDisplayData() {
+        return true;
+    }
+
     getValuelist(params: any): any {
         return this.getValuelistEx(params.node.data, params.column.colId);
     }
@@ -2488,6 +2491,11 @@ export class DataGrid extends NGGridDirective {
                 return null;
             }
         } else return null;
+    }
+
+    getValuelistForFilter(params: any): any {
+        const rows = this.agGrid.api ? this.agGrid.api.getSelectedRows() : null;
+        return rows && rows.length > 0 ? this.getValuelistEx(rows[0], params.column.getColId()) : null;
     }
 
     /**

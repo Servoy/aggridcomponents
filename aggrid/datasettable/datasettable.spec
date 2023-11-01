@@ -447,10 +447,10 @@
 			"cellRendererFunc": {"type": "clientfunction", "tags": {"doc": "Function to change the cell rendering"}},
 			"format": {"type": "tagstring", "tags": {"doc": "Format string as used in Servoy, for the type set in formatType"}},
 			"formatType": {"type": "string", "values": ["TEXT", "NUMBER", "DATETIME"], "default": "TEXT", "tags": {"doc": "Type of data the format is applied on"}},
-			"editType": {"type": "string", "values": [{"NONE":null}, {"TEXTFIELD":"TEXTFIELD"}, {"DATEPICKER":"DATEPICKER"}, {"FORM":"FORM"}, {"CHECKBOX":"CHECKBOX"}], "tags": {"doc": "Type of editing used for that column"}},
+			"editType": {"type": "string", "values": [{"NONE":null}, {"TEXTFIELD":"TEXTFIELD"}, {"DATEPICKER":"DATEPICKER"}, {"COMBOBOX":"COMBOBOX"}, {"TYPEAHEAD":"TYPEAHEAD"}, {"FORM":"FORM"}, {"CHECKBOX":"CHECKBOX"}], "tags": {"doc": "Type of editing used for that column"}},
 			"editForm": {"type": "form", "tags": {"doc": "Form used as custom editor"}},
 			"editFormSize": {"type": "dimension", "default" : {"width":300, "height":200}},
-			"filterType": {"type": "string", "values": [{"NONE":null}, {"TEXT":"TEXT"}, {"NUMBER":"NUMBER"}, {"DATE":"DATE"}]},
+			"filterType": {"type": "string", "values": [{"NONE":null}, {"TEXT":"TEXT"}, {"NUMBER":"NUMBER"}, {"DATE":"DATE"}, {"VALUELIST":"VALUELIST"}, {"RADIO":"RADIO"}]},
 			"id": {"type" : "string", "tags": {"wizard": {"prefill" : "dataprovider", "unique": true}, "showInOutlineView": true, "doc": "Used to set the column id (colId) property in the serialized column state json string of getColumnState and onColumnStateChanged" }},
 			"columnDef": {"type" : "json", "tags": {"doc": "Map where additional column properties of ag-grid can be set"}},
 			"showAs": { "type": "string", "values": [{"text":null}, {"html":"html"}, {"sanitizedHtml":"sanitizedHtml"}] },
@@ -458,7 +458,8 @@
 			"pivotComparatorFunc": {"type": "clientfunction", "tags": {"doc": "Function to sort the pivot columns"}},
 			"valueGetterFunc": {"type": "clientfunction", "tags": {"doc": "Proxy function for getting the cell value from the model"}},
 			"dndSource" : {"type": "boolean", "default" : false, "tags": {"doc": "Allow dragging"}},
-			"dndSourceFunc" : { "type": "clientfunction", "tags": {"doc": "Boolean function for allow/disallow dragging."}}
+			"dndSourceFunc" : { "type": "clientfunction", "tags": {"doc": "Boolean function for allow/disallow dragging."}},
+			"valuelist": { "type": "valuelist"}
 		},
         "iconConfig" : {
 			"iconMenu": { "type": "styleclass", "tags": {"scope": "design"}},

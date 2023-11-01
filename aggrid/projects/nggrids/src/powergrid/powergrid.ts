@@ -1,4 +1,4 @@
-import { GridOptions, GroupCellRenderer, GetRowIdParams, ColumnMenuTab, ColumnResizedEvent, ColDef, Column } from '@ag-grid-community/core';
+import { GetRowIdParams, ColumnMenuTab, ColumnResizedEvent, ColDef, Column } from '@ag-grid-community/core';
 import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Inject, Input, Output, Renderer2, SecurityContext, SimpleChanges, ViewChild } from '@angular/core';
 import { BaseCustomObject, Format, FormattingService, ICustomArray } from '@servoy/public';
 import { LoggerFactory } from '@servoy/public';
@@ -11,6 +11,11 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { DOCUMENT } from '@angular/common';
 import { CustomTooltip } from '../datagrid/commons/tooltip';
 import { isEqualWith } from 'lodash-es';
+import { SelectEditor } from '../editors/selecteditor';
+import { TypeaheadEditor } from '../editors/typeaheadeditor';
+import { ValuelistFilter } from '../filters/valuelistfilter';
+import { RadioFilter } from '../filters/radiofilter';
+import { NgbTypeaheadConfig } from '@ng-bootstrap/ng-bootstrap';
 
 const TABLE_PROPERTIES_DEFAULTS = {
     rowHeight: { gridOptionsProperty: 'rowHeight', default: 25 },
@@ -138,7 +143,6 @@ export class PowerGrid extends NGGridDirective {
     @Input() _internalAggCustomFuncs: AggFuncInfo[];
 
 
-    agGridOptions: GridOptions;
     agMainMenuItemsConfig: any;
     agContinuousColumnsAutoSizing = false;
 
@@ -170,9 +174,10 @@ export class PowerGrid extends NGGridDirective {
     lazyLoadingRemoteDatasource: RemoteDatasource;
 
     constructor(renderer: Renderer2, cdRef: ChangeDetectorRef, logFactory: LoggerFactory,
-        private powergridService: PowergridService, public formattingService: FormattingService,
+        private powergridService: PowergridService, public formattingService: FormattingService, public ngbTypeaheadConfig: NgbTypeaheadConfig,
         private sanitizer: DomSanitizer, @Inject(DOCUMENT) private doc: Document) {
         super(renderer, cdRef);
+        this.ngbTypeaheadConfig.container = 'body';
         this.log = logFactory.getLogger('PowerGrid');
     }
 
@@ -434,6 +439,10 @@ export class PowerGrid extends NGGridDirective {
                         });
                     }
                 }
+            },
+            components: {
+                valuelistFilter: ValuelistFilter,
+                radioFilter: RadioFilter
             }
         };
 
@@ -856,6 +865,7 @@ export class PowerGrid extends NGGridDirective {
 
                 if (column.filterType) {
                     colDef.filter = true;
+                    colDef.filterParams = { buttons: ['apply', 'clear'], newRowsAction: 'keep', caseSensitive: false };
 
                     if (column.filterType === 'TEXT') {
                         colDef.filter = 'agTextColumnFilter';
@@ -863,8 +873,17 @@ export class PowerGrid extends NGGridDirective {
                         colDef.filter = 'agNumberColumnFilter';
                     } else if (column.filterType === 'DATE') {
                         colDef.filter = 'agDateColumnFilter';
+                    } else if(column.filterType === 'VALUELIST') {
+                        colDef.filter = 'valuelistFilter';
+                        colDef.filterParams['suppressAndOrCondition'] = true;
+                        colDef.floatingFilterComponent = 'valuelistFilter';
+                        //colDef.floatingFilterComponentParams = { suppressFilterButton : true};
+                    } else if(column.filterType === 'RADIO') {
+                        colDef.filter = 'radioFilter';
+                        colDef.filterParams['suppressAndOrCondition'] = true;
+                        colDef.floatingFilterComponent = 'radioFilter';
+                        //colDef.floatingFilterComponentParams = { suppressFilterButton : true};
                     }
-                    colDef.filterParams = { buttons: ['apply', 'clear'], newRowsAction: 'keep', caseSensitive: false };
                 }
 
                 colDef.suppressMenu = column.enableRowGroup === false && column.filterType === undefined;
@@ -874,6 +893,10 @@ export class PowerGrid extends NGGridDirective {
                         colDef.cellEditor = TextEditor;
                     } else if (column.editType === 'DATEPICKER') {
                         colDef.cellEditor = DatePicker;
+                    } else if(column.editType === 'COMBOBOX') {
+                        colDef.cellEditor = SelectEditor;
+                    } else if(column.editType === 'TYPEAHEAD') {
+                        colDef.cellEditor = TypeaheadEditor;
                     } else if (column.editType === 'FORM') {
                         colDef.cellEditor = FormEditor;
                         colDef.suppressKeyboardEvent = (params: any) => {
@@ -908,6 +931,21 @@ export class PowerGrid extends NGGridDirective {
                         //params.dragEvent.dataTransfer.setDragImage
                         params.dragEvent.dataTransfer.setData('nggrids/json', JSON.stringify(dragDatas));
                     };
+                }
+
+                if(column.valuelist) {
+                    const currentValueGetter = colDef.valueGetter;
+                    colDef.valueGetter = (params: any) => {
+                        let v = currentValueGetter ? currentValueGetter(params) : params.data[params.colDef.field];
+                        for (let index = 0; index < column.valuelist.length; index++) {
+                            const element = column.valuelist[index];
+                            if(element.realValue == v) {
+                                v = element;
+                                break;
+                            }
+                        }
+                        return v;
+                    }
                 }
 
                 let columnOptions = this.powergridService.columnOptions ? this.powergridService.columnOptions : {};
@@ -994,6 +1032,18 @@ export class PowerGrid extends NGGridDirective {
             aggFuncs[aggFuncInfo.name] = this.createAggCustomFunctionFromString(aggFuncInfo.aggFunc);
         }
         return aggFuncs;
+    }
+
+    hasValuelistResolvedDisplayData() {
+        return false;
+    }
+
+    getValuelist(params: any): any {
+        return this.getColumn(params.column.colId).valuelist;
+    }
+
+    getValuelistForFilter(params: any): any {
+        return this.agGrid.api ? this.getValuelist(params) : null;
     }
 
     isColumnEditable(args: any) {
@@ -1704,7 +1754,7 @@ export class PowerGrid extends NGGridDirective {
             if (params.value !== undefined && params.value !== null) {
                 let v = params.value;
                 if (v.displayValue !== undefined) v = v.displayValue;
-                if (formatType === 'TEXT' && typeof params.value === 'string') {
+                if (formatType === 'TEXT' && typeof v === 'string') {
                     if (format === '|U') {
                         return v.toUpperCase();
                     } else if (format === '|L') {
@@ -2003,10 +2053,16 @@ export class PowerGrid extends NGGridDirective {
             return;
         }
 
-        const newValue = params.newValue;
-        const oldValue = params.oldValue;
+        let newValue = params.newValue;
+        if(newValue && newValue.realValue !== undefined) {
+            newValue = newValue.realValue;
+        }
+        let oldValue = params.oldValue;
+        if(oldValue && oldValue.realValue !== undefined) {
+            oldValue = oldValue.realValue;
+        }
         let oldValueStr = oldValue;
-        if (oldValueStr == null) oldValueStr = '';
+        if(oldValueStr == null) oldValueStr = '';
 
         const col = this.getColumn(params.colDef.field);
         // ignore types in compare only for non null values ("200"/200 are equals, but ""/0 is not)
@@ -2242,6 +2298,7 @@ export class PowerGridColumn extends BaseCustomObject {
     valueGetterFunc: any;
     dndSource: boolean;
     dndSourceFunc: any;
+    valuelist: any
 }
 
 export class AggFuncInfo extends BaseCustomObject {

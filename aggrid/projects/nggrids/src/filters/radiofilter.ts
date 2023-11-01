@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { DatagridFilterDirective } from './datagridfilter';
+import { FilterDirective } from './filter';
 
 @Component({
     selector: 'aggrid-datagrid-radiofilter',
@@ -7,15 +7,15 @@ import { DatagridFilterDirective } from './datagridfilter';
       <div><div class="ag-filter-body-wrapper">
         <div class="ag-filter-body" #element>
           <label class="ag-radio-filter" id="filterRadio" *ngFor="let item of valuelistValues">
-            <input type="radio" name="radioFilterInput" [value]="item.displayValue" (change)="valueChanged()"/>
-            <span>{{ item.displayValue }}</span>
+            <input type="radio" name="radioFilterInput" [value]="getFormatedDisplayValue(item.displayValue)" (change)="valueChanged()"/>
+            <span>{{ getFormatedDisplayValue(item.displayValue) }}</span>
           </label>
         </div>
         <div *ngIf="!suppressAndOrCondition()" class="ag-filter-condition"><label>OR</label></div>
         <div *ngIf="!suppressAndOrCondition()" class="ag-filter-body" #element1>
           <label class="ag-radio-filter" id="filterRadio1" *ngFor="let item of valuelistValues">
-            <input type="radio" name="radioFilterInput1" [value]="item.displayValue" (change)="valueChanged()"/>
-            <span>{{ item.displayValue }}</span>
+            <input type="radio" name="radioFilterInput1" [value]="getFormatedDisplayValue(item.displayValue)" (change)="valueChanged()"/>
+            <span>{{ getFormatedDisplayValue(item.displayValue) }}</span>
           </label>
         </div>
       </div>
@@ -25,7 +25,7 @@ import { DatagridFilterDirective } from './datagridfilter';
       </div></div>
     `
 })
-export class RadioFilter extends DatagridFilterDirective {
+export class RadioFilter extends FilterDirective {
 
     constructor() {
       super();

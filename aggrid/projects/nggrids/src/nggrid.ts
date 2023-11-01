@@ -1,5 +1,6 @@
 import { AgGridAngular } from '@ag-grid-community/angular';
-import { ContentChild, Directive, Input, TemplateRef, ViewChild } from '@angular/core';
+import { GridOptions } from '@ag-grid-community/core';
+import { ChangeDetectorRef, ContentChild, Directive, Input, TemplateRef, ViewChild } from '@angular/core';
 import { BaseCustomObject, Format, FormattingService, LoggerService, ServoyBaseComponent } from '@servoy/public';
 
 @Directive()
@@ -19,15 +20,13 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
     @Input() onDrop: any;
     @Input() onColumnFormEditStarted: any;
 
+    agGridOptions: GridOptions;
+    cdRef: ChangeDetectorRef;
     formattingService: FormattingService;
     selectionEvent: any;
     log: LoggerService;
 
     private destroyed = false;
-
-    getValuelist(params: any): any {
-        return null;
-    }
 
     destroy(): any {
         this.agGrid.api.destroy();
@@ -58,6 +57,12 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
     abstract getEditingRowIndex(param: any): number;
 
     abstract isInFindMode(): boolean;
+
+    abstract getValuelist(params: any): any;
+
+    abstract getValuelistForFilter(params: any): any;
+
+    abstract hasValuelistResolvedDisplayData(): boolean;
 }
 
 export class IconConfig extends BaseCustomObject {

@@ -1,15 +1,16 @@
 import { AgFloatingFilterComponent } from '@ag-grid-community/angular';
 import { FilterChangedEvent, IFilterParams, IFloatingFilterParams, IFloatingFilterParent } from '@ag-grid-community/core';
 import { Directive, ElementRef, ViewChild } from '@angular/core';
-import { DataGrid, NULL_VALUE } from '../datagrid';
+import { NULL_VALUE } from '../datagrid/datagrid';
 import { Deferred } from '@servoy/public';
+import { NGGridDirective } from '../nggrid';
 
 @Directive()
-export class DatagridFilterDirective implements AgFloatingFilterComponent, IFloatingFilterParent {
+export class FilterDirective implements AgFloatingFilterComponent, IFloatingFilterParent {
 
     @ViewChild('element') elementRef: ElementRef;
     @ViewChild('element1') element1Ref: ElementRef;
-    dataGrid: DataGrid;
+    ngGrid: NGGridDirective;
     params: IFilterParams;
     floatingParams: IFloatingFilterParams;
     model: any;
@@ -34,37 +35,28 @@ export class DatagridFilterDirective implements AgFloatingFilterComponent, IFloa
         } else {
           this.params = params;
         }
-        this.dataGrid = this.params.context.componentParent;
+        this.ngGrid = this.params.context.componentParent;
 
-        this.txtClearFilter = this.dataGrid.agGridOptions['localeText'] && this.dataGrid.agGridOptions['localeText']['clearFilter'] ?
-          this.dataGrid.agGridOptions['localeText'] && this.dataGrid.agGridOptions['localeText']['clearFilter'] : 'Clear Filter';
-        this.txtApplyFilter = this.dataGrid.agGridOptions['localeText'] && this.dataGrid.agGridOptions['localeText']['applyFilter'] ?
-          this.dataGrid.agGridOptions['localeText'] && this.dataGrid.agGridOptions['localeText']['applyFilter'] : 'Apply Filter';
+        this.txtClearFilter = this.ngGrid.agGridOptions['localeText'] && this.ngGrid.agGridOptions['localeText']['clearFilter'] ?
+          this.ngGrid.agGridOptions['localeText'] && this.ngGrid.agGridOptions['localeText']['clearFilter'] : 'Clear Filter';
+        this.txtApplyFilter = this.ngGrid.agGridOptions['localeText'] && this.ngGrid.agGridOptions['localeText']['applyFilter'] ?
+          this.ngGrid.agGridOptions['localeText'] && this.ngGrid.agGridOptions['localeText']['applyFilter'] : 'Apply Filter';
 
         this.valuelistValuesDefer = new Deferred();
-        const valuelist = this.getValuelistFromGrid();
+        const valuelist = this.ngGrid.getValuelistForFilter(this.params);
         if (valuelist) {
           valuelist.filterList('').subscribe((valuelistValues) => {
             this.valuelistValues = valuelistValues;
             if(!this.hasApplyButton()) {
               this.valuelistValues.splice(0, 0, NULL_VALUE);
             }
-            this.dataGrid.cdRef.detectChanges();
+            this.ngGrid.cdRef.detectChanges();
             this.valuelistValuesDefer.resolve(this.valuelistValues);
           });
         } else {
           this.valuelistValuesDefer.resolve(null);
         }
-
-        const column = this.dataGrid.getColumn(this.params.column.getColId());
-        if(column && column.format) {
-            this.format = column.format;
-        }
-    }
-
-    getValuelistFromGrid(): any {
-      const rows = this.dataGrid.agGrid.api ? this.dataGrid.agGrid.api.getSelectedRows() : null;
-      return rows && rows.length > 0 ? this.dataGrid.getValuelistEx(rows[0], this.params.column.getColId()) : null;
+        this.format = this.ngGrid.getColumnFormat(params.column.getColId());
     }
 
     onClearFilter() {
@@ -77,7 +69,7 @@ export class DatagridFilterDirective implements AgFloatingFilterComponent, IFloa
 
     onApplyFilter() {
       if(this.isFloating) {
-        this.floatingParams.parentFilterInstance((instance: DatagridFilterDirective) => {
+        this.floatingParams.parentFilterInstance((instance: FilterDirective) => {
           instance.valuelistValuesDefer.promise.then(() => {
             instance.onFloatingFilterChanged('equals', this.getFilterUIValue());
           });
@@ -147,13 +139,21 @@ export class DatagridFilterDirective implements AgFloatingFilterComponent, IFloa
       return null;
     }
 
+    getFormatedDisplayValue(displayValue: string): string {
+      if(this.format && displayValue) {
+        return this.ngGrid.format(displayValue, this.format, false);
+      }
+      return displayValue;
+    }
+
     getFilterRealValue(second?: boolean): any {
         let realValue = '';
         const displayValue = second ? this.getSecondFilterUIValue() : this.getFilterUIValue();
         if(this.valuelistValues) {
           for (const vvalue of this.valuelistValues) {
+            let compareValue = this.getFormatedDisplayValue(vvalue.displayValue);
             // compare trimmed values, typeahead will trim the selected value
-            if (displayValue != null && (displayValue.trim() === vvalue.displayValue.trim())) {
+            if (displayValue != null && (displayValue.trim() === compareValue.trim())) {
               realValue = vvalue.realValue;
               break;
             }
@@ -166,8 +166,11 @@ export class DatagridFilterDirective implements AgFloatingFilterComponent, IFloa
         return this.model != null;
     }
 
-    doesFilterPass(): boolean {
-        return true;
+    doesFilterPass(params: any): boolean {
+      if(this.model && !this.ngGrid.hasValuelistResolvedDisplayData()) {
+        return this.model.filter == params.data[this.params.colDef.field];
+      } 
+      return true;
     }
 
     getModel() {
@@ -188,7 +191,7 @@ export class DatagridFilterDirective implements AgFloatingFilterComponent, IFloa
 
     valueChanged() {
       if(!this.hasApplyButton()) {
-        this.dataGrid.setTimeout(() => {
+        this.ngGrid.setTimeout(() => {
           this.onApplyFilter();
         }, 0);
       }

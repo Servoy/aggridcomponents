@@ -2,6 +2,7 @@ import { Component, HostListener, Inject } from '@angular/core';
 import { EditorDirective } from './editor';
 import { ICellEditorParams } from '@ag-grid-community/core';
 import { DOCUMENT } from '@angular/common';
+import { Deferred } from '@servoy/public';
 
 @Component({
     selector: 'aggrid-selecteditor',
@@ -12,6 +13,8 @@ import { DOCUMENT } from '@angular/common';
     `
 })
 export class SelectEditor extends EditorDirective {
+
+    valuelistValuesDefer: Deferred<any>;
 
     constructor(@Inject(DOCUMENT) private doc: Document) {
         super();
@@ -33,55 +36,60 @@ export class SelectEditor extends EditorDirective {
 
         let vl = this.ngGrid.getValuelist(params);
         if (vl) {
+            this.valuelistValuesDefer = new Deferred();
             let v = params.value;
             if (v && v.displayValue !== undefined) {
                 v = v.displayValue;
             }
-            vl.filterList('').subscribe((valuelistValues: any) => {
-                let hasRealValues = false;
-                for (const item of valuelistValues) {
-                  if (item.realValue !== item.displayValue) {
-                    hasRealValues = true;
-                    break;
-                  }
-                }
-
-                // make sure initial value has the "realValue" set, so when oncolumndatachange is called
-                // the previous value has the "realValue"
-                if(hasRealValues && params.value && (params.value['realValue'] === undefined)) {
-                    let rv = params.value;
-                    let rvFound = false;
+            if(this.ngGrid.hasValuelistResolvedDisplayData()) {
+                vl.filterList('').subscribe((valuelistValues: any) => {
+                    let hasRealValues = false;
                     for (const item of valuelistValues) {
-                        if (item.displayValue === params.value) {
-                            rv = item.realValue;
-                            rvFound = true;
+                        if (item.realValue !== item.displayValue) {
+                            hasRealValues = true;
                             break;
                         }
                     }
-                    // it could be the valuelist does not have all the entries on the client
-                    // try to get the entry using a filter call to the server
-                    if(!rvFound) {
-                        vl = this.ngGrid.getValuelist(params);
-                        vl.filterList(params.value).subscribe((valuelistWithInitialValue: any) => {
-                            for (const item of valuelistWithInitialValue) {
-                                if (item.displayValue === params.value) {
-                                    rv = item.realValue;
-                                    break;
-                                }
+
+                    // make sure initial value has the "realValue" set, so when oncolumndatachange is called
+                    // the previous value has the "realValue"
+                    if(hasRealValues && params.value && (params.value['realValue'] === undefined)) {
+                        let rv = params.value;
+                        let rvFound = false;
+                        for (const item of valuelistValues) {
+                            if (item.displayValue === params.value) {
+                                rv = item.realValue;
+                                rvFound = true;
+                                break;
                             }
+                        }
+                        // it could be the valuelist does not have all the entries on the client
+                        // try to get the entry using a filter call to the server
+                        if(!rvFound) {
+                            vl = this.ngGrid.getValuelist(params);
+                            vl.filterList(params.value).subscribe((valuelistWithInitialValue: any) => {
+                                for (const item of valuelistWithInitialValue) {
+                                    if (item.displayValue === params.value) {
+                                        rv = item.realValue;
+                                        break;
+                                    }
+                                }
+                                params.node['data'][params.column.getColDef()['field']] = {realValue: rv, displayValue: params.value};
+                                let newValuelistValues = valuelistValues.slice();
+                                newValuelistValues.push({realValue: rv, displayValue: params.value});
+                                this.valuelistValuesDefer.resolve({valuelist: newValuelistValues, value: v});
+                            });
+                        } else {
                             params.node['data'][params.column.getColDef()['field']] = {realValue: rv, displayValue: params.value};
-                            let newValuelistValues = valuelistValues.slice();
-                            newValuelistValues.push({realValue: rv, displayValue: params.value});
-                            this.createSelectOptions(newValuelistValues, v);
-                        });
+                            this.valuelistValuesDefer.resolve({valuelist: valuelistValues, value: v});
+                        }
                     } else {
-                        params.node['data'][params.column.getColDef()['field']] = {realValue: rv, displayValue: params.value};
-                        this.createSelectOptions(valuelistValues, v);
+                        this.valuelistValuesDefer.resolve({valuelist: valuelistValues, value: v});
                     }
-                } else {
-                    this.createSelectOptions(valuelistValues, v);
-                }
-            });
+                });
+            } else {
+                this.valuelistValuesDefer.resolve({valuelist: vl, value: v});
+            }
         }
     }
 
@@ -98,9 +106,14 @@ export class SelectEditor extends EditorDirective {
     }
 
     ngAfterViewInit(): void {
-        setTimeout(() => {
-            this.elementRef.nativeElement.focus();
-        }, 0);
+        if(this.valuelistValuesDefer) {
+            this.valuelistValuesDefer.promise.then((r) => {
+                this.createSelectOptions(r.valuelist, r.value);
+                setTimeout(() => {
+                    this.elementRef.nativeElement.focus();
+                }, 0);
+            });
+        }
     }
     // returns the new value after editing
     getValue(): any {
