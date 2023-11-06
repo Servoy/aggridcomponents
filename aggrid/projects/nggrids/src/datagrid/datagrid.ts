@@ -868,6 +868,8 @@ export class DataGrid extends NGGridDirective {
                     case 'myFoundset':
 						this.log.debug('myFoundset root changed');
                         if(!this.myFoundset) {
+                            if(this.removeChangeListenerFunction) this.removeChangeListenerFunction();
+                            if(change.previousValue) this.refreshDatasource();
 							this.log.debug('myFoundset not set, ignore model change');
 							return;
 						}
@@ -890,7 +892,7 @@ export class DataGrid extends NGGridDirective {
                         }
 
                         this.myFoundsetId = change.currentValue.foundsetId;
-                        const isChangedToEmpty = change.currentValue && change.previousValue && change.previousValue.serverSize === 0 && change.previousValue.serverSize > 0;
+                        const isChangedToEmpty = change.currentValue && change.previousValue && change.currentValue.serverSize === 0 && change.previousValue.serverSize > 0;
                         if(this.myFoundset.viewPort.size > 0 || isChangedToEmpty) {
                             // browser refresh
                             this.isRootFoundsetLoaded = true;
@@ -1202,8 +1204,8 @@ export class DataGrid extends NGGridDirective {
 
     refreshAgGridServerSide() {
         this.agGrid.api.refreshServerSide({purge: true});
-        if(!this.isTableGrouped() && this.myFoundset && this.myFoundset.serverSize) {
-            this.agGrid.api.setRowCount(this.myFoundset.serverSize);
+        if(!this.isTableGrouped()) {
+            this.agGrid.api.setRowCount(this.myFoundset && this.myFoundset.serverSize ? this.myFoundset.serverSize : 0);
         }
     }
 
