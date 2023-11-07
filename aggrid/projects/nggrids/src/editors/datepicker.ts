@@ -2,7 +2,7 @@ import { Component, ElementRef, Inject, Input, ViewChild } from '@angular/core';
 import { EditorDirective } from './editor';
 import { ICellEditorParams } from '@ag-grid-community/core';
 import { DOCUMENT } from '@angular/common';
-import { Format, FormattingService, getFirstDayOfWeek, ServoyPublicService } from '@servoy/public';
+import { Deferred, Format, FormattingService, getFirstDayOfWeek, ServoyPublicService } from '@servoy/public';
 import { DateTime as DateTimeLuxon} from 'luxon';
 import { DateTime, Namespace, Options, TempusDominus } from '@eonasdan/tempus-dominus';
 import { NULL_VALUE } from '../datagrid/datagrid';
@@ -71,7 +71,6 @@ export class DatePicker extends EditorDirective {
             this.config.localization.hourCycle = 'h12';
         }
         this.config.localization.locale = servoyService.getLocale();
-        this.loadCalendarLocale(this.config.localization.locale);
     }
 
     agInit(params: ICellEditorParams): void {
@@ -103,6 +102,9 @@ export class DatePicker extends EditorDirective {
 
         const showCalendar = format.indexOf('y') >= 0 || format.indexOf('M') >= 0;
         const showTime = format.indexOf('h') >= 0 || format.indexOf('H') >= 0 || format.indexOf('m') >= 0;
+        if(!showCalendar && showTime) {
+            this.config.display.viewMode = 'clock';    
+        }
         const showSecondsTimer = format.indexOf('s') >= 0;
         this.config.display.components.decades = showCalendar;
         this.config.display.components.year = showCalendar;
@@ -124,24 +126,29 @@ export class DatePicker extends EditorDirective {
     ngAfterViewInit(): void {
         if(!this.ngGrid.isInFindMode()) {
             if (this.selectedValue) this.config.viewDate = DateTime.convert(this.selectedValue, null, this.config.localization);
-            this.picker = new TempusDominus(this.inputElementRef.nativeElement, this.config);
-            this.picker.dates.formatInput =  (date: DateTime) => this.ngGrid.format(date, this.format, false);
-            this.picker.dates.parseInput =  (value: string) => {
-                const parsed = this.formattingService.parse(value?value.trim():null, this.format, true, this.selectedValue);
-                if (parsed instanceof Date && !isNaN(parsed.getTime())) return  new DateTime(parsed);
-                return null;
-            };
-            if ( this.config.viewDate ) this.picker.dates.setValue( this.config.viewDate );
-            this.picker.subscribe(Namespace.events.change, (event) => this.dateChanged(event));
-            setTimeout(() => {
-                this.inputElementRef.nativeElement.select();
-                this.picker.show();
-                const dateContainer = this.doc.getElementsByClassName('tempus-dominus-widget calendarWeeks show');
-                if (dateContainer && dateContainer.length) {
-                    dateContainer[0].classList.add('ag-custom-component-popup');
-                }
-            }, 0);
-            this.picker.subscribe(Namespace.events.hide, () => this.params.stopEditing());
+            this.loadCalendarLocale(this.config.localization.locale).promise.then(() => {
+                const currentValue = (this.inputElementRef.nativeElement as HTMLInputElement).value;
+                (this.inputElementRef.nativeElement as HTMLInputElement).value = '';
+                this.picker = new TempusDominus(this.inputElementRef.nativeElement, this.config);
+                (this.inputElementRef.nativeElement as HTMLInputElement).value = currentValue;
+                this.picker.dates.formatInput =  (date: DateTime) => this.ngGrid.format(date, this.format, false);
+                this.picker.dates.parseInput =  (value: string) => {
+                    const parsed = this.formattingService.parse(value?value.trim():null, this.format, true, this.selectedValue);
+                    if (parsed instanceof Date && !isNaN(parsed.getTime())) return  new DateTime(parsed);
+                    return null;
+                };
+                if ( this.config.viewDate ) this.picker.dates.setValue( this.config.viewDate );
+                this.picker.subscribe(Namespace.events.change, (event) => this.dateChanged(event));
+                setTimeout(() => {
+                    this.inputElementRef.nativeElement.select();
+                    this.picker.show();
+                    const dateContainer = this.doc.getElementsByClassName('tempus-dominus-widget calendarWeeks show');
+                    if (dateContainer && dateContainer.length) {
+                        dateContainer[0].classList.add('ag-custom-component-popup');
+                    }
+                }, 0);
+                this.picker.subscribe(Namespace.events.hide, () => this.params.stopEditing());
+            });
         } else {
             setTimeout(() => {
                 this.inputElementRef.nativeElement.select();
@@ -176,7 +183,8 @@ export class DatePicker extends EditorDirective {
         } else this.selectedValue = null;
     }
 
-     private loadCalendarLocale(locale: string) {
+     private loadCalendarLocale(locale: string): Deferred<any> {
+        const localeDefer  = new Deferred();
         const index = locale.indexOf('-');
         let language = locale;
         if (index > 0) {
@@ -186,10 +194,11 @@ export class DatePicker extends EditorDirective {
         import(`@eonasdan/tempus-dominus/dist/locales/${language}.js`).then(
             (module: { localization: { [key: string]: string } }) => {
                 this.config.localization = module.localization;
-                if (this.picker !== null) this.picker.updateOptions(this.config);
+                localeDefer.resolve(locale);
             },
             () => {
-                // ignore
+                localeDefer.resolve('');
             });
+        return localeDefer;
     }
 }
