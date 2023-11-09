@@ -6,7 +6,7 @@ export class CustomTooltip implements ITooltipComp {
 
     init(params: ITooltipParams) {
         this.eGui = document.createElement('div');
-        this.eGui.className = 'tooltip-inner';
+        this.eGui.className = 'tooltip-inner ag-table-' + params.location + '-tooltip'; // ag-table-header-tooltip or ag-table-cell-tooltip
         this.eGui.innerHTML = params.value;
     }
 

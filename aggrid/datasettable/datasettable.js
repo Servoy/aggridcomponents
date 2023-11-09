@@ -2286,7 +2286,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     HtmlTooltip.prototype.init = function(params) {
                         this.eGui = document.createElement("div");
                         this.eGui.style = "position: absolute;"
-                        this.eGui.className = "tooltip-inner";
+                        this.eGui.className = "tooltip-inner " + (params.rowIndex === undefined ? "ag-table-header-tooltip" : "ag-table-cell-tooltip");
 
                         // AG-GRID always escapes tooltip values, with no option do disable that,
                         // so we need to unescape here ...
