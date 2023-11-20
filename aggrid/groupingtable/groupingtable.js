@@ -3716,7 +3716,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							if(newValue != oldValue) {
 								$log.debug('column property changed');
 								if(isGridReady) {
-									if(property != "footerText" && property != "headerTitle" && property != "visible" && property != "width") {
+									if(property != "headerTooltip" && property != "footerText" && property != "headerTitle" && property != "visible" && property != "width") {
 										updateColumnDefs();
 										if(property != "enableToolPanel") {
 											restoreColumnsState();
@@ -3728,7 +3728,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								}
 
 								if(property == "headerTitle") {
-									handleColumnHeaderTitle(index, newValue, oldValue);
+									handleColumnHeader(index, "headerName", newValue, oldValue);
+								}
+								else if(property == "headerTooltip") {
+									handleColumnHeader(index, property, newValue, oldValue);
 								}
 								else if (property == "footerText") {
 									handleColumnFooterText(newValue, oldValue);
@@ -3760,8 +3763,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					/**
 					 * @private 
 					 */
-					function handleColumnHeaderTitle(index, newValue, oldValue) {
-						$log.debug('header title column property changed');
+					function handleColumnHeader(index, property, newValue, oldValue) {
+						$log.debug('header column property changed');
 						
 						// column id is either the id of the column
 						var column = $scope.model.columns[index];
@@ -3771,10 +3774,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						}
 						
 						if (!colId) {
-							$log.warn("cannot update header title for column at position index " + index);
+							$log.warn("cannot update header for column at position index " + index);
 							return;
 						}
-						updateColumnHeaderTitle(colId, newValue);
+						updateColumnHeader(colId, property, newValue);
 					}
 					
 					function handleColumnFooterText(newValue, oldValue) {
@@ -5951,15 +5954,15 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						}
 					}
 					
-					function updateColumnHeaderTitle(id, text) {					
+					function updateColumnHeader(id, property, text) {					
 						// get a reference to the column
 						var col = gridOptions.columnApi.getColumn(id);
 
 						// obtain the column definition from the column
 						var colDef = col.getColDef();
 
-						// update the header name
-						colDef.headerName = text;
+						// update the heade
+						colDef[property] = text;
 
 						// the column is now updated. to reflect the header change, get the grid refresh the header
 						gridOptions.api.refreshHeader();

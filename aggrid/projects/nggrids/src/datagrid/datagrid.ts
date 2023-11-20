@@ -809,7 +809,7 @@ export class DataGrid extends NGGridDirective {
                                         if(columnPropertyChanged) {
                                             this.log.debug('column property changed');
                                             if(this.isGridReady) {
-                                                if(prop !== 'footerText' && prop !== 'headerTitle' && prop !== 'visible' && prop !== 'width') {
+                                                if(prop !== "headerTooltip" && prop !== 'footerText' && prop !== 'headerTitle' && prop !== 'visible' && prop !== 'width') {
                                                     this.updateColumnDefs();
                                                     if(prop !== 'enableToolPanel') {
                                                         this.restoreColumnsState();
@@ -820,7 +820,9 @@ export class DataGrid extends NGGridDirective {
                                             }
 
                                             if(prop === 'headerTitle') {
-                                                this.handleColumnHeaderTitle(i, newPropertyValue);
+                                                this.handleColumnHeader(i, 'headerName', newPropertyValue);
+                                            } else if(prop === 'headerTooltip') {
+                                                this.handleColumnHeader(i, prop, newPropertyValue);
                                             } else if (prop === 'footerText') {
                                                 this.handleColumnFooterText();
                                             } else if(prop === 'visible' || prop === 'width') {
@@ -2858,8 +2860,8 @@ export class DataGrid extends NGGridDirective {
         }
     }
 
-    handleColumnHeaderTitle(index: any, newValue: any) {
-        this.log.debug('header title column property changed');
+    handleColumnHeader(index: any, property: any, newValue: any) {
+        this.log.debug('header column property changed');
 
         // column id is either the id of the column
         const column = this.columns[index];
@@ -2869,10 +2871,10 @@ export class DataGrid extends NGGridDirective {
         }
 
         if (!colId) {
-            this.log.warn('cannot update header title for column at position index ' + index);
+            this.log.warn('cannot update header for column at position index ' + index);
             return;
         }
-        this.updateColumnHeaderTitle(colId, newValue);
+        this.updateColumnHeader(colId, property, newValue);
     }
 
     handleColumnFooterText() {
@@ -2880,7 +2882,7 @@ export class DataGrid extends NGGridDirective {
         this.agGrid.api.setPinnedBottomRowData(this.getFooterData());
     }
 
-    updateColumnHeaderTitle(id: any, text: any) {
+    updateColumnHeader(id: any, property:any, text: any) {
         // get a reference to the column
         const col = this.agGrid.columnApi.getColumn(id);
 
@@ -2889,7 +2891,7 @@ export class DataGrid extends NGGridDirective {
             const colDef = col.getColDef();
 
             // update the header name
-            colDef.headerName = text;
+            colDef[property] = text;
 
             // the column is now updated. to reflect the header change, get the grid refresh the header
             this.agGrid.api.refreshHeader();
