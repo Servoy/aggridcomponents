@@ -668,7 +668,7 @@ export class PowerGrid extends NGGridDirective {
                                         if (newPropertyValue !== oldPropertyValue) {
                                             this.log.debug('column property changed');
                                             if (this.isGridReady) {
-                                                if(prop !== 'footerText' && prop !== 'headerTitle' && prop !== 'visible' && prop !== 'width') {
+                                                if(prop !== "headerTooltip" && prop !== 'footerText' && prop !== 'headerTitle' && prop !== 'visible' && prop !== 'width') {
                                                     this.updateColumnDefs();
                                                     if (prop !== 'enableToolPanel') {
                                                         this.restoreColumnsState();
@@ -677,7 +677,9 @@ export class PowerGrid extends NGGridDirective {
                                             }
 
                                             if (prop === 'headerTitle') {
-                                                this.handleColumnHeaderTitle(i, newPropertyValue);
+                                                this.handleColumnHeader(i, 'headerName', newPropertyValue);
+                                            } else if (prop === 'headerTitle') {
+                                                    this.handleColumnHeader(i, prop, newPropertyValue);                                                
                                             } else if (prop === 'footerText') {
                                                 this.handleColumnFooterText();
                                             } else if(prop === 'visible' || prop === 'width') {
@@ -1652,8 +1654,8 @@ export class PowerGrid extends NGGridDirective {
         }
     }
 
-    handleColumnHeaderTitle(index: any, newValue: any) {
-        this.log.debug('header title column property changed');
+    handleColumnHeader(index: any, property:any, newValue: any) {
+        this.log.debug('header column property changed');
 
         // column id is either the id of the column
         const column = this.columns[index];
@@ -1663,21 +1665,21 @@ export class PowerGrid extends NGGridDirective {
         }
 
         if (!colId) {
-            this.log.warn('cannot update header title for column at position index ' + index);
+            this.log.warn('cannot update header for column at position index ' + index);
             return;
         }
-        this.updateColumnHeaderTitle(colId, newValue);
+        this.updateColumnHeader(colId, property, newValue);
     }
 
-    updateColumnHeaderTitle(id: any, text: any) {
+    updateColumnHeader(id: any, property:any, text: any) {
         // get a reference to the column
         const col = this.agGrid.columnApi.getColumn(id);
 
         // obtain the column definition from the column
         const colDef = col.getColDef();
 
-        // update the header name
-        colDef.headerName = text;
+        // update the header
+        colDef[property] = text;
 
         // the column is now updated. to reflect the header change, get the grid refresh the header
         this.agGrid.api.refreshHeader();
