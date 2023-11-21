@@ -11,9 +11,10 @@ import { TypeaheadEditor } from './editors/typeaheadeditor';
 import { AgGridModule } from '@ag-grid-community/angular';
 import { ModuleRegistry } from '@ag-grid-community/core';
 import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model';
-import {  ServerSideRowModelModule } from '@ag-grid-enterprise/server-side-row-model';
-import {  ColumnsToolPanelModule } from '@ag-grid-enterprise/column-tool-panel';
+import { ServerSideRowModelModule } from '@ag-grid-enterprise/server-side-row-model';
+import { ColumnsToolPanelModule } from '@ag-grid-enterprise/column-tool-panel';
 import { FiltersToolPanelModule } from '@ag-grid-enterprise/filter-tool-panel';
+import { RangeSelectionModule } from '@ag-grid-enterprise/range-selection';
 import { ExcelExportModule } from '@ag-grid-enterprise/excel-export';
 import { MenuModule } from '@ag-grid-enterprise/menu';
 import { SideBarModule } from '@ag-grid-enterprise/side-bar';
@@ -66,6 +67,7 @@ export class NGGridsModule {
         // eslint-disable-next-line max-len
         ModuleRegistry.registerModules([
             ServerSideRowModelModule,
+            RangeSelectionModule,
             RowGroupingModule,
             SideBarModule,
             ColumnsToolPanelModule,
