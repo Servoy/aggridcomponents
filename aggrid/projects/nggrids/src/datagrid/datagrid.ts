@@ -1309,6 +1309,7 @@ export class DataGrid extends NGGridDirective {
                     colDef.cellEditor = TypeaheadEditor;
                 } else if(column.editType === 'DATEPICKER') {
                     colDef.cellEditor = DatePicker;
+                    colDef.cellEditorPopupPosition = 'over';
                 } else if(column.editType === 'COMBOBOX') {
                     colDef.cellEditor = SelectEditor;
                 } else if(column.editType === 'FORM') {

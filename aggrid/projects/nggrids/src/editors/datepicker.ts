@@ -10,18 +10,15 @@ import { NULL_VALUE } from '../datagrid/datagrid';
 @Component({
     selector: 'aggrid-datepicker',
     template: `
-    <div class="input-group date bts-calendar-container ag-cell-edit-input" style="flex-wrap: nowrap" data-td-target-input='nearest' data-td-target-toggle='nearest' #element>
-    <input style="form-control form-control svy-line-height-normal" [(ngModel)]="selectedValue" [svyFormat]="format" data-td-target='#datetimepicker1' #inputElement>
+    <div class="ag-input-wrapper">
+      <input class="ag-cell-edit-input" #element>
     </div>
     `,
     providers: []
 })
 export class DatePicker extends EditorDirective {
 
-    @ViewChild('inputElement') inputElementRef: ElementRef;
-
     @Input() selectedValue: Date;
-
 
     picker: TempusDominus;
 
@@ -125,22 +122,19 @@ export class DatePicker extends EditorDirective {
 
     ngAfterViewInit(): void {
         if(!this.ngGrid.isInFindMode()) {
-            if (this.selectedValue) this.config.viewDate = DateTime.convert(this.selectedValue, null, this.config.localization);
             this.loadCalendarLocale(this.config.localization.locale).promise.then(() => {
-                const currentValue = (this.inputElementRef.nativeElement as HTMLInputElement).value;
-                (this.inputElementRef.nativeElement as HTMLInputElement).value = '';
-                this.picker = new TempusDominus(this.inputElementRef.nativeElement, this.config);
-                (this.inputElementRef.nativeElement as HTMLInputElement).value = currentValue;
-                this.picker.dates.formatInput =  (date: DateTime) => this.ngGrid.format(date, this.format, false);
+                (this.elementRef.nativeElement as HTMLInputElement).value = '';
+                this.picker = new TempusDominus(this.elementRef.nativeElement, this.config);
+                (this.elementRef.nativeElement as HTMLInputElement).value = this.ngGrid.format(this.selectedValue, this.format, this.format.edit != undefined)
+                this.picker.dates.formatInput =  (date: DateTime) => this.ngGrid.format(date, this.format, this.format.edit != undefined);
                 this.picker.dates.parseInput =  (value: string) => {
-                    const parsed = this.formattingService.parse(value?value.trim():null, this.format, true, this.selectedValue);
-                    if (parsed instanceof Date && !isNaN(parsed.getTime())) return  new DateTime(parsed);
+                    const parsed = this.formattingService.parse(value?value.trim():null, this.format, this.format.edit != undefined, this.selectedValue);
+                    if (parsed instanceof Date && !isNaN(parsed.getTime())) return  DateTime.convert(parsed, null, this.config.localization);
                     return null;
                 };
-                if ( this.config.viewDate ) this.picker.dates.setValue( this.config.viewDate );
                 this.picker.subscribe(Namespace.events.change, (event) => this.dateChanged(event));
                 setTimeout(() => {
-                    this.inputElementRef.nativeElement.select();
+                    this.elementRef.nativeElement.select();
                     this.picker.show();
                     const dateContainer = this.doc.getElementsByClassName('tempus-dominus-widget calendarWeeks show');
                     if (dateContainer && dateContainer.length) {
@@ -151,7 +145,7 @@ export class DatePicker extends EditorDirective {
             });
         } else {
             setTimeout(() => {
-                this.inputElementRef.nativeElement.select();
+                this.elementRef.nativeElement.select();
             }, 0);
         }
     }
@@ -167,9 +161,9 @@ export class DatePicker extends EditorDirective {
     // returns the new value after editing
     getValue(): Date {
         if(this.ngGrid.isInFindMode()) {
-            return this.inputElementRef.nativeElement.value;
+            return this.elementRef.nativeElement.value;
         } else {
-            const parsed = this.formattingService.parse(this.inputElementRef.nativeElement.value, this.format, false, this.selectedValue);
+            const parsed = this.formattingService.parse(this.elementRef.nativeElement.value, this.format, this.format.edit != undefined, this.selectedValue);
             if (parsed instanceof Date && !isNaN(parsed.getTime())) return parsed;
             return null;
         }

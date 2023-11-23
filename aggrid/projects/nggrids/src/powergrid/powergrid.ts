@@ -895,6 +895,7 @@ export class PowerGrid extends NGGridDirective {
                         colDef.cellEditor = TextEditor;
                     } else if (column.editType === 'DATEPICKER') {
                         colDef.cellEditor = DatePicker;
+                        colDef.cellEditorPopupPosition = 'over';
                     } else if(column.editType === 'COMBOBOX') {
                         colDef.cellEditor = SelectEditor;
                     } else if(column.editType === 'TYPEAHEAD') {
