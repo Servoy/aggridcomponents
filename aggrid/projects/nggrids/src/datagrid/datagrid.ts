@@ -3734,7 +3734,7 @@ export class DataGrid extends NGGridDirective {
         if(changeEvent.multiSelectChanged) {
             this.agGridOptions.rowSelection =  changeEvent.multiSelectChanged.newValue ? 'multiple' : 'single';
             // ag-grid does not update the rowSelection, force it via its internal api
-            this.agGrid.api['gridOptionsService'].set('rowSelection', this.agGridOptions.rowSelection, true);
+            this.agGrid.api['ctrlsService']['gridOptionsService'].set('rowSelection', this.agGridOptions.rowSelection, true);
         }
 
         if(!this.isRootFoundsetLoaded) {

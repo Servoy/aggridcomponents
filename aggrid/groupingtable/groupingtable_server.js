@@ -391,61 +391,65 @@ function log(msg, level) {
 function filterFoundset(foundset, sFilterModel) {
 	var shouldReloadWithFilters = false;
 
-	var filterModel = JSON.parse(sFilterModel);
+	if(foundset.removeFoundSetFilterParam) { // if foundset supports filters
+		var filterModel = JSON.parse(sFilterModel);
 
-	if(foundset.removeFoundSetFilterParam("ag-groupingtable")) {
-		shouldReloadWithFilters = true;
-	}
-	var isFilterSet = false;
-	
-	var query;
-	if(servoyApi.getQuerySelect) {
-		query = servoyApi.getQuerySelect(foundset.getDataSource());
-	}
-	else {
-		// there is an issue in Servoy, that queries are not cleared after calling removeFoundSetFilterParam
-		// until loadAllRecords is called
-		foundset.loadAllRecords();
-		query = foundset.getQuery();
-	}
+		if(foundset.removeFoundSetFilterParam("ag-groupingtable")) {
+			shouldReloadWithFilters = true;
+		}
+		var isFilterSet = false;
+		
+		var query;
+		if(servoyApi.getQuerySelect) {
+			query = servoyApi.getQuerySelect(foundset.getDataSource());
+		}
+		else {
+			// there is an issue in Servoy, that queries are not cleared after calling removeFoundSetFilterParam
+			// until loadAllRecords is called
+			foundset.loadAllRecords();
+			query = foundset.getQuery();
+		}
 
-	if($scope.model.columns) {
-		for(var i = 0; i < $scope.model.columns.length; i++) {
-			var dp = $scope.model.columns[i].dataprovider;
-			var filter = filterModel[i];
-			if(filter) {
-				var whereClauseForDP = null;
-				if(filter["operator"]) {
-					var whereClause1ForDP = null;
-					var whereClause2ForDP = null;
-					if(filter["condition1"]) {
-						whereClause1ForDP = getFilterWhereClauseForDataprovider(query, filter["condition1"], dp, $scope.model.columns[i].format);
-					}
-					if(filter["condition2"]) {
-						whereClause2ForDP = getFilterWhereClauseForDataprovider(query, filter["condition2"], dp, $scope.model.columns[i].format);
-					}
-					if(whereClause1ForDP && whereClause2ForDP) {
-						if(filter["operator"] == "AND") {
-							whereClauseForDP = query.and.add(whereClause1ForDP).add(whereClause2ForDP);
-						} else if(filter["operator"] == "OR") {
-							whereClauseForDP = query.or.add(whereClause1ForDP).add(whereClause2ForDP);
+		if($scope.model.columns) {
+			for(var i = 0; i < $scope.model.columns.length; i++) {
+				var dp = $scope.model.columns[i].dataprovider;
+				var filter = filterModel[i];
+				if(filter) {
+					var whereClauseForDP = null;
+					if(filter["operator"]) {
+						var whereClause1ForDP = null;
+						var whereClause2ForDP = null;
+						if(filter["condition1"]) {
+							whereClause1ForDP = getFilterWhereClauseForDataprovider(query, filter["condition1"], dp, $scope.model.columns[i].format);
 						}
+						if(filter["condition2"]) {
+							whereClause2ForDP = getFilterWhereClauseForDataprovider(query, filter["condition2"], dp, $scope.model.columns[i].format);
+						}
+						if(whereClause1ForDP && whereClause2ForDP) {
+							if(filter["operator"] == "AND") {
+								whereClauseForDP = query.and.add(whereClause1ForDP).add(whereClause2ForDP);
+							} else if(filter["operator"] == "OR") {
+								whereClauseForDP = query.or.add(whereClause1ForDP).add(whereClause2ForDP);
+							}
+						}
+					} else {
+						whereClauseForDP = getFilterWhereClauseForDataprovider(query, filter, dp, $scope.model.columns[i].format);
 					}
-				} else {
-					whereClauseForDP = getFilterWhereClauseForDataprovider(query, filter, dp, $scope.model.columns[i].format);
-				}
 
-				if(whereClauseForDP) {
-					if(!isFilterSet) isFilterSet = true;
-					query.where.add(whereClauseForDP);
+					if(whereClauseForDP) {
+						if(!isFilterSet) isFilterSet = true;
+						query.where.add(whereClauseForDP);
+					}
 				}
 			}
 		}
-	}
 
-	if(isFilterSet) {
-		servoyApi.addFoundSetFilterParam(foundset, query, "ag-groupingtable");
-		shouldReloadWithFilters = true;
+		if(isFilterSet) {
+			servoyApi.addFoundSetFilterParam(foundset, query, "ag-groupingtable");
+			shouldReloadWithFilters = true;
+		}
+	} else {
+		log('filter is not supported on foundset: ' + foundset, LOG_LEVEL.WARN);	
 	}
 
 	return shouldReloadWithFilters;
@@ -620,10 +624,10 @@ function getConvertedDate(clientDateAsString, clientDateAsMs, columnFormat) {
  * Servoy component lifecycle callback
  */
 $scope.onHide = function() {
-	// related foundsets does not have filters, so only clear/remove filters from unrelated
+	// related foundsets and viewfoundsets (no foundset.removeFoundSetFilterParam')  does not have filters; skip clear/remove filters from them
 	if($scope.model.myFoundset) {
 		var myFoundset = $scope.model.myFoundset.foundset;
-		if(myFoundset && (!myFoundset.getRelationName || !myFoundset.getRelationName())) {
+		if(myFoundset && myFoundset.removeFoundSetFilterParam && (!myFoundset.getRelationName || !myFoundset.getRelationName())) {
 			$scope.filterMyFoundset("{}");
 		}
 	}
