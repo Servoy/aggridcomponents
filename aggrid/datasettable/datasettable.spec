@@ -410,11 +410,17 @@
 				{ "name": "id", "type": "string" },
 				{ "name": "index", "type": "int"}
 			]
+		},
+		"exportToDataset" : {
+			"returns": "dataset"
 		}
 	},
 	"internalApi" : {
 		"clearUpdateData" : {
 			"allowaccess" : "enabled"
+		},
+		"internalExportToDataset" : {
+			"returns": "object[]"
 		}
     },	
 	"types" : {

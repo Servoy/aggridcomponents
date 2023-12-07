@@ -263,3 +263,18 @@ $scope.api.addAggCustomFuncs = function(aggFuncs) {
         });
     }
 }
+
+$scope.api.exportToDataset = function() {
+    var exportDataSet = null;
+    var exportData = $scope.api.internalExportToDataset();
+    if(exportData.length) {
+        exportDataSet = servoyApi.createEmptyDataSet();
+        for(var colIndex = 0; colIndex < exportData[0].length; colIndex++) {
+            exportDataSet.addColumn(rowIndex, exportData[0][colIndex]);
+        }
+        for(var rowIndex = 1; rowIndex < exportData.length; rowIndex++) {
+            exportDataSet.addRow(rowIndex, exportData[rowIndex]);
+        }
+    }
+    return exportDataSet;
+}

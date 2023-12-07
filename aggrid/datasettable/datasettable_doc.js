@@ -12,6 +12,12 @@ function exportData(fileName, skipHeader, columnGroups, skipFooters, skipGroups,
 }
 
 /**
+ * Export data to JSDataSet
+ */
+$scope.api.exportToDataset = function() {
+}
+
+/**
  *  Sets selected rows
  * 
  *  @param Array<Number> rowIndexes (0-based)

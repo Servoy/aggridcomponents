@@ -2378,6 +2378,42 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     }
                 }
                 
+                $scope.api.internalExportToDataset = function() {
+                    var exportData = [];
+                    var columnStates = gridOptions.columnApi.getColumnState();
+                    if(columnStates && columnStates.length) {
+                        var header = [];
+                        columnStates.forEach(columnState => {
+                            if(!columnState.hide) {
+                                header.push(columnState.colId);
+                            }
+                        });
+                        if(header.length) {
+                            var colInfoCache = {};
+                            var headerNames = [];
+                            header.forEach(colId => {
+                                colInfoCache[colId] = {columnModel: getColumn(colId), colDef: gridOptions.columnApi.getColumn(colId).getColDef()};
+                                headerNames.push(colInfoCache[colId].colDef['headerName']);
+                            });                
+                            exportData.push(headerNames);
+                            gridOptions.api.forEachNodeAfterFilterAndSort((rowNode, index) => {
+                                var row = [];
+                                header.forEach(colId => {
+                                    var colInfo = colInfoCache[colId];
+                                    var value = rowNode.group ? rowNode.groupData[colId] : rowNode.data[colId];
+                                    if (colInfo['columnModel'] && colInfo['columnModel'].exportDisplayValue && colInfo['colDef'].valueFormatter) {
+                                        value = colInfo['colDef'].valueFormatter({ value });
+                                    }                 
+                                    row.push(value);
+                                });
+                                exportData.push(row);
+                            });
+                        }
+                    }
+                    return exportData;
+                }
+
+
                 /**
                  *  Sets selected rows
                  * 

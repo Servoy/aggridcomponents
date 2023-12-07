@@ -1,4 +1,4 @@
-import { GetRowIdParams, ColumnMenuTab, ColumnResizedEvent, ColDef, Column } from '@ag-grid-community/core';
+import { GetRowIdParams, ColumnMenuTab, ColumnResizedEvent, ColDef, Column, IRowNode } from '@ag-grid-community/core';
 import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Inject, Input, Output, Renderer2, SecurityContext, SimpleChanges, ViewChild } from '@angular/core';
 import { BaseCustomObject, Format, FormattingService, ICustomArray } from '@servoy/public';
 import { LoggerFactory } from '@servoy/public';
@@ -939,7 +939,7 @@ export class PowerGrid extends NGGridDirective {
                 if(column.valuelist) {
                     const currentValueGetter = colDef.valueGetter;
                     colDef.valueGetter = (params: any) => {
-                        let v = currentValueGetter ? currentValueGetter(params) : params.data[params.colDef.field];
+                        let v = currentValueGetter ? currentValueGetter(params) : params.data ? params.data[params.colDef.field] : undefined;
                         for (let index = 0; index < column.valuelist.length; index++) {
                             const element = column.valuelist[index];
                             if(element.realValue == v) {
@@ -1904,6 +1904,41 @@ export class PowerGrid extends NGGridDirective {
         } else {
             this.agGrid.api.exportDataAsExcel(params);
         }
+    }
+
+    internalExportToDataset(): any {
+        const exportData = [];
+        const columnStates = this.agGrid.columnApi.getColumnState();
+        if(columnStates && columnStates.length) {
+            const header = [];
+            columnStates.forEach(columnState => {
+                if(!columnState.hide) {
+                    header.push(columnState.colId);
+                }
+            });
+            if(header.length) {
+                const colInfoCache = {};
+                const headerNames = [];
+                header.forEach(colId => {
+                    colInfoCache[colId] = {columnModel: this.getColumn(colId), colDef: this.agGrid.columnApi.getColumn(colId).getColDef()};
+                    headerNames.push(colInfoCache[colId].colDef['headerName']);
+                });                
+                exportData.push(headerNames);
+                this.agGrid.api.forEachNodeAfterFilterAndSort((rowNode: IRowNode, index: number) => {
+                    const row = [];
+                    header.forEach(colId => {
+                        const colInfo = colInfoCache[colId];
+                        let value = rowNode.group ? rowNode.groupData[colId] : rowNode.data[colId];
+                        if (colInfo['columnModel'] && colInfo['columnModel'].exportDisplayValue && colInfo['colDef'].valueFormatter) {
+                            value = colInfo['colDef'].valueFormatter({ value });
+                        }                 
+                        row.push(value);
+                    });
+                    exportData.push(row);
+                });
+            }
+        }
+        return exportData;
     }
 
     /**
