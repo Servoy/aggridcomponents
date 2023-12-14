@@ -3769,7 +3769,7 @@ export class DataGrid extends NGGridDirective {
             this.log.debug('Change Sort Model ' + newSort);
 
             /** TODO check with R&D, sortColumns is updated only after the viewPort is update or there could be a concurrency race. When i would know when sort is completed ? */
-            if (newSort !== oldSort) {
+            if (changeEvent.foundsetDefinitionChanged && newSort !== oldSort) {
                 this.log.debug('myFoundset sort changed ' + newSort);
                 // could be already set when clicking sort on header and there is an onsort handler, so skip reseting it, to avoid a new onsort call
                 if(this.sortHandlerPromises.length === 0) {
@@ -4576,26 +4576,17 @@ class FoundsetServer {
                 }
 
                 if(isColumnSortable) {
-                    // send sort request if header is clicked; skip if is is not from UI (isRenderedAndSelectionReady == false) or if it from a sort handler or a group column sort
-                    if(this.dataGrid.isRenderedAndSelectionReady || sortString) {
-                        foundsetSortModel = this.dataGrid.getFoundsetSortModel(sortModel);
-                        this.dataGrid.sortPromise = foundsetRefManager.sort(foundsetSortModel.sortColumns);
-                        this.dataGrid.sortPromise.then(() => {
-                            this.getDataFromFoundset(foundsetRefManager, request, callback);
-                            // give time to the foundset change listener to know it was a client side requested sort
-                            setTimeout(() => {
-                                this.dataGrid.sortPromise = null;
-                            }, 0);
-                        }).catch(() => {
+                    foundsetSortModel = this.dataGrid.getFoundsetSortModel(sortModel);
+                    this.dataGrid.sortPromise = foundsetRefManager.sort(foundsetSortModel.sortColumns);
+                    this.dataGrid.sortPromise.then(() => {
+                        this.getDataFromFoundset(foundsetRefManager, request, callback);
+                        // give time to the foundset change listener to know it was a client side requested sort
+                        setTimeout(() => {
                             this.dataGrid.sortPromise = null;
-                        });
-                    } else { // set the grid sorting if foundset sort changed from the grid initialization (like doing foundset sort on form's onShow)
-                        this.dataGrid.applySortModel(this.dataGrid.getSortModel());
-                        // aggrid's callback must be called else the current request will be counting as 'pending' and
-                        // adding up for max concurrent requests, blocking any succesive requests
-                        callback([]);
-                        this.dataGrid.refreshAgGridServerSide();
-                    }
+                        }, 0);
+                    }).catch(() => {
+                        this.dataGrid.sortPromise = null;
+                    });
                 } else {
                     this.getDataFromFoundset(foundsetRefManager, request, callback);
                 }
