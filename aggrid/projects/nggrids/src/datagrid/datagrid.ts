@@ -140,6 +140,8 @@ export class DataGrid extends NGGridDirective {
     @Input() _internalCheckboxGroupSelection: any;
     @Output() _internalCheckboxGroupSelectionChange = new EventEmitter();
 
+    @Input() _internalFunctionCalls: Array<FunctionCall>;
+
     @Input() onCellClick: any;
     @Input() onCellDoubleClick: any;
     @Input() onCellRightClick: any;
@@ -4176,6 +4178,24 @@ export class DataGrid extends NGGridDirective {
         const row = element.closest('[row-id]');
         return row ? this.agGrid.api.getRowNode(row.getAttribute('row-id')) : null;
     }
+
+    public executeFunctionCall(alias: string, arg: any) {
+        let functionCall: FunctionCall = null;
+        if(this._internalFunctionCalls) {
+            for(let i = 0; i < this._internalFunctionCalls.length; i++ ) {
+                if(this._internalFunctionCalls[i].alias === alias) {
+                    functionCall = this._internalFunctionCalls[i];
+                    break;
+                }
+            }
+        }
+        if(functionCall) {
+            this.servoyService.executeInlineScript(functionCall.f['formname'], functionCall.f['script'], [arg]);
+        } else {
+            this.log.warn('executeFunctionCall failed, cannot find functionCall: ' + alias);
+        }
+        
+    }
 }
 
 class State {
@@ -5698,4 +5718,9 @@ export class HashedFoundset extends BaseCustomObject {
     foundsetUUID: any;
     uuid: string;
     columns: GroupedColumn[];
+}
+
+export class FunctionCall extends BaseCustomObject {
+    alias: string;
+    f: () => void;
 }

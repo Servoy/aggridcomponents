@@ -59,7 +59,8 @@
 		"onDragOverFunc": {"type": "clientfunction", "tags": {"doc": "Callback when dragging over a row - returns true whenever a drop is allowed."}},
 		"_internalFilterModel": { "type": "object", "tags": {"scope" : "private", "allowaccess": "enabled"}, "pushToServer": "allow" },
 		"_internalGroupRowsSelection": { "type": "record[]", "tags": {"scope" : "private"}, "pushToServer": "allow"},
-		"_internalCheckboxGroupSelection": { "type": "object[]", "tags": {"scope" : "private"}, "pushToServer": "allow"}
+		"_internalCheckboxGroupSelection": { "type": "object[]", "tags": {"scope" : "private"}, "pushToServer": "allow"},
+		"_internalFunctionCalls": { "type": "functionCall[]", "tags": {"scope" : "private"}}
 	},
 	"handlers" : {
     	"onSelectedRowsChanged": {
@@ -405,6 +406,12 @@
 				{ "name": "id", "type": "string" },
 				{ "name": "index", "type": "int"}
 			]
+		},
+		"addFunctionCall" : {
+			"parameters": [
+				{ "name": "alias", "type": "string" },
+				{ "name": "f", "type": "function"}
+			]
 		}
     },
 	"internalApi" : {
@@ -598,6 +605,10 @@
 			"resetColumns": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},
 			"expandAll": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},
 			"contractAll": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}}
+		},
+		"functionCall" : {
+			"alias": "string",
+			"f": "function"
 		}
 	}
 }
