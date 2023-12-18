@@ -316,3 +316,30 @@ function setGroupedSelection(selectedRecords) {
  */
 function getGroupedSelection() {
 }
+
+/**
+ * Add a Servoy solution function to the grid, that can be called from AGGRID using params.context.componentParent.executeFunctionCall
+ * 
+ * @example <pre>
+ * function onLoad(event) {
+ *	var f = function(params) {		
+ *	     var generalMenuItems = ['pinSubMenu'];		
+ *	     var saveLayoutItem = {	          
+ *	          name: 'Save Layout',	
+ *	          action: function() {	        	 
+ *	               params.context.componentParent.executeFunctionCall('saveLayout', 'myLayout');
+ *	          }
+ *	     };		
+ *	     generalMenuItems.push(saveLayoutItem);		
+ *	     return generalMenuItems;	
+ *	}
+ *	elements.datagrid_2.addFunctionCall('saveLayout', saveLayout);
+ *	elements.datagrid_2.gridOptions = { "getMainMenuItems": application.generateBrowserFunction(String(f)) };
+ * }
+ * </pre>
+ * 
+ * @param {String} alias name used in params.context.componentParent.executeFunctionCall to call the function
+ * @param {Function} f the Servoy solution function
+ */
+ function addFunctionCall(alias, f) {
+ }
