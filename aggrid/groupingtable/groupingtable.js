@@ -86,7 +86,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					var GRID_EVENT_TYPES = {
 						GRID_READY: 'gridReady',
 						DISPLAYED_COLUMNS_CHANGED : 'displayedColumnsChanged',
-						GRID_COLUMNS_CHANGED: 'gridColumnsChanged'
+						GRID_COLUMNS_CHANGED: 'gridColumnsChanged',
+						GRID_ROW_POST_CREATE: 'gridRowPostCreate'
 					}
 					
 					/**
@@ -830,7 +831,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							if(columnsToFitAfterRowsRendered) {
 								columnsToFitAfterRowsRendered = false;
 								setTimeout(function() {
-									sizeHeaderAndColumnsToFit();
+									sizeHeaderAndColumnsToFit(GRID_EVENT_TYPES.GRID_ROW_POST_CREATE);
 								}, 0);
 							}
 						}
@@ -1938,12 +1939,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								case "NONE":
 									break;
 								case "AUTO_SIZE":
-									
-									// calling auto-size upon displayedColumnsChanged runs in an endless loop 
-									var skipEvents = [GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED];
-									
 									// call auto-size only upon certain events
-									var autoSizeOnEvents = [GRID_EVENT_TYPES.GRID_READY];
+									var autoSizeOnEvents = [GRID_EVENT_TYPES.GRID_READY, GRID_EVENT_TYPES.GRID_ROW_POST_CREATE];
 								
 									if (eventType && autoSizeOnEvents.indexOf(eventType) > -1) {
 										var skipHeader = gridOptions.skipHeaderOnAutoSize == true ? true : false;
@@ -1955,7 +1952,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 									//gridOptions.api.sizeColumnsToFit();
 									svySizeColumnsToFit();
 							}
-							if($scope.model.columnsAutoSizing !== 'NONE' && !continuousColumnsAutoSizing && eventType === GRID_EVENT_TYPES.GRID_READY) {
+							if($scope.model.columnsAutoSizing !== 'NONE' && !continuousColumnsAutoSizing &&
+								(eventType === GRID_EVENT_TYPES.GRID_READY || eventType === GRID_EVENT_TYPES.GRID_ROW_POST_CREATE) && gridOptions.api.getModel().getRow(0)) {
 								$scope.model.columnsAutoSizing = 'NONE';
 								$scope.svyServoyapi.apply('columnsAutoSizing');
 							}
@@ -3608,6 +3606,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						var datasource = new FoundsetDatasource(foundsetServer);
 						gridOptions.api.setServerSideDatasource(datasource);
 						isRenderedAndSelectionReady = false;
+						columnsToFitAfterRowsRendered = true;
 					}
 
 					function refreshDatasource() {

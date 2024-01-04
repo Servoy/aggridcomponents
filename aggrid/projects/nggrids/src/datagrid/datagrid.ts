@@ -81,7 +81,8 @@ const COLUMN_KEYS_TO_SKIP_IN_CHANGES = [
 const GRID_EVENT_TYPES = {
     GRID_READY: 'gridReady',
     DISPLAYED_COLUMNS_CHANGED : 'displayedColumnsChanged',
-    GRID_COLUMNS_CHANGED: 'gridColumnsChanged'
+    GRID_COLUMNS_CHANGED: 'gridColumnsChanged',
+    GRID_ROW_POST_CREATE: 'gridRowPostCreate'
 };
 @Component({
     selector: 'aggrid-groupingtable',
@@ -587,7 +588,7 @@ export class DataGrid extends NGGridDirective {
                 if(this.columnsToFitAfterRowsRendered) {
                     this.columnsToFitAfterRowsRendered = false;
                     this.setTimeout(()  =>{
-                        this.sizeHeaderAndColumnsToFit();
+                        this.sizeHeaderAndColumnsToFit(GRID_EVENT_TYPES.GRID_ROW_POST_CREATE);
                     }, 0);
                 }
             },
@@ -1114,10 +1115,8 @@ export class DataGrid extends NGGridDirective {
                 case 'NONE':
                     break;
                 case 'AUTO_SIZE':
-                    // calling auto-size upon displayedColumnsChanged runs in an endless loop
-                    const skipEvents = [GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED];
                     // call auto-size only upon certain events
-                    const autoSizeOnEvents = [GRID_EVENT_TYPES.GRID_READY];
+                    const autoSizeOnEvents = [GRID_EVENT_TYPES.GRID_READY, GRID_EVENT_TYPES.GRID_ROW_POST_CREATE];
                     if (eventType && autoSizeOnEvents.indexOf(eventType) > -1) {
                         const skipHeader = this.agGridOptions.skipHeaderOnAutoSize === true ? true : false;
                         this.autoSizeColumns(skipHeader);
@@ -1128,7 +1127,8 @@ export class DataGrid extends NGGridDirective {
                     this.agGrid.api.sizeColumnsToFit();
 
             }
-            if(this.columnsAutoSizing !== 'NONE' && !this.agContinuousColumnsAutoSizing && eventType === GRID_EVENT_TYPES.GRID_READY) {
+            if(this.columnsAutoSizing !== 'NONE' && !this.agContinuousColumnsAutoSizing &&
+                (eventType === GRID_EVENT_TYPES.GRID_READY || eventType === GRID_EVENT_TYPES.GRID_ROW_POST_CREATE) && this.agGrid.api.getModel().getRowCount() > 0) {
                 this.columnsAutoSizing = 'NONE';
                 this.columnsAutoSizingChange.emit('NONE');
             }
@@ -1188,6 +1188,7 @@ export class DataGrid extends NGGridDirective {
             this.agGrid.api.setServerSideDatasource(datasource);
         }
         this.isRenderedAndSelectionReady = false;
+        this.columnsToFitAfterRowsRendered = true;
     }
 
     refreshDatasource() {
