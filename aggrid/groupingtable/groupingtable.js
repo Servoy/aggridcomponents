@@ -367,6 +367,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					// foundset sort promise
 					var sortPromise;
 					var sortHandlerPromises = new Array();
+					var isSortModelApplied = false;
 					function onSortHandler() {
 						var sortModel = gridOptions.api.getSortModel();
 						if(sortModel) {
@@ -950,7 +951,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 					// default sort order
 					if(gridOptions.enableServerSideSorting) {
-						gridOptions.api.setSortModel(sortModelDefault);
+						applySortModel(sortModelDefault);
 					}
 
 					// register listener for selection changed
@@ -3501,17 +3502,25 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 									}
 		
 									if(isColumnSortable) {
-										foundsetSortModel = getFoundsetSortModel(sortModel)
-										sortPromise = foundsetRefManager.sort(foundsetSortModel.sortColumns);
-										sortPromise.then(function() {
-											getDataFromFoundset(foundsetRefManager);
-											// give time to the foundset change listener to know it was a client side requested sort
-											setTimeout(function() {
-												sortPromise = null;
-											}, 0);
-										}).catch(function(e) {
-											sortPromise = null
-										});
+										// send sort request if header is clicked; skip if is is not from UI (isRenderedAndSelectionReady == false) or if it from a sort handler or a group column sort
+										if(isSortModelApplied) {
+											foundsetSortModel = getFoundsetSortModel(sortModel)
+											sortPromise = foundsetRefManager.sort(foundsetSortModel.sortColumns);
+											sortPromise.then(function() {
+												getDataFromFoundset(foundsetRefManager);
+												// give time to the foundset change listener to know it was a client side requested sort
+												setTimeout(function() {
+													sortPromise = null;
+												}, 0);
+											}).catch(function(e) {
+												sortPromise = null
+											});
+										}
+										// set the grid sorting if foundset sort changed from the grid initialization (like doing foundset sort on form's onShow)
+										else {
+											applySortModel(getSortModel());
+											gridOptions.api.purgeServerSideCache();
+										}
 									}
 									else {
 										getDataFromFoundset(foundsetRefManager);
@@ -5105,7 +5114,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							/** TODO check with R&D, sortColumns is updated only after the viewPort is update or there could be a concurrency race. When i would know when sort is completed ? */
 							if (change[$foundsetTypeConstants.NOTIFY_FOUNDSET_DEFINITION_CHANGE] && newSort != oldSort) {
 								$log.debug('myFoundset sort changed ' + newSort);
-								gridOptions.api.setSortModel(getSortModel());
+								applySortModel(getSortModel());
 								isRenderedAndSelectionReady = false;
 								scrollToSelectionWhenSelectionReady = true;
 
@@ -6443,7 +6452,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								}
 
 								if(restoreSort && Array.isArray(columnStateJSON.sortModel)) {
-									gridOptions.api.setSortModel(columnStateJSON.sortModel);
+									applySortModel(columnStateJSON.sortModel);
 								}
 							}
 						}
@@ -6472,6 +6481,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 						}
 						return true;
+					}
+
+					function applySortModel(sortModel) {
+						isSortModelApplied = true;				
+						gridOptions.api.setSortModel(sortModel);
 					}
 
 					/***********************************************************************************************************************************

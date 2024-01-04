@@ -189,6 +189,7 @@ export class DataGrid extends NGGridDirective {
     // foundset sort promise
     sortPromise: any;
     sortHandlerPromises = new Array();
+    isSortModelApplied = false;
 
     // if row autoHeight, we need to do a refresh after first time data are displayed, to allow ag grid to re-calculate the heights
     isRefreshNeededForAutoHeight = false;
@@ -2396,6 +2397,7 @@ export class DataGrid extends NGGridDirective {
     }
 
     applySortModel(sortModel) {
+        this.isSortModelApplied = true;
         const columnState = [];
         if (sortModel) {
             sortModel.forEach((item, index) => {
@@ -4597,17 +4599,26 @@ class FoundsetServer {
                 }
 
                 if(isColumnSortable) {
-                    foundsetSortModel = this.dataGrid.getFoundsetSortModel(sortModel);
-                    this.dataGrid.sortPromise = foundsetRefManager.sort(foundsetSortModel.sortColumns);
-                    this.dataGrid.sortPromise.then(() => {
-                        this.getDataFromFoundset(foundsetRefManager, request, callback);
-                        // give time to the foundset change listener to know it was a client side requested sort
-                        setTimeout(() => {
+                    // send sort request if header is clicked; skip if is is not from UI (isRenderedAndSelectionReady == false) or if it from a sort handler or a group column sort
+                    if(this.dataGrid.isSortModelApplied) {
+                        foundsetSortModel = this.dataGrid.getFoundsetSortModel(sortModel);
+                        this.dataGrid.sortPromise = foundsetRefManager.sort(foundsetSortModel.sortColumns);
+                        this.dataGrid.sortPromise.then(() => {
+                            this.getDataFromFoundset(foundsetRefManager, request, callback);
+                            // give time to the foundset change listener to know it was a client side requested sort
+                            setTimeout(() => {
+                                this.dataGrid.sortPromise = null;
+                            }, 0);
+                        }).catch(() => {
                             this.dataGrid.sortPromise = null;
-                        }, 0);
-                    }).catch(() => {
-                        this.dataGrid.sortPromise = null;
-                    });
+                        });
+                    } else { // set the grid sorting if foundset sort changed from the grid initialization (like doing foundset sort on form's onShow)
+                        this.dataGrid.applySortModel(this.dataGrid.getSortModel());
+                        // aggrid's callback must be called else the current request will be counting as 'pending' and
+                        // adding up for max concurrent requests, blocking any succesive requests
+                        callback([]);
+                        this.dataGrid.refreshAgGridServerSide();
+                    }
                 } else {
                     this.getDataFromFoundset(foundsetRefManager, request, callback);
                 }
