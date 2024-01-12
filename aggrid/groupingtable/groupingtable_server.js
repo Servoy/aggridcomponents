@@ -95,7 +95,7 @@ $scope.getGroupedFoundsetUUID = function(
 				query.sort.add(groupColumn.asc);
 			}
 		}
-		query.result.add(query.functions.coalesce(query.columns.groupColumn, 1).count, "svycount");
+		query.result.add(query.functions.coalesce(query.inline(1), query.inline(1)).count, "svycount");
 
 		childFoundset = servoyApi.getViewFoundSet("", query);
 	} else { // is not a new group, will be a leaf !
