@@ -1,8 +1,8 @@
-import { Component, ElementRef, Inject, Input, ViewChild } from '@angular/core';
+import { Component, Inject, Input, Renderer2 } from '@angular/core';
 import { EditorDirective } from './editor';
 import { ICellEditorParams } from '@ag-grid-community/core';
 import { DOCUMENT } from '@angular/common';
-import { Deferred, Format, FormattingService, getFirstDayOfWeek, ServoyPublicService } from '@servoy/public';
+import { Deferred, Format, FormattingService, getFirstDayOfWeek, MaskFormat, ServoyPublicService } from '@servoy/public';
 import { DateTime as DateTimeLuxon} from 'luxon';
 import { DateTime, Namespace, Options, TempusDominus } from '@eonasdan/tempus-dominus';
 import { NULL_VALUE } from '../datagrid/datagrid';
@@ -55,8 +55,9 @@ export class DatePicker extends EditorDirective {
     };
 
     format: Format;
+    maskFormat : MaskFormat;
 
-    constructor(servoyService: ServoyPublicService,  @Inject(DOCUMENT) private doc: Document, private formattingService: FormattingService) {
+    constructor(private _renderer: Renderer2, servoyService: ServoyPublicService,  @Inject(DOCUMENT) private doc: Document, private formattingService: FormattingService) {
         super();
         this.config.localization.startOfTheWeek = getFirstDayOfWeek(servoyService.getLocaleObject() ? servoyService.getLocaleObject().full : servoyService.getLocale());
         const lts = DateTimeLuxon.now().setLocale(servoyService.getLocale()).toLocaleString(DateTimeLuxon.DATETIME_FULL).toUpperCase();
@@ -125,16 +126,22 @@ export class DatePicker extends EditorDirective {
             this.loadCalendarLocale(this.config.localization.locale).promise.then(() => {
                 (this.elementRef.nativeElement as HTMLInputElement).value = '';
                 this.picker = new TempusDominus(this.elementRef.nativeElement, this.config);
-                (this.elementRef.nativeElement as HTMLInputElement).value = this.ngGrid.format(this.selectedValue, this.format, this.format.edit != undefined)
-                this.picker.dates.formatInput =  (date: DateTime) => this.ngGrid.format(date, this.format, this.format.edit != undefined);
+                (this.elementRef.nativeElement as HTMLInputElement).value = this.ngGrid.format(this.selectedValue, this.format, this.format.edit && !this.format.isMask)
+                this.picker.dates.formatInput =  (date: DateTime) => this.ngGrid.format(date, this.format, this.format.edit && !this.format.isMask);
                 this.picker.dates.parseInput =  (value: string) => {
-                    const parsed = this.formattingService.parse(value?value.trim():null, this.format, this.format.edit != undefined, this.selectedValue);
+                    const parsed = this.formattingService.parse(value?value.trim():null, this.format, this.format.edit && !this.format.isMask, this.selectedValue);
                     if (parsed instanceof Date && !isNaN(parsed.getTime())) return  DateTime.convert(parsed, null, this.config.localization);
                     return null;
                 };
                 this.picker.subscribe(Namespace.events.change, (event) => this.dateChanged(event));
                 setTimeout(() => {
-                    this.elementRef.nativeElement.select();
+                    if (this.format.isMask) {
+                        this.maskFormat = new MaskFormat(this.format, this._renderer, this.elementRef.nativeElement, this.formattingService, this.doc);
+                        this.elementRef.nativeElement.focus();
+                        this.elementRef.nativeElement.setSelectionRange(0, 0);
+                    } else {
+                        this.elementRef.nativeElement.select();
+                    }
                     this.picker.show();
                     const dateContainer = this.doc.getElementsByClassName('tempus-dominus-widget calendarWeeks show');
                     if (dateContainer && dateContainer.length) {
@@ -151,6 +158,7 @@ export class DatePicker extends EditorDirective {
     }
 
     ngOnDestroy() {
+        if(this.maskFormat) this.maskFormat.destroy();
         if (this.picker) this.picker.dispose();
     }
 
@@ -163,7 +171,7 @@ export class DatePicker extends EditorDirective {
         if(this.ngGrid.isInFindMode()) {
             return this.elementRef.nativeElement.value;
         } else {
-            const parsed = this.formattingService.parse(this.elementRef.nativeElement.value, this.format, this.format.edit != undefined, this.selectedValue);
+            const parsed = this.formattingService.parse(this.elementRef.nativeElement.value, this.format, this.format.edit && !this.format.isMask, this.selectedValue);
             if (parsed instanceof Date && !isNaN(parsed.getTime())) return parsed;
             return null;
         }
