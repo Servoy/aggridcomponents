@@ -713,31 +713,33 @@ export class DataGrid extends NGGridDirective {
     }
 
     private setupHeaderCheckbox(addClickListener?: boolean): void {
-        for(let i = 0; i < this.columns.length; i++) {
-            if(this.columns[i].headerCheckbox) {
-                let ch = this.doc.getElementById(this.servoyApi.getMarkupId() + '-headerCheck-' + i);
-                if(ch) {
-                    let colId = this.columns[i].id;
-                    if (!colId) {
-                        colId = this.getColumnID(this.columns[i], i);
-                    }
-                    let isChecked = false;
-                    if(this._internalCheckboxGroupSelection) {
-                        for(let i = 0; i < this._internalCheckboxGroupSelection.length; i++) {
-                            if(this._internalCheckboxGroupSelection[i].colId === colId && this._internalCheckboxGroupSelection[i].groupkey === undefined) {
-                                isChecked = true;
-                                break;
+        if(this.columns) {
+            for(let i = 0; i < this.columns.length; i++) {
+                if(this.columns[i].headerCheckbox) {
+                    let ch = this.doc.getElementById(this.servoyApi.getMarkupId() + '-headerCheck-' + i);
+                    if(ch) {
+                        let colId = this.columns[i].id;
+                        if (!colId) {
+                            colId = this.getColumnID(this.columns[i], i);
+                        }
+                        let isChecked = false;
+                        if(this._internalCheckboxGroupSelection) {
+                            for(let i = 0; i < this._internalCheckboxGroupSelection.length; i++) {
+                                if(this._internalCheckboxGroupSelection[i].colId === colId && this._internalCheckboxGroupSelection[i].groupkey === undefined) {
+                                    isChecked = true;
+                                    break;
+                                }
                             }
                         }
-                    }
-                    ch['checked'] = isChecked;
-                    if(addClickListener) {
-                        ch.addEventListener('click', (event: Event) => {
-                            this.onHeaderCheckClick(colId, event);
-                            event.stopPropagation();
-                        });
-                    }
-                };
+                        ch['checked'] = isChecked;
+                        if(addClickListener) {
+                            ch.addEventListener('click', (event: Event) => {
+                                this.onHeaderCheckClick(colId, event);
+                                event.stopPropagation();
+                            });
+                        }
+                    };
+                }
             }
         }
     }
