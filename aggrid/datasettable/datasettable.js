@@ -2400,7 +2400,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                                 var row = [];
                                 header.forEach(colId => {
                                     var colInfo = colInfoCache[colId];
-                                    var value = rowNode.group ? rowNode.groupData[colId] : rowNode.data[colId];
+                                    var value = rowNode.group ? rowNode.groupData[colInfo['colDef'].field] : rowNode.data[colInfo['colDef'].field];
                                     if (colInfo['columnModel'] && colInfo['columnModel'].exportDisplayValue && colInfo['colDef'].valueFormatter) {
                                         value = colInfo['colDef'].valueFormatter({ value });
                                     }                 

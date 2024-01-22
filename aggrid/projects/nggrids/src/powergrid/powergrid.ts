@@ -1928,7 +1928,7 @@ export class PowerGrid extends NGGridDirective {
                     const row = [];
                     header.forEach(colId => {
                         const colInfo = colInfoCache[colId];
-                        let value = rowNode.group ? rowNode.groupData[colId] : rowNode.data[colId];
+                        let value = rowNode.group ? rowNode.groupData[colInfo['colDef'].field] : rowNode.data[colInfo['colDef'].field];
                         if (colInfo['columnModel'] && colInfo['columnModel'].exportDisplayValue && colInfo['colDef'].valueFormatter) {
                             value = colInfo['colDef'].valueFormatter({ value });
                         }                 
