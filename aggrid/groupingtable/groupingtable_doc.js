@@ -1,3 +1,5 @@
+/* Data Grid is a table with advanced functionality that operates on JSFoundset data (so can work directly with the database). It is designed to work with large number of rows, potentially infinite, since data is loaded lazily into the table, even when grouped. */
+
 /**
  * Notify the component about a data change. Makes the component aware of a data change that requires a refresh data.
  * Call this method when you are aware of a relevant data change in the foundset which may affect data grouping (e.g. group node created or removed).

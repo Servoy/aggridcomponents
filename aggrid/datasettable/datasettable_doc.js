@@ -1,3 +1,5 @@
+/* Power Grid is an editable table component providing advanced functionality such as row grouping, pivoting, summaries and powerful analytics. It's data is loaded from an JSDataSet and the changed data (if it is edited) can be exported as a dataset as well. */
+
 /**
  * Export data to excel format (xlsx)
  * 
