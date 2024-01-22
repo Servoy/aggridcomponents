@@ -4,7 +4,7 @@
     "packageType": "Web-Component",
     "icon": "https://raw.githubusercontent.com/Servoy/aggridcomponents/master/aggrid/aggrid.png",
     "invertIcon": true,
-    "description": "Data Grid: Editing, group, sort, filter. Power Grid: Summaries. Pivot. Powerful analytics",
+    "description": "Data Grid (foundset based, linked to data): edit, group, sort, filter.\nPower Grid (dataset based): summaries, pivot, powerful analytics.\n\nFeature packed table components.",
     "wikiUrl": "https://github.com/Servoy/aggridcomponents/wiki",
     "sourceUrl" : "https://github.com/Servoy/aggridcomponents",
     "releases" : [{"version":"1.0.0rc1","url":"https://github.com/Servoy/aggridcomponents/releases/download/v1.0.0rc1/aggrid.zip", "servoy-version":"8.2.1"},
