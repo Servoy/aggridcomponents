@@ -1579,7 +1579,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                             $scope.model.columnState = newColumnState;
                             $scope.svyServoyapi.apply('columnState');
                             if (skipFireColumnStateChanged !== true && $scope.handlers.onColumnStateChanged) {
-                                $scope.handlers.onColumnStateChanged($scope.model.columnState);
+                                $scope.handlers.onColumnStateChanged($scope.model.columnState, createJSEvent());
                             }
                         }
                     }

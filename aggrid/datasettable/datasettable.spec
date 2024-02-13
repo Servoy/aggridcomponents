@@ -139,7 +139,11 @@
 				{
 					"name": "columnState",
 					"type": "string"
-				}	
+				}, {
+					"name": "event",
+					"type": "JSEvent",
+					"optional": true
+				}
 			],
 			"allowaccess": "enabled"
 		},

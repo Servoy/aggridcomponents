@@ -1245,7 +1245,7 @@ export class PowerGrid extends NGGridDirective {
             this.columnState = newColumnState;
             this.columnStateChange.emit(newColumnState);
             if (skipFireColumnStateChanged !== true && this.onColumnStateChanged) {
-                this.onColumnStateChanged(this.columnState);
+                this.onColumnStateChanged(this.columnState, this.createJSEvent());
             }
         }
     }
