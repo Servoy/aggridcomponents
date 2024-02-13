@@ -1883,6 +1883,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 					
 					var NULL_VALUE = {displayValue: '', realValue: null};
+					NULL_VALUE.toString = function() {
+						return ''
+					};
 
 					/**
 					 * Returns the formatted value
