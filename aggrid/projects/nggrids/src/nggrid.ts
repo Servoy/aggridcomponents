@@ -1,5 +1,5 @@
 import { AgGridAngular } from '@ag-grid-community/angular';
-import { GridOptions } from '@ag-grid-community/core';
+import { GridApi, GridOptions } from '@ag-grid-community/core';
 import { ChangeDetectorRef, ContentChild, Directive, Input, TemplateRef, ViewChild } from '@angular/core';
 import { BaseCustomObject, Format, FormattingService, LoggerService, ServoyBaseComponent } from '@servoy/public';
 
@@ -21,6 +21,7 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
     @Input() onColumnFormEditStarted: any;
 
     agGridOptions: GridOptions;
+    gridApi: GridApi;
     cdRef: ChangeDetectorRef;
     formattingService: FormattingService;
     selectionEvent: any;

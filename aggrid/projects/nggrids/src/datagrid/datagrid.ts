@@ -1,4 +1,4 @@
-import { GridOptions, GetRowIdParams, IRowDragItem, DndSourceCallbackParams, ColumnResizedEvent, RowSelectedEvent, SelectionChangedEvent, ColDef, Column } from '@ag-grid-community/core';
+import { GridOptions, GetRowIdParams, IRowDragItem, DndSourceCallbackParams, ColumnResizedEvent, RowSelectedEvent, SelectionChangedEvent, ColDef, Column, IRowNode, IServerSideDatasource, IServerSideGetRowsParams } from '@ag-grid-community/core';
 import { ChangeDetectionStrategy, ChangeDetectorRef, ElementRef, EventEmitter, Inject, Input, Output, Renderer2, SecurityContext, SimpleChanges } from '@angular/core';
 import { Component, ViewChild } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
@@ -340,7 +340,8 @@ export class DataGrid extends NGGridDirective {
             debug: false,
             rowModelType: 'serverSide',
             rowGroupPanelShow: 'onlyWhenGrouping', // TODO expose property,
-            onGridReady: () => {
+            onGridReady: (event) => {
+                this.gridApi = event.api;
                 this.log.debug('gridReady');
                 this.isGridReady = true;
                 if(this.isRendered) {
@@ -543,7 +544,7 @@ export class DataGrid extends NGGridDirective {
                             hiddenColumns.push(column);
                         }
                     }
-                    this.agGridOptions.columnApi.setColumnsVisible(hiddenColumns, false);
+                    event.api.setColumnsVisible(hiddenColumns, false);
                 }
             },
             getContextMenuItems: () => this.contextMenuItems,
@@ -965,9 +966,9 @@ export class DataGrid extends NGGridDirective {
                                                     return;
                                                 }
                                                 if(prop === 'visible') {
-                                                    this.agGridOptions.columnApi.setColumnVisible(colId, newPropertyValue);
+                                                    this.gridApi.setColumnVisible(colId, newPropertyValue as boolean);
                                                 } else {
-                                                    this.agGridOptions.columnApi.setColumnWidth(colId, newPropertyValue);
+                                                    this.gridApi.setColumnWidth(colId, newPropertyValue as number);
                                                     this.sizeHeaderAndColumnsToFit();
                                                 }
                                             }
@@ -1632,7 +1633,7 @@ export class DataGrid extends NGGridDirective {
         return null;
     }
 
-    stripUnsortableColumns(sortString: any) {
+    stripUnsortableColumns(sortString: string): string {
         if (sortString) {
             let newSortString = '';
             const sortColumns = sortString.split(',');
@@ -1681,7 +1682,7 @@ export class DataGrid extends NGGridDirective {
      * Returns table's rowGroupColumns
      * */
     getRowGroupColumns(): any {
-        const rowGroupCols = this.agGridOptions.columnApi ? this.agGridOptions.columnApi.getRowGroupColumns() : null;
+        const rowGroupCols = this.gridApi ? this.gridApi.getRowGroupColumns() : null;
         return rowGroupCols ? rowGroupCols : [];
     }
 
@@ -1694,7 +1695,7 @@ export class DataGrid extends NGGridDirective {
      *
      *
      */
-    getNodeGroupInfo(node: any) {
+    getNodeGroupInfo(node: IRowNode) {
         const rowGroupCols = [];
         //var rowGroupColIdxs = [];
         const groupKeys = [];
@@ -4594,7 +4595,7 @@ class FoundsetServer {
                 // check sort columns in both the reques and model, because it is disable in the grid, it will be only in the model
                 const sortColumns = sortModel.concat(this.dataGrid.getSortModel());
                 for(const sortCol of sortColumns) {
-                    const col = this.dataGrid.agGridOptions.columnApi.getColumn(sortCol.colId);
+                    const col = this.dataGrid.gridApi.getColumn(sortCol.colId);
                     if(col && col.getColDef().sortable) {
                         isColumnSortable = true;
                         break;
@@ -4703,16 +4704,16 @@ class FoundsetServer {
     getFoundsetRefError(e: any) {
         this.dataGrid.log.error(e);
         this.dataGrid.isDataLoading = false;
-        this.dataGrid.agGridOptions.columnApi.setRowGroupColumns([]);
+        this.dataGrid.gridApi.setRowGroupColumns([]);
     }
 }
 
-class FoundsetDatasource {
+class FoundsetDatasource implements IServerSideDatasource {
 
     constructor(public dataGrid: DataGrid, public foundsetServer: any) {
     }
 
-    getRows(params: any) {
+    getRows(params: IServerSideGetRowsParams) {
         this.dataGrid.log.debug('FoundsetDatasource.getRows: params = ', params);
 
         this.dataGrid.isDataLoading = true;

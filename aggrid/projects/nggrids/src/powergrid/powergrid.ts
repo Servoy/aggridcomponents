@@ -1,4 +1,4 @@
-import { GetRowIdParams, ColumnMenuTab, ColumnResizedEvent, ColDef, Column, IRowNode } from '@ag-grid-community/core';
+import { GetRowIdParams, ColumnMenuTab, ColumnResizedEvent, ColDef, Column, IRowNode, IAggFunc } from '@ag-grid-community/core';
 import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Inject, Input, Output, Renderer2, SecurityContext, SimpleChanges, ViewChild } from '@angular/core';
 import { BaseCustomObject, Format, FormattingService, ICustomArray } from '@servoy/public';
 import { LoggerFactory } from '@servoy/public';
@@ -617,7 +617,7 @@ export class PowerGrid extends NGGridDirective {
 
         if (!this.servoyApi.isInDesigner() && this.useLazyLoading) {
             this.lazyLoadingRemoteDatasource = new RemoteDatasource(this);
-            this.agGridOptions.api.setServerSideDatasource(this.lazyLoadingRemoteDatasource);
+            this.gridApi.setServerSideDatasource(this.lazyLoadingRemoteDatasource);
         }
     }
 
@@ -695,9 +695,9 @@ export class PowerGrid extends NGGridDirective {
                                                 }
 
                                                 if(prop === 'visible') {
-                                                    this.agGridOptions.columnApi.setColumnVisible(colId, newPropertyValue);
+                                                    this.gridApi.setColumnVisible(colId, newPropertyValue as boolean);
                                                 } else {
-                                                    this.agGridOptions.columnApi.setColumnWidth(colId, newPropertyValue);
+                                                    this.gridApi.setColumnWidth(colId, newPropertyValue as number);
                                                     this.svySizeColumnsToFit();
                                                 }
                                             }
@@ -745,7 +745,7 @@ export class PowerGrid extends NGGridDirective {
                         if(this.isGridReady && change.currentValue) {
                             this._internalResetLazyLoading = false;
                             this._internalResetLazyLoadingChange.emit(this._internalResetLazyLoading);
-                                this.agGridOptions.api.setServerSideDatasource(this.lazyLoadingRemoteDatasource);
+                                this.gridApi.setServerSideDatasource(this.lazyLoadingRemoteDatasource);
                         }
                         break;
                 }
@@ -1029,7 +1029,7 @@ export class PowerGrid extends NGGridDirective {
         return mergeConfig;
     }
 
-    getAggCustomFuncs(): any {
+    getAggCustomFuncs(): {[key: string]: IAggFunc} {
         const aggFuncs = {};
         for(const aggFuncInfo of this._internalAggCustomFuncs) {
             aggFuncs[aggFuncInfo.name] = this.createAggCustomFunctionFromString(aggFuncInfo.aggFunc);
@@ -1785,7 +1785,7 @@ export class PowerGrid extends NGGridDirective {
         return (params: any) => func(params.node.rowIndex, params.data, params.colDef.colId !== undefined ? params.colDef.colId : params.colDef.field, params);
     }
 
-    createAggCustomFunctionFromString(func: (values: any[]) => number) {
+    createAggCustomFunctionFromString(func: (values: unknown[]) => number) {
         return (values: any[]) => func(values);
     }
 
@@ -2341,5 +2341,5 @@ export class PowerGridColumn extends BaseCustomObject {
 
 export class AggFuncInfo extends BaseCustomObject {
     name: string;
-    aggFunc: any;
+    aggFunc: (values: unknown[]) => number;
 }
