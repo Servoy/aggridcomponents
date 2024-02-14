@@ -1,5 +1,5 @@
 import { GridOptions, GetRowIdParams, IRowDragItem, DndSourceCallbackParams, ColumnResizedEvent, RowSelectedEvent, SelectionChangedEvent, 
-        ColDef, Column, IRowNode, IServerSideDatasource, IServerSideGetRowsParams } from '@ag-grid-community/core';
+        ColDef, Column, IRowNode, IServerSideDatasource, IServerSideGetRowsParams, LoadSuccessParams } from '@ag-grid-community/core';
 import { ChangeDetectionStrategy, ChangeDetectorRef, ElementRef, EventEmitter, Inject, Input, Output, Renderer2, SecurityContext, SimpleChanges } from '@angular/core';
 import { Component, ViewChild } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
@@ -47,7 +47,6 @@ const CHUNK_SIZE = 50;
 const CACHED_CHUNK_BLOCKS = 2;
 
 export const NULL_VALUE = {displayValue: '', realValue: null};
-NULL_VALUE.toString = () => '';
 
 const COLUMN_KEYS_TO_CHECK_FOR_CHANGES = [
     'headerTitle',
@@ -1067,14 +1066,7 @@ export class DataGrid extends NGGridDirective {
     displayValueGetter(params: any) {
         const field = params.colDef.field;
         if (field && params.data) {
-            let value = params.data[field];
-
-            const dataGrid = params.context.componentParent;
-            const col = dataGrid.getColumn(params.column.colId);
-            if (value == null) {
-                value = NULL_VALUE; // need to use an object for null, else grouping won't work in ag grid
-            }
-            return value;
+            return params.data[field];
         }
 
         return undefined;
@@ -1099,7 +1091,7 @@ export class DataGrid extends NGGridDirective {
             }
         }
 
-        if (value == null && params.value === NULL_VALUE) {
+        if (value == null && params.value === null) {
             value = '';
         }
 
@@ -1609,7 +1601,7 @@ export class DataGrid extends NGGridDirective {
             case 'f':
                 return 't';
         }
-        if(value === NULL_VALUE) return 1;
+        if(value === null) return 1;
 
         if(!Number.isNaN(value)) {
             return parseInt(value, 10) > 0 ? 0 : 1;
@@ -1632,7 +1624,7 @@ export class DataGrid extends NGGridDirective {
             case 'f':
                 return false;
         }
-        if(value === NULL_VALUE) return false;
+        if(value === null) return false;
 
         if(!Number.isNaN(value)) {
             return parseInt(value, 10) > 0;
@@ -4737,9 +4729,7 @@ class FoundsetDatasource implements IServerSideDatasource {
         let removeAllFoundsetRefPostponed = false;
         const _this = this;
         for (let i = 0; i < groupKeys.length; i++) {
-            if (groupKeys[i] === NULL_VALUE) {
-                groupKeys[i] = null;	// reset to real null, so we use the right value for grouping
-            } else {
+            if (groupKeys[i] !== null) {
                 const vl = this.dataGrid.getValuelistEx(params.parentNode.data, rowGroupCols[i]['id']);
                 if(vl) {
                     const filterDeferred = new Deferred();
@@ -4766,7 +4756,12 @@ class FoundsetDatasource implements IServerSideDatasource {
             _this.dataGrid.removeAllFoundsetRef = false;
             _this.foundsetServer.getData(params.request, groupKeys,
                 function successCallback(resultForGrid: any, lastRow: any) {
-                    params.successCallback(resultForGrid, lastRow);
+                    let successResponse: LoadSuccessParams = {
+                        rowData: resultForGrid,
+                        rowCount: lastRow
+                    };
+                    params.success(successResponse);
+                    
 
                     // if row autoHeight is on, we need to refresh first time the data are loaded, that means,
                     // the first block has the state == "loaded"
