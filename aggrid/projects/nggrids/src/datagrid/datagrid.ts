@@ -1156,7 +1156,7 @@ export class DataGrid extends NGGridDirective {
                 minHeight = Math.max(minHeight, label.scrollHeight + paddingTop + paddinBottom);
             }
         }
-        this.agGrid.api.setHeaderHeight(minHeight);
+        this.agGrid.api.setGridOption('headerHeight', minHeight)
     }
 
     findChildrenNativeElements(el: any, className: any) {
@@ -1190,7 +1190,7 @@ export class DataGrid extends NGGridDirective {
         const datasource = new FoundsetDatasource(this, foundsetServer);
         if(this.myFoundset) {
             this.agGridOptions.serverSideInitialRowCount = this.myFoundset.serverSize;
-            this.agGrid.api.setServerSideDatasource(datasource);
+            this.agGrid.api.setGridOption('serverSideDatasource', datasource);
         }
         this.isRenderedAndSelectionReady = false;
         this.columnsToFitAfterRowsRendered = true;
@@ -1205,7 +1205,7 @@ export class DataGrid extends NGGridDirective {
         this.filterModel = null; // force re-applying the filter
         const foundsetServer = new FoundsetServer(this, []);
         const datasource = new FoundsetDatasource(this, foundsetServer);
-        this.agGrid.api.setServerSideDatasource(datasource);
+        this.agGrid.api.setGridOption('serverSideDatasource', datasource);
         this.refreshAgGridServerSide();
         this.isRenderedAndSelectionReady = false;
         this.scrollToSelectionWhenSelectionReady = true;
@@ -2412,7 +2412,7 @@ export class DataGrid extends NGGridDirective {
                 });
             });
         }
-        this.agGrid.columnApi.applyColumnState({ state: columnState, defaultState: { sort: null } });
+        this.agGrid.api.applyColumnState({ state: columnState, defaultState: { sort: null } });
     }
 
     purge() {
@@ -2595,7 +2595,7 @@ export class DataGrid extends NGGridDirective {
     storeColumnsState(skipFireColumnStateChanged?: boolean) {
         if(!this.columns) return;
 
-        const agColumnState = this.agGrid.columnApi.getColumnState();
+        const agColumnState = this.agGrid.api.getColumnState();
 
         const rowGroupColumns = this.getRowGroupColumns();
         const svyRowGroupColumnIds = [];
@@ -2695,11 +2695,11 @@ export class DataGrid extends NGGridDirective {
 
             if(columnStateJSON != null) {
                 if(restoreColumns && Array.isArray(columnStateJSON.columnState) && columnStateJSON.columnState.length > 0) {
-                    this.agGrid.columnApi.applyColumnState({state: columnStateJSON.columnState, applyOrder: true});
+                    this.agGrid.api.applyColumnState({state: columnStateJSON.columnState, applyOrder: true});
                 }
 
                 if(restoreColumns && Array.isArray(columnStateJSON.rowGroupColumnsState) && columnStateJSON.rowGroupColumnsState.length > 0) {
-                    this.agGrid.columnApi.setRowGroupColumns(columnStateJSON.rowGroupColumnsState);
+                    this.agGrid.api.setRowGroupColumns(columnStateJSON.rowGroupColumnsState);
                 }
 
                 if(restoreFilter && this.isPlainObject(columnStateJSON.filterModel)) {
@@ -2885,9 +2885,9 @@ export class DataGrid extends NGGridDirective {
         // need to clear/remove old columns first, else the id for
         // the new columns will have the counter at the end (ex. "myid_1")
         // and that will broke our getColumn()
-        this.agGrid.api.setColumnDefs([]);
+        this.agGrid.api.setGridOption('columnDefs', [])
 
-        this.agGrid.api.setColumnDefs(this.getColumnDefs());
+        this.agGrid.api.setGridOption('columnDefs', this.getColumnDefs())
         // selColumnDefs should redraw the grid, but it stopped doing so from v19.1.2
         this.purge();
     }
@@ -3091,7 +3091,7 @@ export class DataGrid extends NGGridDirective {
 
     handleColumnFooterText() {
         this.log.debug('footer text column property changed');
-        this.agGrid.api.setPinnedBottomRowData(this.getFooterData());
+        this.agGrid.api.setGridOption('pinnedBottomRowData', this.getFooterData())
     }
 
     updateColumnHeader(id: any, property:any, text: any) {
@@ -3742,8 +3742,7 @@ export class DataGrid extends NGGridDirective {
 
         if(changeEvent.multiSelectChanged) {
             this.agGridOptions.rowSelection =  changeEvent.multiSelectChanged.newValue ? 'multiple' : 'single';
-            // ag-grid does not update the rowSelection, force it via its internal api
-            this.agGrid.api['ctrlsService']['gridOptionsService'].set('rowSelection', this.agGridOptions.rowSelection, true);
+            this.agGrid.api.setGridOption('rowSelection', this.agGridOptions.rowSelection);
         }
 
         if(!this.isRootFoundsetLoaded) {
@@ -4120,7 +4119,7 @@ export class DataGrid extends NGGridDirective {
 
     getAgGridSortModel() {
         const agGridSortModel = [];
-        const columnsState = this.agGrid.columnApi.getColumnState();
+        const columnsState = this.agGrid.api.getColumnState();
         for(const columnState of columnsState) {
             if(columnState['sort'] != null) {
                 agGridSortModel.push({colId: columnState['colId'], sort: columnState['sort'], sortIndex: columnState['sortIndex']});

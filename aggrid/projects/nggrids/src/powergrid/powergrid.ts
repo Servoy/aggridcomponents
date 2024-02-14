@@ -644,7 +644,7 @@ export class PowerGrid extends NGGridDirective {
                                 };
                                 this.agGridOptions.resetRowDataOnUpdate = true;
                             }
-                            this.agGrid.api.setRowData(this.data);
+                            this.agGrid.api.setGridOption('rowData', this.data)
                             this.applyExpandedState();
                         }
                         break;
@@ -1160,7 +1160,7 @@ export class PowerGrid extends NGGridDirective {
     }
 
     isTableGrouped() {
-        const rowGroupCols = this.agGrid.columnApi.getRowGroupColumns();
+        const rowGroupCols = this.agGrid.api.getRowGroupColumns();
         return rowGroupCols && rowGroupCols.length > 0;
     }
 
@@ -1225,14 +1225,14 @@ export class PowerGrid extends NGGridDirective {
     }
 
     storeColumnsState(skipFireColumnStateChanged?: boolean) {
-        const rowGroupColumns = this.agGrid.columnApi.getRowGroupColumns();
+        const rowGroupColumns = this.agGrid.api.getRowGroupColumns();
         const svyRowGroupColumnIds = [];
         for (const rowGroupColumn of rowGroupColumns) {
             svyRowGroupColumnIds.push(rowGroupColumn.getColId());
         }
 
         const columnState = {
-            columnState: this.agGrid.columnApi.getColumnState(),
+            columnState: this.agGrid.api.getColumnState(),
             rowGroupColumnsState: svyRowGroupColumnIds,
             isToolPanelShowing: this.agGrid.api.isToolPanelShowing(),
             isSideBarVisible: this.agGrid.api.isSideBarVisible()
@@ -1724,7 +1724,7 @@ export class PowerGrid extends NGGridDirective {
                 minHeight = Math.max(minHeight, label.scrollHeight + paddingTop + paddinBottom);
             }
         }
-        this.agGrid.api.setHeaderHeight(minHeight);
+        this.agGrid.api.setGridOption('headerHeight', minHeight);
     }
 
     findChildrenNativeElements(el: any, className: any) {
@@ -1908,7 +1908,7 @@ export class PowerGrid extends NGGridDirective {
 
     internalExportToDataset(): any {
         const exportData = [];
-        const columnStates = this.agGrid.columnApi.getColumnState();
+        const columnStates = this.agGrid.api.getColumnState();
         if(columnStates && columnStates.length) {
             const header = [];
             columnStates.forEach(columnState => {
