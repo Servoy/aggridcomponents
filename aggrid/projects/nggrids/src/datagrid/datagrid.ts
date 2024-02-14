@@ -1,4 +1,5 @@
-import { GridOptions, GetRowIdParams, IRowDragItem, DndSourceCallbackParams, ColumnResizedEvent, RowSelectedEvent, SelectionChangedEvent, ColDef, Column, IRowNode, IServerSideDatasource, IServerSideGetRowsParams } from '@ag-grid-community/core';
+import { GridOptions, GetRowIdParams, IRowDragItem, DndSourceCallbackParams, ColumnResizedEvent, RowSelectedEvent, SelectionChangedEvent, 
+        ColDef, Column, IRowNode, IServerSideDatasource, IServerSideGetRowsParams } from '@ag-grid-community/core';
 import { ChangeDetectionStrategy, ChangeDetectorRef, ElementRef, EventEmitter, Inject, Input, Output, Renderer2, SecurityContext, SimpleChanges } from '@angular/core';
 import { Component, ViewChild } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
@@ -123,7 +124,9 @@ export class DataGrid extends NGGridDirective {
 
     @Input() toolPanelConfig: ToolPanelConfig;
     @Input() iconConfig: IconConfig;
-    @Input() localeText: any;
+    @Input() localeText: {
+        [key: string]: string;
+    };
     @Input() mainMenuItemsConfig: MainMenuItemsConfig;
     @Input() gridOptions: any;
     @Input() showColumnsMenuTab: any;
@@ -134,27 +137,28 @@ export class DataGrid extends NGGridDirective {
     @Input() _internalColumnState: any;
     @Output() _internalColumnStateChange = new EventEmitter();
     @Input() columnStateOnError: any;
-    @Input() restoreStates: any;
-    @Input() _internalFilterModel: any;
+    @Input() restoreStates: { columns: boolean, filter: boolean, sort: boolean};
+    @Input() _internalFilterModel: unknown;
     @Output() _internalFilterModelChange = new EventEmitter();
-    @Input() _internalGroupRowsSelection: any;
+    @Input() _internalGroupRowsSelection: {_svyRowId:string}[];
     @Output() _internalGroupRowsSelectionChange = new EventEmitter();
-    @Input() _internalCheckboxGroupSelection: any;
+    @Input() _internalCheckboxGroupSelection: Array<{colId: string, groupkey?: string}>;
     @Output() _internalCheckboxGroupSelectionChange = new EventEmitter();
 
     @Input() _internalFunctionCalls: Array<FunctionCall>;
 
-    @Input() onCellClick: any;
-    @Input() onCellDoubleClick: any;
-    @Input() onCellRightClick: any;
-    @Input() onColumnDataChange: any;
-    @Input() onColumnStateChanged: any;
-    @Input() onFooterClick: any;
-    @Input() onReady: any;
-    @Input() onRowGroupOpened: any;
-    @Input() onSelectedRowsChanged: any;
-    @Input() onSort: any;
-    @Input() tooltipTextRefreshData: any;
+
+    @Input() onCellClick: (foundsetindex: number,columnindex: number,record: unknown,event: Event) => void;
+    @Input() onCellDoubleClick: (foundsetindex: number,columnindex: number,record: unknown,event: Event) => void;
+    @Input() onCellRightClick: (foundsetindex: number,columnindex: number,record: unknown,event: Event) => void;
+    @Input() onColumnDataChange: (foundsetindex: number,columnindex: number,oldvalue: unknown,newvalue: unknown,event: Event,record: unknown,) => void;
+    @Input() onColumnStateChanged: (columnState: number, event: Event) => void;
+    @Input() onFooterClick: (columnindex: number, event: Event) => void;
+    @Input() onReady: () => void;
+    @Input() onRowGroupOpened: (groupcolumnindexes: number[],groupkeys: unknown[],isopened: boolean) => void;
+    @Input() onSelectedRowsChanged: (isgroupselection?: boolean,groupcolumnid?: string,groupkey?: unknown, groupselection?: boolean) => void;
+    @Input() onSort: (columnindexes: number[], sorts: string[]) => Promise<unknown>;
+    @Input() tooltipTextRefreshData: string;
     // used in HTML template to toggle sync button
     @Output() isGroupView = false;
 
@@ -2621,7 +2625,7 @@ export class DataGrid extends NGGridDirective {
         }
     }
 
-    restoreColumnsState(restoreStates?: any) {
+    restoreColumnsState(restoreStates?: { columns: boolean, filter: boolean, sort: boolean}) {
         if(this.columnState && this.columns && this.agGrid.api && this.agGrid.columnApi) { // if there is columnState and grid not yet destroyed
             let columnStateJSON = null;
 
@@ -3150,13 +3154,13 @@ export class DataGrid extends NGGridDirective {
                     this._internalGroupRowsSelectionChange.emit(this._internalGroupRowsSelection);
 
                     if(!this._internalCheckboxGroupSelection) {
-                        const selectedHeaderCheckbox = [];
+                        const selectedHeaderCheckbox:Array<{colId: string, groupkey?: string}> = [];
                         for(let i = 0; i < this._internalCheckboxGroupSelection.length; i++) {
                             if(this._internalCheckboxGroupSelection[i].groupkey === undefined) {
                                 selectedHeaderCheckbox.push(this._internalCheckboxGroupSelection[i]);
                             }
                         }
-                        this._internalCheckboxGroupSelection = new Array(selectedHeaderCheckbox);
+                        this._internalCheckboxGroupSelection = selectedHeaderCheckbox;
                     }
                     groupSelection.groupSelection.forEach(group => {
                         this._internalCheckboxGroupSelection.push(group);
