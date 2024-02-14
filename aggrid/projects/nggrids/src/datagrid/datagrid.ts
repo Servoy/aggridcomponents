@@ -98,14 +98,18 @@ export class DataGrid extends NGGridDirective {
     @Input() myFoundset: IFoundset;
     @Input() columns: DataGridColumn[];
     @Input() readOnly: boolean;
-    @Input() readOnlyColumnIds: any;
+    @Input() readOnlyColumnIds: {
+        [key: string]: boolean;
+    };
     @Input() hashedFoundsets: HashedFoundset[];
-    @Input() rowStyleClassDataprovider: any;
-    @Input() _internalExpandedState: any;
+    @Input() rowStyleClassDataprovider: string[];
+    @Input() _internalExpandedState: {
+        [key: string]: unknown;
+    };
     @Output() _internalExpandedStateChange = new EventEmitter();
-    @Input() _internalAutoSizeState: any;
+    @Input() _internalAutoSizeState: boolean;
     @Output() _internalAutoSizeStateChange = new EventEmitter();
-    @Input() _internalSizeColumnsToFitState: any;
+    @Input() _internalSizeColumnsToFitState: boolean;
     @Output() _internalSizeColumnsToFitStateChange = new EventEmitter();    
     @Input() enableSorting: boolean;
     @Input() enableColumnResize: boolean;
@@ -129,14 +133,14 @@ export class DataGrid extends NGGridDirective {
     };
     @Input() mainMenuItemsConfig: MainMenuItemsConfig;
     @Input() gridOptions: any;
-    @Input() showColumnsMenuTab: any;
+    @Input() showColumnsMenuTab: boolean;
     @Input() showLoadingIndicator: boolean;
 
-    @Input() columnState: any;
+    @Input() columnState: string;
     @Output() columnStateChange = new EventEmitter();
-    @Input() _internalColumnState: any;
+    @Input() _internalColumnState: string;
     @Output() _internalColumnStateChange = new EventEmitter();
-    @Input() columnStateOnError: any;
+    @Input() columnStateOnError: () => void;
     @Input() restoreStates: { columns: boolean, filter: boolean, sort: boolean};
     @Input() _internalFilterModel: unknown;
     @Output() _internalFilterModelChange = new EventEmitter();
@@ -152,7 +156,7 @@ export class DataGrid extends NGGridDirective {
     @Input() onCellDoubleClick: (foundsetindex: number,columnindex: number,record: unknown,event: Event) => void;
     @Input() onCellRightClick: (foundsetindex: number,columnindex: number,record: unknown,event: Event) => void;
     @Input() onColumnDataChange: (foundsetindex: number,columnindex: number,oldvalue: unknown,newvalue: unknown,event: Event,record: unknown,) => void;
-    @Input() onColumnStateChanged: (columnState: number, event: Event) => void;
+    @Input() onColumnStateChanged: (columnState: string, event: Event) => void;
     @Input() onFooterClick: (columnindex: number, event: Event) => void;
     @Input() onReady: () => void;
     @Input() onRowGroupOpened: (groupcolumnindexes: number[],groupkeys: unknown[],isopened: boolean) => void;
@@ -3639,7 +3643,7 @@ export class DataGrid extends NGGridDirective {
     addRowExpandedState(groupKeys: any) {
 
         if (!this._internalExpandedState) {
-            this._internalExpandedState = new Object();
+            this._internalExpandedState = {};
         }
 
         const _internalExpandedStateUpdated = Object.assign({}, this._internalExpandedState);
@@ -3648,10 +3652,10 @@ export class DataGrid extends NGGridDirective {
         // Persist the state of an expanded row
         for (const key of groupKeys) {
             if (!node[key]) {
-                node[key] = new Object();
+                node[key] = {}
             }
 
-            node = node[key];
+            node = node[key] as { [key: string]: unknown; }
         }
 
         this._internalExpandedStateChange.emit(_internalExpandedStateUpdated);
@@ -3680,7 +3684,7 @@ export class DataGrid extends NGGridDirective {
         let node = this._internalExpandedState;
         for (let i = 0; i < groupKeys.length - 1; i++) {
             const key = groupKeys[i];
-            node = node[key];
+            node = node[key] as { [key: string]: unknown; }
 
             if (!node) {
                 return;
@@ -4847,7 +4851,7 @@ class FoundsetDatasource implements IServerSideDatasource {
                                 expandedState = _this.dataGrid._internalExpandedState;
 
                                 for (let j = 0; expandedState && j < rowGroupKeys.length; j++) {
-                                    expandedState = expandedState[rowGroupKeys[j]];
+                                    expandedState = expandedState[rowGroupKeys[j]] as {[key: string]: unknown;}
                                     if (!expandedState) {
                                         isExpanded = false;
                                         break;
