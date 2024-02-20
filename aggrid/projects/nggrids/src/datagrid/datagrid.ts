@@ -4196,7 +4196,7 @@ export class DataGrid extends NGGridDirective {
             }
         }
         if(functionCall) {
-            this.servoyService.executeInlineScript(functionCall.f['formname'], functionCall.f['script'], [arg]);
+            functionCall.f(arg);
         } else {
             this.log.warn('executeFunctionCall failed, cannot find functionCall: ' + alias);
         }
@@ -5740,5 +5740,5 @@ export class HashedFoundset extends BaseCustomObject {
 
 export class FunctionCall extends BaseCustomObject {
     alias: string;
-    f: () => void;
+    f: (...args: unknown[]) => void;
 }
