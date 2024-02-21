@@ -297,8 +297,9 @@ export class PowerGrid extends NGGridDirective {
             animateRows: false,
             enableCellExpressions: true,
 
-            onGridReady: () => {
+            onGridReady: (event) => {
                 this.log.debug('gridReady');
+                this.gridApi = event.api;
                 this.isGridReady = true;
                 const emptyValue = '_empty';
                 if (this._internalColumnState !== emptyValue) {
