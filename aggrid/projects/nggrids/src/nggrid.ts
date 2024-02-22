@@ -30,7 +30,7 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
     private destroyed = false;
 
     destroy(): any {
-        this.agGrid.api.destroy();
+        if(!this.agGrid.api.isDestroyed()) this.agGrid.api.destroy();
         this.destroyed = true;
     }
 
