@@ -469,7 +469,8 @@
 			"valueGetterFunc": {"type": "clientfunction", "tags": {"doc": "Proxy function for getting the cell value from the model"}},
 			"dndSource" : {"type": "boolean", "default" : false, "tags": {"doc": "Allow dragging"}},
 			"dndSourceFunc" : { "type": "clientfunction", "tags": {"doc": "Boolean function for allow/disallow dragging."}},
-			"valuelist": { "type": "valuelist"}
+			"valuelist": { "type": "valuelist", "config": "valuelistConfig"},
+			"valuelistConfig" : { "type" : "valuelistConfig"}
 		},
         "iconConfig" : {
 			"iconMenu": { "type": "styleclass", "tags": {"scope": "design"}},

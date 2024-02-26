@@ -76,17 +76,10 @@ export class TypeaheadEditor extends EditorDirective implements IPopupSupportCom
     if (valuelist && this.ngGrid.hasValuelistResolvedDisplayData()) {
       valuelist.filterList('').subscribe((valuelistValues: any) => {
         this.valuelistValues = valuelistValues;
-        let hasRealValues = false;
-        for (const item of valuelistValues) {
-          if (item.realValue !== item.displayValue) {
-            hasRealValues = true;
-            break;
-          }
-        }
-        this.hasRealValues = hasRealValues;
+        this.hasRealValues = valuelist.hasRealValues();
         // make sure initial value has the "realValue" set, so when oncolumndatachange is called
         // the previous value has the "realValue"
-        if(hasRealValues && params.value && (params.value['realValue'] === undefined)) {
+        if(this.hasRealValues && params.value && (params.value['realValue'] === undefined)) {
           let rv = params.value;
           let rvFound = false;
           for (const item of valuelistValues) {
@@ -212,14 +205,9 @@ export class TypeaheadEditor extends EditorDirective implements IPopupSupportCom
         if (this.hasRealValues) {
           // if we still have old value do not set it to null or try to  get it from the list.
           if (this.initialValue != null && this.initialValue !== displayValue) {
-            // so invalid thing is typed in the list and we are in real/display values, try to search the real value again to set the display value back.
-            for (const vvalue of this.valuelistValues) {
-              //TODO: compare trimmed values, typeahead will trim the selected value
-              if (this.initialValue === vvalue.displayValue) {
-                realValue = vvalue.realValue;
-                break;
-              }
-            }
+            // so invalid thing is typed in the list and we are in real/display values
+            displayValue = this.initialDisplayValue;
+            realValue = this.initialValue;
           } else if(this.initialValue == null) { // if the dataproviderid was null and we are in real|display then reset the value to ""
             displayValue = realValue = '';
           }
