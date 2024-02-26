@@ -128,7 +128,7 @@ export class DatePicker extends EditorDirective {
                 (this.elementRef.nativeElement as HTMLInputElement).value = this.ngGrid.format(this.selectedValue, this.format, this.format.edit && !this.format.isMask)
                 this.picker.dates.formatInput =  (date: DateTime) => this.ngGrid.format(date, this.format, this.format.edit && !this.format.isMask);
                 this.picker.dates.parseInput =  (value: string) => {
-                    const parsed = this.formattingService.parse(value?value.trim():null, this.format, this.format.edit && !this.format.isMask, this.selectedValue);
+                    const parsed = this.formattingService.parse(value?value.trim():null, this.format, this.format.edit && !this.format.isMask, this.selectedValue, true);
                     if (parsed instanceof Date && !isNaN(parsed.getTime())) return  DateTime.convert(parsed, null, this.config.localization);
                     return null;
                 };
@@ -170,7 +170,7 @@ export class DatePicker extends EditorDirective {
         if(this.ngGrid.isInFindMode()) {
             return this.elementRef.nativeElement.value;
         } else {
-            const parsed = this.formattingService.parse(this.elementRef.nativeElement.value, this.format, this.format.edit && !this.format.isMask, this.selectedValue);
+            const parsed = this.formattingService.parse(this.elementRef.nativeElement.value, this.format, this.format.edit && !this.format.isMask, this.selectedValue, true);
             if (parsed instanceof Date && !isNaN(parsed.getTime())) return parsed;
             return null;
         }
