@@ -132,6 +132,9 @@ export class DatePicker extends EditorDirective {
                     if (parsed instanceof Date && !isNaN(parsed.getTime())) return  DateTime.convert(parsed, null, this.config.localization);
                     return null;
                 };
+                if (this.selectedValue) {
+                    this.picker.dates.setValue(DateTime.convert(this.selectedValue));
+                }
                 this.picker.subscribe(Namespace.events.change, (event) => this.dateChanged(event));
                 setTimeout(() => {
                     if (this.format.isMask) {
@@ -221,6 +224,7 @@ export class DatePicker extends EditorDirective {
             case 'sr': import('@eonasdan/tempus-dominus/dist/locales/sr.js').then(moduleLoader,errorHandler); break;
             case 'sr-latn': import('@eonasdan/tempus-dominus/dist/locales/sr-Latn.js').then(moduleLoader,errorHandler); break;
             case 'tr': import('@eonasdan/tempus-dominus/dist/locales/tr.js').then(moduleLoader,errorHandler); break;
+            default: localeDefer.resolve('');
         }
         return localeDefer;
     }
