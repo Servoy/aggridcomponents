@@ -164,7 +164,8 @@
 					"optional": true
 				}
 			],
-			"allowaccess": "enabled"
+			"allowaccess": "enabled",
+			"ignoreNGBlockDuplicateEvents": true
 		},
 		"onColumnDataChange": {
 			"doc": "Called when the columns data is changed",
