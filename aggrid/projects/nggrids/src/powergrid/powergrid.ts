@@ -315,10 +315,6 @@ export class PowerGrid extends NGGridDirective {
                 }
                 this.applyExpandedState();
 
-                this.agGridOptions.onDisplayedColumnsChanged = () => {
-                    this.svySizeColumnsToFit(GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED);
-                    this.storeColumnsState();
-                };
                 if (this.onReady) {
                     this.onReady();
                 }
@@ -399,6 +395,12 @@ export class PowerGrid extends NGGridDirective {
                     }, 500);
                 } else {
                     this.sizeHeader();
+                    this.storeColumnsState();
+                }
+            },
+            onDisplayedColumnsChanged: () => {
+                if(this.isGridReady) {
+                    this.svySizeColumnsToFit(GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED);
                     this.storeColumnsState();
                 }
             },

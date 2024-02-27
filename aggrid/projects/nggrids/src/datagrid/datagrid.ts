@@ -368,10 +368,6 @@ export class DataGrid extends NGGridDirective {
 
                     this.restoreColumnsState();
                 }
-                this.agGridOptions.onDisplayedColumnsChanged = ()=> {
-                    this.sizeHeaderAndColumnsToFit(GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED);
-                    this.storeColumnsState();
-                };
 
                 if(this.isColumnModelChangedBeforeGridReady) {
                     this.updateColumnDefs();
@@ -552,6 +548,12 @@ export class DataGrid extends NGGridDirective {
                         }
                     }
                     event.api.setColumnsVisible(hiddenColumns, false);
+                }
+            },
+            onDisplayedColumnsChanged: () => {
+                if(this.isGridReady) {
+                    this.sizeHeaderAndColumnsToFit(GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED);
+                    this.storeColumnsState();
                 }
             },
             getContextMenuItems: () => this.contextMenuItems,
