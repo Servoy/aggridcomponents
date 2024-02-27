@@ -2348,9 +2348,7 @@ export class DataGrid extends NGGridDirective {
     getFoundsetIndexFromEvent(params: any): number {
         let foundsetIndex: any;
         if (this.isTableGrouped()) {
-            this.log.warn('select grouped record not supported yet');
             foundsetIndex = -1;
-            // TODO use serverside API getRecordIndex
         } else {
             foundsetIndex = params.node.rowIndex + 1;
         }
@@ -3149,7 +3147,7 @@ export class DataGrid extends NGGridDirective {
                     });
                     this._internalGroupRowsSelectionChange.emit(this._internalGroupRowsSelection);
 
-                    if(!this._internalCheckboxGroupSelection) {
+                    if(this._internalCheckboxGroupSelection) {
                         const selectedHeaderCheckbox:Array<{colId: string, groupkey?: string}> = [];
                         for(let i = 0; i < this._internalCheckboxGroupSelection.length; i++) {
                             if(this._internalCheckboxGroupSelection[i].groupkey === undefined) {
@@ -3157,6 +3155,9 @@ export class DataGrid extends NGGridDirective {
                             }
                         }
                         this._internalCheckboxGroupSelection = selectedHeaderCheckbox;
+                    }
+                    else{
+                       this._internalCheckboxGroupSelection = []; 
                     }
                     groupSelection.groupSelection.forEach(group => {
                         this._internalCheckboxGroupSelection.push(group);
