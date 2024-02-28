@@ -3991,26 +3991,27 @@ export class DataGrid extends NGGridDirective {
             this.log.warn('editCellAt API, invalid foundsetindex:' + foundsetindex);
         } else if(columnindex < 0 || columnindex > this.columns.length - 1) {
             this.log.warn('editCellAt API, invalid columnindex:' + columnindex);
-        } else {
+        } else if(this.foundset && this.foundset.foundset) {
+            this.foundset.foundset.requestSelectionUpdate([foundsetindex - 1]).then(() => {
+                // if is not ready to edit, wait for the row to be rendered
+                if(this.isRenderedAndSelectionReady && !this.isDataLoading) {
+                    const column = this.columns[columnindex];
+                    const colId = column.id ? column.id : this.getColumnID(column, columnindex);
+                    this.setTimeout(() => {
+                        this.agGrid.api.startEditingCell({
+                            rowIndex: foundsetindex - 1,
+                            colKey: colId
+                        });
+                    }, 0);
 
-            // if is not ready to edit, wait for the row to be rendered
-            if(this.isRenderedAndSelectionReady && !this.isDataLoading) {
-                const column = this.columns[columnindex];
-                const colId = column.id ? column.id : this.getColumnID(column, columnindex);
-                this.setTimeout(() => {
-                    this.agGrid.api.startEditingCell({
-                        rowIndex: foundsetindex - 1,
-                        colKey: colId
-                    });
-                }, 0);
-
-                // reset the edit cell coordinates
-                this.startEditFoundsetIndex = -1;
-                this.startEditColumnIndex = -1;
-            } else {
-                this.startEditFoundsetIndex = foundsetindex;
-                this.startEditColumnIndex = columnindex;
-            }
+                    // reset the edit cell coordinates
+                    this.startEditFoundsetIndex = -1;
+                    this.startEditColumnIndex = -1;
+                } else {
+                    this.startEditFoundsetIndex = foundsetindex;
+                    this.startEditColumnIndex = columnindex;
+                }
+            });
         }
     };
 

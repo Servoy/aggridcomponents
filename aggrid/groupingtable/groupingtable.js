@@ -6684,27 +6684,28 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						else if(columnindex < 0 || columnindex > $scope.model.columns.length - 1) {
 							$log.warn('editCellAt API, invalid columnindex:' + columnindex);
 						}
-						else {
+						else if(foundset && foundset.foundset) {
+							foundset.foundset.requestSelectionUpdate([foundsetindex - 1]).then(function() {
+								// if is not ready to edit, wait for the row to be rendered
+								if(isRenderedAndSelectionReady && !isDataLoading) {
+									var column = $scope.model.columns[columnindex];
+									var	colId = column.id ? column.id : getColumnID(column, columnindex);
+									setTimeout(function() {
+										gridOptions.api.startEditingCell({
+											rowIndex: foundsetindex - 1,
+											colKey: colId
+										});
+									}, 0);
 
-							// if is not ready to edit, wait for the row to be rendered
-							if(isRenderedAndSelectionReady && !isDataLoading) {
-								var column = $scope.model.columns[columnindex];
-								var	colId = column.id ? column.id : getColumnID(column, columnindex);
-								setTimeout(function() {
-									gridOptions.api.startEditingCell({
-										rowIndex: foundsetindex - 1,
-										colKey: colId
-									});
-								}, 0);
-
-								// reset the edit cell coordinates
-								startEditFoundsetIndex = -1;
-								startEditColumnIndex = -1;
-							}
-							else {
-								startEditFoundsetIndex = foundsetindex;
-								startEditColumnIndex = columnindex;
-							}
+									// reset the edit cell coordinates
+									startEditFoundsetIndex = -1;
+									startEditColumnIndex = -1;
+								}
+								else {
+									startEditFoundsetIndex = foundsetindex;
+									startEditColumnIndex = columnindex;
+								}
+							});
 						}
 					}
 					
