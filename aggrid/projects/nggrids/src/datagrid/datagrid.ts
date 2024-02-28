@@ -1452,28 +1452,14 @@ export class DataGrid extends NGGridDirective {
             if(column.headerGroup) {
                 if(!colGroups[column.headerGroup]) {
                     colGroups[column.headerGroup] = {};
+                    colDefs.push(colGroups[column.headerGroup]);
+                    colGroups[column.headerGroup]['headerName'] = column.headerGroup;
                     colGroups[column.headerGroup]['headerClass'] = column.headerGroupStyleClass;
-                    colGroups[column.headerGroup]['headerIndex'] = column.headerGroupIndex;
                     colGroups[column.headerGroup]['children'] = [];
-
                 }
                 colGroups[column.headerGroup]['children'].push(colDef);
             } else {
                 colDefs.push(colDef);
-            }
-        }
-
-        for(const groupName in colGroups) {
-            if(colGroups.hasOwnProperty(groupName)) {
-                const group: any = {};
-                group.headerName = groupName;
-                group.headerClass = colGroups[groupName]['headerClass'];
-                group.children = colGroups[groupName]['children'];
-                if(colGroups[groupName]['headerIndex'] > -1 && colGroups[groupName]['headerIndex'] < colDefs.length) {
-                    colDefs.splice(colGroups[groupName]['headerIndex'], 0, group);
-                } else {
-                    colDefs.push(group);
-                }
             }
         }
 
@@ -5696,7 +5682,6 @@ export class DataGridColumn extends BaseCustomObject {
     headerStyleClass: string;
     headerTooltip: string;
     headerGroup: string;
-    headerGroupIndex: number;
     headerGroupStyleClass: string;
     dataprovider: any;
     tooltip: any;

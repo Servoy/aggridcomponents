@@ -982,8 +982,9 @@ export class PowerGrid extends NGGridDirective {
                 if (column.headerGroup) {
                     if (!colGroups[column.headerGroup]) {
                         colGroups[column.headerGroup] = {};
+                        colDefs.push(colGroups[column.headerGroup]);
+                        colGroups[column.headerGroup]['headerName'] = column.headerGroup;
                         colGroups[column.headerGroup]['headerClass'] = column.headerGroupStyleClass;
-                        colGroups[column.headerGroup]['headerIndex'] = column.headerGroupIndex;
                         colGroups[column.headerGroup]['children'] = [];
                     }
                     colGroups[column.headerGroup]['children'].push(colDef);
@@ -992,20 +993,6 @@ export class PowerGrid extends NGGridDirective {
                 }
             }
         }
-        for (const groupName in colGroups) {
-            if (colGroups.hasOwnProperty(groupName)) {
-                const group: any = {};
-                group.headerName = groupName;
-                group.headerClass = colGroups[groupName]['headerClass'];
-                group.children = colGroups[groupName]['children'];
-                if (colGroups[groupName]['headerIndex'] > -1 && colGroups[groupName]['headerIndex'] < colDefs.length) {
-                    colDefs.splice(colGroups[groupName]['headerIndex'], 0, group);
-                } else {
-                    colDefs.push(group);
-                }
-            }
-        }
-
         return colDefs;
     }
 
@@ -2300,7 +2287,6 @@ class RemoteDatasource {
 
 export class PowerGridColumn extends BaseCustomObject {
     headerGroup: string;
-    headerGroupIndex: number;
     headerGroupStyleClass: string;
     headerTitle: string;
     headerStyleClass: string;

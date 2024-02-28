@@ -496,7 +496,6 @@
 			"headerTooltip" : {"type" : "tagstring"},
 			"headerGroup": {"type" : "tagstring", "tags": {"doc": "Header group, that this column will be part of"}},
 			"headerGroupStyleClass" : {"type" : "styleclass"},
-			"headerGroupIndex" : {"type" : "int", "default" : -1, "tags": {"doc": "Position of header group, 0-based; by default it is placed at the end"}},
 			"headerCheckbox" : {"type": "boolean", "default" : false, "tags" : {"scope": "design", "doc": "When true the column has checkbox for selecting/unselecting all rows"}},
 			"dataprovider": { "type": "dataprovider", "forFoundset": "myFoundset", "resolveValuelist" : true, "pushToServer" : "allow", "tags": { "wizard": "1", "useAsCaptionInDeveloper" : true, "captionPriority" : 2 }},
 			"tooltip": { "type": "dataprovider", "forFoundset": "myFoundset"},
