@@ -1,6 +1,6 @@
 import { AgFloatingFilterComponent } from '@ag-grid-community/angular';
 import { FilterChangedEvent, IFilterParams, IFloatingFilterParams, IFloatingFilterParent } from '@ag-grid-community/core';
-import { Directive, ElementRef, ViewChild } from '@angular/core';
+import { Directive, ElementRef, HostBinding, ViewChild } from '@angular/core';
 import { NULL_VALUE } from '../datagrid/datagrid';
 import { Deferred } from '@servoy/public';
 import { NGGridDirective } from '../nggrid';
@@ -8,6 +8,8 @@ import { NGGridDirective } from '../nggrid';
 @Directive()
 export class FilterDirective implements AgFloatingFilterComponent, IFloatingFilterParent {
 
+    @HostBinding('class.ag-floating-filter-input') isFloating = true;
+    
     @ViewChild('element') elementRef: ElementRef;
     @ViewChild('element1') element1Ref: ElementRef;
     ngGrid: NGGridDirective;
@@ -16,10 +18,10 @@ export class FilterDirective implements AgFloatingFilterComponent, IFloatingFilt
     model: any;
     instance: any;
     valuelistValues: any;
+    hasValuelistSet: boolean = false;
     format: any;
     txtClearFilter: string;
     txtApplyFilter: string;
-    isFloating: boolean;
 
     valuelistValuesDefer: Deferred<any>;
 
@@ -45,6 +47,7 @@ export class FilterDirective implements AgFloatingFilterComponent, IFloatingFilt
         this.valuelistValuesDefer = new Deferred();
         const valuelist = this.ngGrid.getValuelistForFilter(this.params);
         if (valuelist) {
+          this.hasValuelistSet = true;
           valuelist.filterList('').subscribe((valuelistValues) => {
             this.valuelistValues = valuelistValues;
             if(!this.hasApplyButton()) {
@@ -140,7 +143,7 @@ export class FilterDirective implements AgFloatingFilterComponent, IFloatingFilt
     }
 
     getFormatedDisplayValue(displayValue: string): string {
-      if(this.format && displayValue) {
+      if(this.hasValuelistSet && this.format && displayValue) {
         return this.ngGrid.format(displayValue, this.format, false);
       }
       return displayValue;
