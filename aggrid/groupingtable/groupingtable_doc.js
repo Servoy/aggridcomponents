@@ -3,9 +3,9 @@
 /**
  * Notify the component about a data change. Makes the component aware of a data change that requires a refresh data.
  * Call this method when you are aware of a relevant data change in the foundset which may affect data grouping (e.g. group node created or removed).
- * The component will alert the user of the data change and will suggest the user to perform a refresh.
+ * The component will alert the user of the data change and it will suggest to the user to perform a refresh.
  * <br/>
- * Please note that it’s not necessary to notify the table component is the component is not visible;
+ * Please note that it’s not necessary to notify the table component if the component is not visible;
  * the component will always present the latest data when rendered again.
  *
  * @public
