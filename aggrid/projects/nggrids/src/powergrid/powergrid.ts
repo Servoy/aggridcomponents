@@ -355,7 +355,7 @@ export class PowerGrid extends NGGridDirective {
                         // the column def instead of the actual width to calculate the layout, so set it
                         // during the call and then reset it at the end
 
-                        let displayedColumns = this.agGrid.columnApi.getAllDisplayedColumns();
+                        let displayedColumns = this.agGrid.api.getAllDisplayedColumns();
                         let suppressSizeToFit: boolean, colDef: ColDef;
 
                         if (e.column) {
@@ -587,8 +587,8 @@ export class PowerGrid extends NGGridDirective {
         });
 
         this.agGridElementRef.nativeElement.addEventListener('focus', (e: any) => {
-            if (this.agGrid.api && this.agGrid.columnApi) {
-                const allDisplayedColumns = this.agGrid.columnApi.getAllDisplayedColumns();
+            if (this.agGrid.api) {
+                const allDisplayedColumns = this.agGrid.api.getAllDisplayedColumns();
                 if (allDisplayedColumns && allDisplayedColumns.length) {
                     const focuseFromEl = e.relatedTarget;
                     if (focuseFromEl && (focuseFromEl.classList.contains('ag-cell') || focuseFromEl.classList.contains('ag-header-cell'))) { // focuse out from the grid
@@ -730,7 +730,7 @@ export class PowerGrid extends NGGridDirective {
                             if (this.columnState) {
                                 this.restoreColumnsState();
                             } else {
-                                this.agGrid.columnApi.resetColumnState();
+                                this.agGrid.api.resetColumnState();
                             }
                         }
                         break;
@@ -1057,7 +1057,7 @@ export class PowerGrid extends NGGridDirective {
     }
 
     isFirstColumn(params: any) {
-        const displayedColumns = params.columnApi.getAllDisplayedColumns();
+        const displayedColumns = params.api.getAllDisplayedColumns();
         const thisIsFirstColumn = displayedColumns[0] === params.column;
         return thisIsFirstColumn;
     }
@@ -1104,11 +1104,11 @@ export class PowerGrid extends NGGridDirective {
 
             if (columnStateJSON != null) {
                 if (Array.isArray(columnStateJSON.columnState) && columnStateJSON.columnState.length > 0) {
-                    this.agGrid.columnApi.applyColumnState({ state: columnStateJSON.columnState, applyOrder: true });
+                    this.agGrid.api.applyColumnState({ state: columnStateJSON.columnState, applyOrder: true });
                 }
 
                 if (Array.isArray(columnStateJSON.rowGroupColumnsState) && columnStateJSON.rowGroupColumnsState.length > 0) {
-                    this.agGrid.columnApi.setRowGroupColumns(columnStateJSON.rowGroupColumnsState);
+                    this.agGrid.api.setRowGroupColumns(columnStateJSON.rowGroupColumnsState);
                 }
 
                 if (Array.isArray(columnStateJSON.sortingState) && columnStateJSON.sortingState.length > 0) {
@@ -1664,7 +1664,7 @@ export class PowerGrid extends NGGridDirective {
 
     updateColumnHeader(id: any, property: any, text: any) {
         // get a reference to the column
-        const col = this.agGrid.columnApi.getColumn(id);
+        const col = this.agGrid.api.getColumn(id);
 
         // obtain the column definition from the column
         const colDef = col.getColDef();
@@ -1823,7 +1823,7 @@ export class PowerGrid extends NGGridDirective {
             let needsSeparator = false;
             for (const agg in params.node.aggData) {
                 if (params.node.aggData.hasOwnProperty(agg)) {
-                    const column = params.columnApi.getColumn(agg);
+                    const column = params.api.getColumn(agg);
                     const columnText = column['aggFunc'] + '(' + column.getColDef().headerName + ')';
                     const value = params.node.aggData[agg];
                     if (column['aggFunc'] !== 'count' && column.getColDef().valueFormatter) {
@@ -1910,7 +1910,7 @@ export class PowerGrid extends NGGridDirective {
                 const colInfoCache = {};
                 const headerNames = [];
                 header.forEach(colId => {
-                    colInfoCache[colId] = { columnModel: this.getColumn(colId), colDef: this.agGrid.columnApi.getColumn(colId).getColDef() };
+                    colInfoCache[colId] = { columnModel: this.getColumn(colId), colDef: this.agGrid.api.getColumn(colId).getColDef() };
                     headerNames.push(colInfoCache[colId].colDef['headerName']);
                 });
                 exportData.push(headerNames);
@@ -1995,7 +1995,7 @@ export class PowerGrid extends NGGridDirective {
      * Returns pivot mode state
      */
     isPivotMode(): boolean {
-        return this.agGrid.columnApi.isPivotMode();
+        return this.agGrid.api.isPivotMode();
     }
 
     /**
@@ -2005,7 +2005,7 @@ export class PowerGrid extends NGGridDirective {
      * @param index new position (0-based)
      */
     moveColumn(id: string, index: number) {
-        this.agGrid.columnApi.moveColumn(id, index);
+        this.agGrid.api.moveColumn(id, index);
     }
 
     /**
@@ -2054,13 +2054,13 @@ export class PowerGrid extends NGGridDirective {
 
     autoSizeColumns(skipHeader: boolean) {
         const noFlexColumns = [];
-        for (const col of this.agGrid.columnApi.getAllDisplayedColumns()) {
+        for (const col of this.agGrid.api.getAllDisplayedColumns()) {
             const colDef = col.getColDef();
             if (colDef['flex'] === undefined) {
                 noFlexColumns.push(col);
             }
         }
-        this.agGrid.columnApi.autoSizeColumns(noFlexColumns, skipHeader);
+        this.agGrid.api.autoSizeColumns(noFlexColumns, skipHeader);
     }
 
     /**
@@ -2178,7 +2178,7 @@ export class PowerGrid extends NGGridDirective {
                 });
             });
         }
-        this.agGrid.columnApi.applyColumnState({ state: columnState, defaultState: { sort: null } });
+        this.agGrid.api.applyColumnState({ state: columnState, defaultState: { sort: null } });
     }
 
     gridDragOver($event) {
