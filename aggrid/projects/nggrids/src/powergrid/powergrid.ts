@@ -1074,11 +1074,12 @@ export class PowerGrid extends NGGridDirective {
         //					expandAll: Expand all groups. Only shown if grouping by at least one column.
         //					contractAll: Contract all groups. Only shown if grouping by at least one column.
         //					toolPanel: Show the tool panel.
+        const powerGrid = params.context.componentParent;
         let items: any;
-        if (this.mainMenuItemsConfig && Object.keys(this.mainMenuItemsConfig).length !== 0) {
+        if (powerGrid.agMainMenuItemsConfig && Object.keys(powerGrid.agMainMenuItemsConfig).length !== 0) {
             items = [];
-            for (const key in this.mainMenuItemsConfig) {
-                if (this.mainMenuItemsConfig.hasOwnProperty(key) && this.mainMenuItemsConfig[key]) items.push(key);
+            for (const key in powerGrid.agMainMenuItemsConfig) {
+                if (powerGrid.agMainMenuItemsConfig.hasOwnProperty(key) && powerGrid.agMainMenuItemsConfig[key]) items.push(key);
             }
         } else {
             items = ['rowGroup', 'rowUnGroup'];
