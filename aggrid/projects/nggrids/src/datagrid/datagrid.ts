@@ -493,7 +493,7 @@ export class DataGrid extends NGGridDirective {
                         // the column def instead of the actual width to calculate the layout, so set it
                         // during the call and then reset it at the end
                         
-                        let displayedColumns = this.agGrid.columnApi.getAllDisplayedColumns();
+                        let displayedColumns = this.agGrid.api.getAllDisplayedColumns();
                         let suppressSizeToFit: boolean, colDef: ColDef;
 
                         if (e.column) {
@@ -809,8 +809,8 @@ export class DataGrid extends NGGridDirective {
         });
 
         this.agGridElementRef.nativeElement.addEventListener('focus', (e: any) => {
-            if(this.agGrid.api && this.agGrid.columnApi) {
-                const allDisplayedColumns = this.agGrid.columnApi.getAllDisplayedColumns();
+            if(this.agGrid.api) {
+                const allDisplayedColumns = this.agGrid.api.getAllDisplayedColumns();
                 if(allDisplayedColumns && allDisplayedColumns.length) {
                     const focuseFromEl = e.relatedTarget;
                     if(focuseFromEl && (focuseFromEl.classList.contains('ag-cell') || focuseFromEl.classList.contains('ag-header-cell'))) { // focuse out from the grid
@@ -1007,7 +1007,7 @@ export class DataGrid extends NGGridDirective {
                             if(this.columnState) {
                                 this.restoreColumnsState(this.restoreStates);
                             } else {
-                                this.agGrid.columnApi.resetColumnState();
+                                this.agGrid.api.resetColumnState();
                             }
                         }
                         break;
@@ -1103,13 +1103,13 @@ export class DataGrid extends NGGridDirective {
 
     autoSizeColumns(skipHeader: boolean) {
         const noFlexColumns = [];
-        for(const col of this.agGrid.columnApi.getAllDisplayedColumns()) {
+        for(const col of this.agGrid.api.getAllDisplayedColumns()) {
             const colDef = col.getColDef();
             if(colDef['flex'] === undefined) {
                 noFlexColumns.push(col);
             }
         }
-        this.agGrid.columnApi.autoSizeColumns(noFlexColumns, skipHeader);
+        this.agGrid.api.autoSizeColumns(noFlexColumns, skipHeader);
     }
 
     /**`
@@ -2031,7 +2031,7 @@ export class DataGrid extends NGGridDirective {
 
                 // find the columns with styleClassDataprovider
                 const styleClassDPColumns = [];
-                const allDisplayedColumns = this.agGrid.columnApi.getAllDisplayedColumns();
+                const allDisplayedColumns = this.agGrid.api.getAllDisplayedColumns();
 
                 for (const column of allDisplayedColumns) {
                     let columnModel = null;
@@ -2608,7 +2608,7 @@ export class DataGrid extends NGGridDirective {
     }
 
     restoreColumnsState(restoreStates?: { columns: boolean, filter: boolean, sort: boolean}) {
-        if(this.columnState && this.columns && this.agGrid.api && this.agGrid.columnApi) { // if there is columnState and grid not yet destroyed
+        if(this.columnState && this.columns && this.agGrid.api) { // if there is columnState and grid not yet destroyed
             let columnStateJSON = null;
 
             try {
@@ -3082,7 +3082,7 @@ export class DataGrid extends NGGridDirective {
 
     updateColumnHeader(id: any, property:any, text: any) {
         // get a reference to the column
-        const col = this.agGrid.columnApi.getColumn(id);
+        const col = this.agGrid.api.getColumn(id);
 
         if(col) {
             // obtain the column definition from the column
@@ -4104,7 +4104,7 @@ export class DataGrid extends NGGridDirective {
      * @param index new position (0-based)
      */
     moveColumn(id: string, index: number) {
-        this.agGrid.columnApi.moveColumn(id, index);
+        this.agGrid.api.moveColumn(id, index);
     }
 
     getAgGridSortModel() {
