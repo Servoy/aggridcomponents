@@ -1601,14 +1601,18 @@ export class DataGrid extends NGGridDirective {
     getCheckboxEditorBooleanValue(value: any): boolean {
         switch(value) {
             case 'yes':
+            case 'Yes':    
             case 'y':
             case 'true':
+            case 'True':    
             case 't':
                 return true;
             case 'no':
+            case 'No':
             case 'n':
             case '':
             case 'false':
+            case 'False':
             case 'f':
                 return false;
         }
