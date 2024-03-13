@@ -92,7 +92,7 @@ function isToolPanelShowing(show) {
  * Gets the number of columns
  * 
  * @example
- *  %%prefix%%%%elementName%%.getColumnsCount()
+ *     %%prefix%%elements.%%elementName%%.getColumnsCount()
  */ 
 function getColumnsCount() {
 }
@@ -103,7 +103,7 @@ function getColumnsCount() {
  * @param index index between 0 and columns length -1
  * 
  * @example
- *  %%prefix%%%%elementName%%.getColumn()
+ *     %%prefix%%elements.%%elementName%%.getColumn()
  *  
  * @return {column}
  */ 
@@ -116,7 +116,7 @@ function getColumn(index) {
  * @param colId id of the column
  * 
  * @example
- *	%%prefix%%%%elementName%%.getColumnById('myid')
+ *     %%prefix%%elements.%%elementName%%.getColumnById('myid')
  *	
  * @return {column}
  */ 
@@ -130,9 +130,9 @@ function getColumn(index) {
  * @param index index between 0 and columns length
  * 
  * @example
- *  var column = %%prefix%%%%elementName%%.newColumn('dataproviderid')
+ *     var column = %%prefix%%elements.%%elementName%%.newColumn('dataproviderid')
  *
- *  @return {column}
+ * @return {column}
  */
 function newColumn(dataproviderid,index) {
 }
@@ -141,7 +141,7 @@ function newColumn(dataproviderid,index) {
  * Removes column from specified index. Index is 0 based.
  *
  * @example
- * %%prefix%%%%elementName%%.removeColumn(0)
+ *     %%prefix%%elements.%%elementName%%.removeColumn(0)
  *
  * @param index index between 0 and columns length -1
  * 
@@ -154,7 +154,7 @@ function removeColumn(index) {
  * Removes all columns.
  *
  * @example
- * %%prefix%%%%elementName%%.removeAllColumns()
+ *     %%prefix%%elements.%%elementName%%.removeAllColumns()
  *
  * @return {boolean}
  */
