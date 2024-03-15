@@ -1689,10 +1689,14 @@ export class PowerGrid extends NGGridDirective {
         const resultData = {};
         for (let i = 0; this.columns && i < this.columns.length; i++) {
             const column = this.columns[i];
-            if (column.footerText && column.dataprovider) {
-                resultData[column.dataprovider] = column.footerText;
-                hasFooterData = true;
-            }
+            if (column.dataprovider) {
+            	if (column.footerText) {
+                	resultData[column.dataprovider] = column.footerText;
+                	hasFooterData = true;
+            	} else {
+					resultData[column.dataprovider] = '';
+				}
+			}
         }
         if (hasFooterData) {
             result.push(resultData);

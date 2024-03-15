@@ -2947,13 +2947,14 @@ export class DataGrid extends NGGridDirective {
         const resultData = {};
         for (let i = 0; this.columns && i < this.columns.length; i++) {
             const column = this.columns[i];
-            if (column.footerText && column.footerText.length) {
-                const	colId = this.getColumnID(column, i);
-                if (colId) {
+            const colId = this.getColumnID(column, i);
+            if (colId) {
+            	if (column.footerText && column.footerText.length) {
                     resultData[colId] = column.footerText[0];
                     hasFooterData = true;
-                }
-
+                } else {
+					resultData[colId] = '';
+				}
             }
         }
         if (hasFooterData) {
