@@ -19,13 +19,6 @@
 }
 
 .ag-icon {
-	font-size: 12px;
-    padding: 4px;
-    color: black;
-}
-
-.ag-table .ag-icon {
-	font-size: 12px;
     color: black;
 }
 
@@ -239,4 +232,5 @@
 .ag-table.ag-theme-alpine {
     --ag-selected-row-background-color: none;
     --ag-range-selection-border-style: none;
+    --ag-icon-size: 12px;
 }
