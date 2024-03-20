@@ -252,6 +252,8 @@ export class DataGrid extends NGGridDirective {
 
     isSingleClickEdit = false;
 
+    footerTextChangeListeners: any[] = [];
+
     constructor(renderer: Renderer2, public cdRef: ChangeDetectorRef, logFactory: LoggerFactory,
         private servoyService: ServoyPublicService, public formattingService: FormattingService, public ngbTypeaheadConfig: NgbTypeaheadConfig,
         private datagridService: DatagridService, private sanitizer: DomSanitizer, @Inject(DOCUMENT) private doc: Document) {
@@ -1061,6 +1063,9 @@ export class DataGrid extends NGGridDirective {
         this.groupManager.removeFoundsetRefAtLevel(0);
         if(this.removeChangeListenerFunction) this.removeChangeListenerFunction();
 
+        // remove registered footerText change listeners
+        this.removeFooterTextListeners();
+
         // release grid resources
         this.destroy();
     }
@@ -1253,6 +1258,9 @@ export class DataGrid extends NGGridDirective {
     }
 
     getColumnDefs() {
+        // remove registered footerText change listeners
+        this.removeFooterTextListeners();
+
         //create the column definitions from the specified columns in designer
         const colDefs = [];
         let colDef: any = { };
@@ -1447,6 +1455,12 @@ export class DataGrid extends NGGridDirective {
                     '    </div>' +
                     '</div>'
                 }    
+            }
+
+            if(column.footerText) {
+                this.footerTextChangeListeners.push(column.footerText.addChangeListener(() => {
+                   this.handleColumnFooterText(); 
+                }));
             }
 
             if(column.headerGroup) {
@@ -3083,6 +3097,15 @@ export class DataGrid extends NGGridDirective {
     handleColumnFooterText() {
         this.log.debug('footer text column property changed');
         this.agGrid.api.setGridOption('pinnedBottomRowData', this.getFooterData())
+    }
+
+    removeFooterTextListeners() : any {
+        if(this.footerTextChangeListeners.length) {
+            for(let i = 0; i < this.footerTextChangeListeners.length; i++) {
+                this.footerTextChangeListeners[i]();
+            }
+            this.footerTextChangeListeners.splice(0, this.footerTextChangeListeners.length);
+        }
     }
 
     updateColumnHeader(id: any, property:any, text: any) {
