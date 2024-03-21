@@ -3484,49 +3484,45 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								state.rootGroupSort = sortModel[0];
 							}
 
-							if(!$scope.handlers.onSort) {
-								// if there is no user defined onSort, set the sort from from foundset
-								var currentGridSort = getFoundsetSortModel(gridOptions.api.getSortModel());
-								var foundsetSort = stripUnsortableColumns(foundset.getSortColumns());
-								var isSortChanged = foundsetRefManager.isRoot && sortString != foundsetSort
-								&& currentGridSort.sortString != foundsetSort;
-		
-								if(isSortChanged) {
-									$log.debug('CHANGE SORT REQUEST');
-									var isColumnSortable = false;
-									// check sort columns in both the reques and model, because it is disable in the grid, it will be only in the model
-									var sortColumns = sortModel.concat(getSortModel());
-									for(var i = 0; i < sortColumns.length; i++) {
-										var col = gridOptions.columnApi.getColumn(sortColumns[i].colId);
-										if(col && col.getColDef().sortable) {
-											isColumnSortable = true;
-											break;
-										}
+
+							// if there is no user defined onSort, set the sort from from foundset
+							var currentGridSort = getFoundsetSortModel(gridOptions.api.getSortModel());
+							var foundsetSort = stripUnsortableColumns(foundset.getSortColumns());
+							var isSortChanged = foundsetRefManager.isRoot && sortString != foundsetSort
+							&& currentGridSort.sortString != foundsetSort;
+	
+							if(isSortChanged) {
+								$log.debug('CHANGE SORT REQUEST');
+								var isColumnSortable = false;
+								// check sort columns in both the reques and model, because it is disable in the grid, it will be only in the model
+								var sortColumns = sortModel.concat(getSortModel());
+								for(var i = 0; i < sortColumns.length; i++) {
+									var col = gridOptions.columnApi.getColumn(sortColumns[i].colId);
+									if(col && col.getColDef().sortable) {
+										isColumnSortable = true;
+										break;
 									}
-		
-									if(isColumnSortable) {
-										// send sort request if header is clicked; skip if is is not from UI (isRenderedAndSelectionReady == false) or if it from a sort handler or a group column sort
-										if(isSortModelApplied) {
-											foundsetSortModel = getFoundsetSortModel(sortModel)
-											sortPromise = foundsetRefManager.sort(foundsetSortModel.sortColumns);
-											sortPromise.then(function() {
-												getDataFromFoundset(foundsetRefManager);
-												// give time to the foundset change listener to know it was a client side requested sort
-												setTimeout(function() {
-													sortPromise = null;
-												}, 0);
-											}).catch(function(e) {
-												sortPromise = null
-											});
-										}
-										// set the grid sorting if foundset sort changed from the grid initialization (like doing foundset sort on form's onShow)
-										else {
-											applySortModel(getSortModel());
-											gridOptions.api.purgeServerSideCache();
-										}
+								}
+	
+								if(isColumnSortable) {
+									// send sort request if header is clicked; skip if is is not from UI (isRenderedAndSelectionReady == false) or if it from a sort handler or a group column sort
+									if(isSortModelApplied) {
+										foundsetSortModel = getFoundsetSortModel(sortModel)
+										sortPromise = foundsetRefManager.sort(foundsetSortModel.sortColumns);
+										sortPromise.then(function() {
+											getDataFromFoundset(foundsetRefManager);
+											// give time to the foundset change listener to know it was a client side requested sort
+											setTimeout(function() {
+												sortPromise = null;
+											}, 0);
+										}).catch(function(e) {
+											sortPromise = null
+										});
 									}
+									// set the grid sorting if foundset sort changed from the grid initialization (like doing foundset sort on form's onShow)
 									else {
-										getDataFromFoundset(foundsetRefManager);
+										applySortModel(getSortModel());
+										gridOptions.api.purgeServerSideCache();
 									}
 								}
 								else {
