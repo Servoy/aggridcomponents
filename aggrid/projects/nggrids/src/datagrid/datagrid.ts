@@ -2234,7 +2234,7 @@ export class DataGrid extends NGGridDirective {
                             }
                         }
                         _this.onColumnDataChangePromise = null;
-                    }).catch(function(e: any) {
+                    }).catch((e: any) => {
                         this.log.error(e);
                         this.invalidCellDataIndex.rowIndex = -1;
                         this.invalidCellDataIndex.colKey = '';
