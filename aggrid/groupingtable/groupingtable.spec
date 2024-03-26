@@ -262,7 +262,8 @@
 	}, 
 	"api" : {
 		"notifyDataChange" : {
-            "parameters" : []
+            "parameters" : [],
+			"delayUntilFormLoads": true
         },
         "refreshData" : {
         	"parameters" : []
