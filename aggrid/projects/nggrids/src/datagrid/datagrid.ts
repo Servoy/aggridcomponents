@@ -2712,6 +2712,11 @@ export class DataGrid extends NGGridDirective {
                             delete columnStateJSON.columnState[i].sort;
                             delete columnStateJSON.columnState[i].sortIndex;
                         }
+
+                        // if flex is null aggrid applyColumnState ignores restoring the width
+                        if(columnStateJSON.columnState[i].flex === null) {
+                            delete columnStateJSON.columnState[i].flex;
+                        }
                     }
                 }
 
