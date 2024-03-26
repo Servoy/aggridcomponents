@@ -1104,6 +1104,28 @@ export class PowerGrid extends NGGridDirective {
             }
 
             if (columnStateJSON != null) {
+
+                // aggrid moved the sort state to the columns; move it to sortModel to keep backward compatibility
+                if(Array.isArray(columnStateJSON.columnState) && columnStateJSON.columnState.length > 0) {
+                    columnStateJSON.sortModel = [];
+                    for(let i = 0; i < columnStateJSON.columnState.length; i++) {
+                        if(columnStateJSON.columnState[i].sort) {
+                            columnStateJSON.sortModel.push( {
+                                colId: columnStateJSON.columnState[i].colId,
+                                sort: columnStateJSON.columnState[i].sort,
+                                index: columnStateJSON.columnState[i].sortIndex
+                            });
+                            delete columnStateJSON.columnState[i].sort;
+                            delete columnStateJSON.columnState[i].sortIndex;
+                        }
+
+                        // if flex is null aggrid applyColumnState ignores restoring the width
+                        if(columnStateJSON.columnState[i].flex === null) {
+                            delete columnStateJSON.columnState[i].flex;
+                        }
+                    }
+                }
+
                 if (Array.isArray(columnStateJSON.columnState) && columnStateJSON.columnState.length > 0) {
                     this.agGrid.api.applyColumnState({ state: columnStateJSON.columnState, applyOrder: true });
                 }
@@ -1112,8 +1134,8 @@ export class PowerGrid extends NGGridDirective {
                     this.agGrid.api.setRowGroupColumns(columnStateJSON.rowGroupColumnsState);
                 }
 
-                if (Array.isArray(columnStateJSON.sortingState) && columnStateJSON.sortingState.length > 0) {
-                    this.applySortModel(columnStateJSON.sortingState);
+                if (Array.isArray(columnStateJSON.sortModel) && columnStateJSON.sortModel.length > 0) {
+                    this.applySortModel(columnStateJSON.sortModel);
                 }
 
                 this.agGrid.api.setSideBarVisible(columnStateJSON.isSideBarVisible);
