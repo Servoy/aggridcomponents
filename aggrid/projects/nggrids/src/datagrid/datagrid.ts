@@ -485,51 +485,19 @@ export class DataGrid extends NGGridDirective {
                 }
             },
             onColumnResized: (e: ColumnResizedEvent) => {
-                if(this.agContinuousColumnsAutoSizing && e.source === 'uiColumnResized') {
+                if(e.source === 'uiColumnResized') {
                     if(this.sizeHeaderAndColumnsToFitTimeout !== null) {
                         clearTimeout(this.sizeHeaderAndColumnsToFitTimeout);
                     }
                     this.sizeHeaderAndColumnsToFitTimeout = this.setTimeout(() => {
                         this.sizeHeaderAndColumnsToFitTimeout = null;
-                        // agGrid.api.sizeColumnsToFit from sizeHeaderAndColumnsToFit uses the width from
-                        // the column def instead of the actual width to calculate the layout, so set it
-                        // during the call and then reset it at the end
-                        
+
                         let displayedColumns = this.agGrid.api.getAllDisplayedColumns();
-                        let suppressSizeToFit: boolean, colDef: ColDef;
-
-                        if (e.column) {
-                            //make sure this column is skipped when resizing, so it gets the exact size the user has dragged it to
-                            colDef = e.column.getColDef();
-                            suppressSizeToFit = colDef.suppressSizeToFit;
-                            colDef.suppressSizeToFit = true;
-                        }
-
-                        //store design time values
-                        let columnSetWidth = [], displayedColDef: ColDef, colWidth: Number, totalColWidth = 0;
-                        displayedColumns.forEach((displayedCol: Column, arrayIndex, array) => {
+                        let displayedColDef: ColDef;
+                        displayedColumns.forEach((displayedCol: Column) => {
                             displayedColDef = this.agGrid.api.getColumnDef(displayedCol.getColId());
-                            columnSetWidth.push(displayedColDef.width);
                             displayedColDef.width = displayedCol.getActualWidth();
                         });
-
-                        //let the grid resize to fill the viewport based on actual width
-                        this.sizeHeaderAndColumnsToFit();
-                        
-                        //restore design time values
-                        displayedColumns.forEach((displayedCol: Column, arrayIndex) => {
-                            displayedColDef = this.agGrid.api.getColumnDef(displayedCol.getColId());
-                            displayedColDef.width = columnSetWidth[arrayIndex];
-                        });
-
-                        if (colDef) {
-                            //remove / restore original suppressSizeToFit setting of the column resized
-                            if (suppressSizeToFit === undefined) {
-                                delete colDef.suppressSizeToFit;
-                            } else {
-                                colDef.suppressSizeToFit = suppressSizeToFit;
-                            }
-                        }
 
                         this.storeColumnsState();
                     }, 500);
@@ -2722,6 +2690,12 @@ export class DataGrid extends NGGridDirective {
 
                 if(restoreColumns && Array.isArray(columnStateJSON.columnState) && columnStateJSON.columnState.length > 0) {
                     this.agGrid.api.applyColumnState({state: columnStateJSON.columnState, applyOrder: true});
+                    let displayedColumns = this.agGrid.api.getAllDisplayedColumns();
+                    let displayedColDef: ColDef;
+                    displayedColumns.forEach((displayedCol: Column) => {
+                        displayedColDef = this.agGrid.api.getColumnDef(displayedCol.getColId());
+                        displayedColDef.width = displayedCol.getActualWidth();
+                    });
                 }
 
                 if(restoreColumns && Array.isArray(columnStateJSON.rowGroupColumnsState) && columnStateJSON.rowGroupColumnsState.length > 0) {

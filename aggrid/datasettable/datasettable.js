@@ -349,13 +349,12 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
     //                onColumnVisible: storeColumnsState,			 covered by onDisplayedColumnsChanged
     //                onColumnPinned: storeColumnsState,			 covered by onDisplayedColumnsChanged
                     onColumnResized: function(e) {				 // NOT covered by onDisplayedColumnsChanged
-						if(continuousColumnsAutoSizing && e.source === 'uiColumnDragged') {
+						if(e.source === 'uiColumnDragged') {
 							if(sizeColumnsToFitTimeout !== null) {
 								clearTimeout(sizeColumnsToFitTimeout);
 							}
 							sizeColumnsToFitTimeout = setTimeout(function() {
 								sizeColumnsToFitTimeout = null;
-								sizeColumnsToFit();
 								storeColumnsState();
 							}, 500);
 						} else {
