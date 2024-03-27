@@ -374,7 +374,9 @@
 			"delayUntilFormLoads": true,
 			"discardPreviouslyQueuedSimilarCalls": true
 		},
-		"scrollToSelection": {},
+		"scrollToSelection": {
+			"delayUntilFormLoads": true
+		},
 		"setReadOnly": {
 			"parameters": [
 				{ "name": "readonly", "type": "boolean"},
