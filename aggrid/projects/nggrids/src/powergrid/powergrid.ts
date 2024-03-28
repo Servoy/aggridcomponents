@@ -1075,9 +1075,9 @@ export class PowerGrid extends NGGridDirective {
 
                 // aggrid moved the sort state to the columns; move it to sortModel to keep backward compatibility
                 if(Array.isArray(columnStateJSON.columnState) && columnStateJSON.columnState.length > 0) {
-                    columnStateJSON.sortModel = [];
                     for(let i = 0; i < columnStateJSON.columnState.length; i++) {
                         if(columnStateJSON.columnState[i].sort) {
+                            if(!columnStateJSON.sortModel) columnStateJSON.sortModel = [];
                             columnStateJSON.sortModel.push( {
                                 colId: columnStateJSON.columnState[i].colId,
                                 sort: columnStateJSON.columnState[i].sort,
