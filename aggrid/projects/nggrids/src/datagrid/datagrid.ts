@@ -999,7 +999,7 @@ export class DataGrid extends NGGridDirective {
                         break;
                     case 'enabled':
                         if(this.isGridReady) {
-                            this.agGridOptions.suppressRowClickSelection = !change.currentValue;
+                            this.agGrid.api.setGridOption('suppressRowClickSelection', !change.currentValue);
                         }
                         break;
                     case '_internalFilterModel':
@@ -3754,8 +3754,7 @@ export class DataGrid extends NGGridDirective {
         }
 
         if(changeEvent.multiSelectChanged) {
-            this.agGridOptions.rowSelection =  changeEvent.multiSelectChanged.newValue ? 'multiple' : 'single';
-            this.agGrid.api.setGridOption('rowSelection', this.agGridOptions.rowSelection);
+            this.agGrid.api.setGridOption('rowSelection', changeEvent.multiSelectChanged.newValue ? 'multiple' : 'single');
         }
 
         if(!this.isRootFoundsetLoaded) {
@@ -3827,7 +3826,7 @@ export class DataGrid extends NGGridDirective {
                 });
             } else {
                 if(!this.isSingleClickEdit) {
-                    this.agGridOptions.singleClickEdit = this.isInFindMode();
+                    this.agGrid.api.setGridOption('singleClickEdit', this.isInFindMode());
                 }
 
                 let viewportChangedRows: any = null;

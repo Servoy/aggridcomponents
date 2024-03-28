@@ -709,7 +709,7 @@ export class PowerGrid extends NGGridDirective {
                         break;
                     case 'enabled':
                         if (this.isGridReady) {
-                            this.agGridOptions.suppressRowClickSelection = !change.currentValue;
+                            this.agGrid.api.setGridOption('suppressRowClickSelection', !change.currentValue);
                         }
                         break;
                     case '_internalResetLazyLoading':
