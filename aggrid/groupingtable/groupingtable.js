@@ -3156,10 +3156,12 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					FoundsetDatasource.prototype.getRows = function(params) {
 						$log.debug('FoundsetDatasource.getRows: params = ', params);
 
-						var currentEditCells = gridOptions.api.getEditingCells();
-						if(currentEditCells && currentEditCells.length &&
-							(currentEditCells[0].rowIndex < gridOptions.api.getFirstDisplayedRow() || currentEditCells[0].rowIndex > gridOptions.api.getLastDisplayedRow())) {
-							gridOptions.api.stopEditing();
+						if(gridOptions.api) {
+							var currentEditCells = gridOptions.api.getEditingCells();
+							if(currentEditCells && currentEditCells.length &&
+								(currentEditCells[0].rowIndex < gridOptions.api.getFirstDisplayedRow() || currentEditCells[0].rowIndex > gridOptions.api.getLastDisplayedRow())) {
+								gridOptions.api.stopEditing();
+							}
 						}
 
 						isDataLoading = true;
@@ -6735,7 +6737,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 									rowIdx = $scope.model.myFoundset.selectedRowIndexes[0];									
 								}
 
-								if(rowIdx != -1) {
+								if(rowIdx != -1 && gridOptions.api) {
 									gridOptions.api.setFocusedCell(rowIdx, colId, null);
 									// reset the request focus column index
 									requestFocusColumnIndex = -1;
