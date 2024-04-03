@@ -1046,13 +1046,13 @@ export class DataGrid extends NGGridDirective {
             return params.data[field];
         }
 
-        return undefined;
+        return '';
     }
 
     displayValueFormatter(params: any): string {
         const field = params.colDef.field;
         if (!params.data) {
-            return undefined;
+            return '';
         }
         let value = params.value !== undefined ? params.value: params.data[field];
         if (value && value.displayValue !== undefined) {

@@ -807,7 +807,7 @@ export class PowerGrid extends NGGridDirective {
                                 if (field && params.data) {
                                     return new Date(params.data[field]);
                                 }
-                                return undefined;
+                                return '';
                             };
                         }
                     }
