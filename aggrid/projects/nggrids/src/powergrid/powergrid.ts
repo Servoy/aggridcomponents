@@ -1712,7 +1712,8 @@ export class PowerGrid extends NGGridDirective {
 
         if (minHeight > 0) {
             for (const label of headerCellLabels) {
-                minHeight = Math.max(minHeight, label.scrollHeight + paddingTop + paddinBottom);
+                let labelScrollHeight = label.scrollWidth ? label.scrollHeight : 0;
+                minHeight = Math.max(minHeight, labelScrollHeight + paddingTop + paddinBottom);
             }
         }
         this.agGrid.api.setGridOption('headerHeight', minHeight);
