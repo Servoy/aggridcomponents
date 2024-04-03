@@ -414,7 +414,9 @@ export class DataGrid extends NGGridDirective {
             //suppressCellFocus: !this.enabled,
             enableRangeSelection: false,
             suppressRowClickSelection: !this.enabled,
-
+            isRowSelectable:(node: IRowNode) => {
+                return !node.group || this.groupCheckbox;
+            },
             singleClickEdit: false,
             suppressClickEdit: false,
             enableGroupEdit: false,
@@ -1884,7 +1886,7 @@ export class DataGrid extends NGGridDirective {
                 if(node.data && node.data._svyRowId) {
                     if(node.group && this._internalCheckboxGroupSelection && this._internalCheckboxGroupSelection.length) {
                         for(const selectedGroup of this._internalCheckboxGroupSelection) {
-                            if(selectedGroup.colId === node.rowGroupColumn.getColId() && selectedGroup.groupkey === node.data[node.field]) {
+                            if(!node.isSelected() && selectedGroup.colId === node.rowGroupColumn.getColId() && selectedGroup.groupkey === node.data[node.field]) {
                                 node.setSelected(true);
                                 break;
                             }
