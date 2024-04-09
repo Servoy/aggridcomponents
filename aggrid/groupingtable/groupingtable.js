@@ -1035,11 +1035,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							var groupedSelection = getGroupedSelection();
 							if (groupedSelection && groupedSelection.length) {
 								// prevent loop with _internalGroupedSelectionUpdating watch;
-								if (!$scope.model._internalGroupedSelection) $scope.model._internalGroupedSelection = []; else $scope.model._internalGroupedSelection.length = 0;
+								if (!$scope.model._internalGroupRowsSelection) $scope.model._internalGroupRowsSelection = []; else $scope.model._internalGroupRowsSelection.length = 0;
 								groupedSelection.forEach(function(record) {
-									$scope.model._internalGroupedSelection.push(record);
+									$scope.model._internalGroupRowsSelection.push(record);
 								});
-								$scope.svyServoyapi.apply('_internalGroupedSelection');
+								$scope.svyServoyapi.apply('_internalGroupRowsSelection');
 
 								// select also record in grouped foundset; useful to know if _internalGroupedSelection matches foundset selection upon user's scroll
 
@@ -1073,6 +1073,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							}
 
 							return;
+						} else if ($scope.model._internalGroupRowsSelection) {
+							$scope.model._internalGroupRowsSelection.length = 0;
+							$scope.svyServoyapi.apply('_internalGroupRowsSelection');
 						}
 
 						// set to true once the grid is ready and selection is set
@@ -3874,7 +3877,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						}
 					});
 
-					$scope.$watch("model._internalGroupedSelection", function(newValue, oldValue) {
+					$scope.$watch("model._internalGroupRowsSelection", function(newValue, oldValue) {
 						if(isGridReady) {
                             if(selectedRowIndexesChanged()) {
 								scrollToSelection();
@@ -5223,10 +5226,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 						var selectedNodes = new Array();
 						if (isTableGrouped()) {
-							if($scope.model._internalGroupedSelection && $scope.model._internalGroupedSelection.length) {
+							if($scope.model._internalGroupRowsSelection && $scope.model._internalGroupRowsSelection.length) {
 								var selectedRecordsPKs = new Array();
 				
-								$scope.model._internalGroupedSelection.forEach (function(record) {
+								$scope.model._internalGroupRowsSelection.forEach (function(record) {
 									var _svyRowIdSplit = record._svyRowId.split(';');
 									_svyRowIdSplit.pop();	// fix for composite pks
 									selectedRecordsPKs.push(_svyRowIdSplit.join(';'));
@@ -5289,11 +5292,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							}
 						}
 						
-						if (isTableGrouped() && isSelectedRowIndexesChanged && $scope.model._internalGroupedSelection && $scope.model._internalGroupedSelection.length) {
+						if (isTableGrouped() && isSelectedRowIndexesChanged && $scope.model._internalGroupRowsSelection && $scope.model._internalGroupRowsSelection.length) {
 														
 							var groupedRowFound = false;
 							// search if the _internalGroupedSelection is still on foundset, means the selection has not changed
-							var record = $scope.model._internalGroupedSelection[0];
+							var record = $scope.model._internalGroupRowsSelection[0];
 							var foundsetHash = getFoundSetByFoundsetUUID(record.foundsetId);
 								if (foundsetHash) {
 								var rowIndex = foundsetHash.selectedRowIndexes[0];
@@ -5313,7 +5316,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								isSelectedRowIndexesChanged = false;
 							} else {
 //								console.log("Grouped Row NOT MATCHIN FOUNDSET SELECTION");
-//								console.log( $scope.model._internalGroupedSelection)
+//								console.log( $scope.model._internalGroupRowsSelection)
 							}
 							
 						}
@@ -5336,8 +5339,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							var selectedNodes = gridOptions.api.getSelectedNodes();
 							if (selectedNodes && selectedNodes.length) {
 
-								if ($scope.model._internalGroupedSelection && $scope.model._internalGroupedSelection.length 
-										&& selectedNodes[0].data._svyRowId == $scope.model._internalGroupedSelection[0]._svyRowId) {
+								if ($scope.model._internalGroupRowsSelection && $scope.model._internalGroupRowsSelection.length 
+										&& selectedNodes[0].data._svyRowId == $scope.model._internalGroupRowsSelection[0]._svyRowId) {
 
 									var found = false;
 									// scroll to selection in group mode only if record exists in loaded foundsets to avoid cycle with scrollToSelection

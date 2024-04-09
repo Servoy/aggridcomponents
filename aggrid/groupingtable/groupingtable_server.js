@@ -967,7 +967,7 @@ $scope.api.setGroupedSelection = function(selectedRecords) {
  * Returns the selected rows when in grouping mode
  */
 $scope.api.getGroupedSelection = function() {
-	return $scope.model._internalGroupRowsSelection;
+	return !$scope.model._internalGroupRowsSelection || $scope.model._internalGroupRowsSelection.length == 0 ? null : $scope.model._internalGroupRowsSelection;
 }
 
 /**

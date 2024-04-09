@@ -3186,6 +3186,9 @@ export class DataGrid extends NGGridDirective {
             }
 
             return;
+        } else if (this._internalGroupRowsSelection) {
+            this._internalGroupRowsSelection.length = 0;
+            this._internalGroupRowsSelectionChange.emit(this._internalGroupRowsSelection);
         }
 
         // set to true once the grid is ready and selection is set
