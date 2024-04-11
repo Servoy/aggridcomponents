@@ -588,7 +588,7 @@ export class PowerGrid extends NGGridDirective {
 
         if (!this.servoyApi.isInDesigner() && this.useLazyLoading) {
             this.lazyLoadingRemoteDatasource = new RemoteDatasource(this);
-            this.gridApi.setServerSideDatasource(this.lazyLoadingRemoteDatasource);
+            this.agGrid.api.setGridOption('serverSideDatasource', this.lazyLoadingRemoteDatasource);
         }
     }
 
@@ -716,7 +716,7 @@ export class PowerGrid extends NGGridDirective {
                         if (this.isGridReady && change.currentValue) {
                             this._internalResetLazyLoading = false;
                             this._internalResetLazyLoadingChange.emit(this._internalResetLazyLoading);
-                            this.gridApi.setServerSideDatasource(this.lazyLoadingRemoteDatasource);
+                            this.agGrid.api.setGridOption('serverSideDatasource', this.lazyLoadingRemoteDatasource);
                         }
                         break;
                 }
