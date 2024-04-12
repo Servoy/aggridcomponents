@@ -718,12 +718,13 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 	//	                onColumnVisible: storeColumnsState,			 covered by onDisplayedColumnsChanged
 	//	                onColumnPinned: storeColumnsState,			 covered by onDisplayedColumnsChanged
 						onColumnResized: function(e) {				 // NOT covered by onDisplayedColumnsChanged
-							if(e.source === 'uiColumnDragged') {
+							if(continuousColumnsAutoSizing && e.source === 'uiColumnDragged') {
 								if(sizeHeaderAndColumnsToFitTimeout !== null) {
 									clearTimeout(sizeHeaderAndColumnsToFitTimeout);
 								}
 								sizeHeaderAndColumnsToFitTimeout = setTimeout(function() {
 									sizeHeaderAndColumnsToFitTimeout = null;
+									sizeHeaderAndColumnsToFit();
 									storeColumnsState();
 								}, 500);
 							} else {
