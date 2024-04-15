@@ -2266,10 +2266,10 @@ class RemoteDatasource {
                 filterModels,
                 request.sortModel);
             getRowsPromise.then(() => {
-                params.successCallback(this.powerGrid.data, this.powerGrid.lastRowIndex);
+                params.success({ rowData: this.powerGrid.data, rowCount: this.powerGrid.lastRowIndex });
             });
         } else {
-            params.successCallback(this.powerGrid.data, this.powerGrid.lastRowIndex);
+	    params.success({ rowData: this.powerGrid.data, rowCount: this.powerGrid.lastRowIndex });
         }
     }
 }
