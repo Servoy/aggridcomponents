@@ -12,7 +12,7 @@ import { TextEditor } from '../editors/texteditor';
 import { TypeaheadEditor } from '../editors/typeaheadeditor';
 import { RadioFilter } from '../filters/radiofilter';
 import { ValuelistFilter } from '../filters/valuelistfilter';
-import { IconConfig, MainMenuItemsConfig, NGGridDirective, ToolPanelConfig } from '../nggrid';
+import { ColumnsAutoSizingOn, GRID_EVENT_TYPES, IconConfig, MainMenuItemsConfig, NGGridDirective, ToolPanelConfig } from '../nggrid';
 import { DOCUMENT } from '@angular/common';
 import { BlankLoadingCellRendrer } from './renderers/blankloadingcellrenderer';
 import { NgbTypeaheadConfig } from '@ng-bootstrap/ng-bootstrap';
@@ -79,12 +79,6 @@ const COLUMN_KEYS_TO_SKIP_IN_CHANGES = [
     'rowDragText'
 ];
 
-const GRID_EVENT_TYPES = {
-    GRID_READY: 'gridReady',
-    DISPLAYED_COLUMNS_CHANGED : 'displayedColumnsChanged',
-    GRID_COLUMNS_CHANGED: 'gridColumnsChanged',
-    GRID_ROW_POST_CREATE: 'gridRowPostCreate'
-};
 @Component({
     selector: 'aggrid-groupingtable',
     templateUrl: './datagrid.html',
@@ -124,6 +118,7 @@ export class DataGrid extends NGGridDirective {
     @Input() columnsAutoSizing: string;
     @Output() columnsAutoSizingChange = new EventEmitter();
     @Input() continuousColumnsAutoSizing: boolean;
+    @Input() columnsAutoSizingOn: ColumnsAutoSizingOn;
 
     @Input() toolPanelConfig: ToolPanelConfig;
     @Input() iconConfig: IconConfig;
@@ -212,6 +207,8 @@ export class DataGrid extends NGGridDirective {
     agEditNextCellOnEnter = false;
     agContinuousColumnsAutoSizing = false;
 
+    initialColumnsAutoSizing: string;
+
     // position of cell with invalid data as reported by the return of onColumnDataChange
     invalidCellDataIndex = { rowIndex: -1, colKey: ''};
     onColumnDataChangePromise: any = null;
@@ -280,6 +277,8 @@ export class DataGrid extends NGGridDirective {
         if(this.datagridService.continuousColumnsAutoSizing) {
             this.agContinuousColumnsAutoSizing = this.datagridService.continuousColumnsAutoSizing;
         }
+
+        this.initialColumnsAutoSizing = this.columnsAutoSizing;
 
         toolPanelConfig = this.mergeConfig(toolPanelConfig, this.toolPanelConfig);
         iconConfig = this.mergeConfig(iconConfig, this.iconConfig);
@@ -442,7 +441,7 @@ export class DataGrid extends NGGridDirective {
                 this.setTimeout(() => {
                     // if not yet destroyed
                     if(this.agGrid.gridOptions.onGridSizeChanged) {
-                        this.sizeHeaderAndColumnsToFit();
+                        this.sizeHeaderAndColumnsToFit(GRID_EVENT_TYPES.GRID_SIZE_CHANGED);
                     }
                 }, 150);
             },
@@ -487,7 +486,7 @@ export class DataGrid extends NGGridDirective {
                 }
             },
             onColumnResized: (e: ColumnResizedEvent) => {
-                if(this.agContinuousColumnsAutoSizing && e.source === 'uiColumnResized') {
+                if(e.source === 'uiColumnResized') {
                     if(this.sizeHeaderAndColumnsToFitTimeout !== null) {
                         clearTimeout(this.sizeHeaderAndColumnsToFitTimeout);
                     }
@@ -516,7 +515,7 @@ export class DataGrid extends NGGridDirective {
                         });
 
                         //let the grid resize to fill the viewport based on actual width
-                        this.sizeHeaderAndColumnsToFit();
+                        this.sizeHeaderAndColumnsToFit(GRID_EVENT_TYPES.COLUMN_RESIZED);
                         
                         //restore design time values
                         displayedColumns.forEach((displayedCol: Column, arrayIndex) => {
@@ -564,7 +563,7 @@ export class DataGrid extends NGGridDirective {
             navigateToNextCell: (params) => this.keySelectionChangeNavigation(params),
             tabToNextCell: (params) => this.tabSelectionChangeNavigation(params),
             onToolPanelVisibleChanged: () => {
-                this.sizeHeaderAndColumnsToFit();
+                this.sizeHeaderAndColumnsToFit(GRID_EVENT_TYPES.TOOLPANEL_VISIBLE_CHANGE);
             },
             onCellKeyDown: (param: any) => {
                 switch(param.event.keyCode) {
@@ -982,7 +981,7 @@ export class DataGrid extends NGGridDirective {
                                                     this.gridApi.setColumnVisible(colId, newPropertyValue as boolean);
                                                 } else {
                                                     this.gridApi.setColumnWidth(colId, newPropertyValue as number);
-                                                    this.sizeHeaderAndColumnsToFit();
+                                                    this.sizeHeaderAndColumnsToFit(GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED);
                                                 }
                                             }
                                         }
@@ -1125,7 +1124,15 @@ export class DataGrid extends NGGridDirective {
     sizeHeaderAndColumnsToFit(eventType?: string) {
         // only if visible and grid is/still ready
         if(this.agGrid.api) {
-            switch (this.columnsAutoSizing) {
+
+            let useColumnsAutoSizing: string;
+            if(this.initialColumnsAutoSizing !== 'NONE' && !this.agContinuousColumnsAutoSizing && this.columnsAutoSizingOn[eventType] === true) {
+                useColumnsAutoSizing = this.initialColumnsAutoSizing;
+            } else {
+                useColumnsAutoSizing = this.columnsAutoSizing;
+            }
+
+            switch (useColumnsAutoSizing) {
                 case 'NONE':
                     break;
                 case 'AUTO_SIZE':
@@ -3568,7 +3575,7 @@ export class DataGrid extends NGGridDirective {
 
         // resize the columns
         this.setTimeout(() => {
-            this.sizeHeaderAndColumnsToFit();
+            this.sizeHeaderAndColumnsToFit(GRID_EVENT_TYPES.COLUMN_ROW_GROUP_CHANGED);
         }, 50);
 
         // scroll to the selected row when switching from Group to plain view.

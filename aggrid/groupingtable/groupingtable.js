@@ -85,9 +85,13 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 					var GRID_EVENT_TYPES = {
 						GRID_READY: 'gridReady',
-						DISPLAYED_COLUMNS_CHANGED : 'displayedColumnsChanged',
+						DISPLAYED_COLUMNS_CHANGED : 'displayedColumnsChange',
 						GRID_COLUMNS_CHANGED: 'gridColumnsChanged',
-						GRID_ROW_POST_CREATE: 'gridRowPostCreate'
+						GRID_ROW_POST_CREATE: 'gridRowPostCreate',
+						GRID_SIZE_CHANGED: 'gridSizeChange',
+						COLUMN_RESIZED: 'columnResize',
+						COLUMN_ROW_GROUP_CHANGED: 'columnRowGroupChange',
+						TOOLPANEL_VISIBLE_CHANGE: 'toolPanelVisibleChange'						
 					}
 					
 					/**
@@ -544,6 +548,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						return mergeConfig;
 					}
 
+					$scope.initialColumnsAutoSizing = $scope.model.columnsAutoSizing;
+
 					toolPanelConfig = mergeConfig(toolPanelConfig, config.toolPanelConfig);
 					iconConfig = mergeConfig(iconConfig, config.iconConfig);
 					userGridOptions = mergeConfig(userGridOptions, config.gridOptions);
@@ -699,7 +705,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							setTimeout(function() {
 								// if not yet destroyed
 								if(gridOptions.onGridSizeChanged) {
-									sizeHeaderAndColumnsToFit();
+									sizeHeaderAndColumnsToFit(GRID_EVENT_TYPES.GRID_SIZE_CHANGED);
 								}
 							}, 150);
 						},
@@ -718,13 +724,13 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 	//	                onColumnVisible: storeColumnsState,			 covered by onDisplayedColumnsChanged
 	//	                onColumnPinned: storeColumnsState,			 covered by onDisplayedColumnsChanged
 						onColumnResized: function(e) {				 // NOT covered by onDisplayedColumnsChanged
-							if(continuousColumnsAutoSizing && e.source === 'uiColumnDragged') {
+							if(e.source === 'uiColumnDragged') {
 								if(sizeHeaderAndColumnsToFitTimeout !== null) {
 									clearTimeout(sizeHeaderAndColumnsToFitTimeout);
 								}
 								sizeHeaderAndColumnsToFitTimeout = setTimeout(function() {
 									sizeHeaderAndColumnsToFitTimeout = null;
-									sizeHeaderAndColumnsToFit();
+									sizeHeaderAndColumnsToFit(GRID_EVENT_TYPES.COLUMN_RESIZED);
 									storeColumnsState();
 								}, 500);
 							} else {
@@ -791,7 +797,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						},
 						enableBrowserTooltips: false,
 						onToolPanelVisibleChanged : function(event) {
-							sizeHeaderAndColumnsToFit();
+							sizeHeaderAndColumnsToFit(GRID_EVENT_TYPES.TOOLPANEL_VISIBLE_CHANGE);
 						},
 						onCellKeyDown: function(param) {
 							switch(param.event.keyCode) {
@@ -1653,7 +1659,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 						// resize the columns
 						setTimeout(function() {
-							sizeHeaderAndColumnsToFit();
+							sizeHeaderAndColumnsToFit(GRID_EVENT_TYPES.COLUMN_ROW_GROUP_CHANGED);
 						}, 50);
 						
 						// scroll to the selected row when switching from Group to plain view.
@@ -1942,7 +1948,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					function sizeHeaderAndColumnsToFit(eventType) {
 						// only if visible and grid is/still ready
 						if($scope.model.visible && gridOptions.api) {
-							switch ($scope.model.columnsAutoSizing) {
+							var useColumnsAutoSizing;
+							if($scope.initialColumnsAutoSizing !== 'NONE' && !continuousColumnsAutoSizing && $scope.model.columnsAutoSizingOn[eventType] === true) {
+								useColumnsAutoSizing = $scope.initialColumnsAutoSizing;
+							} else {
+								useColumnsAutoSizing = $scope.model.columnsAutoSizing;
+							}							
+
+							switch (useColumnsAutoSizing) {
 								case "NONE":
 									break;
 								case "AUTO_SIZE":
@@ -3770,7 +3783,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 										gridOptions.columnApi.setColumnVisible(colId, newValue);
 									} else {
 										gridOptions.columnApi.setColumnWidth(colId, newValue);
-										sizeHeaderAndColumnsToFit();
+										sizeHeaderAndColumnsToFit(GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED);
 									}
 								}
 							}
