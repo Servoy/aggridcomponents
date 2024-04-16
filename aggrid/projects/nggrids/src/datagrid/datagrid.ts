@@ -158,6 +158,7 @@ export class DataGrid extends NGGridDirective {
     @Input() onColumnStateChanged: (columnState: string, event: Event) => void;
     @Input() onFooterClick: (columnindex: number, event: Event) => void;
     @Input() onReady: () => void;
+    @Input() onElementDataChange: () => void;
     @Input() onRowGroupOpened: (groupcolumnindexes: number[],groupkeys: unknown[],isopened: boolean) => void;
     @Input() onSelectedRowsChanged: (isgroupselection?: boolean,groupcolumnid?: string,groupkey?: unknown, groupselection?: boolean) => void;
     @Input() onSort: (columnindexes: number[], sorts: string[]) => Promise<unknown>;

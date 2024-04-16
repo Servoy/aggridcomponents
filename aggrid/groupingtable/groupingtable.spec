@@ -196,6 +196,9 @@
 			"returns": {"type": "boolean", "default": true},
 			"ignoreNGBlockDuplicateEvents": true
 		},
+		"onElementDataChange": {
+           "deprecated" : "dummy handler for onElementDataChange to be called"
+        },
 		"onReady": {
 			"doc": "Called when the table is ready to be shown",
 			"allowaccess": "enabled"
@@ -500,7 +503,7 @@
 			"headerGroup": {"type" : "tagstring", "tags": {"doc": "Header group, that this column will be part of"}},
 			"headerGroupStyleClass" : {"type" : "styleclass"},
 			"headerCheckbox" : {"type": "boolean", "default" : false, "tags" : {"scope": "design", "doc": "When true the column has checkbox for selecting/unselecting all rows"}},
-			"dataprovider": { "type": "dataprovider", "forFoundset": "myFoundset", "resolveValuelist" : true, "pushToServer" : "allow", "tags": { "wizard": "1", "useAsCaptionInDeveloper" : true, "captionPriority" : 2 }},
+			"dataprovider": { "type": "dataprovider", "forFoundset": "myFoundset", "resolveValuelist" : true, "pushToServer" : "allow", "ondatachange": { "onchange":"onElementDataChange"}, "tags": { "wizard": "1", "useAsCaptionInDeveloper" : true, "captionPriority" : 2 }},
 			"tooltip": { "type": "dataprovider", "forFoundset": "myFoundset"},
 			"styleClass" : {"type" : "styleclass","tags": {"wizard": {"order": "3", "values":[{"name": "Pencil icon", "cls": "fa fa-pencil"}, {"name": "Trash icon", "cls": "fa fa-trash"}, {"name": "Eye icon", "cls": "fa fa-eye"}, {"name": "Gear icon", "cls": "fa fa-gear"}] }} },
 			"styleClassDataprovider": { "type": "dataprovider", "forFoundset": "myFoundset", "tags": {"wizard": "2", "doc": "Use a Servoy calculation as styleClassDataprovider to set styleClass conditionally to the table cell"}},
