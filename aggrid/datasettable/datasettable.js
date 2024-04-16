@@ -14,8 +14,13 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
 
                 var GRID_EVENT_TYPES = {
                     GRID_READY: 'gridReady',
-                    DISPLAYED_COLUMNS_CHANGED : 'displayedColumnsChanged',
-                    GRID_COLUMNS_CHANGED: 'gridColumnsChanged'
+                    DISPLAYED_COLUMNS_CHANGED : 'displayedColumnsChange',
+                    GRID_COLUMNS_CHANGED: 'gridColumnsChanged',
+                    GRID_ROW_POST_CREATE: 'gridRowPostCreate',
+                    GRID_SIZE_CHANGED: 'gridSizeChange',
+                    COLUMN_RESIZED: 'columnResize',
+                    COLUMN_ROW_GROUP_CHANGED: 'columnRowGroupChange',
+                    TOOLPANEL_VISIBLE_CHANGE: 'toolPanelVisibleChange'						
                 }
 
                 var gridDiv = $element.find('.ag-table')[0];
@@ -152,6 +157,8 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     pivotComparatorFunc: { colDefProperty: "pivotComparator", default: null },
                     valueGetterFunc: { colDefProperty: "valueGetter", default: null }
                 }
+
+                $scope.initialColumnsAutoSizing = $scope.model.columnsAutoSizing;
 
                 toolPanelConfig = mergeConfig(toolPanelConfig, config.toolPanelConfig);
                 iconConfig = mergeConfig(iconConfig, config.iconConfig);
@@ -339,7 +346,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                         setTimeout(function() {
                             // if not yet destroyed
                             if(gridOptions.onGridSizeChanged) {
-                                sizeColumnsToFit();
+                                sizeColumnsToFit(GRID_EVENT_TYPES.GRID_SIZE_CHANGED);
                             }
                         }, 150);
                     },
@@ -355,7 +362,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
 							}
 							sizeColumnsToFitTimeout = setTimeout(function() {
 								sizeColumnsToFitTimeout = null;
-								sizeColumnsToFit();
+								sizeColumnsToFit(GRID_EVENT_TYPES.COLUMN_RESIZED);
 								storeColumnsState();
 							}, 500);
 						} else {
@@ -373,7 +380,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     popupParent: gridDiv,
                     enableBrowserTooltips: false,
                     onToolPanelVisibleChanged : function(event) {
-                        sizeColumnsToFit();
+                        sizeColumnsToFit(GRID_EVENT_TYPES.TOOLPANEL_VISIBLE_CHANGE);
                     },
                     onCellEditingStopped : function(event) {
                         // don't allow escape if cell data is invalid
@@ -693,7 +700,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
 									gridOptions.columnApi.setColumnVisible(colId, newValue);
 								} else {
 									gridOptions.columnApi.setColumnWidth(colId, newValue);
-									sizeColumnsToFit();
+									sizeColumnsToFit(GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED);
 								}
 							}                            
                         }
@@ -1187,7 +1194,15 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
 
                 function sizeColumnsToFit(eventType) {
                     if($scope.model.visible) {
-                        switch ($scope.model.columnsAutoSizing) {
+
+                        var useColumnsAutoSizing;
+                        if($scope.initialColumnsAutoSizing !== 'NONE' && !continuousColumnsAutoSizing && $scope.model.columnsAutoSizingOn[eventType] === true) {
+                            useColumnsAutoSizing = $scope.initialColumnsAutoSizing;
+                        } else {
+                            useColumnsAutoSizing = $scope.model.columnsAutoSizing;
+                        }						
+
+                        switch (useColumnsAutoSizing) {
                             case "NONE":
                                 break;
                             case "AUTO_SIZE":

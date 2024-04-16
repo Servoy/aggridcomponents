@@ -3,6 +3,17 @@ import { GridApi, GridOptions } from '@ag-grid-community/core';
 import { ChangeDetectorRef, ContentChild, Directive, Input, TemplateRef, ViewChild } from '@angular/core';
 import { BaseCustomObject, Format, FormattingService, LoggerService, ServoyBaseComponent } from '@servoy/public';
 
+export const GRID_EVENT_TYPES = {
+    GRID_READY: 'gridReady',
+    DISPLAYED_COLUMNS_CHANGED : 'displayedColumnsChange',
+    GRID_COLUMNS_CHANGED: 'gridColumnsChanged',
+    GRID_ROW_POST_CREATE: 'gridRowPostCreate',
+    GRID_SIZE_CHANGED: 'gridSizeChange',
+    COLUMN_RESIZED: 'columnResize',
+    COLUMN_ROW_GROUP_CHANGED: 'columnRowGroupChange',
+    TOOLPANEL_VISIBLE_CHANGE: 'toolPanelVisibleChange'
+};
+
 @Directive()
 export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement> {
 
@@ -73,4 +84,7 @@ export class ToolPanelConfig extends BaseCustomObject {
 }
 
 export class MainMenuItemsConfig extends BaseCustomObject {
+}
+
+export class ColumnsAutoSizingOn extends BaseCustomObject {   
 }
