@@ -3373,21 +3373,20 @@ export class DataGrid extends NGGridDirective {
                         }, 350);
                     }
                 } else {
-                    // Added setTimeOut to enable onColumnDataChangeEvent to go first; must be over 250, so selection is sent first
-                    this.setTimeout(() => {
-                        this.onCellClicked(params);
-                    }, 350);
+                    // Added timeout to enable onColumnDataChangeEvent to go first; must be over 250, so selection is sent first
+                    this.onCellClicked(params, 350);
                 }
             }
         }
     }
 
-    onCellClicked(params: any) {
+    onCellClicked(params: any, timeout?: number) {
         this.log.debug(params);
         const col = params.colDef.field ? this.getColumn(params.colDef.field) : null;
         if(col && col.editType === 'CHECKBOX' && params.colDef.editable && this.isColumnEditable(params)) {
             params.node.setDataValue(params.column.colId, this.getCheckboxEditorToggleValue(params.value));
         }
+
         if (this.onCellClick) {
             //						var row = params.data;
             //						var foundsetManager = getFoundsetManagerByFoundsetUUID(row._svyFoundsetUUID);
@@ -3416,7 +3415,13 @@ export class DataGrid extends NGGridDirective {
             //							foundsetIndex = -1;
             //						}
 
-            this.onCellClick(this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), params.event);
+            if(timeout) {
+                this.setTimeout(() => {
+                    this.onCellClick(this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), params.event);
+                }, timeout);
+            } else {
+                this.onCellClick(this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), params.event);
+            }
         }
     }
 
