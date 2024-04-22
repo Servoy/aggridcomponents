@@ -393,7 +393,7 @@ export class DataGrid extends NGGridDirective {
                 tooltipComponent: CustomTooltip
             },
             columnDefs,
-
+            suppressPropertyNamesCheck: true,
             stopEditingWhenCellsLoseFocus: true,
             suppressAnimationFrame: false,
             animateRows: false,
