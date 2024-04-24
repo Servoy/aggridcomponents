@@ -38,6 +38,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 var localeText = null;
                 var mainMenuItemsConfig = null;
                 var continuousColumnsAutoSizing = false;
+                var columnsAutoSizingOn = null;
                 if($injector.has('ngPowerGrid')) {
                     var datasettableDefaultConfig = $services.getServiceScope('ngPowerGrid').model;
                     if(datasettableDefaultConfig.toolPanelConfig) {
@@ -57,6 +58,9 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     }
                     if(datasettableDefaultConfig.continuousColumnsAutoSizing) {
                         continuousColumnsAutoSizing = datasettableDefaultConfig.continuousColumnsAutoSizing;
+                    }
+                    if(datasettableDefaultConfig.columnsAutoSizingOn) {
+                        columnsAutoSizingOn = datasettableDefaultConfig.columnsAutoSizingOn;
                     }                    
                 }
 
@@ -169,6 +173,9 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 if(config.continuousColumnsAutoSizing) {
                     continuousColumnsAutoSizing = config.continuousColumnsAutoSizing;
                 }
+                if(config.columnsAutoSizingOn) {
+                    columnsAutoSizingOn = config.columnsAutoSizingOn;
+                }                
 
                 var vMenuTabs = ['generalMenuTab','filterMenuTab'];
                 
@@ -1196,7 +1203,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     if($scope.model.visible) {
 
                         var useColumnsAutoSizing;
-                        if($scope.initialColumnsAutoSizing !== 'NONE' && !continuousColumnsAutoSizing && $scope.model.columnsAutoSizingOn[eventType] === true) {
+                        if($scope.initialColumnsAutoSizing !== 'NONE' && !continuousColumnsAutoSizing && (!columnsAutoSizingOn || columnsAutoSizingOn[eventType] === true)) {
                             useColumnsAutoSizing = $scope.initialColumnsAutoSizing;
                         } else {
                             useColumnsAutoSizing = $scope.model.columnsAutoSizing;

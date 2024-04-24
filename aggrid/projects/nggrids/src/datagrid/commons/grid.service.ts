@@ -11,6 +11,7 @@ export class GridService {
     public columnOptions: any;
     public mainMenuItemsConfig: any;
     public continuousColumnsAutoSizing: boolean;
+    public columnsAutoSizingOn: any;
 
     private dragData: any[];
 

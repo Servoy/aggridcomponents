@@ -140,6 +140,7 @@ export class PowerGrid extends NGGridDirective {
 
     agMainMenuItemsConfig: any;
     agContinuousColumnsAutoSizing = false;
+    agColumnsAutoSizingOn: any;
 
     initialColumnsAutoSizing: string;
 
@@ -190,6 +191,9 @@ export class PowerGrid extends NGGridDirective {
         if (this.powergridService.continuousColumnsAutoSizing) {
             this.agContinuousColumnsAutoSizing = this.powergridService.continuousColumnsAutoSizing;
         }
+        if(this.powergridService.columnsAutoSizingOn) {
+            this.agColumnsAutoSizingOn = this.powergridService.columnsAutoSizingOn;
+        }
 
         this.initialColumnsAutoSizing = this.columnsAutoSizing;
 
@@ -202,7 +206,10 @@ export class PowerGrid extends NGGridDirective {
         if (this.continuousColumnsAutoSizing) {
             this.agContinuousColumnsAutoSizing = this.continuousColumnsAutoSizing;
         }
-
+        if(this.columnsAutoSizingOn) {
+            this.agColumnsAutoSizingOn = this.columnsAutoSizingOn;
+        }
+        
         const vMenuTabs = ['generalMenuTab', 'filterMenuTab'] as ColumnMenuTab[];
 
         if (this.showColumnsMenuTab) vMenuTabs.push('columnsMenuTab');
@@ -1213,7 +1220,7 @@ export class PowerGrid extends NGGridDirective {
     svySizeColumnsToFit(eventType?: string) {
 
         let useColumnsAutoSizing: string;
-        if(this.initialColumnsAutoSizing !== 'NONE' && !this.agContinuousColumnsAutoSizing && this.columnsAutoSizingOn[eventType] === true) {
+        if(this.initialColumnsAutoSizing !== 'NONE' && !this.agContinuousColumnsAutoSizing && (!this.agColumnsAutoSizingOn || this.agColumnsAutoSizingOn[eventType] === true)) {
             useColumnsAutoSizing = this.initialColumnsAutoSizing;
         } else {
             useColumnsAutoSizing = this.columnsAutoSizing;
