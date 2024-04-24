@@ -207,6 +207,7 @@ export class DataGrid extends NGGridDirective {
     agArrowsUpDownMoveWhenEditing: any;
     agEditNextCellOnEnter = false;
     agContinuousColumnsAutoSizing = false;
+    agColumnsAutoSizingOn: any;
 
     initialColumnsAutoSizing: string;
 
@@ -278,6 +279,9 @@ export class DataGrid extends NGGridDirective {
         if(this.datagridService.continuousColumnsAutoSizing) {
             this.agContinuousColumnsAutoSizing = this.datagridService.continuousColumnsAutoSizing;
         }
+        if(this.datagridService.columnsAutoSizingOn) {
+            this.agColumnsAutoSizingOn = this.datagridService.columnsAutoSizingOn;
+        }
 
         this.initialColumnsAutoSizing = this.columnsAutoSizing;
 
@@ -295,6 +299,9 @@ export class DataGrid extends NGGridDirective {
         }
         if(this.continuousColumnsAutoSizing) {
             this.agContinuousColumnsAutoSizing = this.continuousColumnsAutoSizing;
+        }
+        if(this.columnsAutoSizingOn) {
+            this.agColumnsAutoSizingOn = this.columnsAutoSizingOn;
         }
 
         const vMenuTabs = ['generalMenuTab', 'filterMenuTab'];
@@ -1127,7 +1134,7 @@ export class DataGrid extends NGGridDirective {
         if(this.agGrid.api) {
 
             let useColumnsAutoSizing: string;
-            if(this.initialColumnsAutoSizing !== 'NONE' && !this.agContinuousColumnsAutoSizing && this.columnsAutoSizingOn[eventType] === true) {
+            if(this.initialColumnsAutoSizing !== 'NONE' && !this.agContinuousColumnsAutoSizing && (!this.agColumnsAutoSizingOn  || this.agColumnsAutoSizingOn[eventType] === true)) {
                 useColumnsAutoSizing = this.initialColumnsAutoSizing;
             } else {
                 useColumnsAutoSizing = this.columnsAutoSizing;

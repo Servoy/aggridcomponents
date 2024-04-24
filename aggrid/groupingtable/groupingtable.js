@@ -494,6 +494,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					var arrowsUpDownMoveWhenEditing = null;
 					var editNextCellOnEnter = false;
 					var continuousColumnsAutoSizing = false;
+					var columnsAutoSizingOn = null;
 					if($injector.has('ngDataGrid')) {
 						var groupingtableDefaultConfig = $services.getServiceScope('ngDataGrid').model;
 						if(groupingtableDefaultConfig.toolPanelConfig) {
@@ -519,6 +520,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						}
 						if(groupingtableDefaultConfig.continuousColumnsAutoSizing) {
 							continuousColumnsAutoSizing = groupingtableDefaultConfig.continuousColumnsAutoSizing;
+						}
+						if(groupingtableDefaultConfig.columnsAutoSizingOn) {
+							columnsAutoSizingOn = groupingtableDefaultConfig.columnsAutoSizingOn;
 						}
 					}
 
@@ -564,6 +568,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 					if(config.continuousColumnsAutoSizing) {
 						continuousColumnsAutoSizing = config.continuousColumnsAutoSizing;
+					}
+					if(config.columnsAutoSizingOn) {
+						columnsAutoSizingOn = config.columnsAutoSizingOn;
 					}
 
 					var vMenuTabs = ['generalMenuTab', 'filterMenuTab'];
@@ -1949,7 +1956,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						// only if visible and grid is/still ready
 						if($scope.model.visible && gridOptions.api) {
 							var useColumnsAutoSizing;
-							if($scope.initialColumnsAutoSizing !== 'NONE' && !continuousColumnsAutoSizing && $scope.model.columnsAutoSizingOn[eventType] === true) {
+							if($scope.initialColumnsAutoSizing !== 'NONE' && !continuousColumnsAutoSizing && (!columnsAutoSizingOn || columnsAutoSizingOn[eventType] === true)) {
 								useColumnsAutoSizing = $scope.initialColumnsAutoSizing;
 							} else {
 								useColumnsAutoSizing = $scope.model.columnsAutoSizing;

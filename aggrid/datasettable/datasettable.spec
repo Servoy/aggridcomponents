@@ -59,7 +59,7 @@
 		"tabSeq": { "type": "tabseq", "tags": { "scope": "design" } },
 		"columnsAutoSizing": {"type": "string", "default" : null, "values": [{"SIZE_COLUMNS_TO_FIT":null}, {"AUTO_SIZE":"AUTO_SIZE"}, {"NONE":"NONE"}], "pushToServer": "allow", "tags": {"allowaccess": "enabled", "doc": "Auto sizing for columns. SIZE_COLUMNS_TO_FIT: make the currently visible columns fit the screen. AUTO_SIZE: the grid will work out the best width to fit the contents of the 'visible' cells in the column. NONE: no auto sizing action performed"}},
 		"continuousColumnsAutoSizing":  { "type": "boolean", "default": false, "tags": {"doc": "Size columns to fit whenever columns width are changed"} },
-		"columnsAutoSizingOn":  { "type": "columnsAutoSizingOn", "default": {"columnResized": true, "columnRowGroupChange": true, "displayedColumnsChange": true, "gridSizeChange": true, "toolPanelVisibleChange": true}, "tags": {"doc": "Apply 'columnsAutoSizing' for these events even if 'continuousColumnsAutoSizing' is false"} },
+		"columnsAutoSizingOn":  { "type": "columnsAutoSizingOn", "tags": {"scope": "design", "doc": "Apply 'columnsAutoSizing' for these events even if 'continuousColumnsAutoSizing' is false"} },
 		"onDragOverFunc": {"type": "clientfunction", "tags": {"doc": "Callback when dragging over a row - returns true whenever a drop is allowed."}}
 	},
 	"handlers" : {
@@ -563,11 +563,11 @@
 			"aggFunc" : "clientfunction"
 		},
 		"columnsAutoSizingOn" : {
-			"columnResize" : { "type": "boolean", "default": true, "tags": {"doc": "Apply 'columnsAutoSizing' when columns are resized"} },
-			"columnRowGroupChange" : { "type": "boolean", "default": true, "tags": {"doc": "Apply 'columnsAutoSizing' when row grouping is changed"} },
-			"displayedColumnsChange" : { "type": "boolean", "default": true, "tags": {"doc": "Apply 'columnsAutoSizing' when columns are added/removed"} },
-			"gridSizeChange" : { "type": "boolean", "default": true, "tags": {"doc": "Apply 'columnsAutoSizing' when grid size changes"} },
-			"toolPanelVisibleChange" : { "type": "boolean", "default": true, "tags": {"doc": "Apply 'columnsAutoSizing' when the toolpanel visibility is changed"} }
+			"columnResize" : { "type": "boolean", "default": true, "tags": {"scope": "design", "doc": "Apply 'columnsAutoSizing' when columns are resized"} },
+			"columnRowGroupChange" : { "type": "boolean", "default": true, "tags": {"scope": "design", "doc": "Apply 'columnsAutoSizing' when row grouping is changed"} },
+			"displayedColumnsChange" : { "type": "boolean", "default": true, "tags": {"scope": "design", "doc": "Apply 'columnsAutoSizing' when columns are added/removed"} },
+			"gridSizeChange" : { "type": "boolean", "default": true, "tags": {"scope": "design", "doc": "Apply 'columnsAutoSizing' when grid size changes"} },
+			"toolPanelVisibleChange" : { "type": "boolean", "default": true, "tags": {"scope": "design", "doc": "Apply 'columnsAutoSizing' when the toolpanel visibility is changed"} }
 		}
 	}
 }
