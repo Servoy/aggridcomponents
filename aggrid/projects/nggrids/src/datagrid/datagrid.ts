@@ -965,15 +965,16 @@ export class DataGrid extends NGGridDirective {
                                         }
                                         if(columnPropertyChanged) {
                                             this.log.debug('column property changed');
-                                            if(this.isGridReady) {
-                                                if(prop !== "headerTooltip" && prop !== 'footerText' && prop !== 'headerTitle' && prop !== 'visible' && prop !== 'width') {
+
+                                            if(prop !== "headerTooltip" && prop !== 'footerText' && prop !== 'headerTitle' && prop !== 'visible' && prop !== 'width') {
+                                                if(this.isGridReady) {
                                                     this.updateColumnDefs();
                                                     if(prop !== 'enableToolPanel') {
                                                         this.restoreColumnsState();
                                                     }
+                                                } else {
+                                                    this.isColumnModelChangedBeforeGridReady = true;        
                                                 }
-                                            } else {
-                                                this.isColumnModelChangedBeforeGridReady = true;
                                             }
 
                                             if(prop === 'headerTitle') {

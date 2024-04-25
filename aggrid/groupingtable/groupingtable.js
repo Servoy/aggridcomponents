@@ -3757,16 +3757,16 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						function(newValue, oldValue) {
 							if(newValue != oldValue) {
 								$log.debug('column property changed');
-								if(isGridReady) {
-									if(property != "headerTooltip" && property != "footerText" && property != "headerTitle" && property != "visible" && property != "width") {
+
+								if(property != "headerTooltip" && property != "footerText" && property != "headerTitle" && property != "visible" && property != "width") {
+									if(isGridReady) {
 										updateColumnDefs();
 										if(property != "enableToolPanel") {
 											restoreColumnsState();
 										}
+									} else {
+										isColumnModelChangedBeforeGridReady = true;		
 									}
-								}
-								else {
-									isColumnModelChangedBeforeGridReady = true;
 								}
 
 								if(property == "headerTitle") {
