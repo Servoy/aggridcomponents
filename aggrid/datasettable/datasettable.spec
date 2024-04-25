@@ -442,6 +442,7 @@
 			"styleClass" : {"type" : "styleclass"},
 			"visible":  { "type": "boolean", "default": true},
 			"width":  { "type": "int", "default": 0 },
+			"initialWidth":  { "type": "int", "tags": {"scope" : "private"}},
 			"minWidth":  { "type": "int" },
 			"maxWidth":  { "type": "int" },		
 			"enableRowGroup" : {"type": "boolean", "default" : true, "tags": {"doc": "Allow the user to group or ungroup the column"}},
