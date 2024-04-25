@@ -357,7 +357,11 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                             }
                         }, 150);
                     },
-    //                onColumnEverythingChanged: storeColumnsState,	// do we need that ?, when is it actually triggered ?
+                    onColumnEverythingChanged: function(e) {
+                        if(e.source === 'contextMenu') { 
+                          updateColumnDefs();
+                        }
+                    },
                     onSortChanged: storeColumnsState,
     //                onFilterChanged: storeColumnsState,			 disable filter sets for now
     //                onColumnVisible: storeColumnsState,			 covered by onDisplayedColumnsChanged

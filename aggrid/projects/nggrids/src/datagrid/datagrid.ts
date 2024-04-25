@@ -1,5 +1,6 @@
 import { GridOptions, GetRowIdParams, IRowDragItem, DndSourceCallbackParams, ColumnResizedEvent, RowSelectedEvent, SelectionChangedEvent, 
-        ColDef, Column, IRowNode, IServerSideDatasource, IServerSideGetRowsParams, LoadSuccessParams } from '@ag-grid-community/core';
+        ColDef, Column, IRowNode, IServerSideDatasource, IServerSideGetRowsParams, LoadSuccessParams, 
+        ColumnEverythingChangedEvent} from '@ag-grid-community/core';
 import { ChangeDetectionStrategy, ChangeDetectorRef, ElementRef, EventEmitter, Inject, Input, Output, Renderer2, SecurityContext, SimpleChanges } from '@angular/core';
 import { Component, ViewChild } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
@@ -492,6 +493,20 @@ export class DataGrid extends NGGridDirective {
                     this.onSortHandler();
                 }
             },
+            onColumnEverythingChanged: (e: ColumnEverythingChangedEvent) => {
+              if(e.source === 'contextMenu') {
+                let column: any;
+                for (let i = 0; this.columns && i < this.columns.length; i++) {
+                    column = this.columns[i];
+                    if(column.initialWidth === -1) {
+                        delete column.width;
+                    } else {
+                        column.width = column.initialWidth;
+                    }
+                }                
+                this.updateColumnDefs();
+              }
+            },
             onColumnResized: (e: ColumnResizedEvent) => {
                 if(e.source === 'uiColumnResized') {
                     if(this.sizeHeaderAndColumnsToFitTimeout !== null) {
@@ -503,7 +518,7 @@ export class DataGrid extends NGGridDirective {
                         // the column def instead of the actual width to calculate the layout, so set it
                         // during the call and then reset it at the end
                         
-                        let displayedColumns = this.agGrid.api.getAllDisplayedColumns();
+                        const displayedColumns = this.agGrid.api.getAllDisplayedColumns();
                         let suppressSizeToFit: boolean, colDef: ColDef;
 
                         if (e.column) {
@@ -513,22 +528,17 @@ export class DataGrid extends NGGridDirective {
                             colDef.suppressSizeToFit = true;
                         }
 
-                        //store design time values
-                        let columnSetWidth = [], displayedColDef: ColDef, colWidth: Number, totalColWidth = 0;
-                        displayedColumns.forEach((displayedCol: Column, arrayIndex, array) => {
+                        let displayedColDef: ColDef;
+                        displayedColumns.forEach((displayedCol: Column) => {
                             displayedColDef = this.agGrid.api.getColumnDef(displayedCol.getColId());
-                            columnSetWidth.push(displayedColDef.width);
                             displayedColDef.width = displayedCol.getActualWidth();
+                            const column = this.getColumn(displayedColDef.field);
+                            if(column) column.width = displayedColDef.width;
+
                         });
 
                         //let the grid resize to fill the viewport based on actual width
                         this.sizeHeaderAndColumnsToFit(GRID_EVENT_TYPES.COLUMN_RESIZED);
-                        
-                        //restore design time values
-                        displayedColumns.forEach((displayedCol: Column, arrayIndex) => {
-                            displayedColDef = this.agGrid.api.getColumnDef(displayedCol.getColId());
-                            displayedColDef.width = columnSetWidth[arrayIndex];
-                        });
 
                         if (colDef) {
                             //remove / restore original suppressSizeToFit setting of the column resized
@@ -1316,7 +1326,12 @@ export class DataGrid extends NGGridDirective {
             // column grouping
             colDef.enableRowGroup = column.enableRowGroup && column.dataprovider !== undefined;
             if (column.rowGroupIndex >= 0) colDef.rowGroupIndex = column.rowGroupIndex;
-            if (column.width) colDef.width = column.width;
+            if (column.width) {
+                colDef.width = column.width;
+                if(column.initialWidth === undefined) column.initialWidth = column.width;
+            } else {
+                column.initialWidth = -1;
+            }
 
             // tool panel
             if (column.enableToolPanel === false) {
@@ -5764,6 +5779,7 @@ export class DataGridColumn extends BaseCustomObject {
     valuelist: any;
     visible: boolean;
     width: number;
+    initialWidth: number;
     minWidth: number;
     maxWidth: number;
     enableRowGroup: boolean;

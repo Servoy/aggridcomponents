@@ -716,7 +716,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								}
 							}, 150);
 						},
-	//	                onColumnEverythingChanged: storeColumnsState,	// do we need that ?, when is it actually triggered ?
+						onColumnEverythingChanged: function(e) {
+							if(e.source === 'contextMenu') { 
+							  updateColumnDefs();
+							}
+						},
 						onFilterChanged: storeColumnsState,
 						onSortChanged: function() {
 							storeColumnsState();

@@ -1,4 +1,4 @@
-import { GetRowIdParams, ColumnMenuTab, ColumnResizedEvent, ColDef, Column, IRowNode, IAggFunc } from '@ag-grid-community/core';
+import { GetRowIdParams, ColumnMenuTab, ColumnResizedEvent, ColDef, Column, IRowNode, IAggFunc, ColumnEverythingChangedEvent } from '@ag-grid-community/core';
 import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Inject, Input, Output, Renderer2, SecurityContext, SimpleChanges, ViewChild } from '@angular/core';
 import { BaseCustomObject, Format, FormattingService, ICustomArray } from '@servoy/public';
 import { LoggerFactory } from '@servoy/public';
@@ -347,6 +347,20 @@ export class PowerGrid extends NGGridDirective {
             },
             //                onColumnEverythingChanged: storeColumnsState,	// do we need that ?, when is it actually triggered ?
             onSortChanged: () => this.storeColumnsState(),
+            onColumnEverythingChanged: (e: ColumnEverythingChangedEvent) => {
+                if(e.source === 'contextMenu') {
+                  let column: any;
+                  for (let i = 0; this.columns && i < this.columns.length; i++) {
+                      column = this.columns[i];
+                      if(column.initialWidth === -1) {
+                          delete column.width;
+                      } else {
+                          column.width = column.initialWidth;
+                      }
+                  }                
+                  this.updateColumnDefs();
+                }
+            },            
             //                onFilterChanged: storeColumnsState,			 disable filter sets for now
             //                onColumnVisible: storeColumnsState,			 covered by onDisplayedColumnsChanged
             //                onColumnPinned: storeColumnsState,			 covered by onDisplayedColumnsChanged
@@ -371,22 +385,16 @@ export class PowerGrid extends NGGridDirective {
                             colDef.suppressSizeToFit = true;
                         }
 
-                        //store design time values
-                        let columnSetWidth = [], displayedColDef: ColDef, colWidth: Number, totalColWidth = 0;
-                        displayedColumns.forEach((displayedCol: Column, arrayIndex, array) => {
+                        let displayedColDef: ColDef;
+                        displayedColumns.forEach((displayedCol: Column) => {
                             displayedColDef = this.agGrid.api.getColumnDef(displayedCol.getColId());
-                            columnSetWidth.push(displayedColDef.width);
                             displayedColDef.width = displayedCol.getActualWidth();
+                            const column = this.getColumn(displayedColDef.field);
+                            if(column) column.width = displayedColDef.width;                            
                         });
 
                         //let the grid resize to fill the viewport based on actual width
                         this.svySizeColumnsToFit(GRID_EVENT_TYPES.COLUMN_RESIZED);
-
-                        //restore design time values
-                        displayedColumns.forEach((displayedCol: Column, arrayIndex) => {
-                            displayedColDef = this.agGrid.api.getColumnDef(displayedCol.getColId());
-                            displayedColDef.width = columnSetWidth[arrayIndex];
-                        });
 
                         if (colDef) {
                             //remove / restore original suppressSizeToFit setting of the column resized
@@ -819,7 +827,12 @@ export class PowerGrid extends NGGridDirective {
                 }
 
                 // column sizing
-                if (column.width) colDef.width = column.width;
+                if (column.width) {
+                    colDef.width = column.width;
+                    if(column.initialWidth === undefined) column.initialWidth = column.width;
+                } else {
+                    column.initialWidth = -1;
+                }
                 if (column.maxWidth) colDef.maxWidth = column.maxWidth;
                 if (column.minWidth || column.minWidth === 0) colDef.minWidth = column.minWidth;
 
@@ -2340,6 +2353,7 @@ export class PowerGridColumn extends BaseCustomObject {
     styleClass: string;
     visible: boolean;
     width: number;
+    initialWidth: number;
     minWidth: number;
     maxWidth: number;
     enableRowGroup: boolean;
