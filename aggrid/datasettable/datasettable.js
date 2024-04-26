@@ -367,7 +367,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
     //                onColumnVisible: storeColumnsState,			 covered by onDisplayedColumnsChanged
     //                onColumnPinned: storeColumnsState,			 covered by onDisplayedColumnsChanged
                     onColumnResized: function(e) {				 // NOT covered by onDisplayedColumnsChanged
-						if(continuousColumnsAutoSizing && e.source === 'uiColumnDragged') {
+						if(e.source === 'uiColumnDragged') {
 							if(sizeColumnsToFitTimeout !== null) {
 								clearTimeout(sizeColumnsToFitTimeout);
 							}
@@ -1206,12 +1206,10 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 function sizeColumnsToFit(eventType) {
                     if($scope.model.visible) {
 
-                        var useColumnsAutoSizing;
-                        if($scope.initialColumnsAutoSizing !== 'NONE' && !continuousColumnsAutoSizing && (!columnsAutoSizingOn || columnsAutoSizingOn[eventType] === true)) {
-                            useColumnsAutoSizing = $scope.initialColumnsAutoSizing;
-                        } else {
-                            useColumnsAutoSizing = $scope.model.columnsAutoSizing;
-                        }						
+                        var useColumnsAutoSizing = $scope.model.columnsAutoSizing;
+                        if($scope.initialColumnsAutoSizing !== 'NONE' && columnsAutoSizingOn) {
+                            useColumnsAutoSizing = columnsAutoSizingOn[eventType] === true ? $scope.initialColumnsAutoSizing : 'NONE';
+                        }
 
                         switch (useColumnsAutoSizing) {
                             case "NONE":
@@ -1233,7 +1231,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                             default:
                                 gridOptions.api.sizeColumnsToFit();
                         }
-                        if($scope.model.columnsAutoSizing !== 'NONE' && !continuousColumnsAutoSizing && eventType === GRID_EVENT_TYPES.GRID_READY) {
+                        if($scope.model.columnsAutoSizing !== 'NONE' && !continuousColumnsAutoSizing && !columnsAutoSizingOn && eventType === GRID_EVENT_TYPES.GRID_READY) {
                             $scope.model.columnsAutoSizing = 'NONE';
                             $scope.svyServoyapi.apply('columnsAutoSizing');
                         }                        
