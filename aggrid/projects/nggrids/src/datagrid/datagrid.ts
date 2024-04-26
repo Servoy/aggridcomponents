@@ -1144,11 +1144,9 @@ export class DataGrid extends NGGridDirective {
         // only if visible and grid is/still ready
         if(this.agGrid.api) {
 
-            let useColumnsAutoSizing: string;
-            if(this.initialColumnsAutoSizing !== 'NONE' && !this.agContinuousColumnsAutoSizing && (!this.agColumnsAutoSizingOn  || this.agColumnsAutoSizingOn[eventType] === true)) {
-                useColumnsAutoSizing = this.initialColumnsAutoSizing;
-            } else {
-                useColumnsAutoSizing = this.columnsAutoSizing;
+            let useColumnsAutoSizing = this.columnsAutoSizing;
+            if(this.initialColumnsAutoSizing !== 'NONE' && this.agColumnsAutoSizingOn) {
+                useColumnsAutoSizing = this.agColumnsAutoSizingOn[eventType] === true ? this.initialColumnsAutoSizing : 'NONE';
             }
 
             switch (useColumnsAutoSizing) {
@@ -1167,7 +1165,7 @@ export class DataGrid extends NGGridDirective {
                     this.agGrid.api.sizeColumnsToFit();
 
             }
-            if(this.columnsAutoSizing !== 'NONE' && !this.agContinuousColumnsAutoSizing &&
+            if(this.columnsAutoSizing !== 'NONE' && !this.agContinuousColumnsAutoSizing && !this.agColumnsAutoSizingOn &&
                 (eventType === GRID_EVENT_TYPES.GRID_READY || eventType === GRID_EVENT_TYPES.GRID_ROW_POST_CREATE) && this.agGrid.api.getModel().getRowCount() > 0) {
                 this.columnsAutoSizing = 'NONE';
                 this.columnsAutoSizingChange.emit('NONE');

@@ -1959,12 +1959,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					function sizeHeaderAndColumnsToFit(eventType) {
 						// only if visible and grid is/still ready
 						if($scope.model.visible && gridOptions.api) {
-							var useColumnsAutoSizing;
-							if($scope.initialColumnsAutoSizing !== 'NONE' && !continuousColumnsAutoSizing && (!columnsAutoSizingOn || columnsAutoSizingOn[eventType] === true)) {
-								useColumnsAutoSizing = $scope.initialColumnsAutoSizing;
-							} else {
-								useColumnsAutoSizing = $scope.model.columnsAutoSizing;
-							}							
+							var useColumnsAutoSizing = $scope.model.columnsAutoSizing;
+							if($scope.initialColumnsAutoSizing !== 'NONE' && columnsAutoSizingOn) {
+								useColumnsAutoSizing = columnsAutoSizingOn[eventType] === true ? $scope.initialColumnsAutoSizing : 'NONE';
+							}
 
 							switch (useColumnsAutoSizing) {
 								case "NONE":
@@ -1983,7 +1981,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 									//gridOptions.api.sizeColumnsToFit();
 									svySizeColumnsToFit();
 							}
-							if($scope.model.columnsAutoSizing !== 'NONE' && !continuousColumnsAutoSizing &&
+							if($scope.model.columnsAutoSizing !== 'NONE' && !continuousColumnsAutoSizing && !columnsAutoSizingOn &&
 								(eventType === GRID_EVENT_TYPES.GRID_READY || eventType === GRID_EVENT_TYPES.GRID_ROW_POST_CREATE) && gridOptions.api.getModel().getRow(0)) {
 								$scope.model.columnsAutoSizing = 'NONE';
 								$scope.svyServoyapi.apply('columnsAutoSizing');

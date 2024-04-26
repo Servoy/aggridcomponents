@@ -1232,11 +1232,9 @@ export class PowerGrid extends NGGridDirective {
 
     svySizeColumnsToFit(eventType?: string) {
 
-        let useColumnsAutoSizing: string;
-        if(this.initialColumnsAutoSizing !== 'NONE' && !this.agContinuousColumnsAutoSizing && (!this.agColumnsAutoSizingOn || this.agColumnsAutoSizingOn[eventType] === true)) {
-            useColumnsAutoSizing = this.initialColumnsAutoSizing;
-        } else {
-            useColumnsAutoSizing = this.columnsAutoSizing;
+        let useColumnsAutoSizing = this.columnsAutoSizing;
+        if(this.initialColumnsAutoSizing !== 'NONE' && this.agColumnsAutoSizingOn) {
+            useColumnsAutoSizing = this.agColumnsAutoSizingOn[eventType] === true ? this.initialColumnsAutoSizing : 'NONE';
         }
 
         switch (useColumnsAutoSizing) {
@@ -1257,7 +1255,7 @@ export class PowerGrid extends NGGridDirective {
                 this.agGrid.api.sizeColumnsToFit();
 
         }
-        if (this.columnsAutoSizing !== 'NONE' && !this.agContinuousColumnsAutoSizing && eventType === GRID_EVENT_TYPES.GRID_READY) {
+        if (this.columnsAutoSizing !== 'NONE' && !this.agContinuousColumnsAutoSizing && !this.agColumnsAutoSizingOn && eventType === GRID_EVENT_TYPES.GRID_READY) {
             this.columnsAutoSizing = 'NONE';
             this.columnsAutoSizingChange.emit('NONE');
         }
