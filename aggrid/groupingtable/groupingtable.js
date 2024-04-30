@@ -6032,8 +6032,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 					function getRowClass(params) {
 
-						// skip pinned (footer) nodes
-						if(params.node.rowPinned) return "";
+						// skip if no foundset set or pinned (footer) nodes
+						if(!foundset || params.node.rowPinned) return "";
 						
 						var rowIndex = params.node.rowIndex;
 						var styleClassProvider;

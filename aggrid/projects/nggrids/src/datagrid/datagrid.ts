@@ -3034,8 +3034,8 @@ export class DataGrid extends NGGridDirective {
     getRowClass(params: any) {
 
         const _this = params.context.componentParent;
-        // skip pinned (footer) nodes
-        if(params.node.rowPinned) return '';
+        // skip if no foundset set or pinned (footer) nodes
+        if(!_this.foundset || params.node.rowPinned) return '';
 
         const rowIndex = params.node.rowIndex;
         let styleClassProvider: any;
