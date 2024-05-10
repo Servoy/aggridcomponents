@@ -952,8 +952,18 @@ export class PowerGrid extends NGGridDirective {
                         });
 
                         this.powergridService.setDragData(dragDatas);
-                        // TODO: customize drag item UI
-                        //params.dragEvent.dataTransfer.setDragImage
+
+                        if(this.onDragGetImageFunc) {
+                            const dragGhostEl = this.doc.createElement('div') as HTMLElement;
+                            dragGhostEl.id = 'nggrids-drag-ghost';
+                            dragGhostEl.innerHTML = this.onDragGetImageFunc(this.powergridService.getDragData(), params.dragEvent);
+                            dragGhostEl.style.position = 'absolute';
+                            dragGhostEl.style.top = '-1000px';
+                            this.doc.body.appendChild(dragGhostEl);
+        
+                            params.dragEvent.dataTransfer.setDragImage(dragGhostEl, 0, 0);
+                        }                        
+
                         params.dragEvent.dataTransfer.setData('nggrids/json', JSON.stringify(dragDatas));
                     };
                 }
@@ -2237,7 +2247,7 @@ export class PowerGrid extends NGGridDirective {
     gridDragOver($event) {
         const dragSupported = $event.dataTransfer.types.length && $event.dataTransfer.types[0] === 'nggrids/json';
         if (dragSupported) {
-            let dragOver = false;
+            let dragOver: any = false;
             if (this.onDragOverFunc) {
                 const overRow = this.getNodeForElement($event.target);
                 let overRowData = null;
@@ -2249,7 +2259,11 @@ export class PowerGrid extends NGGridDirective {
                 dragOver = true;
             }
             if (dragOver) {
-                $event.dataTransfer.dropEffect = 'copy';
+                if(typeof dragOver === 'string') {
+                    $event.dataTransfer.dropEffect = dragOver;
+                } else {
+                    $event.dataTransfer.dropEffect = 'copy';
+                }
                 $event.preventDefault();
             }
         }
@@ -2263,6 +2277,15 @@ export class PowerGrid extends NGGridDirective {
             const rowDatas = JSON.parse(jsonData);
             const overRowData = targetNode ? (targetNode.data || Object.assign(targetNode.groupData, targetNode.aggData)) : null;
             this.onDrop(rowDatas, overRowData, $event);
+        }
+    }
+
+    gridDragEnd($event) {
+        if(this.onDragGetImageFunc) {
+            const dragGhostEl = document.getElementById("nggrids-drag-ghost") as HTMLElement;
+            if (dragGhostEl.parentNode) {
+                dragGhostEl.parentNode.removeChild(dragGhostEl);
+            }
         }
     }
 

@@ -27,6 +27,7 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
     @Input() _internalFormEditorValue: any;
     @Input() rowDropZoneFor: string[];
     @Input() onDragOverFunc: any;
+    @Input() onDragGetImageFunc: any;
 
     @Input() onDrop: any;
     @Input() onColumnFormEditStarted: any;

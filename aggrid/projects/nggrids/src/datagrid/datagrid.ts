@@ -1442,8 +1442,18 @@ export class DataGrid extends NGGridDirective {
                     });
 
                     this.datagridService.setDragData(dragDatas);
-                    // TODO: customize drag item UI
-                    //params.dragEvent.dataTransfer.setDragImage
+
+                    if(this.onDragGetImageFunc) {
+                        const dragGhostEl = this.doc.createElement('div') as HTMLElement;
+                        dragGhostEl.id = 'nggrids-drag-ghost';
+                        dragGhostEl.innerHTML = this.onDragGetImageFunc(this.datagridService.getDragData(), params.dragEvent);
+                        dragGhostEl.style.position = 'absolute';
+                        dragGhostEl.style.top = '-1000px';
+                        this.doc.body.appendChild(dragGhostEl);
+    
+                        params.dragEvent.dataTransfer.setDragImage(dragGhostEl, 0, 0);
+                    }
+
                     params.dragEvent.dataTransfer.setData('nggrids-record/json', JSON.stringify(records));
                 };
             }
@@ -4222,7 +4232,7 @@ export class DataGrid extends NGGridDirective {
     gridDragOver($event) {
         const dragSupported = $event.dataTransfer.types.length && $event.dataTransfer.types[0] === 'nggrids-record/json';
         if (dragSupported) {
-            let dragOver = false;
+            let dragOver: any = false;
             if(this.onDragOverFunc) {
                 const overRow = this.getNodeForElement($event.target);
                 let overDragData = null;
@@ -4243,7 +4253,11 @@ export class DataGrid extends NGGridDirective {
                 dragOver = true;
             }
             if(dragOver) {
-                $event.dataTransfer.dropEffect = 'copy';
+                if(typeof dragOver === 'string') {
+                    $event.dataTransfer.dropEffect = dragOver;
+                } else {
+                    $event.dataTransfer.dropEffect = 'copy';
+                }
                 $event.preventDefault();
             }
         }
@@ -4256,6 +4270,15 @@ export class DataGrid extends NGGridDirective {
             const jsonData = $event.dataTransfer.getData('nggrids-record/json');
             const records = JSON.parse(jsonData);
             this.onDrop(records, targetNode ? this.getRecord(targetNode) : null, $event);
+        }
+    }
+
+    gridDragEnd($event) {
+        if(this.onDragGetImageFunc) {
+            const dragGhostEl = document.getElementById("nggrids-drag-ghost") as HTMLElement;
+            if (dragGhostEl.parentNode) {
+                dragGhostEl.parentNode.removeChild(dragGhostEl);
+            }
         }
     }
 

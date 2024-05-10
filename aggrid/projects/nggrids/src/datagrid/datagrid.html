@@ -1,4 +1,4 @@
-<div [id]="servoyApi.getMarkupId()" style="height:100%; width:100%; position: relative;" (dragover)="gridDragOver($event)" (drop)="gridDrop($event)">
+<div [id]="servoyApi.getMarkupId()" style="height:100%; width:100%; position: relative;" (dragover)="gridDragOver($event)" (drop)="gridDrop($event)" (dragend)="gridDragEnd($event)">
 	<ag-grid-angular
     #element
     style="height: 100%;"
