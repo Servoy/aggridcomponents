@@ -41,7 +41,7 @@ export class TextEditor extends EditorDirective {
                                 });
                             }
                         } else if (e.keyCode === 13 || e.keyCode === 40) { // ENTER/DOWN
-                            if( this.params.rowIndex < this.ngGrid.agGrid.api.getModel().getRowCount() - 1) {
+                            if( this.params.rowIndex < this.ngGrid.agGrid.api.getDisplayedRowCount() - 1) {
                                 this.ngGrid.agGrid.api.forEachNode( (node) => {
                                     if (node.rowIndex >= (this.params.rowIndex + 1) &&
                                         !newEditingNode && (!mustBeEditable || columnToCheck.isCellEditable(node))) {

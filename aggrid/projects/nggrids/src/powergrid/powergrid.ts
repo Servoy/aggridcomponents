@@ -910,7 +910,7 @@ export class PowerGrid extends NGGridDirective {
                     }
                 }
 
-                colDef.suppressMenu = column.enableRowGroup === false && column.filterType === undefined;
+                colDef.suppressHeaderMenuButton = column.enableRowGroup === false && column.filterType === undefined;
 
                 if (column.editType) {
                     if (column.editType === 'TEXTFIELD') {

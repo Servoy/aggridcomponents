@@ -568,7 +568,7 @@ export class DataGrid extends NGGridDirective {
                     const hiddenColumns = [];
                     for(const column of event.columns) {
                         // always hide Ghost columns such as _svyRowId and _svyFoundsetUUID
-                        if(column.getColDef().hide && (column.getColDef().suppressColumnsToolPanel) && column.getColDef().suppressMenu) {
+                        if(column.getColDef().hide && (column.getColDef().suppressColumnsToolPanel) && column.getColDef().suppressHeaderMenuButton) {
                             hiddenColumns.push(column);
                         }
                     }
@@ -1170,7 +1170,7 @@ export class DataGrid extends NGGridDirective {
 
             }
             if(this.columnsAutoSizing !== 'NONE' && !this.agContinuousColumnsAutoSizing && !this.agColumnsAutoSizingOn &&
-                (eventType === GRID_EVENT_TYPES.GRID_READY || eventType === GRID_EVENT_TYPES.GRID_ROW_POST_CREATE) && this.agGrid.api.getModel().getRowCount() > 0) {
+                (eventType === GRID_EVENT_TYPES.GRID_READY || eventType === GRID_EVENT_TYPES.GRID_ROW_POST_CREATE) && this.agGrid.api.getDisplayedRowCount() > 0) {
                 this.columnsAutoSizing = 'NONE';
                 this.columnsAutoSizingChange.emit('NONE');
             }
@@ -1354,7 +1354,7 @@ export class DataGrid extends NGGridDirective {
             // column sort
             if (column.enableSort === false) colDef.sortable = false;
 
-            colDef.suppressMenu = colDef.enableRowGroup === false && column.filterType === undefined;
+            colDef.suppressHeaderMenuButton = colDef.enableRowGroup === false && column.filterType === undefined;
 
             if (column.editType) {
                 if(column.editType === 'TEXTFIELD') {
@@ -1528,7 +1528,7 @@ export class DataGrid extends NGGridDirective {
             field: '_svyRowId',
             headerName: '_svyRowId',
             suppressColumnsToolPanel: true,
-            suppressMenu: true,
+            suppressHeaderMenuButton: true,
             suppressNavigable: true,
             resizable: false,
             hide: true
@@ -1538,7 +1538,7 @@ export class DataGrid extends NGGridDirective {
             field: '_svyFoundsetUUID',
             headerName: '_svyFoundsetUUID',
             suppressColumnsToolPanel: true,
-            suppressMenu: true,
+            suppressHeaderMenuButton: true,
             suppressNavigable: true,
             resizable: false,
             hide: true
@@ -2985,7 +2985,6 @@ export class DataGrid extends NGGridDirective {
             }
 
             if(foundsetManager.foundset.selectedRowIndexes.length) {
-                const model: any = this.agGrid.api.getModel();
                 // 'model.rootNode.childrenCache' removed in recent ag-grid
                 // if(model.rootNode.childrenCache) {
                 //     // virtual row count must be multiple of CHUNK_SIZE (limitation/bug of aggrid)
