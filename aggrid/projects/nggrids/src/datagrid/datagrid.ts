@@ -1,6 +1,7 @@
 import { GridOptions, GetRowIdParams, IRowDragItem, DndSourceCallbackParams, ColumnResizedEvent, RowSelectedEvent, SelectionChangedEvent, 
         ColDef, Column, IRowNode, IServerSideDatasource, IServerSideGetRowsParams, LoadSuccessParams, 
-        ColumnEverythingChangedEvent} from '@ag-grid-community/core';
+        ColumnEverythingChangedEvent,
+        SortChangedEvent} from '@ag-grid-community/core';
 import { ChangeDetectionStrategy, ChangeDetectorRef, ElementRef, EventEmitter, Inject, Input, Output, Renderer2, SecurityContext, SimpleChanges } from '@angular/core';
 import { Component, ViewChild } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
@@ -484,7 +485,10 @@ export class DataGrid extends NGGridDirective {
             onFilterChanged: () => {
              this.storeColumnsState();
             },
-            onSortChanged: () => {
+            onSortChanged: (event: SortChangedEvent) => {
+                if(event.source === 'uiColumnSorted') {
+                    this.isSortModelApplied = true;
+                }
                 this.storeColumnsState();
                 if(this.isTableGrouped()) {
                     this.removeAllFoundsetRef = true;
