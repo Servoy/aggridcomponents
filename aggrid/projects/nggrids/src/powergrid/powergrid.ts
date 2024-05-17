@@ -457,6 +457,21 @@ export class PowerGrid extends NGGridDirective {
                     }
                 }
             },
+            getRowId: (param: GetRowIdParams) => {
+                let rowNodeId = null;
+                if(this.pks) {
+                    if (this.pks && this.pks.length > 0) {
+                        rowNodeId = '' + param.data[this.pks[0]];
+                        for (let i = 1; i < this.pks.length; i++) {
+                            rowNodeId += '_' + param.data[this.pks[i]];
+                        }
+                    }
+                } else {
+                    rowNodeId = JSON.stringify(param.data);
+                }
+                return rowNodeId;
+            },
+            resetRowDataOnUpdate: true,
             components: {
                 valuelistFilter: ValuelistFilter,
                 radioFilter: RadioFilter
@@ -648,19 +663,6 @@ export class PowerGrid extends NGGridDirective {
                         break;
                     case 'data':
                         if (this.agGrid && !this.useLazyLoading) {
-                            if (this.pks) {
-                                this.agGridOptions.getRowId = (param: GetRowIdParams) => {
-                                    let rowNodeId = null;
-                                    if (this.pks && this.pks.length > 0) {
-                                        rowNodeId = '' + param.data[this.pks[0]];
-                                        for (let i = 1; i < this.pks.length; i++) {
-                                            rowNodeId += '_' + param.data[this.pks[i]];
-                                        }
-                                    }
-                                    return rowNodeId;
-                                };
-                                this.agGridOptions.resetRowDataOnUpdate = true;
-                            }
                             this.agGrid.api.setGridOption('rowData', this.data)
                             this.applyExpandedState();
                         }
