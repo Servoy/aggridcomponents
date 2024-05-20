@@ -2177,7 +2177,9 @@ export class DataGrid extends NGGridDirective {
         if (!foundsetManager) foundsetManager = _this.foundset;
         const foundsetRef = foundsetManager.foundset;
         let newValue = params.newValue;
+        let newDisplayValue = undefined;
         if(newValue && newValue.realValue !== undefined) {
+            newDisplayValue = newValue.displayValue;
             newValue = newValue.realValue;
         }
         let oldValue = params.oldValue;
@@ -2215,6 +2217,15 @@ export class DataGrid extends NGGridDirective {
                     applyProperty = 'hashedFoundsets[' + groupFoundsetIndex + '].columns[' + _this.getColumnIndex(params.column.colId) + '].dataprovider[' + dpIdx+ ']';
                 }
                 _this.servoyApi.apply(applyProperty, newValue);
+                // if there is real/display value, after updating with realValue using 'apply',
+                // set the displayValue in the model for the UI, as 'apply' will set the realValue in the model
+                if(newDisplayValue !== undefined) {
+                    if(foundsetManager.isRoot) {
+                        _this.columns[_this.getColumnIndex(params.column.colId)].dataprovider[dpIdx] = newDisplayValue;
+                    } else {
+                        _this.hashedFoundsets[groupFoundsetIndex].columns[_this.getColumnIndex(params.column.colId)].dataprovider[dpIdx] = newDisplayValue;
+                    }                    
+                }
                 if(_this.onColumnDataChange) {
                     const currentEditCells =  _this.agGrid.api.getEditingCells();
                     _this.onColumnDataChangePromise = _this.onColumnDataChange(
