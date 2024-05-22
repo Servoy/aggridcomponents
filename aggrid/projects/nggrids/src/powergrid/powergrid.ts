@@ -459,12 +459,10 @@ export class PowerGrid extends NGGridDirective {
             },
             getRowId: (param: GetRowIdParams) => {
                 let rowNodeId = null;
-                if(this.pks) {
-                    if (this.pks && this.pks.length > 0) {
-                        rowNodeId = '' + param.data[this.pks[0]];
-                        for (let i = 1; i < this.pks.length; i++) {
-                            rowNodeId += '_' + param.data[this.pks[i]];
-                        }
+                if (this.pks && this.pks.length > 0) {
+                    rowNodeId = '' + param.data[this.pks[0]];
+                    for (let i = 1; i < this.pks.length; i++) {
+                        rowNodeId += '_' + param.data[this.pks[i]];
                     }
                 } else {
                     rowNodeId = JSON.stringify(param.data);
