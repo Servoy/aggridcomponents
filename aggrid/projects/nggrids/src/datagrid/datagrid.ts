@@ -1222,7 +1222,6 @@ export class DataGrid extends NGGridDirective {
         const foundsetServer = new FoundsetServer(this, []);
         const datasource = new FoundsetDatasource(this, foundsetServer);
         if(this.myFoundset) {
-            this.agGridOptions.serverSideInitialRowCount = this.myFoundset.serverSize;
             this.agGrid.api.setGridOption('serverSideDatasource', datasource);
         }
         this.isRenderedAndSelectionReady = false;
@@ -2970,19 +2969,10 @@ export class DataGrid extends NGGridDirective {
             }
 
             if(foundsetManager.foundset.selectedRowIndexes.length) {
-                const model: any = this.agGrid.api.getModel();
-                // 'model.rootNode.childrenCache' removed in recent ag-grid
-                // if(model.rootNode.childrenCache) {
-                //     // virtual row count must be multiple of CHUNK_SIZE (limitation/bug of aggrid)
-                //     const offset = foundsetManager.foundset.selectedRowIndexes[0] % CHUNK_SIZE;
-                //     const virtualRowCount = foundsetManager.foundset.selectedRowIndexes[0] + (CHUNK_SIZE - offset);
-
-                //     if(virtualRowCount > model.rootNode.childrenCache.getVirtualRowCount()) {
-                //         const newVirtualRowCount = Math.min(virtualRowCount, foundsetManager.foundset.serverSize);
-                //         const maxRowFound = newVirtualRowCount === foundsetManager.foundset.serverSize;
-                //         model.rootNode.childrenCache.setVirtualRowCount(newVirtualRowCount, maxRowFound);
-                //     }
-                // }
+                const rowCount = this.agGrid.api['serverSideRowModel'].getRowCount();
+                if(foundsetManager.foundset.selectedRowIndexes[0] > rowCount - CHUNK_SIZE) {
+                    this.agGrid.api['serverSideRowModel'].setRowCount(Math.min(foundsetManager.foundset.selectedRowIndexes[0] + CHUNK_SIZE, foundsetManager.foundset.serverSize));
+                }
                 this.agGrid.api.ensureIndexVisible(foundsetManager.foundset.selectedRowIndexes[0]);
             }
         }
