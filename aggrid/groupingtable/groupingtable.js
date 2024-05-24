@@ -1841,14 +1841,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					 * @private  */
 					function removeRowExpandedState(groupKeys) {
 						
-						if (!groupKeys) {
+						if (!$scope.model._internalExpandedState || !groupKeys || !groupKeys.length) {
 							return;
 						}
-						
-						if (!groupKeys.length) {
-							return;
-						}
-						
+							
 						// search for the group key node
 						var node = $scope.model._internalExpandedState;
 						for (var i = 0; i < groupKeys.length - 1; i++) {

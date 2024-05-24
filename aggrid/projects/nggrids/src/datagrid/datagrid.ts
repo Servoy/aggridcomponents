@@ -3732,11 +3732,7 @@ export class DataGrid extends NGGridDirective {
      */
     removeRowExpandedState(groupKeys: any) {
 
-        if (!groupKeys) {
-            return;
-        }
-
-        if (!groupKeys.length) {
+        if (!this._internalExpandedState || !groupKeys || !groupKeys.length) {
             return;
         }
 
