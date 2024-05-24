@@ -209,7 +209,6 @@ export class DataGrid extends NGGridDirective {
     agArrowsUpDownMoveWhenEditing: any;
     agEditNextCellOnEnter = false;
     agContinuousColumnsAutoSizing = false;
-    agColumnsAutoSizingOn: any;
 
     initialColumnsAutoSizing: string;
 
@@ -281,9 +280,6 @@ export class DataGrid extends NGGridDirective {
         if(this.datagridService.continuousColumnsAutoSizing) {
             this.agContinuousColumnsAutoSizing = this.datagridService.continuousColumnsAutoSizing;
         }
-        if(this.datagridService.columnsAutoSizingOn) {
-            this.agColumnsAutoSizingOn = this.datagridService.columnsAutoSizingOn;
-        }
 
         this.initialColumnsAutoSizing = this.columnsAutoSizing;
 
@@ -301,9 +297,6 @@ export class DataGrid extends NGGridDirective {
         }
         if(this.continuousColumnsAutoSizing) {
             this.agContinuousColumnsAutoSizing = this.continuousColumnsAutoSizing;
-        }
-        if(this.columnsAutoSizingOn) {
-            this.agColumnsAutoSizingOn = this.columnsAutoSizingOn;
         }
 
         const vMenuTabs = ['generalMenuTab', 'filterMenuTab'];
@@ -748,6 +741,15 @@ export class DataGrid extends NGGridDirective {
         }
     }
 
+    private getColumnsAutoSizingOn(): unknown {
+        if(this.columnsAutoSizingOn) {
+            return this.columnsAutoSizingOn;
+        } else if(this.datagridService.columnsAutoSizingOn) {
+            return this.datagridService.columnsAutoSizingOn
+        }
+        return null;
+    }
+
     private setupHeaderCheckbox(addClickListener?: boolean): void {
         if(this.columns) {
             for(let i = 0; i < this.columns.length; i++) {
@@ -1148,9 +1150,10 @@ export class DataGrid extends NGGridDirective {
         // only if visible and grid is/still ready
         if(this.agGrid.api) {
 
+            const agColumnsAutoSizingOn = this.getColumnsAutoSizingOn();
             let useColumnsAutoSizing = this.columnsAutoSizing;
-            if(this.initialColumnsAutoSizing !== 'NONE' && this.agColumnsAutoSizingOn) {
-                useColumnsAutoSizing = this.agColumnsAutoSizingOn[eventType] === true ? this.initialColumnsAutoSizing : 'NONE';
+            if(this.initialColumnsAutoSizing !== 'NONE' && agColumnsAutoSizingOn) {
+                useColumnsAutoSizing = agColumnsAutoSizingOn[eventType] === true ? this.initialColumnsAutoSizing : 'NONE';
             }
 
             switch (useColumnsAutoSizing) {
@@ -1169,8 +1172,8 @@ export class DataGrid extends NGGridDirective {
                     this.agGrid.api.sizeColumnsToFit();
 
             }
-            if(this.columnsAutoSizing !== 'NONE' && !this.agContinuousColumnsAutoSizing && !this.agColumnsAutoSizingOn &&
-                (eventType === GRID_EVENT_TYPES.GRID_READY || eventType === GRID_EVENT_TYPES.GRID_ROW_POST_CREATE) && this.agGrid.api.getDisplayedRowCount() > 0) {
+            if(this.columnsAutoSizing !== 'NONE' && !this.agContinuousColumnsAutoSizing && !agColumnsAutoSizingOn &&
+                (eventType === GRID_EVENT_TYPES.GRID_READY || eventType === GRID_EVENT_TYPES.GRID_ROW_POST_CREATE) && this.agGrid.api.getModel().getRowCount() > 0) {
                 this.columnsAutoSizing = 'NONE';
                 this.columnsAutoSizingChange.emit('NONE');
             }
