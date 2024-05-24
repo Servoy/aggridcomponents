@@ -1775,11 +1775,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                  */
                 function removeRowExpandedState(groupKeys) {
                     
-                    if (!groupKeys) {
-                        return;
-                    }
-                    
-                    if (!groupKeys.length) {
+                    if (!$scope.model._internalExpandedState || !groupKeys || !groupKeys.length) {
                         return;
                     }
                     
