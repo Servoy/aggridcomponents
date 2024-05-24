@@ -38,7 +38,6 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 var localeText = null;
                 var mainMenuItemsConfig = null;
                 var continuousColumnsAutoSizing = false;
-                var columnsAutoSizingOn = null;
                 if($injector.has('ngPowerGrid')) {
                     var datasettableDefaultConfig = $services.getServiceScope('ngPowerGrid').model;
                     if(datasettableDefaultConfig.toolPanelConfig) {
@@ -59,9 +58,6 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     if(datasettableDefaultConfig.continuousColumnsAutoSizing) {
                         continuousColumnsAutoSizing = datasettableDefaultConfig.continuousColumnsAutoSizing;
                     }
-                    if(datasettableDefaultConfig.columnsAutoSizingOn) {
-                        columnsAutoSizingOn = datasettableDefaultConfig.columnsAutoSizingOn;
-                    }                    
                 }
 
                 var config = $scope.model;
@@ -173,9 +169,6 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 if(config.continuousColumnsAutoSizing) {
                     continuousColumnsAutoSizing = config.continuousColumnsAutoSizing;
                 }
-                if(config.columnsAutoSizingOn) {
-                    columnsAutoSizingOn = config.columnsAutoSizingOn;
-                }                
 
                 var vMenuTabs = ['generalMenuTab','filterMenuTab'];
                 
@@ -1203,9 +1196,22 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     }
                 }
 
+                function getColumnsAutoSizingOn() {
+                    if($scope.model.columnsAutoSizingOn) {
+                        return $scope.model.columnsAutoSizingOn;
+                    } else if($injector.has('ngPowerGrid')) {
+                        var datasettableDefaultConfig = $services.getServiceScope('ngPowerGrid').model;
+                        if(datasettableDefaultConfig.columnsAutoSizingOn) {
+                            return datasettableDefaultConfig.columnsAutoSizingOn;
+                        }
+                    }
+                    return null;
+                }
+
                 function sizeColumnsToFit(eventType) {
                     if($scope.model.visible) {
 
+                        var columnsAutoSizingOn = getColumnsAutoSizingOn();
                         var useColumnsAutoSizing = $scope.model.columnsAutoSizing;
                         if($scope.initialColumnsAutoSizing !== 'NONE' && columnsAutoSizingOn) {
                             useColumnsAutoSizing = columnsAutoSizingOn[eventType] === true ? $scope.initialColumnsAutoSizing : 'NONE';

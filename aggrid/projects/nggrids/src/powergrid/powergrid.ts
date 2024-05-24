@@ -140,7 +140,6 @@ export class PowerGrid extends NGGridDirective {
 
     agMainMenuItemsConfig: any;
     agContinuousColumnsAutoSizing = false;
-    agColumnsAutoSizingOn: any;
 
     initialColumnsAutoSizing: string;
 
@@ -191,9 +190,6 @@ export class PowerGrid extends NGGridDirective {
         if (this.powergridService.continuousColumnsAutoSizing) {
             this.agContinuousColumnsAutoSizing = this.powergridService.continuousColumnsAutoSizing;
         }
-        if(this.powergridService.columnsAutoSizingOn) {
-            this.agColumnsAutoSizingOn = this.powergridService.columnsAutoSizingOn;
-        }
 
         this.initialColumnsAutoSizing = this.columnsAutoSizing;
 
@@ -205,9 +201,6 @@ export class PowerGrid extends NGGridDirective {
 
         if (this.continuousColumnsAutoSizing) {
             this.agContinuousColumnsAutoSizing = this.continuousColumnsAutoSizing;
-        }
-        if(this.columnsAutoSizingOn) {
-            this.agColumnsAutoSizingOn = this.columnsAutoSizingOn;
         }
         
         const vMenuTabs = ['generalMenuTab', 'filterMenuTab'] as ColumnMenuTab[];
@@ -591,6 +584,15 @@ export class PowerGrid extends NGGridDirective {
         if (this.styleClass === 'ag-theme-fresh') {
             this.log.warn('ag-theme-fresh is deprecated, see: https://www.ag-grid.com/javascript-grid/themes-v23-migration/');
         }
+    }
+
+    private getColumnsAutoSizingOn(): unknown {
+        if(this.columnsAutoSizingOn) {
+            return this.columnsAutoSizingOn;
+        } else if(this.powergridService.columnsAutoSizingOn) {
+            return this.powergridService.columnsAutoSizingOn
+        }
+        return null;
     }
 
     svyOnInit() {
@@ -1232,9 +1234,10 @@ export class PowerGrid extends NGGridDirective {
 
     svySizeColumnsToFit(eventType?: string) {
 
+        const agColumnsAutoSizingOn = this.getColumnsAutoSizingOn();
         let useColumnsAutoSizing = this.columnsAutoSizing;
-        if(this.initialColumnsAutoSizing !== 'NONE' && this.agColumnsAutoSizingOn) {
-            useColumnsAutoSizing = this.agColumnsAutoSizingOn[eventType] === true ? this.initialColumnsAutoSizing : 'NONE';
+        if(this.initialColumnsAutoSizing !== 'NONE' && agColumnsAutoSizingOn) {
+            useColumnsAutoSizing = agColumnsAutoSizingOn[eventType] === true ? this.initialColumnsAutoSizing : 'NONE';
         }
 
         switch (useColumnsAutoSizing) {
@@ -1255,7 +1258,7 @@ export class PowerGrid extends NGGridDirective {
                 this.agGrid.api.sizeColumnsToFit();
 
         }
-        if (this.columnsAutoSizing !== 'NONE' && !this.agContinuousColumnsAutoSizing && !this.agColumnsAutoSizingOn && eventType === GRID_EVENT_TYPES.GRID_READY) {
+        if (this.columnsAutoSizing !== 'NONE' && !this.agContinuousColumnsAutoSizing && !agColumnsAutoSizingOn && eventType === GRID_EVENT_TYPES.GRID_READY) {
             this.columnsAutoSizing = 'NONE';
             this.columnsAutoSizingChange.emit('NONE');
         }
