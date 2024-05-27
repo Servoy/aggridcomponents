@@ -1173,7 +1173,7 @@ export class DataGrid extends NGGridDirective {
 
             }
             if(this.columnsAutoSizing !== 'NONE' && !this.agContinuousColumnsAutoSizing && !agColumnsAutoSizingOn &&
-                (eventType === GRID_EVENT_TYPES.GRID_READY || eventType === GRID_EVENT_TYPES.GRID_ROW_POST_CREATE) && this.agGrid.api.getModel().getRowCount() > 0) {
+                (eventType === GRID_EVENT_TYPES.GRID_READY || eventType === GRID_EVENT_TYPES.GRID_ROW_POST_CREATE) && this.agGrid.api.getDisplayedRowCount() > 0) {
                 this.columnsAutoSizing = 'NONE';
                 this.columnsAutoSizingChange.emit('NONE');
             }
