@@ -1058,6 +1058,7 @@ export class DataGrid extends NGGridDirective {
                     case 'enabled':
                         if(this.isGridReady) {
                             this.agGrid.api.setGridOption('suppressRowClickSelection', !change.currentValue);
+                            this.updateColumnDefs();
                         }
                         break;
                     case '_internalFilterModel':
@@ -1330,7 +1331,7 @@ export class DataGrid extends NGGridDirective {
             }
 
             // column grouping
-            colDef.enableRowGroup = column.enableRowGroup && column.dataprovider !== undefined;
+            colDef.enableRowGroup = this.enabled && column.enableRowGroup && column.dataprovider !== undefined;
             if (column.rowGroupIndex >= 0) colDef.rowGroupIndex = column.rowGroupIndex;
             if (column.width) {
                 colDef.width = column.width;
@@ -1354,9 +1355,7 @@ export class DataGrid extends NGGridDirective {
             if (column.autoResize === false) colDef.suppressSizeToFit = !column.autoResize;
 
             // column sort
-            if (column.enableSort === false) colDef.sortable = false;
-
-            colDef.suppressHeaderMenuButton = colDef.enableRowGroup === false && column.filterType === undefined;
+            if (!this.enabled || column.enableSort === false) colDef.sortable = false;
 
             if (column.editType) {
                 if(column.editType === 'TEXTFIELD') {
@@ -1395,7 +1394,7 @@ export class DataGrid extends NGGridDirective {
                 colDef.onCellValueChanged = this.updateFoundsetRecord;
             }
 
-            if (column.filterType) {
+            if (this.enabled && column.filterType) {
                 colDef.filterParams = { buttons: ['apply', 'clear'], newRowsAction: 'keep', caseSensitive: false };
 
                 if(column.filterType === 'TEXT') {
@@ -1416,7 +1415,7 @@ export class DataGrid extends NGGridDirective {
                     //colDef.floatingFilterComponentParams = { suppressFilterButton : true};
                 }
             }
-
+            colDef.suppressHeaderMenuButton = colDef.enableRowGroup === false && colDef.filter === undefined;
             colDef.tooltipValueGetter = (args: any) => this.getTooltip(args);
 
             if(column.dndSourceDataprovider) {

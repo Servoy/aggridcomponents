@@ -758,6 +758,7 @@ export class PowerGrid extends NGGridDirective {
                     case 'enabled':
                         if (this.isGridReady) {
                             this.agGrid.api.setGridOption('suppressRowClickSelection', !change.currentValue);
+                            this.updateColumnDefs();
                         }
                         break;
                     case '_internalResetLazyLoading':
@@ -814,10 +815,10 @@ export class PowerGrid extends NGGridDirective {
                 }
 
                 // column grouping & pivoting
-                colDef.enableRowGroup = column.enableRowGroup;
+                colDef.enableRowGroup = this.enabled && column.enableRowGroup;
                 if (column.rowGroupIndex >= 0) colDef.rowGroupIndex = column.rowGroupIndex;
 
-                colDef.enablePivot = column.enablePivot;
+                colDef.enablePivot = this.enabled && column.enablePivot;
                 if (column.pivotIndex >= 0) colDef.pivotIndex = column.pivotIndex;
 
                 if (column.aggFunc) colDef.aggFunc = column.aggFunc;
@@ -842,7 +843,7 @@ export class PowerGrid extends NGGridDirective {
                 if (column.enableResize === false) colDef.resizable = column.enableResize;
                 if (column.autoResize === false) colDef.suppressSizeToFit = !column.autoResize;
                 // sorting
-                if (column.enableSort === false) colDef.sortable = false;
+                if (!this.enabled || column.enableSort === false) colDef.sortable = false;
                 // visibility
                 if (column.visible === false) colDef.hide = true;
                 if (column.format) {
@@ -889,7 +890,7 @@ export class PowerGrid extends NGGridDirective {
                     colDef.valueGetter = this.createColumnValueGetterCallbackFunctionFromString(column.valueGetterFunc);
                 }
 
-                if (column.filterType) {
+                if (this.enabled && column.filterType) {
                     colDef.filter = true;
                     colDef.filterParams = { buttons: ['apply', 'clear'], newRowsAction: 'keep', caseSensitive: false };
 
@@ -912,7 +913,7 @@ export class PowerGrid extends NGGridDirective {
                     }
                 }
 
-                colDef.suppressHeaderMenuButton = column.enableRowGroup === false && column.filterType === undefined;
+                colDef.suppressHeaderMenuButton = colDef.enableRowGroup === false && colDef.filter === undefined;
 
                 if (column.editType) {
                     if (column.editType === 'TEXTFIELD') {
