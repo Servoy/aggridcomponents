@@ -4099,7 +4099,7 @@ export class DataGrid extends NGGridDirective {
                     this.startEditFoundsetIndex = foundsetindex;
                     this.startEditColumnIndex = columnindex;
                 }
-            });
+            }, (errorMsg) => { this.log.debug('editCellAt- requestSelectionUpdate rejected: ' + errorMsg); });
         }
     };
 
