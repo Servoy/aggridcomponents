@@ -129,19 +129,7 @@
  * Theme Style Adjustments 
  *
  **/
-.ag-table.ag-theme-alpine .ag-root {
-    border: 1px solid darkgray;
-}
-
-.ag-table.ag-theme-alpine .ag-header {
-    border-bottom: 1px solid darkgray;
-    font-weight: 600;
-}
-
-.ag-table.ag-theme-alpine .ag-header-cell {
-    border-right: 1px solid darkgray;
-}
-
+ 
 .ag-table.ag-theme-alpine .ag-side-bar .ag-side-buttons .ag-side-button button {
 	background: transparent;
     border: 0;
@@ -151,20 +139,6 @@
 .ag-table.ag-theme-alpine .ag-side-bar .ag-side-buttons .ag-selected button {
 	background-color: #f6f6f6;
 }
-
-.ag-table.ag-theme-alpine .ag-side-bar {
-    border-right: 1px solid darkgray;
-    border-top: 1px solid darkgray;
-    border-bottom: 1px solid darkgray;
-}
-
-/**
-.ag-table.ag-theme-alpine .ag-column-drop-horizontal {
-    border-top: 1px solid darkgrey;
-    border-left: 1px solid darkgrey;
-    border-right: 1px solid darkgrey;
-}
-*/
 
 /* Header, change the ag-theme-fresh style */
 .ag-table.ag-theme-fresh,
