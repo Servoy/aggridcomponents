@@ -1692,14 +1692,14 @@ export class PowerGrid extends NGGridDirective {
             // need to clear/remove old columns first, else the id for
             // the new columns will have the counter at the end (ex. "myid_1")
             // and that will broke our getColumn()
-            this.agGrid.api.setColumnDefs([]);
+            this.agGrid.api.setGridOption('columnDefs', [])
 
             // make sure custom agg functions are added before setting the column defs, as the aggs may already
             // been referenced in the columns
             if (this._internalAggCustomFuncs) {
                 this.agGrid.api.addAggFuncs(this.getAggCustomFuncs());
             }
-            this.agGrid.api.setColumnDefs(this.getColumnDefs());
+            this.agGrid.api.setGridOption('columnDefs', this.getColumnDefs())
         }
     }
 
