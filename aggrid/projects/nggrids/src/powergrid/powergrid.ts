@@ -939,8 +939,8 @@ export class PowerGrid extends NGGridDirective {
 
                 if (column.dndSourceFunc) {
                     colDef.dndSource = this.createColumnCallbackFunctionFromString(column.dndSourceFunc);
-                } else {
-                    colDef.dndSource = column.dndSource;
+                } else if (column.dndSource) {
+                    colDef.dndSource = true;
                 }
 
                 if (colDef.dndSource) {

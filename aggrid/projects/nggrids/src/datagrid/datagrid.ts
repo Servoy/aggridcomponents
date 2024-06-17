@@ -1420,8 +1420,8 @@ export class DataGrid extends NGGridDirective {
 
             if(column.dndSourceDataprovider) {
                 colDef.dndSource = (params: DndSourceCallbackParams) => this.onRowDrag(params);
-            } else {
-                colDef.dndSource = column.dndSource;
+            } else if (column.dndSource) {
+                colDef.dndSource = true;
             }
 
             if(colDef.dndSource) {
