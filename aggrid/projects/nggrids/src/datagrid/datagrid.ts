@@ -747,6 +747,18 @@ export class DataGrid extends NGGridDirective {
         });
     }
 
+    private updateGridOptionsForGroupCheckbox(isMultiselect: boolean) {
+        this.agGrid.api.updateGridOptions({
+            autoGroupColumnDef: {
+                cellRendererParams: {
+                    checkbox: isMultiselect
+                }
+            },
+            rowMultiSelectWithClick: isMultiselect,
+            groupDisplayType: 'singleColumn'
+        });
+    }
+
     private getColumnsAutoSizingOn(): unknown {
         if(this.columnsAutoSizingOn) {
             return this.columnsAutoSizingOn;
