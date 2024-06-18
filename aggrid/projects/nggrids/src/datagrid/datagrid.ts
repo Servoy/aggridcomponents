@@ -417,7 +417,7 @@ export class DataGrid extends NGGridDirective {
             enableRangeSelection: false,
             suppressRowClickSelection: !this.enabled,
             isRowSelectable:(node: IRowNode) => {
-                return !node.group || this.groupCheckbox;
+                return !node.group || (this.groupCheckbox && this.myFoundset && (this.myFoundset.multiSelect === true));
             },
             singleClickEdit: false,
             suppressClickEdit: false,
@@ -637,15 +637,8 @@ export class DataGrid extends NGGridDirective {
             };
         }
 
-        if(this.groupCheckbox) {
-            this.agGridOptions.autoGroupColumnDef = {
-                cellRendererParams: {
-                    checkbox: true
-                }
-            };
-            this.agGridOptions.rowSelection = 'multiple';
-            this.agGridOptions.rowMultiSelectWithClick = true;
-            this.agGridOptions.groupDisplayType = 'singleColumn';
+        if(this.groupCheckbox && this.agGridOptions.rowSelection == 'multiple') {
+            this.updateGridOptionsForGroupCheckbox(true);
         }
 
         // check if we have filters
@@ -739,6 +732,18 @@ export class DataGrid extends NGGridDirective {
         if(!this.isTableGrouped()) {
             this.setupHeaderCheckbox(true);
         }
+    }
+
+    private updateGridOptionsForGroupCheckbox(isMultiselect: boolean) {
+        this.agGrid.api.updateGridOptions({
+            autoGroupColumnDef: {
+                cellRendererParams: {
+                    checkbox: isMultiselect
+                }
+            },
+            rowMultiSelectWithClick: isMultiselect,
+            groupDisplayType: 'singleColumn'
+        });
     }
 
     private getColumnsAutoSizingOn(): unknown {
@@ -3834,6 +3839,9 @@ export class DataGrid extends NGGridDirective {
 
         if(changeEvent.multiSelectChanged) {
             this.agGrid.api.setGridOption('rowSelection', changeEvent.multiSelectChanged.newValue ? 'multiple' : 'single');
+            if(this.groupCheckbox) {
+                this.updateGridOptionsForGroupCheckbox(changeEvent.multiSelectChanged.newValue);
+            }
         }
 
         if(!this.isRootFoundsetLoaded) {
