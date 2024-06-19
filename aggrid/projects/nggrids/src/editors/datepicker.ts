@@ -149,6 +149,7 @@ export class DatePicker extends EditorDirective {
                     if (dateContainer && dateContainer.length) {
                         dateContainer[0].classList.add('ag-custom-component-popup');
                     }
+                    this.elementRef.nativeElement.addEventListener('focusout', (event: Event) => event.stopPropagation());
                 }, 0);
                 this.picker.subscribe(Namespace.events.hide, () => this.params.stopEditing());
             });
@@ -165,7 +166,7 @@ export class DatePicker extends EditorDirective {
     }
 
     isPopup(): boolean {
-        return true;
+        return false;
     }
 
     // returns the new value after editing
