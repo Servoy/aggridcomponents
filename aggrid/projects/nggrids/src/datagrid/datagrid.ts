@@ -732,6 +732,7 @@ export class DataGrid extends NGGridDirective {
         if(!this.isTableGrouped()) {
             this.setupHeaderCheckbox(true);
         }
+        this.setupHeaderIconStyleClass();
     }
 
     private updateGridOptionsForGroupCheckbox(isMultiselect: boolean) {
@@ -782,6 +783,26 @@ export class DataGrid extends NGGridDirective {
                             });
                         }
                     };
+                }
+            }
+        }
+    }
+
+    private setupHeaderIconStyleClass(): void {
+        if(this.columns) {
+            for(let i = 0; i < this.columns.length; i++) {
+                if(this.columns[i].headerIconStyleClass) {
+                    let colId = this.columns[i].id;
+                    if (!colId) {
+                        colId = this.getColumnID(this.columns[i], i);
+                    }
+                    const columnEl = this.doc.querySelector('[col-id="' + colId + '"]');
+                    if(columnEl) {
+                        const labelEl = columnEl.querySelector('.ag-header-cell-label');
+                        if(labelEl) {
+                            labelEl.setAttribute('class', labelEl.getAttribute('class') + ' ' + this.columns[i].headerIconStyleClass);
+                        }
+                    }
                 }
             }
         }
@@ -1008,9 +1029,9 @@ export class DataGrid extends NGGridDirective {
                                                     return;
                                                 }
                                                 if(prop === 'visible') {
-                                                    this.gridApi.setColumnVisible(colId, newPropertyValue as boolean);
+                                                    this.gridApi.setColumnsVisible([colId], newPropertyValue as boolean);
                                                 } else {
-                                                    this.gridApi.setColumnWidth(colId, newPropertyValue as number);
+                                                    this.gridApi.setColumnWidths([{ key: colId, newWidth:newPropertyValue as number}]);
                                                     this.sizeHeaderAndColumnsToFit(GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED);
                                                 }
                                             }
@@ -5802,6 +5823,7 @@ export class DataGridColumn extends BaseCustomObject {
     headerTitle: string;
     footerStyleClass: string;
     headerStyleClass: string;
+    headerIconStyleClass: string;
     headerTooltip: string;
     headerGroup: string;
     headerGroupStyleClass: string;
