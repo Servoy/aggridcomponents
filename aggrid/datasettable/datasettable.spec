@@ -437,6 +437,7 @@
 			"headerGroupStyleClass" : {"type" : "styleclass"},
 			"headerTitle": {"type" : "tagstring", "tags": { "useAsCaptionInDeveloper" : true, "captionPriority" : 1, "showInOutlineView": true }},
 			"headerStyleClass" : {"type" : "styleclass"},
+			"headerIconStyleClass" : {"type" : "styleclass", "tags": {"doc": "(Font awesome) Styles for header icon"}},
 			"headerTooltip": {"type" : "tagstring"},
 			"dataprovider": { "type": "string"},
 			"tooltip": { "type": "string"},

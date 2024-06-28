@@ -319,6 +319,7 @@ export class PowerGrid extends NGGridDirective {
                 }
                 // without timeout the column don't fit automatically
                 this.setTimeout(() => {
+                    this.setupHeaderIconStyleClass();
                     this.svySizeColumnsToFit(GRID_EVENT_TYPES.GRID_READY);
                 }, 150);
             },
@@ -586,6 +587,23 @@ export class PowerGrid extends NGGridDirective {
         }
     }
 
+    private setupHeaderIconStyleClass(): void {
+        if(this.columns) {
+            for(let i = 0; i < this.columns.length; i++) {
+                if(this.columns[i].headerIconStyleClass) {
+                    const colId = this.columns[i].id;
+                    const columnEl = this.doc.querySelector('[col-id="' + colId + '"]');
+                    if(columnEl) {
+                        const labelEl = columnEl.querySelector('.ag-header-cell-label');
+                        if(labelEl) {
+                            labelEl.setAttribute('class', labelEl.getAttribute('class') + ' ' + this.columns[i].headerIconStyleClass);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     private getColumnsAutoSizingOn(): unknown {
         if(this.columnsAutoSizingOn) {
             return this.columnsAutoSizingOn;
@@ -714,9 +732,9 @@ export class PowerGrid extends NGGridDirective {
                                                 }
 
                                                 if (prop === 'visible') {
-                                                    this.gridApi.setColumnVisible(colId, newPropertyValue as boolean);
+                                                    this.gridApi.setColumnsVisible([colId], newPropertyValue as boolean);
                                                 } else {
-                                                    this.gridApi.setColumnWidth(colId, newPropertyValue as number);
+                                                    this.gridApi.setColumnWidths([{ key: colId, newWidth:newPropertyValue as number}]);
                                                     this.svySizeColumnsToFit(GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED);
                                                 }
                                             }
@@ -2366,6 +2384,7 @@ export class PowerGridColumn extends BaseCustomObject {
     headerGroupStyleClass: string;
     headerTitle: string;
     headerStyleClass: string;
+    headerIconStyleClass: string;
     headerTooltip: string;
     footerText: string;
     footerStyleClass: string;
