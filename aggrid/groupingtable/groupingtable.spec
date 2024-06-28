@@ -497,6 +497,7 @@
 			"headerTitle": {"type" : "titlestring", "for": "dataprovider", "tags": { "wizard": "4", "useAsCaptionInDeveloper" : true, "captionPriority" : 1, "showInOutlineView": true, "doc": "If the column has a database linked dataprovider, the default value of the headerTitle is the title text of the database column or if that is not set, the database column name." }},
 			"footerStyleClass" : {"type" : "styleclass"},
 			"headerStyleClass" : {"type" : "styleclass"},
+			"headerIconStyleClass" : {"type" : "styleclass", "tags": {"doc": "(Font awesome) Styles for header icon"}},
 			"headerTooltip" : {"type" : "tagstring"},
 			"headerGroup": {"type" : "tagstring", "tags": {"doc": "Header group, that this column will be part of"}},
 			"headerGroupStyleClass" : {"type" : "styleclass"},

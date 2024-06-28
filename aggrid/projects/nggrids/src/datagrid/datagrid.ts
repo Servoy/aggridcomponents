@@ -731,6 +731,7 @@ export class DataGrid extends NGGridDirective {
         if(!this.isTableGrouped()) {
             this.setupHeaderCheckbox(true);
         }
+        this.setupHeaderIconStyleClass();
     }
 
     private getColumnsAutoSizingOn(): unknown {
@@ -769,6 +770,26 @@ export class DataGrid extends NGGridDirective {
                             });
                         }
                     };
+                }
+            }
+        }
+    }
+
+    private setupHeaderIconStyleClass(): void {
+        if(this.columns) {
+            for(let i = 0; i < this.columns.length; i++) {
+                if(this.columns[i].headerIconStyleClass) {
+                    let colId = this.columns[i].id;
+                    if (!colId) {
+                        colId = this.getColumnID(this.columns[i], i);
+                    }
+                    const columnEl = this.doc.querySelector('[col-id="' + colId + '"]');
+                    if(columnEl) {
+                        const labelEl = columnEl.querySelector('.ag-header-cell-label');
+                        if(labelEl) {
+                            labelEl.setAttribute('class', labelEl.getAttribute('class') + ' ' + this.columns[i].headerIconStyleClass);
+                        }
+                    }
                 }
             }
         }
@@ -5798,6 +5819,7 @@ export class DataGridColumn extends BaseCustomObject {
     headerTitle: string;
     footerStyleClass: string;
     headerStyleClass: string;
+    headerIconStyleClass: string;
     headerTooltip: string;
     headerGroup: string;
     headerGroupStyleClass: string;
