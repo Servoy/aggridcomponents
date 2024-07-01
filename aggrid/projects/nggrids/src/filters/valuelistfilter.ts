@@ -8,7 +8,7 @@ import { NULL_VALUE } from '../datagrid/datagrid';
 @Component({
     selector: 'aggrid-datagrid-valuelistfilter',
     template: `
-      <div><div class="ag-filter-body-wrapper">
+      <div><div class="{{ !isFloating ? 'ag-filter-body-wrapper' : '' }}">
         <div class="ag-filter-body">
           <div class="ag-input-wrapper">
             <input class="ag-filter-filter ag-input-field-input" type="text" id="filterText" autocomplete="off"

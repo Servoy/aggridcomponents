@@ -4,7 +4,7 @@ import { FilterDirective } from './filter';
 @Component({
     selector: 'aggrid-datagrid-radiofilter',
     template: `
-      <div class="ag-filter-body-wrapper">
+      <div class="{{ !isFloating ? 'ag-filter-body-wrapper' : '' }}">
         <div *ngIf="!useCheckboxForFloatingFilter()" class="ag-filter-body" #element>
           <label class="ag-radio-filter" id="filterRadio" *ngFor="let item of valuelistValues">
             <input type="radio" name="{{ getName() }}" [value]="getFormatedDisplayValue(item.displayValue)" (change)="valueChanged()"/>
@@ -12,7 +12,7 @@ import { FilterDirective } from './filter';
           </label>
         </div>
         <div *ngIf="useCheckboxForFloatingFilter()" class="ag-filter-body">
-          <input type="checkbox" style="width: 100%" (click)="onCheckboxClick()" #element/>
+          <input type="checkbox" style="width: 100%; height: 100%;" (click)="onCheckboxClick()" #element/>
         </div>  
         <div *ngIf="!suppressAndOrCondition()" class="ag-filter-condition"><label>OR</label></div>
         <div *ngIf="!suppressAndOrCondition()" class="ag-filter-body" #element1>
