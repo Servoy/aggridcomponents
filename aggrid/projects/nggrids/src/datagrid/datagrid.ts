@@ -3558,14 +3558,23 @@ export class DataGrid extends NGGridDirective {
 
     onColumnRowGroupChanged(event: any) {
         // return;
-        const rowGroupCols = event.columns;
+        const rowGroupCols = [];
+
+        if(event.columns) {
+            for (let i = 0; i < event.columns.length; i++) {
+                if(event.columns[i].rowGroupActive) {
+                    rowGroupCols.push(event.columns[i]);
+                }
+            }
+        }
+
         // FIXME why does give an error,  i don't uderstand
         let i: any;
         let column: any;
         this.log.debug(event);
 
         // store in columns the change
-        if (!rowGroupCols || rowGroupCols.length === 0) {
+        if (rowGroupCols.length === 0) {
             if(this.isGroupView) {
                 // clear filter
                 this.agGrid.api.setFilterModel(null);
@@ -3619,7 +3628,7 @@ export class DataGrid extends NGGridDirective {
             // clear HashTreeCache if column group state changed
             for (i = 0; this.state.grouped.columns && i < this.state.grouped.columns.length; i++) {
                 // if the column has been removed or order of columns has been changed
-                if (i >= event.columns.length || this.state.grouped.columns[i] !== event.columns[i].colId) {
+                if (i >= rowGroupCols.length || this.state.grouped.columns[i] !== rowGroupCols[i].colId) {
                     //	if (i === 0) {
                     // FIXME does it breaks it, why does it happen ? concurrency issue ?
                     //	groupManager.clearAll();
@@ -3641,7 +3650,7 @@ export class DataGrid extends NGGridDirective {
         }
 
         // persist grouped columns state
-        this.setStateGroupedColumns(event.columns);
+        this.setStateGroupedColumns(rowGroupCols);
 
         // resize the columns
         this.setTimeout(() => {
