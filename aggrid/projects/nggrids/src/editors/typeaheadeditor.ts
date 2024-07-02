@@ -36,6 +36,7 @@ export class TypeaheadEditor extends EditorDirective implements IPopupSupportCom
   format: any;
   initParams: any;
   valuelistValues: any;
+  initialRealValue: any;
 
   findModeListener: any;
 
@@ -101,10 +102,15 @@ export class TypeaheadEditor extends EditorDirective implements IPopupSupportCom
                 }
               }
               params.node['data'][params.column.colDef['field']] = {realValue: rv, displayValue: params.value};
+              this.initialRealValue = rv;
             });
           } else {
             params.node['data'][params.column.colDef['field']] = {realValue: rv, displayValue: params.value};
+            this.initialRealValue = rv;
           }
+        }
+        else if(this.hasRealValues && params.value && params.value['realValue']) {
+            this.initialRealValue = params.value['realValue'];
         }
       });
     }
@@ -112,6 +118,7 @@ export class TypeaheadEditor extends EditorDirective implements IPopupSupportCom
     if(this.initialValue && this.initialValue.displayValue !== undefined) {
       this.initialValue = this.initialValue.displayValue;
     }
+    this.initialRealValue = this.initialValue;
     let v = this.initialValue;
     this.format = this.ngGrid.getColumnFormat(params.column.getColId());
     if(this.format) {
@@ -207,7 +214,7 @@ export class TypeaheadEditor extends EditorDirective implements IPopupSupportCom
           if (this.initialValue != null && this.initialValue !== displayValue) {
             // so invalid thing is typed in the list and we are in real/display values
             displayValue = this.initialDisplayValue;
-            realValue = this.initialValue;
+            realValue = this.initialRealValue;
           } else if(this.initialValue == null) { // if the dataproviderid was null and we are in real|display then reset the value to ""
             displayValue = realValue = '';
           }
