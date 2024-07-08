@@ -3814,6 +3814,9 @@ export class DataGrid extends NGGridDirective {
 
         if(!this.isTableGrouped() && changeEvent.serverFoundsetSizeChanged) {
             this.agGrid.api.setRowCount(changeEvent.serverFoundsetSizeChanged.newValue);
+            if(changeEvent.serverFoundsetSizeChanged.newValue === 0) {
+                return;
+            }
         }
 
         if(changeEvent.multiSelectChanged) {
