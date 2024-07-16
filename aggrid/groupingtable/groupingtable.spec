@@ -525,7 +525,7 @@
 			"autoResize" : {"type": "boolean", "default" : true},
 			"rowGroupIndex":  {"type": "int", "default": -1, "tags": {"doc": "Set the rowGroupIndex to group on the column; the index defines the order of the group when there are multiple grouped columns"}},
 			"isEditableDataprovider": { "type": "dataprovider", "forFoundset": "myFoundset", "tags": {"doc": "Use a Servoy calculation as isEditableDataprovider to set edit state conditionally to the table cell"}},
-			"editType": {"type": "string", "values": [{"NONE":null}, {"TEXTFIELD":"TEXTFIELD"}, {"DATEPICKER":"DATEPICKER"}, {"COMBOBOX":"COMBOBOX"}, {"TYPEAHEAD":"TYPEAHEAD"}, {"FORM":"FORM"}, {"CHECKBOX":"CHECKBOX"}], "tags": {"doc": "Type of editing used for that column"}},
+			"editType": {"type": "modifiable", "for": "dataprovider", "values": [{"NONE":null}, {"TEXTFIELD":"TEXTFIELD"}, {"DATEPICKER":"DATEPICKER"}, {"COMBOBOX":"COMBOBOX"}, {"TYPEAHEAD":"TYPEAHEAD"}, {"FORM":"FORM"}, {"CHECKBOX":"CHECKBOX"}], "tags": {"doc": "Type of editing used for that column"}},
 			"editForm": {"type": "form", "tags": {"doc": "Form used as custom editor"}},
 			"editFormSize": {"type": "dimension", "default" : {"width":300, "height":200}},
 			"stopEditingOnChange" : {"type": "boolean", "default" : false},
