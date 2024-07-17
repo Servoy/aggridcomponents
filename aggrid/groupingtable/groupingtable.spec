@@ -507,9 +507,9 @@
 			"headerGroupStyleClass" : {"type" : "styleclass"},
 			"headerCheckbox" : {"type": "boolean", "default" : false, "tags" : {"scope": "design", "doc": "When true the column has checkbox for selecting/unselecting all rows"}},
 			"dataprovider": { "type": "dataprovider", "forFoundset": "myFoundset", "resolveValuelist" : true, "pushToServer" : "allow", "ondatachange": { "onchange":"onElementDataChange"}, "tags": { "wizard": "1", "useAsCaptionInDeveloper" : true, "captionPriority" : 2 }},
-			"tooltip": { "type": "dataprovider", "forFoundset": "myFoundset"},
+			"tooltip": { "type": "dataprovider", "forFoundset": "myFoundset", "pushToServer" : "reject"},
 			"styleClass" : {"type" : "styleclass","tags": {"wizard": {"order": "3", "values":[{"name": "Pencil icon", "cls": "fa fa-pencil"}, {"name": "Trash icon", "cls": "fa fa-trash"}, {"name": "Eye icon", "cls": "fa fa-eye"}, {"name": "Gear icon", "cls": "fa fa-gear"}] }} },
-			"styleClassDataprovider": { "type": "dataprovider", "forFoundset": "myFoundset", "tags": {"wizard": "2", "doc": "Use a Servoy calculation as styleClassDataprovider to set styleClass conditionally to the table cell"}},
+			"styleClassDataprovider": { "type": "dataprovider", "forFoundset": "myFoundset", "pushToServer" : "reject", "tags": {"wizard": "2", "doc": "Use a Servoy calculation as styleClassDataprovider to set styleClass conditionally to the table cell"}},
 			"format" : {"type" : "format",  "for": ["valuelist", "dataprovider"]},
 			"valuelist": { "type": "valuelist", "for": "dataprovider", "forFoundset": "myFoundset", "config": "valuelistConfig"},
 			"valuelistConfig" : { "type" : "valuelistConfig"},
@@ -524,7 +524,7 @@
 			"enableToolPanel" : {"type": "boolean", "default" : true, "tags": {"doc" : "If the column should be visible in the tool panel"}},
 			"autoResize" : {"type": "boolean", "default" : true},
 			"rowGroupIndex":  {"type": "int", "default": -1, "tags": {"doc": "Set the rowGroupIndex to group on the column; the index defines the order of the group when there are multiple grouped columns"}},
-			"isEditableDataprovider": { "type": "dataprovider", "forFoundset": "myFoundset", "tags": {"doc": "Use a Servoy calculation as isEditableDataprovider to set edit state conditionally to the table cell"}},
+			"isEditableDataprovider": { "type": "dataprovider", "forFoundset": "myFoundset", "pushToServer" : "reject", "tags": {"doc": "Use a Servoy calculation as isEditableDataprovider to set edit state conditionally to the table cell"}},
 			"editType": {"type": "modifiable", "for": "dataprovider", "values": [{"NONE":null}, {"TEXTFIELD":"TEXTFIELD"}, {"DATEPICKER":"DATEPICKER"}, {"COMBOBOX":"COMBOBOX"}, {"TYPEAHEAD":"TYPEAHEAD"}, {"FORM":"FORM"}, {"CHECKBOX":"CHECKBOX"}], "tags": {"doc": "Type of editing used for that column"}},
 			"editForm": {"type": "form", "tags": {"doc": "Form used as custom editor"}},
 			"editFormSize": {"type": "dimension", "default" : {"width":300, "height":200}},
@@ -534,7 +534,7 @@
 			"columnDef": {"type" : "json", "tags": {"doc": "Map where additional column properties of ag-grid can be set", "value_types": {"valueGetter": "clientfunction"}}},
 			"showAs": { "type": "string", "values": [{"text":null}, {"html":"html"}, {"sanitizedHtml":"sanitizedHtml"}] },
 			"dndSource" : {"type": "boolean", "default" : false, "tags": {"doc": "Allow dragging"}},
-			"dndSourceDataprovider" : { "type": "dataprovider", "forFoundset": "myFoundset", "tags": {"doc": "Boolean dataprovider for allow/disallow dragging."}}
+			"dndSourceDataprovider" : { "type": "dataprovider", "forFoundset": "myFoundset", "pushToServer" : "reject", "tags": {"doc": "Boolean dataprovider for allow/disallow dragging."}}
 		},
 		"groupedColumn" : {
             "dataprovider": { "type": "dataprovider", "forFoundset": "foundset", "resolveValuelist": true, "pushToServer" : "allow"},
