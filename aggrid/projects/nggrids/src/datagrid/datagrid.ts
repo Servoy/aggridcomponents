@@ -4483,7 +4483,11 @@ class FoundsetManager {
             size = 0;
         }
 
-        return this.foundset.loadRecordsAsync(startIndex, size);
+        if(this.dataGrid.agGridOptions.maxBlocksInCache === -1) {
+            return this.foundset.loadExtraRecordsAsync(size);
+        } else {
+            return this.foundset.loadRecordsAsync(startIndex, size);
+        }
     }
 
     getSortColumns() {
