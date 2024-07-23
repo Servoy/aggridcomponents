@@ -60,25 +60,31 @@ export class ValuelistFilter extends FilterDirective {
     doFilterValues(text$: Observable<string>, inputFocus$: any) {
       const debouncedText$ = text$.pipe(debounceTime(200), distinctUntilChanged());
       return merge(debouncedText$, inputFocus$).pipe( switchMap(term => {
-          const valuelist = this.ngGrid.getValuelistForFilter(this.params);
           let valuelistObs: Observable<readonly any[]>;
-          if(valuelist) {
-            valuelistObs = valuelist.filterList(term);
-            valuelistObs.subscribe(valuelistValues =>  {
-              this.valuelistValues = valuelistValues;
-              if(!this.hasApplyButton()) {
-                this.valuelistValues.splice(0, 0, NULL_VALUE);
-              }
-            });
+          if(!this.valuelistValues) {
+            const valuelist = this.ngGrid.getValuelistForFilter(this.params);
+            if(valuelist) {
+              valuelistObs = valuelist.filterList('');
+              valuelistObs.subscribe(valuelistValues =>  {
+                this.valuelistValues = valuelistValues;
+                if(!this.hasApplyButton()) {
+                  this.valuelistValues.splice(0, 0, NULL_VALUE);
+                }
+              });
+            } else {
+              valuelistObs = of([]);
+            }
           } else {
-            valuelistObs = of([]);
+            valuelistObs = of(this.valuelistValues.filter(str => {
+              return str.displayValue.toLowerCase().indexOf((term as string).toLowerCase()) != -1;
+            }));
           }
           return valuelistObs;
         }));
     }
 
     resultFormatter = (result: {displayValue: string; realValue: any}) => {
-      if (result.displayValue === null) return '';
+      if (result.displayValue === null || result.displayValue == '') return '\u00A0';
       return this.ngGrid.format(result.displayValue, this.format, false);
     };
 
