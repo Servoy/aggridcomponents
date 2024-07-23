@@ -143,6 +143,7 @@ export class FilterDirective implements AgFloatingFilterComponent, IFloatingFilt
     }
 
     getFormatedDisplayValue(displayValue: string): string {
+      if (displayValue === null || displayValue == '') return '\u00A0';
       if(this.hasValuelistSet && this.format && displayValue) {
         return this.ngGrid.format(displayValue, this.format, false);
       }
