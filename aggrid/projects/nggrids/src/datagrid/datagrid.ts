@@ -987,6 +987,13 @@ export class DataGrid extends NGGridDirective {
                             }) || (change.currentValue && this.previousColumns && change.currentValue.length !== this.previousColumns.length)) {
                                 this.updateColumnDefs();
                             } else {
+                                // if the updated property cannot be changed by an aggrid api call recreate the columns
+                                let updateColumnDefs = false;
+                                // for some properties we should not restore the column state after recreating the columns
+                                let restoreColumnState = false;
+                                // if a property is updated with an aggrid api call, store the new state
+                                let storeColumnState = false;
+
                                 for(let i = 0; i < this.columns.length; i++) {
                                     for(const prop of COLUMN_KEYS_TO_CHECK_FOR_CHANGES) {
                                         const oldPropertyValue = this.previousColumns &&
@@ -1001,40 +1008,51 @@ export class DataGrid extends NGGridDirective {
 
                                             if(prop !== "headerTooltip" && prop !== 'footerText' && prop !== 'headerTitle' && prop !== 'visible' && prop !== 'width') {
                                                 if(this.isGridReady) {
-                                                    this.updateColumnDefs();
+                                                    updateColumnDefs = true;
                                                     if(prop !== 'enableToolPanel') {
-                                                        this.restoreColumnsState();
+                                                        restoreColumnState = true;
                                                     }
                                                 } else {
                                                     this.isColumnModelChangedBeforeGridReady = true;        
                                                 }
+                                            } else {
+                                                storeColumnState = true;
+                                                if(prop === 'headerTitle') {
+                                                    this.handleColumnHeader(i, 'headerName', newPropertyValue);
+                                                } else if(prop === 'headerTooltip') {
+                                                    this.handleColumnHeader(i, prop, newPropertyValue);
+                                                } else if (prop === 'footerText') {
+                                                    this.handleColumnFooterText();
+                                                } else if(prop === 'visible' || prop === 'width') {
+                                                    // column id is either the id of the column
+                                                    const column = this.columns[i];
+                                                    let colId = column.id;
+                                                    if (!colId) {	// or column is retrieved by getColumnID !?
+                                                        colId = this.getColumnID(column, i);
+                                                    }
+    
+                                                    if (!colId) {
+                                                        this.log.warn('cannot update "' + property + '" property on column at position index ' + i);
+                                                        return;
+                                                    }
+                                                    if(prop === 'visible') {
+                                                        this.gridApi.setColumnsVisible([colId], newPropertyValue as boolean);
+                                                    } else {
+                                                        this.gridApi.setColumnWidths([{ key: colId, newWidth:newPropertyValue as number}]);
+                                                        this.sizeHeaderAndColumnsToFit(GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED);
+                                                    }
+                                                }
                                             }
+                                        }
+                                    }
+                                }
 
-                                            if(prop === 'headerTitle') {
-                                                this.handleColumnHeader(i, 'headerName', newPropertyValue);
-                                            } else if(prop === 'headerTooltip') {
-                                                this.handleColumnHeader(i, prop, newPropertyValue);
-                                            } else if (prop === 'footerText') {
-                                                this.handleColumnFooterText();
-                                            } else if(prop === 'visible' || prop === 'width') {
-                                                // column id is either the id of the column
-                                                const column = this.columns[i];
-                                                let colId = column.id;
-                                                if (!colId) {	// or column is retrieved by getColumnID !?
-                                                    colId = this.getColumnID(column, i);
-                                                }
-
-                                                if (!colId) {
-                                                    this.log.warn('cannot update "' + property + '" property on column at position index ' + i);
-                                                    return;
-                                                }
-                                                if(prop === 'visible') {
-                                                    this.gridApi.setColumnsVisible([colId], newPropertyValue as boolean);
-                                                } else {
-                                                    this.gridApi.setColumnWidths([{ key: colId, newWidth:newPropertyValue as number}]);
-                                                    this.sizeHeaderAndColumnsToFit(GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED);
-                                                }
-                                            }
+                                if(storeColumnState) {
+                                    this.storeColumnsState(true);
+                                    if(updateColumnDefs) {
+                                        this.updateColumnDefs();
+                                        if(restoreColumnState) {
+                                            this.restoreColumnsState();
                                         }
                                     }
                                 }
@@ -2998,8 +3016,6 @@ export class DataGrid extends NGGridDirective {
         this.agGrid.api.setGridOption('columnDefs', [])
 
         this.agGrid.api.setGridOption('columnDefs', this.getColumnDefs())
-        // selColumnDefs should redraw the grid, but it stopped doing so from v19.1.2
-        this.purge();
     }
 
     scrollToSelectionEx(foundsetManager?: any) {
