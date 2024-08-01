@@ -458,7 +458,7 @@
 			"autoResize" : {"type": "boolean", "default" : true},
 			"cellStyleClassFunc": {"type": "clientfunction"},
 			"cellRendererFunc": {"type": "clientfunction", "tags": {"doc": "Function to change the cell rendering"}},
-			"format": {"type": "tagstring", "tags": {"doc": "Format string as used in Servoy, for the type set in formatType"}},
+			"format": {"type": "format", "for": ["formatType"], "tags": {"doc": "Format for the type set in formatType"}},
 			"formatType": {"type": "string", "values": ["TEXT", "NUMBER", "DATETIME"], "default": "TEXT", "tags": {"doc": "Type of data the format is applied on"}},
 			"editType": {"type": "string", "values": [{"NONE":null}, {"TEXTFIELD":"TEXTFIELD"}, {"DATEPICKER":"DATEPICKER"}, {"COMBOBOX":"COMBOBOX"}, {"TYPEAHEAD":"TYPEAHEAD"}, {"FORM":"FORM"}, {"CHECKBOX":"CHECKBOX"}], "tags": {"doc": "Type of editing used for that column"}},
 			"editForm": {"type": "form", "tags": {"doc": "Form used as custom editor"}},

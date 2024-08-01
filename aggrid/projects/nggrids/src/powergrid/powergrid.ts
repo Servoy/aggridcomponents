@@ -865,25 +865,16 @@ export class PowerGrid extends NGGridDirective {
                 // visibility
                 if (column.visible === false) colDef.hide = true;
                 if (column.format) {
-                    let parsedFormat = column.format;
-                    if (column.formatType === 'DATETIME') {
-                        let useLocalDateTime = false;
-                        try {
-                            const jsonFormat = JSON.parse(column.format);
-                            parsedFormat = jsonFormat.displayFormat;
-                            useLocalDateTime = jsonFormat.useLocalDateTime;
-                        } catch (e) { }
-                        if (useLocalDateTime) {
-                            colDef.valueGetter = (params: any) => {
-                                const field = params.colDef.field;
-                                if (field && params.data) {
-                                    return new Date(params.data[field]);
-                                }
-                                return '';
-                            };
-                        }
+                    if (column.formatType === 'DATETIME' && column.format.useLocalDateTime) {
+                        colDef.valueGetter = (params: any) => {
+                            const field = params.colDef.field;
+                            if (field && params.data) {
+                                return new Date(params.data[field]);
+                            }
+                            return '';
+                        };
                     }
-                    colDef.valueFormatter = this.createValueFormatter(parsedFormat, column.formatType);
+                    colDef.valueFormatter = this.createValueFormatter(column.format);
                 }
 
                 if (column.cellStyleClassFunc) {
@@ -1628,26 +1619,11 @@ export class PowerGrid extends NGGridDirective {
     }
 
     getColumnFormat(colId: any): any {
-        let columnFormat = null;
         const column = this.getColumn(colId);
         if (column && column.format) {
-            columnFormat = {};
-            columnFormat['type'] = column.formatType;
-            if (column.formatType === 'TEXT' && (column.format === '|U' || column.format === '|L')) {
-                if (column.format === '|U') {
-                    columnFormat['uppercase'] = true;
-                } else if (column.format === '|L') {
-                    columnFormat['lowercase'] = true;
-                }
-            } else {
-                const displayAndEditFormat = column.format.split('|');
-                columnFormat['display'] = displayAndEditFormat[0];
-                if (displayAndEditFormat.length > 1) {
-                    columnFormat['edit'] = displayAndEditFormat[1];
-                }
-            }
+            return column.format;
         }
-        return columnFormat;
+        return null;
     }
 
     getEditingRowIndex(param: any): number {
@@ -1829,23 +1805,13 @@ export class PowerGrid extends NGGridDirective {
         return style.getPropertyValue(cssProperty);
     }
 
-    createValueFormatter(format: any, formatType: any): any {
+    createValueFormatter(format: any): any {
         const _this: PowerGrid = this;
         return (params: any) => {
             if (params.value !== undefined && params.value !== null) {
                 let v = params.value;
                 if (v.displayValue !== undefined) v = v.displayValue;
-                if (formatType === 'TEXT' && typeof v === 'string') {
-                    if (format === '|U') {
-                        return v.toUpperCase();
-                    } else if (format === '|L') {
-                        return v.toLowerCase();
-                    }
-                }
-                const formatDef = new Format();
-                formatDef.type = formatType;
-                formatDef.display = format.split('|')[0];
-                return _this.format(v, formatDef, false);
+                return _this.format(v, format, false);
             }
             return '';
         };
@@ -2415,7 +2381,7 @@ export class PowerGridColumn extends BaseCustomObject {
     autoResize: boolean;
     cellStyleClassFunc: any;
     cellRendererFunc: any;
-    format: string;
+    format: any;
     formatType: string;
     editType: string;
     editForm: any;

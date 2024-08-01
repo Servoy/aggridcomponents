@@ -1013,28 +1013,18 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                         if (column.visible === false) colDef.hide = true;
                         
                         if (column.format) {
-                            var parsedFormat = column.format;
-                            if(column.formatType == 'DATETIME') {
-                                var useLocalDateTime = false;
-                                try {
-                                    var jsonFormat = JSON.parse(column.format);
-                                    parsedFormat = jsonFormat.displayFormat;
-                                    useLocalDateTime = jsonFormat.useLocalDateTime;
-                                }
-                                catch(e){}
-                                if(useLocalDateTime) {
-                                    colDef.valueGetter = function(params) {
-                                        var field = params.colDef.field;
-                                        if (field && params.data) {
-                                            return new Date(params.data[field]);
-                                        }
-                                        return undefined;				
-                                    };
-                                }
+                            if(column.formatType == 'DATETIME' && column.format.useLocalDateTime) {
+                                colDef.valueGetter = function(params) {
+                                    var field = params.colDef.field;
+                                    if (field && params.data) {
+                                        return new Date(params.data[field]);
+                                    }
+                                    return undefined;				
+                                };
                             }
 
-                            colDef.keyCreator = createValueFormatter(parsedFormat, column.formatType);
-                            colDef.valueFormatter = createValueFormatter(parsedFormat, column.formatType);
+                            colDef.keyCreator = createValueFormatter(column.format, column.formatType);
+                            colDef.valueFormatter = createValueFormatter(column.format, column.formatType);
                         }
 
                         if(column.cellStyleClassFunc) {
@@ -1315,13 +1305,6 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 function createValueFormatter(format, formatType) {
                     return function(params) {
                         if(params.value != undefined) {
-                            if(formatType == 'TEXT' && typeof params.value === 'string') {
-                                if(format == '|U') {
-                                    return params.value.toUpperCase();
-                                } else if(format == '|L') {
-                                    return params.value.toLowerCase();
-                                }
-                            }
                             var cellValue = params.value;
                             // if the value is a group-value then it is a string that is already formatted
                             if ((formatType == 'DATETIME' || formatType == 'NUMBER') && (typeof cellValue === 'string' || cellValue instanceof String)) {
@@ -1329,9 +1312,9 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                             }
                             var displayFormat = null;
                             if(format) {
-                                displayFormat = format.split("|")[0];
+                                displayFormat = format.display;
                             }
-                            return $formatterUtils.format(cellValue,displayFormat,formatType);
+                            return $filter("formatFilter")(cellValue, displayFormat, formatType, format);
                         }
                         return '';
                     }
@@ -1690,26 +1673,11 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 }
 
                 function getColumnFormat(colId) {
-                    var columnFormat = null;
                     var column = getColumn(colId);
                     if(column && column.format) {
-                        columnFormat = {};
-                        columnFormat['type'] = column.formatType;
-                        if(column.formatType == 'TEXT' && (column.format == '|U' || column.format == '|L')) {
-                            if(column.format == '|U') {
-                                columnFormat['uppercase'] = true;
-                            } else if(column.format == '|L') {
-                                columnFormat['lowercase'] = true;
-                            }
-                        } else {
-                            var displayAndEditFormat = column.format.split("|");
-                            columnFormat['display'] = displayAndEditFormat[0];
-                            if(displayAndEditFormat.length > 1) {
-                                columnFormat['edit'] = displayAndEditFormat[1];
-                            }
-                        }
+                        return column.format;
                     }
-                    return columnFormat;
+                    return null;
                 }
 
                 function isTableGrouped() {
@@ -2131,27 +2099,10 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                         var displayFormat = 'MM/dd/yyyy hh:mm a';
                         var editFormat = 'MM/dd/yyyy hh:mm a';
                         if(column && column.format) {
-                            var parsedFormat = column.format;
-                            try {
-                                var jsonFormat = JSON.parse(column.format);
-                                displayFormat = jsonFormat.displayFormat;
-                                parsedFormat = jsonFormat.editFormat ? jsonFormat.editFormat : jsonFormat.displayFormat;
-                                this.hasMask = jsonFormat.mask;
-                                this.maskPlaceholder = jsonFormat.editOrPlaceholder;
-                            }
-                            catch(e){}                        
-                            editFormat = parsedFormat;
-
-                            var splitedEditFormat = editFormat.split("|");
-                            if(splitedEditFormat.length === 4 && splitedEditFormat[3] === 'mask') {
-                                displayFormat = splitedEditFormat[0]
-                                editFormat = splitedEditFormat[1];
-                                this.hasMask = true;
-                                this.maskPlaceholder = splitedEditFormat[2];
-                            }
-                            else if(splitedEditFormat.length > 1) {
-                                editFormat = splitedEditFormat[1];
-                            }
+                            displayFormat = column.format.display;
+                            editFormat = column.format.edit ? column.format.edit : column.format.display;
+                            this.hasMask = column.format.isMask;
+                            this.maskPlaceholder = column.format.placeHolder;
                         }
 
                         if (this.hasMask) {
