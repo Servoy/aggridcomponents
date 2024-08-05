@@ -1672,9 +1672,10 @@ export class PowerGrid extends NGGridDirective {
             return;
         }
 
-        // search for the group key node
+        // search for the sub-group node if groupKeys with multiple levels
         let node = this._internalExpandedState;
-        for (const key of groupKeys) {
+        for (let i = 0; i < groupKeys.length - 1; i++) {
+            let key = groupKeys[i];
             node = node[key];
 
             if (!node) {
