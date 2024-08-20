@@ -2010,7 +2010,7 @@ export class DataGrid extends NGGridDirective {
                                     rowIndex,
                                     colKey: colId
                                 });
-                                this.setTimeout(() => {
+                                _this.setTimeout(() => {
                                     _this.selectionEvent = null;
                                     _this.agGrid.api.forEachNode( (node: any) => {
                                         if (node.rowIndex === rowIndex) {
@@ -2031,10 +2031,10 @@ export class DataGrid extends NGGridDirective {
                             }
                         }
                         _this.onColumnDataChangePromise = null;
-                    }).catch(function(e: any) {
-                        this.log.error(e);
-                        this.invalidCellDataIndex.rowIndex = -1;
-                        this.invalidCellDataIndex.colKey = '';
+                    }).catch((e: any) => {
+                        _this.log.error(e);
+                        _this.invalidCellDataIndex.rowIndex = -1;
+                        _this.invalidCellDataIndex.colKey = '';
                         _this.onColumnDataChangePromise = null;
                     });
                 }
