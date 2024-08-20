@@ -92,12 +92,11 @@
 				"type": "int"
 			}, {
 				"name": "columnindex",
-				"type": "int",
-				"optional": true
+				"type": "int"
 			}, {
 				"name": "record",
 				"type": "record",
-				"optional": true
+				"tags": { "skipCallIfNotSelected": true }
 			}, {
 				"name": "event",
 				"type": "JSEvent",
