@@ -167,6 +167,7 @@ export class TypeaheadEditor extends EditorDirective implements IPopupSupportCom
     }
     setTimeout(() => {
       this.elementRef.nativeElement.focus();
+      this.elementRef.nativeElement.select();
       if(this.ngGrid.isInFindMode()) {
         this.findModeListener = (e: KeyboardEvent) => {
           if(e.keyCode === 13) {
