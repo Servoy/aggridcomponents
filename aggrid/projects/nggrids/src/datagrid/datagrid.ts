@@ -4950,6 +4950,7 @@ class FoundsetDatasource implements IServerSideDatasource {
                     // if selection did not changed, mark the selection ready
                     if(!_this.dataGrid.selectedRowIndexesChanged()) {
                         _this.dataGrid.isRenderedAndSelectionReady = true;
+                        _this.dataGrid.scrollToSelectionWhenSelectionReady = false;
                     } else if (_this.dataGrid.isTableGrouped()) {
                         _this.dataGrid.isRenderedAndSelectionReady = true;
                         _this.dataGrid.scrollToSelection();
