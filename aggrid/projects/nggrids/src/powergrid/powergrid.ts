@@ -1739,7 +1739,8 @@ export class PowerGrid extends NGGridDirective {
 
     handleColumnFooterText() {
         this.log.debug('footer text column property changed');
-        this.agGrid.api.setPinnedBottomRowData(this.getFooterData());
+        this.agGrid.api.setGridOption('pinnedBottomRowData', this.getFooterData())
+
     }
 
     getFooterData() {
