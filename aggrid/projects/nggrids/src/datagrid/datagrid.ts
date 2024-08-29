@@ -1532,20 +1532,18 @@ export class DataGrid extends NGGridDirective {
                 colDef.headerComponentParams = {
                     template:
                     '<div class="ag-cell-label-container" role="presentation">' +
-                    '    <span ref="eMenu" class="ag-header-icon ag-header-cell-menu-button" aria-hidden="true"></span>' +
-                    '    <div ref="eLabel" class="ag-header-cell-label" role="presentation">' +
-                    '        <div class="svy-header-checkbox">' +
-                    '            <input class="ag-input-field-input ag-checkbox-input" type="checkbox" id="' + this.servoyApi.getMarkupId() + '-headerCheck-' + i + '">' +
-                    '        </div>' +
-                    '        <span ref="eText" class="ag-header-cell-text"></span>' +
-                    '        <span ref="eFilter" class="ag-header-icon ag-header-label-icon ag-filter-icon" aria-hidden="true"></span>' +
-                    '        <span ref="eSortOrder" class="ag-header-icon ag-header-label-icon ag-sort-order" aria-hidden="true"></span>' +
-                    '        <span ref="eSortAsc" class="ag-header-icon ag-header-label-icon ag-sort-ascending-icon" aria-hidden="true"></span>' +
-                    '        <span ref="eSortDesc" class="ag-header-icon ag-header-label-icon ag-sort-descending-icon" aria-hidden="true"></span>' +
-                    '        <span ref="eSortNone" class="ag-header-icon ag-header-label-icon ag-sort-none-icon" aria-hidden="true"></span>' +
-                    '    </div>' +
+                    '   <span data-ref="eMenu" class="ag-header-icon ag-header-cell-menu-button" aria-hidden="true"></span>' +
+                    '   <span data-ref="eFilterButton" class="ag-header-icon ag-header-cell-filter-button" aria-hidden="true"></span>' +
+                    '   <div data-ref="eLabel" class="ag-header-cell-label" role="presentation">' +
+                    '       <div class="svy-header-checkbox">' +
+                    '           <input class="ag-input-field-input ag-checkbox-input" type="checkbox" id="' + this.servoyApi.getMarkupId() + '-headerCheck-' + i + '">' +
+                    '       </div>' +
+                    '       <span data-ref="eText" class="ag-header-cell-text"></span>' +
+                    '       <span data-ref="eFilter" class="ag-header-icon ag-header-label-icon ag-filter-icon" aria-hidden="true"></span>' +
+                    '       <ag-sort-indicator data-ref="eSortIndicator"></ag-sort-indicator>' +
+                    '   </div>' +
                     '</div>'
-                }    
+                }
             }
 
             if(column.footerText) {
