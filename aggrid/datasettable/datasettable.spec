@@ -443,6 +443,7 @@
 			"tooltip": { "type": "string"},
 			"styleClass" : {"type" : "styleclass"},
 			"visible":  { "type": "boolean", "default": true},
+			"excluded":  { "type": "boolean", "default": false, "tags": {"doc": "When true the column is excluded from the UI"}},
 			"width":  { "type": "int", "default": 0 },
 			"initialWidth":  { "type": "int", "tags": {"scope" : "private"}},
 			"minWidth":  { "type": "int" },

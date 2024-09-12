@@ -56,6 +56,7 @@ const COLUMN_KEYS_TO_CHECK_FOR_CHANGES = [
     'footerText',
     'styleClass',
     'visible',
+    'excluded',
     'width',
     'minWidth',
     'maxWidth',
@@ -707,7 +708,7 @@ export class PowerGrid extends NGGridDirective {
                                             if (this.isGridReady) {
                                                 if (prop !== "headerTooltip" && prop !== 'footerText' && prop !== 'headerTitle' && prop !== 'visible' && prop !== 'width') {
                                                     this.updateColumnDefs();
-                                                    if (prop !== 'enableToolPanel') {
+                                                    if (prop !== 'enableToolPanel' && prop !== 'excluded') {
                                                         this.restoreColumnsState();
                                                     }
                                                 }
@@ -806,6 +807,7 @@ export class PowerGrid extends NGGridDirective {
         const colGroups = {};
         if (this.columns) {
             for (const column of this.columns) {
+                if(column.excluded) continue;
                 //create a column definition based on the properties defined at design time
                 colDef = {
                     headerName: column['headerTitle'] ? column['headerTitle'] : '',
@@ -2367,6 +2369,7 @@ export class PowerGridColumn extends BaseCustomObject {
     tooltip: string;
     styleClass: string;
     visible: boolean;
+    excluded: boolean;
     width: number;
     initialWidth: number;
     minWidth: number;

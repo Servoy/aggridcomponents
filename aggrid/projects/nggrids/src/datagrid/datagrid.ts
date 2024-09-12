@@ -57,6 +57,7 @@ const COLUMN_KEYS_TO_CHECK_FOR_CHANGES = [
     'footerText',
     'styleClass',
     'visible',
+    'excluded',
     'width',
     'minWidth',
     'maxWidth',
@@ -1009,7 +1010,7 @@ export class DataGrid extends NGGridDirective {
                                             if(prop !== "headerTooltip" && prop !== 'footerText' && prop !== 'headerTitle' && prop !== 'visible' && prop !== 'width') {
                                                 if(this.isGridReady) {
                                                     updateColumnDefs = true;
-                                                    if(prop !== 'enableToolPanel') {
+                                                    if(prop !== 'enableToolPanel' && prop !== 'excluded') {
                                                         restoreColumnState = true;
                                                     }
                                                 } else {
@@ -1049,12 +1050,12 @@ export class DataGrid extends NGGridDirective {
 
                                 if(storeColumnState) {
                                     this.storeColumnsState(true);
-                                    if(updateColumnDefs) {
-                                        this.updateColumnDefs();
-                                        if(restoreColumnState) {
-                                            this.restoreColumnsState();
-                                        }
-                                    }
+                                }
+                                if(updateColumnDefs) {
+                                    this.updateColumnDefs();
+                                }
+                                if(restoreColumnState) {
+                                    this.restoreColumnsState();
                                 }
                             }
                         } else {
@@ -1346,6 +1347,8 @@ export class DataGrid extends NGGridDirective {
         let column: any;
         for (let i = 0; this.columns && i < this.columns.length; i++) {
             column = this.columns[i];
+
+            if(column.excluded) continue;
 
             const field = this.getColumnID(column, i);
             //create a column definition based on the properties defined at design time
@@ -2754,7 +2757,11 @@ export class DataGrid extends NGGridDirective {
                     }
                     savedColumns.push(columnState.colId);
                 }
-                if(savedColumns.length !== this.columns.length) {
+                let columnsNr = this.columns.length;
+                for(const column of this.columns) {
+                    if(column.excluded) columnsNr--;
+                }
+                if(savedColumns.length !== columnsNr) {
                         if(restoreColumns) this.innerColumnStateOnError('Cannot restore columns state, different number of columns in saved state and component');
                         return;
                 }
@@ -3041,7 +3048,7 @@ export class DataGrid extends NGGridDirective {
             if(foundsetManager.foundset.selectedRowIndexes.length) {
                 const rowCount = this.agGrid.api.getDisplayedRowCount();
                 if(foundsetManager.foundset.selectedRowIndexes[0] > rowCount - CHUNK_SIZE) {
-                    (this.agGrid.api.getModel() as any).setRowCount(Math.min(foundsetManager.foundset.selectedRowIndexes[0] + CHUNK_SIZE, foundsetManager.foundset.serverSize));
+                    this.agGrid.api.setRowCount(Math.min(foundsetManager.foundset.selectedRowIndexes[0] + CHUNK_SIZE, foundsetManager.foundset.serverSize));
                 }
                 this.agGrid.api.ensureIndexVisible(foundsetManager.foundset.selectedRowIndexes[0]);
             }
@@ -5867,6 +5874,7 @@ export class DataGridColumn extends BaseCustomObject {
     format: any;
     valuelist: any;
     visible: boolean;
+    excluded: boolean;
     width: number;
     initialWidth: number;
     minWidth: number;
