@@ -56,6 +56,7 @@ const COLUMN_KEYS_TO_CHECK_FOR_CHANGES = [
     'footerText',
     'styleClass',
     'visible',
+    'excluded',
     'width',
     'minWidth',
     'maxWidth',
@@ -971,8 +972,8 @@ export class DataGrid extends NGGridDirective {
                                             if(prop !== "headerTooltip" && prop !== 'footerText' && prop !== 'headerTitle' && prop !== 'visible' && prop !== 'width') {
                                                 if(this.isGridReady) {
                                                     this.updateColumnDefs();
-                                                    if(prop !== 'enableToolPanel') {
-                                                        this.restoreColumnsState();
+                                                    if(prop !== 'enableToolPanel' && prop !== 'excluded') {
+                                                        restoreColumnState = true;
                                                     }
                                                 } else {
                                                     this.isColumnModelChangedBeforeGridReady = true;        
@@ -1296,6 +1297,8 @@ export class DataGrid extends NGGridDirective {
         let column: any;
         for (let i = 0; this.columns && i < this.columns.length; i++) {
             column = this.columns[i];
+
+            if(column.excluded) continue;
 
             const field = this.getColumnID(column, i);
             //create a column definition based on the properties defined at design time
@@ -2698,7 +2701,11 @@ export class DataGrid extends NGGridDirective {
                     }
                     savedColumns.push(columnState.colId);
                 }
-                if(savedColumns.length !== this.columns.length) {
+                let columnsNr = this.columns.length;
+                for(const column of this.columns) {
+                    if(column.excluded) columnsNr--;
+                }
+                if(savedColumns.length !== columnsNr) {
                         if(restoreColumns) this.innerColumnStateOnError('Cannot restore columns state, different number of columns in saved state and component');
                         return;
                 }
@@ -5789,6 +5796,7 @@ export class DataGridColumn extends BaseCustomObject {
     format: any;
     valuelist: any;
     visible: boolean;
+    excluded: boolean;
     width: number;
     initialWidth: number;
     minWidth: number;
