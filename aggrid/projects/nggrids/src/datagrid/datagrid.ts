@@ -4789,6 +4789,7 @@ class FoundsetServer {
                         });
                     } else { // set the grid sorting if foundset sort changed from the grid initialization (like doing foundset sort on form's onShow)
                         this.dataGrid.applySortModel(this.dataGrid.getSortModel());
+                        this.dataGrid.isSortModelApplied = false; // it is not applied from UI, so, reset to false, to be still able to apply it here for other non-ui requests
                         // aggrid's callback must be called else the current request will be counting as 'pending' and
                         // adding up for max concurrent requests, blocking any succesive requests
                         callback([]);
