@@ -133,8 +133,7 @@ function getColumn(id, forChange) {
 
 /**
  * Fills the table with data from a dataset.
- * The column name from the dataset is used to match on the
- * component column id
+ * The column name from the dataset is used to match on the component column id
  * 
  * @param {JSDataSet} dataset
  * @param {Array<String>} [pks] list of dataprovider names; needed in case of using apis: updateRows and deleteRows
@@ -144,11 +143,12 @@ function renderData(dataset, pks) {
 
 /**
  * When useLazyLoading is set, this method is used to append the new rows
- * to the table from inside the onLazyLoadingGetRows callback.
- * The new rows are passed using a dataset, lastRowIndex specify the index
- * of the last row on the server, if not set, the lazy loading will behave 
- * like an infinite scroll, and onLazyLoadingGetRows called until lastRowIndex
- * will be set
+ * to the table from inside the onLazyLoadingGetRows callback.<br/><br/>
+ * 
+ * The new rows are passed using a dataset.<br/><br/>
+ * 
+ * "lastRowIndex" specifies the index of the last row on the server; if not set, the lazy loading will behave
+ * like an infinite scroll, and onLazyLoadingGetRows will be called called until "lastRowIndex" will be set
  * 
  * @param {JSDataSet} dataset
  * @param {Number} lastRowIndex 
@@ -165,7 +165,7 @@ function setFormEditorValue(value) {
 }
 
 /**
- * Returns currently expanded groups as an object like
+ * Returns currently expanded groups as an object like:
  * {expandedGroupName1:{}, expandedGroupName2:{expandedSubGroupName2_1:{}, expandedSubGroupName2_2:{}}}
  *
  * @returns {Object}

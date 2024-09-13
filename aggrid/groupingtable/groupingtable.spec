@@ -86,7 +86,7 @@
 			}]
 		},
 		"onCellClick": {
-			"doc": "Called when the mouse is clicked on a row/cell (foundset and column indexes are given)\nthe foundsetindex is always -1 when there are grouped rows",
+			"doc": "Called when the mouse is clicked on a row/cell (foundset and column indexes are given).\nThe foundsetindex is always -1 when there are grouped rows.",
 			"parameters": [{
 				"name": "foundsetindex",
 				"type": "int"
@@ -104,7 +104,7 @@
 			}]
 		},
 		"onCellDoubleClick": {
-			"doc": "Called when the mouse is clicked on a row/cell (foundset and column indexes are given)\nthe foundsetindex is always -1 when there are grouped rows",
+			"doc": "Called when the mouse is clicked on a row/cell (foundset and column indexes are given).\nThe foundsetindex is always -1 when there are grouped rows.",
 			"parameters": [{
 				"name": "foundsetindex",
 				"type": "int"
@@ -123,7 +123,7 @@
 			}]
 		},
 		"onCellRightClick": {
-			"doc": "Called when the right mouse button is clicked on a row/cell (foundset and column indexes are given)\nthe foundsetindex is always -1 when there are grouped rows",
+			"doc": "Called when the right mouse button is clicked on a row/cell (foundset and column indexes are given).\nThe foundsetindex is always -1 when there are grouped rows.",
 			"parameters": [{
 				"name": "foundsetindex",
 				"type": "int"

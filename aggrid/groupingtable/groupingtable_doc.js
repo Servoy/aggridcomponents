@@ -2,11 +2,11 @@
 
 /**
  * Notify the component about a data change. Makes the component aware of a data change that requires a refresh data.
+ * 
  * Call this method when you are aware of a relevant data change in the foundset which may affect data grouping (e.g. group node created or removed).
  * The component will alert the user of the data change and it will suggest to the user to perform a refresh.
- * <br/>
- * Please note that it’s not necessary to notify the table component if the component is not visible;
- * the component will always present the latest data when rendered again.
+ * 
+ * Please note that it’s not necessary to notify the table component if the component is not visible; the component will always present the latest data when rendered again.
  *
  * @public
  * */
@@ -171,11 +171,14 @@ function moveColumn(id, index) {
 
 /**
  * Restore columns state to a previously save one, using getColumnState.
+ * 
  * If no argument is used, it restores the columns to designe time state.
- * If the columns from columnState does not match with the columns of the component,
- * no restore will be done. The optional boolean arguments: columns, filter, sort can
- * be used to specify what to restore, the columns size/position/visibility (default true),
- * the filter state (default false), the sort state (default false).
+ * If the columns from columnState does not match with the columns of the component, no restore will be done.
+ * 
+ * The optional boolean arguments: columns, filter, sort can be used to specify what to restore:
+ * - the columns size/position/visibility (default true),
+ * - the filter state (default false),
+ * - the sort state (default false).
  * 
  * @param {String} columnState
  * @param {Function} onError
@@ -221,10 +224,10 @@ function setFormEditorValue(value) {
 }
 
 /**
- * Returns currently expanded groups as an object like
+ * Returns currently expanded groups as an object like:
  * {expandedGroupName1:{}, expandedGroupName2:{expandedSubGroupName2_1:{}, expandedSubGroupName2_2:{}}}
  *
- * @returns {Object}
+ * @return {Object}
  */
 function getExpandedGroups() {
 }
@@ -262,10 +265,11 @@ function getColumnIndex(colId) {
 }
 
 /**
- * Set the filter model. This api maps to ag-grid's setFilterModel; for more details on the model's
- * structure check this page: https://www.ag-grid.com/angular-data-grid/filter-api/
- * NOTE: The name of the columns from the model are the id properties of the column;
- * to clear the filter, use an empty object ({}) as filterModel;
+ * Set the filter model.
+ * This api maps to ag-grid's setFilterModel; for more details on the model's structure check this page: https://www.ag-grid.com/angular-data-grid/filter-api/
+ * To clear the filter, use an empty object ({}) as filterModel;
+ * 
+ * NOTE: The name of the columns from the model are the id properties of the column.
  *
  * @param {Object} filterModel
  * @example <pre>
