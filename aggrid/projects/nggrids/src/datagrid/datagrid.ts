@@ -1949,7 +1949,7 @@ export class DataGrid extends NGGridDirective {
                 if (!this.isTableGrouped()) {
                     const column = this.getColumn(params.colDef.field);
                     if (column && column.styleClassDataprovider) {
-                        const index = params.rowIndex - this.foundset.foundset.viewPort.startIndex;
+                        const index = params.node.rowIndex - this.foundset.foundset.viewPort.startIndex;
                         styleClassProvider = column.styleClassDataprovider[index];
                     }
                 } else if (params.data && params.data._svyFoundsetUUID) {
