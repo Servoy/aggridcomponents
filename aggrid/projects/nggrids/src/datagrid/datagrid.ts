@@ -1267,23 +1267,14 @@ export class DataGrid extends NGGridDirective {
             if(column.headerGroup) {
                 if(!colGroups[column.headerGroup]) {
                     colGroups[column.headerGroup] = {};
+                    colDefs.push(colGroups[column.headerGroup]);
+                    colGroups[column.headerGroup]['headerName'] = column.headerGroup;
                     colGroups[column.headerGroup]['headerClass'] = column.headerGroupStyleClass;
                     colGroups[column.headerGroup]['children'] = [];
-
                 }
                 colGroups[column.headerGroup]['children'].push(colDef);
             } else {
                 colDefs.push(colDef);
-            }
-        }
-
-        for(const groupName in colGroups) {
-            if(colGroups.hasOwnProperty(groupName)) {
-                const group: any = {};
-                group.headerName = groupName;
-                group.headerClass = colGroups[groupName]['headerClass'];
-                group.children = colGroups[groupName]['children'];
-                colDefs.push(group);
             }
         }
 

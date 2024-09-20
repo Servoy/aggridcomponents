@@ -1113,6 +1113,8 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                         if(column.headerGroup) {
                             if(!colGroups[column.headerGroup]) {
                                 colGroups[column.headerGroup] = {}
+                                colDefs.push(colGroups[column.headerGroup]);
+                                colGroups[column.headerGroup]['headerName'] = column.headerGroup;                                
                                 colGroups[column.headerGroup]['headerClass'] = column.headerGroupStyleClass;
                                 colGroups[column.headerGroup]['children'] = [];
 
@@ -1122,14 +1124,6 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                         else {
                             colDefs.push(colDef);
                         }
-                    }
-
-                    for(var groupName in colGroups) {
-                        var group = {};
-                        group.headerName = groupName;
-                        group.headerClass = colGroups[groupName]['headerClass']; 
-                        group.children = colGroups[groupName]['children'];
-                        colDefs.push(group);
                     }
 
                     return colDefs;
