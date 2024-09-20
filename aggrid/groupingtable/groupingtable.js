@@ -5959,6 +5959,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							if(column.headerGroup) {
 								if(!colGroups[column.headerGroup]) {
 									colGroups[column.headerGroup] = {}
+									colDefs.push(colGroups[column.headerGroup]);
+									colGroups[column.headerGroup]['headerName'] = column.headerGroup;									
 									colGroups[column.headerGroup]['headerClass'] = column.headerGroupStyleClass;
 									colGroups[column.headerGroup]['children'] = [];
 		
@@ -5968,14 +5970,6 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							else {
 								colDefs.push(colDef);
 							}
-						}
-
-						for(var groupName in colGroups) {
-							var group = {};
-							group.headerName = groupName;
-							group.headerClass = colGroups[groupName]['headerClass']; 
-							group.children = colGroups[groupName]['children'];
-							colDefs.push(group);
 						}
 
 						// TODO svyRowId should not be visible. I need the id for the selection
