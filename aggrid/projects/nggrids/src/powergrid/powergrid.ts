@@ -924,8 +924,6 @@ export class PowerGrid extends NGGridDirective {
                     }
                 }
 
-                colDef.suppressHeaderMenuButton = colDef.enableRowGroup === false && colDef.filter === undefined;
-
                 if (column.editType) {
                     if (column.editType === 'TEXTFIELD') {
                         colDef.cellEditor = TextEditor;
@@ -1013,6 +1011,8 @@ export class PowerGrid extends NGGridDirective {
                         }
                     }
                 }
+
+                colDef.suppressHeaderMenuButton = colDef.enableRowGroup === false && colDef.filter === undefined;
 
                 if (column.editType && (colDef['editable'] === undefined || colDef['editable']) === true) {
                     colDef.editable = (params: any) => this.isColumnEditable(params);

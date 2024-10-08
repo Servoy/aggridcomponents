@@ -1462,7 +1462,6 @@ export class DataGrid extends NGGridDirective {
                     //colDef.floatingFilterComponentParams = { suppressFilterButton : true};
                 }
             }
-            colDef.suppressHeaderMenuButton = colDef.enableRowGroup === false && colDef.filter === undefined;
             colDef.tooltipValueGetter = (args: any) => this.getTooltip(args);
 
             if(column.dndSourceDataprovider) {
@@ -1526,6 +1525,8 @@ export class DataGrid extends NGGridDirective {
                     }
                 }
             }
+
+            colDef.suppressHeaderMenuButton = colDef.enableRowGroup === false && colDef.filter === undefined;
 
             if (column.editType && (colDef['editable'] === undefined || colDef['editable']) === true) {
                 colDef.editable = this.isColumnEditable;
