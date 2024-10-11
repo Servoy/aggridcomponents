@@ -3938,9 +3938,8 @@ export class DataGrid extends NGGridDirective {
                 // could be already set when clicking sort on header and there is an onsort handler, so skip reseting it, to avoid a new onsort call
                 if(this.sortHandlerPromises.length === 0) {
                     this.applySortModel(this.getSortModel());
-                } else {
-                    this.refreshAgGridServerSide();
                 }
+                this.refreshAgGridServerSide();
                 this.isRenderedAndSelectionReady = false;
                 this.scrollToSelectionWhenSelectionReady = true;
 
