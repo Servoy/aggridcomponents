@@ -973,7 +973,7 @@ export class DataGrid extends NGGridDirective {
                                                 if(this.isGridReady) {
                                                     this.updateColumnDefs();
                                                     if(prop !== 'enableToolPanel' && prop !== 'excluded') {
-                                                        restoreColumnState = true;
+                                                        this.restoreColumnsState();
                                                     }
                                                 } else {
                                                     this.isColumnModelChangedBeforeGridReady = true;        
