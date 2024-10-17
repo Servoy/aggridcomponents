@@ -1369,7 +1369,7 @@ export class PowerGrid extends NGGridDirective {
     }
 
     tabSelectionChangeNavigation(params: any) {
-        if (!this.enabled) return;
+        if (!this.enabled) return false;
         const suggestedNextCell = params.nextCellPosition;
         const isPinnedBottom = suggestedNextCell ? suggestedNextCell.rowPinned === 'bottom' : false;
 
@@ -1400,7 +1400,7 @@ export class PowerGrid extends NGGridDirective {
             }, 0);
         }
 
-        return suggestedNextCell;
+        return suggestedNextCell ? suggestedNextCell : false;
     }
 
     getIconElement(iconStyleClass: any): any {

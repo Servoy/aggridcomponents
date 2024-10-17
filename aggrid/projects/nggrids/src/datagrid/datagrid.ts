@@ -2959,7 +2959,7 @@ export class DataGrid extends NGGridDirective {
     }
 
     tabSelectionChangeNavigation(params: any) {
-        if(!this.enabled) return;
+        if(!this.enabled) return false;
         const suggestedNextCell = params.nextCellPosition;
         const isPinnedBottom = suggestedNextCell ? suggestedNextCell.rowPinned === 'bottom' : false;
 
@@ -2990,7 +2990,7 @@ export class DataGrid extends NGGridDirective {
             }, 0);
         }
 
-        return suggestedNextCell;
+        return suggestedNextCell ? suggestedNextCell : false;
     }
 
     onSortHandler() {
