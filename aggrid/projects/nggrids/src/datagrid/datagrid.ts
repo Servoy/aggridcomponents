@@ -3395,6 +3395,10 @@ export class DataGrid extends NGGridDirective {
                             foundsetIndexes = foundsetIndexes.slice(0, 1);
                         }
                 }
+                if(this.foundset.foundset.selectedRowIndexes &&
+                    JSON.stringify(this.foundset.foundset.selectedRowIndexes) == JSON.stringify(foundsetIndexes)) {
+                        return;
+                }
                 const requestSelectionPromise = this.foundset.foundset.requestSelectionUpdate(foundsetIndexes);
                 this.requestSelectionPromises.push(requestSelectionPromise);
                 requestSelectionPromise.then(
