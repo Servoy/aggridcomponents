@@ -173,7 +173,7 @@ export class PowerGrid extends NGGridDirective {
 
     constructor(renderer: Renderer2, cdRef: ChangeDetectorRef, logFactory: LoggerFactory,
         private powergridService: PowergridService, public formattingService: FormattingService, public ngbTypeaheadConfig: NgbTypeaheadConfig,
-        private sanitizer: DomSanitizer, @Inject(DOCUMENT) private doc: Document) {
+        private sanitizer: DomSanitizer, @Inject(DOCUMENT) public doc: Document) {
         super(renderer, cdRef);
         this.ngbTypeaheadConfig.container = 'body';
         this.log = logFactory.getLogger('PowerGrid');
@@ -2242,6 +2242,7 @@ export class PowerGrid extends NGGridDirective {
     gridDragOver($event) {
         const dragSupported = $event.dataTransfer.types.length && $event.dataTransfer.types[0] === 'nggrids/json';
         if (dragSupported) {
+            this.handleDragViewportScroll($event);
             let dragOver: any = false;
             if (this.onDragOverFunc) {
                 const overRow = this.getNodeForElement($event.target);
@@ -2266,21 +2267,13 @@ export class PowerGrid extends NGGridDirective {
 
     gridDrop($event) {
         $event.preventDefault();
+        this.cancelDragViewportScroll();
         if (this.onDrop) {
             const targetNode = this.getNodeForElement($event.target);
             const jsonData = $event.dataTransfer.getData('nggrids/json');
             const rowDatas = JSON.parse(jsonData);
             const overRowData = targetNode ? (targetNode.data || Object.assign(targetNode.groupData, targetNode.aggData)) : null;
             this.onDrop(rowDatas, overRowData, $event);
-        }
-    }
-
-    gridDragEnd($event) {
-        if(this.onDragGetImageFunc) {
-            const dragGhostEl = document.getElementById("nggrids-drag-ghost") as HTMLElement;
-            if (dragGhostEl.parentNode) {
-                dragGhostEl.parentNode.removeChild(dragGhostEl);
-            }
         }
     }
 

@@ -25,12 +25,13 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
     @Input() arrowsUpDownMoveWhenEditing: any;
     @Input() editNextCellOnEnter: boolean;
     @Input() _internalFormEditorValue: any;
-    @Input() rowDropZoneFor: string[];
     @Input() onDragOverFunc: any;
     @Input() onDragGetImageFunc: any;
 
     @Input() onDrop: any;
     @Input() onColumnFormEditStarted: any;
+
+    doc: Document;
 
     agGridOptions: GridOptions;
     gridApi: GridApi;
@@ -39,9 +40,18 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
     selectionEvent: any;
     log: LoggerService;
 
+    dragViewport: HTMLElement
+    dragViewportRect: DOMRect;
+    dragViewportHorizontalScrollViewport: HTMLElement;
+    dragViewportScrollThreshold = 20;
+    dragViewportScrollSpeed = 10;
+    dragViewportScrollInterval: any;
+    dragScrollDirection: string;
+
     private destroyed = false;
 
     destroy(): any {
+        this.cancelDragViewportScroll();
         if(!this.agGrid.api.isDestroyed()) this.agGrid.api.destroy();
         this.destroyed = true;
     }
@@ -58,6 +68,74 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
         } catch (e) {
             this.log.warn(e);
             return data;
+        }
+    }
+
+    handleDragViewportScroll($event) {
+        if(!this.dragViewport) {
+            this.dragViewport = $event.currentTarget.getElementsByClassName("ag-body-viewport")[0] as HTMLElement;
+            this.dragViewportHorizontalScrollViewport = $event.currentTarget.getElementsByClassName("ag-body-horizontal-scroll-viewport")[0] as HTMLElement;
+            
+            this.dragViewportRect = this.dragViewport.getBoundingClientRect();
+        }
+        const clientX = $event.clientX - this.dragViewportRect.left;
+        const clientY = $event.clientY - this.dragViewportRect.top;
+        const containerWidth = this.dragViewportRect.width;
+        const containerHeight = this.dragViewportRect.height;
+      
+        this.dragScrollDirection = null;
+        if (clientX < this.dragViewportScrollThreshold) {
+            this.dragScrollDirection = 'left';
+        } else if (clientX > containerWidth - this.dragViewportScrollThreshold) {
+            this.dragScrollDirection = 'right';
+        } else if (clientY < this.dragViewportScrollThreshold) {
+            this.dragScrollDirection = 'up';
+        } else if (clientY > containerHeight - this.dragViewportScrollThreshold) {
+            this.dragScrollDirection = 'down';
+        }
+        if(this.dragScrollDirection && !this.dragViewportScrollInterval) {
+            this.dragViewportScrollInterval = setInterval(() => {
+                if(this.dragScrollDirection) {
+                    switch (this.dragScrollDirection) {
+                        case 'left':
+                            this.dragViewportHorizontalScrollViewport.scrollBy({ left: -this.dragViewportScrollSpeed, top: 0 });
+                          break;
+                        case 'right':
+                            this.dragViewportHorizontalScrollViewport.scrollBy({ left: this.dragViewportScrollSpeed, top: 0 });
+                          break;
+                        case 'up':
+                            this.dragViewport.scrollBy({ left: 0, top: -this.dragViewportScrollSpeed });
+                          break;
+                        case 'down':
+                            this.dragViewport.scrollBy({ left: 0, top: this.dragViewportScrollSpeed });
+                          break;
+                      }
+                } else {
+                    clearInterval(this.dragViewportScrollInterval);
+                    this.dragViewportScrollInterval = null;
+                }
+            }, 16);
+        }
+    }
+
+    cancelDragViewportScroll() {
+        if(this.dragViewportScrollInterval) {
+            clearInterval(this.dragViewportScrollInterval);
+        }
+        this.dragViewportScrollInterval = null;
+        this.dragViewport = null;
+        this.dragViewportRect = null;
+        this.dragViewportHorizontalScrollViewport = null;
+        this.dragScrollDirection = null;
+    }
+
+    gridDragEnd($event) {
+        this.cancelDragViewportScroll();
+        if(this.onDragGetImageFunc) {
+            const dragGhostEl = this.doc.getElementById("nggrids-drag-ghost") as HTMLElement;
+            if (dragGhostEl.parentNode) {
+                dragGhostEl.parentNode.removeChild(dragGhostEl);
+            }
         }
     }
 

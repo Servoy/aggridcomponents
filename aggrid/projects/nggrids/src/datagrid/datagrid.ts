@@ -257,7 +257,7 @@ export class DataGrid extends NGGridDirective {
 
     constructor(renderer: Renderer2, public cdRef: ChangeDetectorRef, logFactory: LoggerFactory,
         private servoyService: ServoyPublicService, public formattingService: FormattingService, public ngbTypeaheadConfig: NgbTypeaheadConfig,
-        private datagridService: DatagridService, private sanitizer: DomSanitizer, @Inject(DOCUMENT) private doc: Document) {
+        private datagridService: DatagridService, private sanitizer: DomSanitizer, @Inject(DOCUMENT) public doc: Document) {
         super(renderer, cdRef);
         this.ngbTypeaheadConfig.container = 'body';
         this.log = logFactory.getLogger('DataGrid');
@@ -4313,6 +4313,7 @@ export class DataGrid extends NGGridDirective {
     gridDragOver($event) {
         const dragSupported = $event.dataTransfer.types.length && $event.dataTransfer.types[0] === 'nggrids-record/json';
         if (dragSupported) {
+            this.handleDragViewportScroll($event);
             let dragOver: any = false;
             if(this.onDragOverFunc) {
                 const overRow = this.getNodeForElement($event.target);
@@ -4346,20 +4347,12 @@ export class DataGrid extends NGGridDirective {
 
     gridDrop($event) {
         $event.preventDefault();
+        this.cancelDragViewportScroll();
         if(this.onDrop) {
             const targetNode = this.getNodeForElement($event.target);
             const jsonData = $event.dataTransfer.getData('nggrids-record/json');
             const records = JSON.parse(jsonData);
             this.onDrop(records, targetNode ? this.getRecord(targetNode) : null, $event);
-        }
-    }
-
-    gridDragEnd($event) {
-        if(this.onDragGetImageFunc) {
-            const dragGhostEl = document.getElementById("nggrids-drag-ghost") as HTMLElement;
-            if (dragGhostEl.parentNode) {
-                dragGhostEl.parentNode.removeChild(dragGhostEl);
-            }
         }
     }
 
