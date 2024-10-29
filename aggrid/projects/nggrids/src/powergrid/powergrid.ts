@@ -1,5 +1,5 @@
 import { GetRowIdParams, ColumnMenuTab, ColumnResizedEvent, ColDef, Column, IRowNode, IAggFunc, ColumnEverythingChangedEvent } from '@ag-grid-community/core';
-import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Inject, Input, Output, Renderer2, SecurityContext, SimpleChanges, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Inject, Input, Output, Renderer2, SecurityContext, SimpleChanges } from '@angular/core';
 import { BaseCustomObject, Format, FormattingService, ICustomArray } from '@servoy/public';
 import { LoggerFactory } from '@servoy/public';
 import { ColumnsAutoSizingOn, GRID_EVENT_TYPES, IconConfig, MainMenuItemsConfig, NGGridDirective, ToolPanelConfig } from '../nggrid';
@@ -76,8 +76,6 @@ const COLUMN_KEYS_TO_CHECK_FOR_CHANGES = [
 })
 export class PowerGrid extends NGGridDirective {
 
-    @ViewChild('element', { read: ElementRef }) agGridElementRef: ElementRef;
-
     @Input() columns: PowerGridColumn[];
     @Input() styleClass: string;
     @Input() tabSeq: number;
@@ -109,7 +107,6 @@ export class PowerGrid extends NGGridDirective {
     @Input() groupMinWidth: number;
     @Input() groupMaxWidth: number;
     @Input() groupRowRendererFunc: any;
-    @Input() responsiveHeight: number;
     @Input() columnsAutoSizing: string;
     @Output() columnsAutoSizingChange = new EventEmitter();
     @Input() continuousColumnsAutoSizing: boolean;
@@ -173,7 +170,7 @@ export class PowerGrid extends NGGridDirective {
 
     constructor(renderer: Renderer2, cdRef: ChangeDetectorRef, logFactory: LoggerFactory,
         private powergridService: PowergridService, public formattingService: FormattingService, public ngbTypeaheadConfig: NgbTypeaheadConfig,
-        private sanitizer: DomSanitizer, @Inject(DOCUMENT) private doc: Document) {
+        private sanitizer: DomSanitizer, @Inject(DOCUMENT) public doc: Document) {
         super(renderer, cdRef);
         this.ngbTypeaheadConfig.container = 'body';
         this.log = logFactory.getLogger('PowerGrid');
@@ -1385,17 +1382,6 @@ export class PowerGrid extends NGGridDirective {
 
     getIconElement(iconStyleClass: any): any {
         return '<i class="' + iconStyleClass + '"/>';
-    }
-
-    setHeight() {
-        if (this.agGridElementRef && !this.servoyApi.isInAbsoluteLayout()) {
-            if (this.responsiveHeight) {
-                this.agGridElementRef.nativeElement.style.height = this.responsiveHeight + 'px';
-            } else {
-                // when responsive height is 0 or undefined, use 100% of the parent container.
-                this.agGridElementRef.nativeElement.style.height = '100%';
-            }
-        }
     }
 
     createJSEvent() {

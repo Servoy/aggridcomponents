@@ -88,8 +88,6 @@ const COLUMN_KEYS_TO_SKIP_IN_CHANGES = [
 })
 export class DataGrid extends NGGridDirective {
 
-    @ViewChild('element', { read: ElementRef }) agGridElementRef: ElementRef;
-
     @Input() myFoundset: IFoundset;
     @Input() columns: DataGridColumn[];
     @Input() readOnly: boolean;
@@ -115,7 +113,6 @@ export class DataGrid extends NGGridDirective {
     @Input() showGroupCount: boolean;
     @Input() styleClass: string;
     @Input() tabSeq: number;
-    @Input() responsiveHeight: number;
     @Input() enabled: boolean;
     @Input() columnsAutoSizing: string;
     @Output() columnsAutoSizingChange = new EventEmitter();
@@ -255,7 +252,7 @@ export class DataGrid extends NGGridDirective {
 
     constructor(renderer: Renderer2, public cdRef: ChangeDetectorRef, logFactory: LoggerFactory,
         private servoyService: ServoyPublicService, public formattingService: FormattingService, public ngbTypeaheadConfig: NgbTypeaheadConfig,
-        private datagridService: DatagridService, private sanitizer: DomSanitizer, @Inject(DOCUMENT) private doc: Document) {
+        private datagridService: DatagridService, private sanitizer: DomSanitizer, @Inject(DOCUMENT) public doc: Document) {
         super(renderer, cdRef);
         this.ngbTypeaheadConfig.container = 'body';
         this.log = logFactory.getLogger('DataGrid');
@@ -3006,17 +3003,6 @@ export class DataGrid extends NGGridDirective {
      */
     getIconElement(iconStyleClass: any): string {
         return '<i class="' + iconStyleClass + '"/>';
-    }
-
-    setHeight() {
-        if (this.agGridElementRef && !this.servoyApi.isInAbsoluteLayout()) {
-            if (this.responsiveHeight) {
-                this.agGridElementRef.nativeElement.style.height = this.responsiveHeight + 'px';
-            } else {
-                // when responsive height is 0 or undefined, use 100% of the parent container.
-                this.agGridElementRef.nativeElement.style.height = '100%';
-            }
-        }
     }
 
     getFooterData() {
