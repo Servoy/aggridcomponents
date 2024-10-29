@@ -1,6 +1,6 @@
 import { AgGridAngular } from '@ag-grid-community/angular';
 import { GridApi, GridOptions } from '@ag-grid-community/core';
-import { ChangeDetectorRef, ContentChild, Directive, Input, TemplateRef, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, ContentChild, Directive, ElementRef, Input, TemplateRef, ViewChild } from '@angular/core';
 import { BaseCustomObject, Format, FormattingService, LoggerService, ServoyBaseComponent } from '@servoy/public';
 
 export const GRID_EVENT_TYPES = {
@@ -21,6 +21,7 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
     templateRef: TemplateRef<any>;
 
     @ViewChild('element') agGrid: AgGridAngular;
+    @ViewChild('element', { read: ElementRef }) agGridElementRef: ElementRef;
 
     @Input() arrowsUpDownMoveWhenEditing: any;
     @Input() editNextCellOnEnter: boolean;
@@ -30,6 +31,8 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
 
     @Input() onDrop: any;
     @Input() onColumnFormEditStarted: any;
+
+    @Input() responsiveHeight: number;
 
     doc: Document;
 
@@ -135,6 +138,34 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
             const dragGhostEl = this.doc.getElementById("nggrids-drag-ghost") as HTMLElement;
             if (dragGhostEl.parentNode) {
                 dragGhostEl.parentNode.removeChild(dragGhostEl);
+            }
+        }
+    }
+
+    setHeight() {
+        if (!this.servoyApi.isInAbsoluteLayout()) {
+            if(this.responsiveHeight < 0) {
+                if(this.agGridElementRef) this.agGridElementRef.nativeElement.style.height = '';
+                if(this.agGrid) {
+                    this.agGrid.api.setGridOption('domLayout', 'autoHeight');
+                } else {
+                    this.agGridOptions.domLayout = 'autoHeight';
+                }
+            }
+            else {
+                if(this.agGrid) {
+                    this.agGrid.api.setGridOption('domLayout', 'normal');
+                } else {
+                    this.agGridOptions.domLayout = 'normal';
+                }
+                if(this.agGridElementRef) {
+                    if (this.responsiveHeight) {
+                        this.agGridElementRef.nativeElement.style.height = this.responsiveHeight + 'px';
+                    } else {
+                        // when responsive height is 0 or undefined, use 100% of the parent container.
+                        this.agGridElementRef.nativeElement.style.height = '100%';
+                    }
+                }
             }
         }
     }
