@@ -3272,7 +3272,7 @@ export class DataGrid extends NGGridDirective {
         // Don't trigger foundset selection if table is grouping
         if (this.isTableGrouped()) {
             if(selectionEvent) {
-                if(selectionEvent.rowIndex !== undefined) {
+                if(agGridSelectionEvent.source === 'rowClicked' && selectionEvent.rowIndex !== undefined) {
                     // select clicked row in the (group) foundset, else onCellClick handler won't execute because it has "skipCallIfNotSelected": true
                     const selectedGroupRow = this.agGrid.api.getDisplayedRowAtIndex(selectionEvent.rowIndex);
                     const groupFoundset = this.getFoundSetByFoundsetUUID(selectedGroupRow.data['_svyFoundsetUUID']);
