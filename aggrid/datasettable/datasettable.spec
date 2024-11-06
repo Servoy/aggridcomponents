@@ -47,7 +47,7 @@
 		"toolPanelConfig": { "type": "toolPanelConfig", "tags": { "scope": "design" }},
 		"gridOptions": {"type": "json", "tags": {"doc": "Map where additional grid properties of ag-grid can be set"}},
 		"localeText": {"type": "map", "tags": {"doc": "Map where locales of ag-grid can be set"}},
-		"groupRowRendererFunc": { "type": "clientfunction", "tags": {"doc": "Function to customize group row rendering when gridOptions.groupUseEntireRow is set to true"}},
+		"groupRowRendererFunc": { "type": "clientfunction", "tags": {"doc": "Function to customize group row rendering when gridOptions.groupDisplayType is set to 'groupRows'"}},
 		"mainMenuItemsConfig": { "type": "mainMenuItemsConfig", "tags": { "scope": "design" } },
 		"_internalFormEditorValue": { "type": "object", "tags": {"scope" : "private"}, "pushToServer": "allow"},
 		"arrowsUpDownMoveWhenEditing": {"type": "string", "values": [{"DEFAULT": null}, {"NONE":"NONE"}, {"NEXTCELL":"NEXTCELL"}, {"NEXTEDITABLECELL":"NEXTEDITABLECELL"}], "tags": {"doc": "Defines action on TEXTFIELD editor for up/down arrow keys"}},
