@@ -2760,8 +2760,8 @@ export class DataGrid extends NGGridDirective {
                 // if columns were added/removed, skip the restore
                 const savedColumns = [];
                 for(const columnState of columnStateJSON.columnState) {
-                    if(columnState.colId.indexOf('_') === 0) {
-                        continue; // if special column, that starts with '_'
+                    if(columnState.colId.indexOf('_') === 0 || columnState.colId.startsWith('ag-Grid-AutoColumn')) {
+                        continue; // if special column, that starts with '_' or is a group column
                     }
                     savedColumns.push(columnState.colId);
                 }
