@@ -1489,14 +1489,8 @@ export class PowerGrid extends NGGridDirective {
      * When Column Group Changes
      */
     onColumnRowGroupChanged(event: any) {
-        const columns = [];
-        if(event.columns) {
-            for (let i = 0; i < event.columns.length; i++) {
-                if(event.columns[i].rowGroupActive) {
-                    columns.push(event.columns[i]);
-                }
-            }
-        }        
+        const rowGroupCols = this.gridApi ? this.gridApi.getRowGroupColumns() : null;
+        const columns = rowGroupCols ? rowGroupCols : [];
         const groupFields = [];
         let levelToRemove = null;
 

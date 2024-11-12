@@ -3588,15 +3588,7 @@ export class DataGrid extends NGGridDirective {
 
     onColumnRowGroupChanged(event: any) {
         // return;
-        const rowGroupCols = [];
-
-        if(event.columns) {
-            for (let i = 0; i < event.columns.length; i++) {
-                if(event.columns[i].rowGroupActive) {
-                    rowGroupCols.push(event.columns[i]);
-                }
-            }
-        }
+        const rowGroupCols = this.getRowGroupColumns();
 
         // FIXME why does give an error,  i don't uderstand
         let i: any;
