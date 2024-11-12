@@ -366,9 +366,8 @@ export class DataGrid extends NGGridDirective {
                         this.restoreColumnsState();
                     } else {
                         this.storeColumnsState(true);
+                        this.restoreColumnsState();
                     }
-
-                    this.restoreColumnsState();
                 }
 
                 if(this.isColumnModelChangedBeforeGridReady) {
@@ -1108,7 +1107,7 @@ export class DataGrid extends NGGridDirective {
                         }
                         break;
                     case 'enabled':
-                        if(this.isGridReady) {
+                        if(this.isGridReady && change.currentValue !== change.previousValue) {
                             this.agGrid.api.setGridOption('suppressRowClickSelection', !change.currentValue);
                             this.updateColumnDefs();
                         }
