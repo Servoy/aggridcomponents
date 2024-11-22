@@ -1433,7 +1433,7 @@ export class PowerGrid extends NGGridDirective {
 
         const rowData = params.data || Object.assign(params.node.groupData, params.node.aggData);
         if (this.onCellClick && rowData) {
-            this.onCellClick(rowData, params.colDef.colId !== undefined ? params.colDef.colId : params.colDef.field, params.value, params.event);
+            this.onCellClick(rowData, params.colDef.colId !== undefined ? params.colDef.colId : params.colDef.field, params.value, params.event, this.getDataTarget(params.event));
         }
     }
 
@@ -1442,7 +1442,7 @@ export class PowerGrid extends NGGridDirective {
             if (params.node.rowPinned) {
                 if (params.node.rowPinned === 'bottom' && this.onFooterClick) {
                     const columnIndex = this.getColumnIndex(params.column.colId);
-                    this.onFooterClick(columnIndex, params.event);
+                    this.onFooterClick(columnIndex, params.event, this.getDataTarget(params.event));
                 }
             } else if (this.onCellDoubleClick) {
                 if (this.clickTimer) {
@@ -1471,7 +1471,7 @@ export class PowerGrid extends NGGridDirective {
             }
             const rowData = params.data || Object.assign(params.node.groupData, params.node.aggData);
             if (this.onCellDoubleClick && rowData) {
-                this.onCellDoubleClick(rowData, params.colDef.colId !== undefined ? params.colDef.colId : params.colDef.field, params.value, params.event);
+                this.onCellDoubleClick(rowData, params.colDef.colId !== undefined ? params.colDef.colId : params.colDef.field, params.value, params.event, this.getDataTarget(params.event));
             }
         }
     }
@@ -1480,7 +1480,7 @@ export class PowerGrid extends NGGridDirective {
         if (this.enabled) {
             const rowData = params.data || Object.assign(params.node.groupData, params.node.aggData);
             if (this.onCellRightClick && rowData) {
-                this.onCellRightClick(rowData, params.colDef.colId !== undefined ? params.colDef.colId : params.colDef.field, params.value, params.event);
+                this.onCellRightClick(rowData, params.colDef.colId !== undefined ? params.colDef.colId : params.colDef.field, params.value, params.event, this.getDataTarget(params.event));
             }
         }
     }

@@ -101,6 +101,10 @@
 				"name": "event",
 				"type": "JSEvent",
 				"optional": true
+			},{
+				"name":"dataTarget",
+				"type":"string",
+				"optional": true
 			}]
 		},
 		"onCellDoubleClick": {
@@ -120,6 +124,10 @@
 				"name": "event",
 				"type": "JSEvent",
 				"optional": true
+			},{
+				"name":"dataTarget",
+				"type":"string",
+				"optional": true				
 			}]
 		},
 		"onCellRightClick": {
@@ -139,6 +147,10 @@
 				"name": "event",
 				"type": "JSEvent",
 				"optional": true
+			},{
+				"name":"dataTarget",
+				"type":"string",
+				"optional": true
 			}]
 		},
 		"onFooterClick": {
@@ -151,6 +163,10 @@
 				"name": "event",
 				"type": "JSEvent",
 				"optional": true
+			},{
+				"name":"dataTarget",
+				"type":"string",
+				"optional": true				
 			}]
 		},		
 		"onColumnStateChanged": {

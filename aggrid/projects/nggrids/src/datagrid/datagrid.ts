@@ -146,12 +146,12 @@ export class DataGrid extends NGGridDirective {
     @Input() _internalFunctionCalls: Array<FunctionCall>;
 
 
-    @Input() onCellClick: (foundsetindex: number,columnindex: number,record: unknown,event: Event) => void;
-    @Input() onCellDoubleClick: (foundsetindex: number,columnindex: number,record: unknown,event: Event) => void;
-    @Input() onCellRightClick: (foundsetindex: number,columnindex: number,record: unknown,event: Event) => void;
+    @Input() onCellClick: (foundsetindex: number,columnindex: number,record: unknown,event: Event, dataTarget: string) => void;
+    @Input() onCellDoubleClick: (foundsetindex: number,columnindex: number,record: unknown,event: Event, dataTarget: string) => void;
+    @Input() onCellRightClick: (foundsetindex: number,columnindex: number,record: unknown,event: Event, dataTarget: string) => void;
     @Input() onColumnDataChange: (foundsetindex: number,columnindex: number,oldvalue: unknown,newvalue: unknown,event: Event,record: unknown,) => void;
     @Input() onColumnStateChanged: (columnState: string, event: Event) => void;
-    @Input() onFooterClick: (columnindex: number, event: Event) => void;
+    @Input() onFooterClick: (columnindex: number, event: Event, dataTarget: string) => void;
     @Input() onReady: () => void;
     @Input() onElementDataChange: () => void;
     @Input() onRowGroupOpened: (groupcolumnindexes: number[],groupkeys: unknown[],isopened: boolean) => void;
@@ -3453,7 +3453,7 @@ export class DataGrid extends NGGridDirective {
             if(params.node.rowPinned) {
                 if (params.node.rowPinned === 'bottom' && this.onFooterClick) {
                     const columnIndex = this.getColumnIndex(params.column.colId);
-                    this.onFooterClick(columnIndex, params.event);
+                    this.onFooterClick(columnIndex, params.event, this.getDataTarget(params.event));
                 }
             } else {
                 if(this.onCellDoubleClick) {
@@ -3511,10 +3511,10 @@ export class DataGrid extends NGGridDirective {
 
             if(timeout) {
                 this.setTimeout(() => {
-                    this.onCellClick(this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), params.event);
+                    this.onCellClick(this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), params.event, this.getDataTarget(params.event));
                 }, timeout);
             } else {
-                this.onCellClick(this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), params.event);
+                this.onCellClick(this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), params.event, this.getDataTarget(params.event));
             }
         }
     }
@@ -3566,7 +3566,7 @@ export class DataGrid extends NGGridDirective {
             //						}
             //						$scope.handlers.onCellDoubleClick(foundsetIndex, columnIndex, record, params.event);
 
-            this.onCellDoubleClick(this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), params.event);
+            this.onCellDoubleClick(this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), params.event, this.getDataTarget(params.event));
         }
     }
 
@@ -3580,7 +3580,7 @@ export class DataGrid extends NGGridDirective {
             if (this.onCellRightClick) {
                 // Added setTimeOut to enable onColumnDataChangeEvent to go first; must be over 250, so selection is sent first
                 this.setTimeout(() => {
-                    this.onCellRightClick(this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), params.event);
+                    this.onCellRightClick(this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), params.event, this.getDataTarget(params.event));
                 }, 350);
             }
         }

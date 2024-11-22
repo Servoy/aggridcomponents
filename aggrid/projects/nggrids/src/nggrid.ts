@@ -170,6 +170,14 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
         }
     }
 
+    getDataTarget(event): any {
+        const dataTarget = event.target.closest('[data-target]');
+        if (dataTarget) {
+            return dataTarget.getAttribute('data-target');
+        }
+        return null;
+    }
+
     abstract getColumn(field: any, columnsModel?: any): any;
 
     abstract getColumnIndex(field: any): number;
