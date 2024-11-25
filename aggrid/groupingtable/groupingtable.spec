@@ -498,6 +498,9 @@
 			}],
 			"returns": "int"
 		},
+		"internalGetColumnState" : {
+			"returns": "string"
+		},		
 		"onHide" : {},
 		"columnStateOnErrorHandler" : {
 			"parameters": [{

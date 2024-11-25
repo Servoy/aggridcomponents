@@ -6670,6 +6670,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					$scope.api.internalGetColumnIndex = function(colId) {
 						return getColumnIndex(colId);
 					}
+
+					$scope.api.internalGetColumnState = function() {
+						storeColumnsState(true);
+						return $scope.model.columnState;
+					}
 					
 					/**
 					 * Notify the component about a data change. Makes the component aware of a data change that requires a refresh data.

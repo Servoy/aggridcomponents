@@ -4076,6 +4076,11 @@ export class DataGrid extends NGGridDirective {
         return -1;
     }
 
+    internalGetColumnState(): string {
+        this.storeColumnsState(true);
+        return this.columnState;
+    }
+
     /**
      * Notify the component about a data change. Makes the component aware of a data change that requires a refresh data.
      * Call this method when you are aware of a relevant data change in the foundset which may affect data grouping (e.g. group node created or removed).

@@ -804,7 +804,8 @@ $scope.api.sizeColumnsToFit = function() {
  * @return {String}
  */
 $scope.api.getColumnState = function() {
-	return $scope.model.columnState;
+	var currentColumnState = $scope.model.internalGetColumnState();
+	return currentColumnState ? currentColumnState : $scope.model.columnState;
 }
 
 /**
