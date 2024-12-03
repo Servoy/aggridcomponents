@@ -212,7 +212,7 @@ export class TypeaheadEditor extends EditorDirective implements IPopupSupportCom
       if (!hasMatchingDisplayValue) {
         if (this.hasRealValues) {
           // if we still have old value do not set it to null or try to  get it from the list.
-          if (this.initialValue != null && this.initialValue !== displayValue) {
+          if (this.initialValue != null) {
             // so invalid thing is typed in the list and we are in real/display values
             displayValue = this.initialDisplayValue;
             realValue = this.initialRealValue;
