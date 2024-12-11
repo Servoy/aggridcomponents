@@ -134,6 +134,8 @@ export class DataGrid extends NGGridDirective {
     @Output() columnStateChange = new EventEmitter();
     @Input() _internalColumnState: string;
     @Output() _internalColumnStateChange = new EventEmitter();
+    @Input() _internalInitialColumnState: string;
+    @Output() _internalInitialColumnStateChange = new EventEmitter();
     @Input() columnStateOnError: () => void;
     @Input() restoreStates: { columns: boolean, filter: boolean, sort: boolean};
     @Input() _internalFilterModel: unknown;
@@ -362,11 +364,13 @@ export class DataGrid extends NGGridDirective {
                         this._internalColumnState = emptyValue;
                         this._internalColumnStateChange.emit(emptyValue);
                     }
-                    if(this.columnState) {
-                        this.restoreColumnsState();
-                    } else {
+                    if(!this.columnState) {
                         this.storeColumnsState(true);
-                        this.restoreColumnsState();
+                    }
+                    this.restoreColumnsState();
+                    if(!this._internalInitialColumnState) {
+                        this._internalInitialColumnState = this.columnState;
+                        this._internalInitialColumnStateChange.emit(this._internalInitialColumnState);
                     }
                 }
 
@@ -1079,6 +1083,9 @@ export class DataGrid extends NGGridDirective {
                     case '_internalColumnState':
                         if(this.isGridReady && (change.currentValue !== '_empty')) {
                             this.columnState = change.currentValue;
+                            if(!this.columnState && this._internalInitialColumnState) {
+                                this.columnState = this._internalInitialColumnState;
+                            }
                             this.columnStateChange.emit(this.columnState);
                             // need to clear it, so the watch can be used, if columnState changes, and we want to apply the same _internalColumnState again
                             this._internalColumnState = '_empty';
