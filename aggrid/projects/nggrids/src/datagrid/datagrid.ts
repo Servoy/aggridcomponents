@@ -1,7 +1,7 @@
 import { GridOptions, GetRowIdParams, IRowDragItem, DndSourceCallbackParams, ColumnResizedEvent, RowSelectedEvent, SelectionChangedEvent, 
         ColDef, Column, IRowNode, IServerSideDatasource, IServerSideGetRowsParams, LoadSuccessParams, 
-        ColumnEverythingChangedEvent,
-        SortChangedEvent} from '@ag-grid-community/core';
+        SortChangedEvent,
+        DisplayedColumnsChangedEvent} from '@ag-grid-community/core';
 import { ChangeDetectionStrategy, ChangeDetectorRef, EventEmitter, Inject, Input, Output, Renderer2, SecurityContext, SimpleChanges } from '@angular/core';
 import { Component } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
@@ -413,13 +413,15 @@ export class DataGrid extends NGGridDirective {
             getMainMenuItems: this.getMainMenuItems,
             rowHeight: this.rowHeight,
 
-            rowSelection: this.myFoundset && (this.myFoundset.multiSelect === true) ? 'multiple' : 'single',
-            //suppressCellFocus: !this.enabled,
-            enableRangeSelection: false,
-            suppressRowClickSelection: !this.enabled,
-            isRowSelectable:(node: IRowNode) => {
-                return !node.group || (this.groupCheckbox && this.myFoundset && (this.myFoundset.multiSelect === true));
+            rowSelection: {
+                mode: this.myFoundset && (this.myFoundset.multiSelect === true) ? 'multiRow' : 'singleRow',
+                enableClickSelection: this.enabled,
+                isRowSelectable: (node: IRowNode) => {
+                    return !node.group || (this.groupCheckbox && this.myFoundset && (this.myFoundset.multiSelect === true));
+                }
             },
+            //suppressCellFocus: !this.enabled,
+            cellSelection: false,
             singleClickEdit: false,
             suppressClickEdit: false,
             enableGroupEdit: false,
@@ -492,20 +494,6 @@ export class DataGrid extends NGGridDirective {
                     this.onSortHandler();
                 }
             },
-            onColumnEverythingChanged: (e: ColumnEverythingChangedEvent) => {
-              if(e.source === 'contextMenu') {
-                let column: any;
-                for (let i = 0; this.columns && i < this.columns.length; i++) {
-                    column = this.columns[i];
-                    if(column.initialWidth === -1) {
-                        delete column.width;
-                    } else {
-                        column.width = column.initialWidth;
-                    }
-                }                
-                this.updateColumnDefs();
-              }
-            },
             onColumnResized: (e: ColumnResizedEvent) => {
                 if(e.source === 'uiColumnResized') {
                     if(this.sizeHeaderAndColumnsToFitTimeout !== null) {
@@ -569,8 +557,20 @@ export class DataGrid extends NGGridDirective {
                     event.api.setColumnsVisible(hiddenColumns, false);
                 }
             },
-            onDisplayedColumnsChanged: () => {
+            onDisplayedColumnsChanged: (e: DisplayedColumnsChangedEvent) => {
                 if(this.isGridReady) {
+                    if(e.source === 'contextMenu') {
+                        let column: any;
+                        for (let i = 0; this.columns && i < this.columns.length; i++) {
+                            column = this.columns[i];
+                            if(column.initialWidth === -1) {
+                                delete column.width;
+                            } else {
+                                column.width = column.initialWidth;
+                            }
+                        }                
+                        this.updateColumnDefs();
+                    }
                     this.sizeHeaderAndColumnsToFit(GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED);
                     this.storeColumnsState();
                 }
@@ -638,7 +638,7 @@ export class DataGrid extends NGGridDirective {
             };
         }
 
-        if(this.groupCheckbox && this.agGridOptions.rowSelection == 'multiple') {
+        if(this.groupCheckbox && this.agGridOptions.rowSelection['mode'] == 'multiRow') {
             this.updateGridOptionsForGroupCheckbox(true);
         }
 
@@ -715,7 +715,7 @@ export class DataGrid extends NGGridDirective {
         }
 
         // handle options that are dependent on gridOptions
-        if(this.agGridOptions['enableCharts'] && this.agGridOptions['enableRangeSelection']) {
+        if(this.agGridOptions['enableCharts'] && this.agGridOptions['cellSelection']) {
             this.contextMenuItems.push('chartRange');
         }
 
@@ -1115,7 +1115,8 @@ export class DataGrid extends NGGridDirective {
                         break;
                     case 'enabled':
                         if(this.isGridReady && change.currentValue !== change.previousValue) {
-                            this.agGrid.api.setGridOption('suppressRowClickSelection', !change.currentValue);
+                            this.agGridOptions.rowSelection['enableClickSelection'] = change.currentValue;
+                            this.agGrid.api.setGridOption('rowSelection', this.agGridOptions.rowSelection);
                             this.updateColumnDefs();
                         }
                         break;
@@ -2771,7 +2772,7 @@ export class DataGrid extends NGGridDirective {
                 // if columns were added/removed, skip the restore
                 const savedColumns = [];
                 for(const columnState of columnStateJSON.columnState) {
-                    if(columnState.colId.indexOf('_') === 0 || columnState.colId.startsWith('ag-Grid-AutoColumn')) {
+                    if(columnState.colId.indexOf('_') === 0 || columnState.colId.startsWith('ag-Grid-')) {
                         continue; // if special column, that starts with '_' or is a group column
                     }
                     savedColumns.push(columnState.colId);
@@ -3259,7 +3260,7 @@ export class DataGrid extends NGGridDirective {
                 // double click event, ignore it, the selection is already set by the first click
                 return;
         }
-        if(this.agGridOptions.rowSelection === 'multiple') {
+        if(this.agGridOptions.rowSelection['mode'] === 'multiRow') {
             this.multipleSelectionEvents.push(this.selectionEvent);
             this.onMultipleSelectionChangedEx(e);
         } else {
@@ -3417,7 +3418,7 @@ export class DataGrid extends NGGridDirective {
                         if (this.onSelectedRowsChanged) {
                             this.onSelectedRowsChanged();
                         }
-                        if(this.agGridOptions.rowSelection === 'multiple') {
+                        if(this.agGridOptions.rowSelection['mode'] === 'multiRow') {
                             this.onMultipleSelectionChangedEx();
                         }
                         //success
@@ -3437,7 +3438,7 @@ export class DataGrid extends NGGridDirective {
                         if(this.scrollToSelectionWhenSelectionReady) {
                             this.scrollToSelection();
                         }
-                        if(this.agGridOptions.rowSelection === 'multiple') {
+                        if(this.agGridOptions.rowSelection['mode'] === 'multiRow') {
                             this.onMultipleSelectionChangedEx();
                         }
                     }
@@ -3905,7 +3906,8 @@ export class DataGrid extends NGGridDirective {
         }
 
         if(changeEvent.multiSelectChanged) {
-            this.agGrid.api.setGridOption('rowSelection', changeEvent.multiSelectChanged.newValue ? 'multiple' : 'single');
+            this.agGridOptions.rowSelection['mode'] = changeEvent.multiSelectChanged.newValue ? 'multiRow' : 'singleRow';
+            this.agGrid.api.setGridOption('rowSelection', this.agGridOptions.rowSelection);
             if(this.groupCheckbox) {
                 this.updateGridOptionsForGroupCheckbox(changeEvent.multiSelectChanged.newValue);
             }

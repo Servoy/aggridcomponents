@@ -1,4 +1,4 @@
-import { GetRowIdParams, ColumnMenuTab, ColumnResizedEvent, ColDef, Column, IRowNode, IAggFunc, ColumnEverythingChangedEvent } from '@ag-grid-community/core';
+import { GetRowIdParams, ColumnMenuTab, ColumnResizedEvent, ColDef, Column, IRowNode, IAggFunc, DisplayedColumnsChangedEvent } from '@ag-grid-community/core';
 import { ChangeDetectorRef, Component, EventEmitter, Inject, Input, Output, Renderer2, SecurityContext, SimpleChanges } from '@angular/core';
 import { BaseCustomObject, FormattingService, ICustomArray } from '@servoy/public';
 import { LoggerFactory } from '@servoy/public';
@@ -277,10 +277,12 @@ export class PowerGrid extends NGGridDirective {
             suppressColumnMoveAnimation: true,
             suppressAnimationFrame: false,
 
-            rowSelection: this.multiSelect === true ? 'multiple' : 'single',
+            rowSelection: {
+                mode: this.multiSelect === true ? 'multiRow' : 'singleRow',
+                enableClickSelection: this.enabled
+            },
             //                suppressRowClickSelection: rowGroupColsDefault.length === 0 ? false : true,
-            enableRangeSelection: false,
-            suppressRowClickSelection: !this.enabled,
+            cellSelection: false,
 
             stopEditingWhenCellsLoseFocus: true,
             singleClickEdit: true,
@@ -339,20 +341,6 @@ export class PowerGrid extends NGGridDirective {
             },
             //                onColumnEverythingChanged: storeColumnsState,	// do we need that ?, when is it actually triggered ?
             onSortChanged: () => this.storeColumnsState(),
-            onColumnEverythingChanged: (e: ColumnEverythingChangedEvent) => {
-                if(e.source === 'contextMenu') {
-                  let column: any;
-                  for (let i = 0; this.columns && i < this.columns.length; i++) {
-                      column = this.columns[i];
-                      if(column.initialWidth === -1) {
-                          delete column.width;
-                      } else {
-                          column.width = column.initialWidth;
-                      }
-                  }                
-                  this.updateColumnDefs();
-                }
-            },            
             //                onFilterChanged: storeColumnsState,			 disable filter sets for now
             //                onColumnVisible: storeColumnsState,			 covered by onDisplayedColumnsChanged
             //                onColumnPinned: storeColumnsState,			 covered by onDisplayedColumnsChanged
@@ -404,8 +392,20 @@ export class PowerGrid extends NGGridDirective {
                     this.storeColumnsState();
                 }
             },
-            onDisplayedColumnsChanged: () => {
+            onDisplayedColumnsChanged: (e: DisplayedColumnsChangedEvent) => {
                 if(this.isGridReady) {
+                    if(e.source === 'contextMenu') {
+                        let column: any;
+                        for (let i = 0; this.columns && i < this.columns.length; i++) {
+                            column = this.columns[i];
+                            if(column.initialWidth === -1) {
+                                delete column.width;
+                            } else {
+                                column.width = column.initialWidth;
+                            }
+                        }                
+                        this.updateColumnDefs();
+                    }
                     this.svySizeColumnsToFit(GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED);
                     this.storeColumnsState();
                 }
@@ -575,7 +575,7 @@ export class PowerGrid extends NGGridDirective {
         }
 
         // handle options that are dependent on gridOptions
-        if (this.agGridOptions['enableCharts'] && this.agGridOptions['enableRangeSelection']) {
+        if (this.agGridOptions['enableCharts'] && this.agGridOptions['cellSelection']) {
             this.contextMenuItems.push('chartRange');
         }
 
@@ -773,7 +773,8 @@ export class PowerGrid extends NGGridDirective {
                         break;
                     case 'enabled':
                         if (this.isGridReady) {
-                            this.agGrid.api.setGridOption('suppressRowClickSelection', !change.currentValue);
+                            this.agGridOptions.rowSelection['enableClickSelection'] = change.currentValue;
+                            this.agGrid.api.setGridOption('rowSelection', this.agGridOptions.rowSelection);
                             this.updateColumnDefs();
                         }
                         break;
