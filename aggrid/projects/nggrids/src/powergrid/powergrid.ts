@@ -279,7 +279,8 @@ export class PowerGrid extends NGGridDirective {
 
             rowSelection: {
                 mode: this.multiSelect === true ? 'multiRow' : 'singleRow',
-                enableClickSelection: this.enabled
+                enableClickSelection: this.enabled,
+                checkboxes: false
             },
             //                suppressRowClickSelection: rowGroupColsDefault.length === 0 ? false : true,
             cellSelection: false,

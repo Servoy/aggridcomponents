@@ -416,6 +416,7 @@ export class DataGrid extends NGGridDirective {
             rowSelection: {
                 mode: this.myFoundset && (this.myFoundset.multiSelect === true) ? 'multiRow' : 'singleRow',
                 enableClickSelection: this.enabled,
+                checkboxes: false,
                 isRowSelectable: (node: IRowNode) => {
                     return !node.group || (this.groupCheckbox && this.myFoundset && (this.myFoundset.multiSelect === true));
                 }
