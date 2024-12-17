@@ -159,7 +159,6 @@ export class PowerGrid extends NGGridDirective {
 
     sizeColumnsToFitTimeout = null;
 
-    hasAutoHeightColumn = false;
 
     isColumnsFirstChange = true;
     previousColumns: any[];
@@ -247,8 +246,6 @@ export class PowerGrid extends NGGridDirective {
                 filter: false,
                 //                    valueFormatter: displayValueFormatter,
                 menuTabs: vMenuTabs,
-                headerCheckboxSelection: false, //$scope.model.multiSelect === true ? isFirstColumn : false,	// FIXME triggers a long loop of onRowSelection event when a new selection is made.
-                checkboxSelection: this.multiSelect === true ? this.isFirstColumn : false,
                 sortable: this.enableSorting,
                 resizable: this.enableColumnResize,
                 tooltipComponent: CustomTooltip
@@ -280,7 +277,8 @@ export class PowerGrid extends NGGridDirective {
             rowSelection: {
                 mode: this.multiSelect === true ? 'multiRow' : 'singleRow',
                 enableClickSelection: this.enabled,
-                checkboxes: false
+                checkboxes: this.multiSelect === true ? this.isFirstColumn : false,
+                headerCheckbox: false 
             },
             //                suppressRowClickSelection: rowGroupColsDefault.length === 0 ? false : true,
             cellSelection: false,
@@ -799,7 +797,6 @@ export class PowerGrid extends NGGridDirective {
     }
 
     getColumnDefs() {
-        this.hasAutoHeightColumn = false;
         //create the column definitions from the specified columns in designer
         const colDefs = [];
         let colDef: any = {};
@@ -1017,9 +1014,6 @@ export class PowerGrid extends NGGridDirective {
                     colDef.editable = (params: any) => this.isColumnEditable(params);
                 }
 
-                if (colDef['autoHeight'] && !this.hasAutoHeightColumn) {
-                    this.hasAutoHeightColumn = true;
-                }
 
                 if (column.headerGroup) {
                     if (!colGroups[column.headerGroup]) {
@@ -1283,7 +1277,6 @@ export class PowerGrid extends NGGridDirective {
             this.columnsAutoSizing = 'NONE';
             this.columnsAutoSizingChange.emit('NONE');
         }
-        if (this.hasAutoHeightColumn) this.agGrid.api.resetRowHeights();
     }
 
     storeColumnsState(skipFireColumnStateChanged?: boolean) {
