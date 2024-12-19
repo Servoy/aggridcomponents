@@ -1014,7 +1014,9 @@ export class PowerGrid extends NGGridDirective {
                     }
                 }
 
-                colDef.suppressHeaderMenuButton = colDef.enableRowGroup === false && colDef.filter === undefined;
+                if(colDef.suppressHeaderMenuButton === undefined) {
+                    colDef.suppressHeaderMenuButton = colDef.enableRowGroup === false && colDef.filter === undefined;
+                }
 
                 if (column.editType && (colDef['editable'] === undefined || colDef['editable']) === true) {
                     colDef.editable = (params: any) => this.isColumnEditable(params);
