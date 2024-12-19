@@ -34,6 +34,7 @@
 		"enableColumnResize": { "type": "boolean", "default": true, "tags": {"scope": "design", "doc": "Allow the user to resize columns"}},
 		"enableColumnMove": { "type": "boolean", "default": true, "tags": {"scope": "design", "doc": "If moving of columns is enabled"}},
 		"enableSorting": { "type": "boolean", "default": true, "tags": {"scope": "design", "doc": "Enable column sorting by clickin on the column's header"}},
+		"checkboxSelection" : {"type": "boolean", "default" : false, "tags" : {"scope": "design", "doc": "When true the row has a checkbox for selecting/unselecting "}},
 		"groupUseEntireRow" : {"type": "boolean", "default" : true, "tags" : {"scope": "design", "doc": "When true the group takes the entire row"}},
 		"groupCheckbox" : {"type": "boolean", "default" : false, "tags" : {"scope": "design", "doc": "When true the group has checkbox for selecting/unselecting all child rows "}},
 		"tooltipTextRefreshData" : { "type": "tagstring", "default" : "Refresh for latest data !", "tags": {"doc": "Tooltip text shown when hovering the refresh button"}},

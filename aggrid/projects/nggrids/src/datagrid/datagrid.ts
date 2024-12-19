@@ -109,6 +109,7 @@ export class DataGrid extends NGGridDirective {
     @Input() enableColumnResize: boolean;
     @Input() enableColumnMove: boolean;
     @Input() rowHeight: number;
+    @Input() checkboxSelection: boolean;
     @Input() groupUseEntireRow: boolean;
     @Input() groupCheckbox: boolean;
     @Input() showGroupCount: boolean;
@@ -416,7 +417,8 @@ export class DataGrid extends NGGridDirective {
             rowSelection: {
                 mode: this.myFoundset && (this.myFoundset.multiSelect === true) ? 'multiRow' : 'singleRow',
                 enableClickSelection: this.enabled,
-                checkboxes: false,
+                checkboxes: this.enabled && this.checkboxSelection,
+                headerCheckbox: false,
                 isRowSelectable: (node: IRowNode) => {
                     return !node.group || (this.groupCheckbox && this.myFoundset && (this.myFoundset.multiSelect === true));
                 }
@@ -1117,6 +1119,7 @@ export class DataGrid extends NGGridDirective {
                     case 'enabled':
                         if(this.isGridReady && change.currentValue !== change.previousValue) {
                             this.agGridOptions.rowSelection['enableClickSelection'] = change.currentValue;
+                            this.agGridOptions.rowSelection['checkboxes'] = change.currentValue && this.checkboxSelection;
                             this.agGrid.api.setGridOption('rowSelection', this.agGridOptions.rowSelection);
                             this.updateColumnDefs();
                         }
@@ -1528,6 +1531,10 @@ export class DataGrid extends NGGridDirective {
             columnOptions = this.mergeConfig(columnOptions, column.columnDef);
 
             if(columnOptions) {
+                if(columnOptions.hasOwnProperty('checkboxSelection')) {
+                    this.checkboxSelection = columnOptions['checkboxSelection'];
+                    delete columnOptions['checkboxSelection'];
+                }
                 const colDefSetByComponent = {};
                 for( const p in COLUMN_PROPERTIES_DEFAULTS) {
                     if(COLUMN_PROPERTIES_DEFAULTS[p]['default'] !== column[p]) {

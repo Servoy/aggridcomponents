@@ -87,6 +87,7 @@ export class PowerGrid extends NGGridDirective {
     @Input() gridOptions: any;
     @Input() showColumnsMenuTab: any;
     @Input() multiSelect: boolean;
+    @Input() checkboxSelection: boolean;
     @Input() enableSorting: boolean;
     @Input() enableColumnResize: boolean;
     @Input() rowHeight: number;
@@ -277,7 +278,7 @@ export class PowerGrid extends NGGridDirective {
             rowSelection: {
                 mode: this.multiSelect === true ? 'multiRow' : 'singleRow',
                 enableClickSelection: this.enabled,
-                checkboxes: this.multiSelect === true ? this.isFirstColumn : false,
+                checkboxes: this.enabled && (this.checkboxSelection || this.multiSelect),
                 headerCheckbox: false 
             },
             //                suppressRowClickSelection: rowGroupColsDefault.length === 0 ? false : true,
@@ -773,6 +774,7 @@ export class PowerGrid extends NGGridDirective {
                     case 'enabled':
                         if (this.isGridReady) {
                             this.agGridOptions.rowSelection['enableClickSelection'] = change.currentValue;
+                            this.agGridOptions.rowSelection['checkboxes'] = change.currentValue && (this.checkboxSelection || this.multiSelect);
                             this.agGrid.api.setGridOption('rowSelection', this.agGridOptions.rowSelection);
                             this.updateColumnDefs();
                         }
@@ -995,6 +997,10 @@ export class PowerGrid extends NGGridDirective {
                 columnOptions = this.mergeConfig(columnOptions, column.columnDef);
 
                 if (columnOptions) {
+                    if(columnOptions.hasOwnProperty('checkboxSelection')) {
+                        this.checkboxSelection = columnOptions['checkboxSelection'];
+                        delete columnOptions['checkboxSelection'];
+                    }
                     const colDefSetByComponent = {};
                     for (const p in COLUMN_PROPERTIES_DEFAULTS) {
                         if (COLUMN_PROPERTIES_DEFAULTS[p]['default'] !== column[p]) {
@@ -1090,12 +1096,6 @@ export class PowerGrid extends NGGridDirective {
         } else {
             return false;
         }
-    }
-
-    isFirstColumn(params: any) {
-        const displayedColumns = params.api.getAllDisplayedColumns();
-        const thisIsFirstColumn = displayedColumns[0] === params.column;
-        return thisIsFirstColumn;
     }
 
     getMainMenuItems(params: any) {

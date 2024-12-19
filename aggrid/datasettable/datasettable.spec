@@ -32,6 +32,7 @@
 		"visible": "visible",
 		"enableColumnResize": { "type": "boolean", "default": true, "tags": {"scope": "design"}},
 		"enableSorting": { "type": "boolean", "default": true, "tags": {"scope": "design", "doc": "Enable column sorting by clicking on the column's header"}},
+		"checkboxSelection" : {"type": "boolean", "default" : false, "tags" : {"scope": "design", "doc": "When true the row has a checkbox for selecting/unselecting "}},
 		"pivotMode": { "type": "boolean", "default": false, "tags": {"scope": "design", "doc": "Pivoting allows you to take a columns values and turn them into columns"}},
 		"iconConfig": { "type": "iconConfig"},
 		"groupStyleClass" : {"type": "styleclass"},
