@@ -5804,7 +5804,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 									divContainer.appendChild(checkboxEl);
 								}
 								else {
-									divContainer.innerHTML = returnValueFormatted ? params.valueFormatted : value;
+									var textNode = document.createTextNode(returnValueFormatted ? params.valueFormatted : value);
+									divContainer.appendChild(textNode);
 								}
 
 								return divContainer;

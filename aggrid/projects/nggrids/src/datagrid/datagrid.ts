@@ -1998,7 +1998,8 @@ export class DataGrid extends NGGridDirective {
             if(checkboxEl) {
                 divContainer.appendChild(checkboxEl);
             } else {
-                divContainer.innerHTML = returnValueFormatted ? params.valueFormatted : value;
+                const textNode = this.doc.createTextNode(returnValueFormatted ? params.valueFormatted : value);
+                divContainer.appendChild(textNode);
             }
 
             return divContainer;
