@@ -10,7 +10,8 @@ import { Deferred } from '@servoy/public';
         <div class="ag-cell-edit-input">
             <select class="ag-cell-edit-input" #element></select>
         </div>
-    `
+    `,
+    standalone: false
 })
 export class SelectEditor extends EditorDirective {
 

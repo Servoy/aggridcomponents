@@ -6,7 +6,8 @@ import { Component } from '@angular/core';
     selector: 'aggrid-blankloadingcellrenderer',
     template: `
     <div ></div>
-    `
+    `,
+    standalone: false
 })
 export class BlankLoadingCellRendrer implements ILoadingCellRendererAngularComp {
     agInit(params: ILoadingCellRendererParams): void {

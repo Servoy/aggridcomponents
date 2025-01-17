@@ -72,7 +72,8 @@ const COLUMN_KEYS_TO_CHECK_FOR_CHANGES = [
 
 @Component({
     selector: 'aggrid-datasettable',
-    templateUrl: './powergrid.html'
+    templateUrl: './powergrid.html',
+    standalone: false
 })
 export class PowerGrid extends NGGridDirective {
 

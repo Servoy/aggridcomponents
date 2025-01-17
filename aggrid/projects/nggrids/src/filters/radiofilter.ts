@@ -26,7 +26,8 @@ import { FilterDirective } from './filter';
           <button type="button" id="btnClearFilter" (click)="onClearFilter()">{{ txtClearFilter }}</button>
           <button type="button" id="btnApplyFilter" (click)="onApplyFilter()">{{ txtApplyFilter }}</button>
       </div>
-    `
+    `,
+    standalone: false
 })
 export class RadioFilter extends FilterDirective {
 

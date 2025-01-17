@@ -44,7 +44,8 @@ import { NULL_VALUE } from '../datagrid/datagrid';
       <ng-template #rt let-r="result" let-t="term">
         <ngb-highlight [result]="getFormatedDisplayValue(r.displayValue)" [term]="t"></ngb-highlight>
       </ng-template>
-    `
+    `,
+    standalone: false
 })
 export class ValuelistFilter extends FilterDirective {
 

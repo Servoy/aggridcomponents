@@ -85,7 +85,8 @@ const COLUMN_KEYS_TO_SKIP_IN_CHANGES = [
 @Component({
     selector: 'aggrid-groupingtable',
     templateUrl: './datagrid.html',
-    changeDetection: ChangeDetectionStrategy.OnPush
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class DataGrid extends NGGridDirective {
 

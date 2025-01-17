@@ -8,7 +8,8 @@ import { EditorDirective } from './editor';
     <div class="ag-input-wrapper">
       <input class="ag-cell-edit-input" [value]="initialDisplayValue" [svyDecimalKeyConverter]="format" [maxLength]="maxLength" #element>
     </div>
-    `
+    `,
+    standalone: false
 })
 export class TextEditor extends EditorDirective {
 

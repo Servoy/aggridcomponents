@@ -8,7 +8,8 @@ import { EditorDirective } from './editor';
       <div id="nggridformeditor" [style.width.px]="width" [style.height.px]="height">
         <ng-template [ngTemplateOutlet]="getTemplate()" [ngTemplateOutletContext]="{name:getForm()}"></ng-template>
       </div>
-    `
+    `,
+    standalone: false
 })
 export class FormEditor extends EditorDirective implements OnDestroy {
 
