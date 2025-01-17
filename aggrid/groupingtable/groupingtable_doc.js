@@ -32,15 +32,15 @@ function getGroupedSelection() {
 
 /**
  * Start cell editing (only works when the table is not in grouping mode).
- * @param foundsetindex foundset row index of the editing cell (1-based)
- * @param columnindex column index in the model of the editing cell (0-based)
+ * @param {Number} foundsetindex Foundset row index of the editing cell (1-based)
+ * @param {Number} columnindex Column index in the model of the editing cell (0-based)
  */
 function editCellAt(foundsetindex, columnindex) {
 }
 
 /**
  * Request focus on the given column
- * @param columnindex column index in the model of the editing cell (0-based)
+ * @param {Number} columnindex column index in the model of the editing cell (0-based)
  */
 function requestFocus(columnindex) {
 }
@@ -53,7 +53,7 @@ function scrollToSelection() {
 
 /**
  * If a cell is editing, it stops the editing
- * @param cancel 'true' to cancel the editing (ie don't accept changes)
+ * @param {Boolean} cancel 'true' to cancel the editing (ie don't accept changes)
  */
 function stopCellEditing(cancel) {
 }
@@ -78,7 +78,7 @@ function showToolPanel(show) {
 /**
  * Returns true if the ToolPanel is showing
  *
- * @return {Boolean}
+ * @return {Boolean} bla bla blq
  */
 function isToolPanelShowing(show) {
 }
@@ -93,6 +93,8 @@ function isToolPanelShowing(show) {
  * 
  * @example
  *     %%prefix%%elements.%%elementName%%.getColumnsCount()
+ * 
+ * @return {Number} The total number of columns in the specified element.
  */ 
 function getColumnsCount() {
 }
@@ -100,12 +102,12 @@ function getColumnsCount() {
 /**
  * Gets the column at index. Index is 0 based.
  * 
- * @param index index between 0 and columns length -1
+ * @param {Number} index Index between 0 and columns length -1
  * 
  * @example
  *     %%prefix%%elements.%%elementName%%.getColumn()
  *  
- * @return {column}
+ * @return {column} The column object at the specified index.
  */ 
 function getColumn(index) {
 }
@@ -113,12 +115,12 @@ function getColumn(index) {
 /**
  * Gets the column with id colId
  * 
- * @param colId id of the column
+ * @param {string} colId Id of the column
  * 
  * @example
  *     %%prefix%%elements.%%elementName%%.getColumnById('myid')
  *	
- * @return {column}
+ * @return {column} The column object corresponding to the provided id.
  */ 
  function getColumnById(colId) {
  }
@@ -126,13 +128,13 @@ function getColumn(index) {
 /**
  * Adds new column at specified index. Index is 0 based.
  * 
- * @param dataproviderid dataprovider of the column
- * @param index index between 0 and columns length
+ * @param {string} dataprovider Dataprovider of the column
+ * @param {Number} index Index between 0 and columns length
  * 
  * @example
  *     var column = %%prefix%%elements.%%elementName%%.newColumn('dataproviderid')
  *
- * @return {column}
+ * @return {column} The newly created column object at the specified index with the given dataprovider.
  */
 function newColumn(dataproviderid,index) {
 }
@@ -143,9 +145,9 @@ function newColumn(dataproviderid,index) {
  * @example
  *     %%prefix%%elements.%%elementName%%.removeColumn(0)
  *
- * @param index index between 0 and columns length -1
+ * @param {Number} index Index between 0 and columns length -1
  * 
- * @return {boolean}
+ * @return {Boolean} True if the column was successfully removed, false otherwise.
  */
 function removeColumn(index) {
 }
@@ -156,15 +158,15 @@ function removeColumn(index) {
  * @example
  *     %%prefix%%elements.%%elementName%%.removeAllColumns()
  *
- * @return {boolean}
+ * @return {Boolean} True if all columns were successfully removed; otherwise, false.
  */
 function removeAllColumns() {
 }
 
 /**
  * Move column
- * @param id column id
- * @param index new position (0-based)
+ * @param {string} id Column id
+ * @param {Number} index New position (0-based)
  */
 function moveColumn(id, index) {
 }
@@ -200,7 +202,7 @@ function autoSizeAllColumns() {
  * Returns the current state of the columns (width, position, grouping state) as a json string
  * that can be used to restore to this state using restoreColumnState
  * 
- * @return {String}
+ * @return {string} The current state of the columns as a JSON string for restoring the state.
  */
 function getColumnState() {
 }
@@ -209,8 +211,8 @@ function getColumnState() {
  * Set the table read-only state. If no columnids is used, all columns read-only state is set,
  * otherwise only for the columns specified.
  *
- * @param {Boolean} readOnly read-only state
- * @param {Array<String>} columnids array of column ids to make ready-only
+ * @param {Boolean} readonly Read-only state
+ * @param {string[]} columnids Array of column ids to make ready-only
  */
 function setReadOnly(readOnly, columnids) {
 }
@@ -227,7 +229,7 @@ function setFormEditorValue(value) {
  * Returns currently expanded groups as an object like:
  * {expandedGroupName1:{}, expandedGroupName2:{expandedSubGroupName2_1:{}, expandedSubGroupName2_2:{}}}
  *
- * @return {Object}
+ * @return {object} An object representing the currently expanded groups, where each key is a group name, and its value is an object detailing any expanded subgroups.
  */
 function getExpandedGroups() {
 }
@@ -236,9 +238,9 @@ function getExpandedGroups() {
  * Return the column index for the given column id.
  * Can be used in combination with getColumnState to retrieve the column index for the column state with colId in the columnState object.
  * 
- * @param {String} colId
+ * @param {string} colId The unique identifier of the column whose index is to be retrieved.
  * 
- * @return {Number}
+ * @return {Number} The 0-based index of the column corresponding to the given column id, or -1 if the column id is not found.
  * @example <pre>
  * // get the state
  * var state = elements.table.getColumnState();
@@ -309,16 +311,18 @@ function getColumnIndex(colId) {
 }
 
 /**
- * Set the selection in grouping mode. The table must be already in grouping mode,
+ * Set the selection in grouping mode 111. The table must be already in grouping mode,
  * and the record already loaded (the group of the record expanded - see: setExpandedGroups)
  *
- * @param {Object} value form editor value
- */
+ * @param {Array<JSRecord>} selectedRecords Form editor value
+ */ 
 function setGroupedSelection(selectedRecords) {
 }
 
 /**
  * Returns the selected rows when in grouping mode
+ * 
+ * @return {Array<JSRecord>} An array of JSRecord objects representing the selected rows in grouping mode.
  */
 function getGroupedSelection() {
 }
