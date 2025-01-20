@@ -733,8 +733,11 @@ export class PowerGrid extends NGGridDirective {
                                                 if (prop === 'visible') {
                                                     this.gridApi.setColumnsVisible([colId], newPropertyValue as boolean);
                                                 } else {
-                                                    this.gridApi.setColumnWidths([{ key: colId, newWidth:newPropertyValue as number}]);
-                                                    this.svySizeColumnsToFit(GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED);
+                                                    const actualWidth = this.gridApi.getColumn(colId).getActualWidth();
+                                                    if(actualWidth !== newPropertyValue as number) {                                                    
+                                                        this.gridApi.setColumnWidths([{ key: colId, newWidth:newPropertyValue as number}]);
+                                                        this.svySizeColumnsToFit(GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED);
+                                                    }
                                                 }
                                             }
                                         }
