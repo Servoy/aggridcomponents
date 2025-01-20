@@ -53,7 +53,7 @@ function scrollToSelection() {
 
 /**
  * If a cell is editing, it stops the editing
- * @param {Boolean} cancel 'true' to cancel the editing (ie don't accept changes)
+ * @param {Boolean} [cancel] 'true' to cancel the editing (ie don't accept changes)
  */
 function stopCellEditing(cancel) {
 }
@@ -129,7 +129,7 @@ function getColumn(index) {
  * Adds new column at specified index. Index is 0 based.
  * 
  * @param {string} dataprovider Dataprovider of the column
- * @param {Number} index Index between 0 and columns length
+ * @param {Number} [index] Index between 0 and columns length
  * 
  * @example
  *     var column = %%prefix%%elements.%%elementName%%.newColumn('dataproviderid')
@@ -182,11 +182,11 @@ function moveColumn(id, index) {
  * - the filter state (default false),
  * - the sort state (default false).
  * 
- * @param {String} columnState
- * @param {Function} onError
- * @param {Boolean} columns
- * @param {Boolean} filter
- * @param {Boolean} sort
+ * @param {string} [columnState] A JSON string representing the saved state of the columns, including width, position, visibility, filters, and sorting. If omitted, the columns will be restored to their design-time state.
+ * @param {function} [onError] A callback function to handle errors during the restore process, such as mismatched column configurations.
+ * @param {Boolean} [columns] Specifies whether to restore the columns' size, position, and visibility. Defaults to true.
+ * @param {Boolean} [filter] Specifies whether to restore the columns' filter state. Defaults to false.
+ * @param {Boolean} [sort] Specifies whether to restore the columns' sort state. Defaults to false.
  */
 function restoreColumnState(columnState, onError, columns, filter, sort) {
 }
@@ -212,7 +212,7 @@ function getColumnState() {
  * otherwise only for the columns specified.
  *
  * @param {Boolean} readonly Read-only state
- * @param {string[]} columnids Array of column ids to make ready-only
+ * @param {string[]} [columnids] Array of column ids to make ready-only
  */
 function setReadOnly(readOnly, columnids) {
 }
@@ -353,3 +353,62 @@ function getGroupedSelection() {
  */
  function addFunctionCall(alias, f) {
  }
+
+ /**
+ * Sets the selected headers or groups in the table when the headerCheckbox or groupCheckbox property is used.
+ * The input should be an array of objects where each object represents a selected group or header.
+ * The objects should have a `colId` representing the column identifier, and optionally a `groupkey`
+ * representing the key of the group. For headers, the `groupkey` should not be included.
+ *
+ * @param {Object[]} groups The selected headers or groups. Each object should have the following structure:
+ *                                   - `colId` (String): The identifier of the column.
+ *                                   - `groupkey` (String, optional): The key of the group (not included for headers).
+ *
+ * @example
+ * // Example of selecting groups
+ * const selectedGroups = [
+ *     { colId: 'country', groupkey: 'USA' },
+ *     { colId: 'country', groupkey: 'Canada' }
+ * ];
+ * elements.myTable.setCheckboxGroupSelection(selectedGroups);
+ *
+ * @example
+ * // Example of selecting headers
+ * const selectedHeaders = [
+ *     { colId: 'country' },
+ *     { colId: 'region' }
+ * ];
+ * elements.myTable.setCheckboxGroupSelection(selectedHeaders);
+ */
+function setCheckboxGroupSelection() {
+}
+
+/**
+ * Returns the selected headers or groups in the table when the headerCheckbox or groupCheckbox property is used.
+ * The returned value is an array of objects, where each object represents a selected group or header.
+ * Each object includes a `colId` representing the column identifier and, for groups, a `groupkey` representing the group key.
+ * For headers, the `groupkey` property is not included.
+ *
+ * @return {Object[]} The selected headers or groups. Each object has the following structure:
+ *                    - `colId` (String): The identifier of the column.
+ *                    - `groupkey` (String, optional): The key of the group (not included for headers).
+ *
+ * @example
+ * // Example of returned data
+ * [
+ *     { colId: 'country', groupkey: 'USA' },   // Group selection
+ *     { colId: 'region' }                      // Header selection
+ * ]
+ */
+function getCheckboxGroupSelection() {
+}
+
+/**
+ * Adjusts the columns' widths to fit the available viewport, ensuring that all visible columns are resized to fill the table's width.
+ * This method dynamically resizes columns to ensure no empty space remains in the grid's horizontal viewport.
+ *
+ * @example
+ * elements.myTable.sizeColumnsToFit();
+ */
+function sizeColumnsToFit() {
+}

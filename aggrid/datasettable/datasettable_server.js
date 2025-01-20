@@ -59,7 +59,6 @@ $scope.api.getColumnState = function() {
  * It won't re-create deleted columns.
  * 
  * @param {String} columnState
- * @return {boolean}
  */            
 $scope.api.restoreColumnState = function(columnState) {
     // TODO: add checks if restore can't be done, and return false
