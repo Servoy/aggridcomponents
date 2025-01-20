@@ -998,8 +998,11 @@ export class DataGrid extends NGGridDirective {
                                                 if(prop === 'visible') {
                                                     this.gridApi.setColumnVisible(colId, newPropertyValue as boolean);
                                                 } else {
-                                                    this.gridApi.setColumnWidth(colId, newPropertyValue as number);
-                                                    this.sizeHeaderAndColumnsToFit(GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED);
+                                                    const actualWidth = this.gridApi.getColumn(colId).getActualWidth();
+                                                    if(actualWidth !== newPropertyValue as number) {
+                                                        this.gridApi.setColumnWidth(colId, newPropertyValue as number);
+                                                        this.sizeHeaderAndColumnsToFit(GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED);
+                                                    }
                                                 }
                                             }
                                         }
