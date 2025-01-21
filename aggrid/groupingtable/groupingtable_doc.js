@@ -70,7 +70,7 @@ function setExpandedGroups(groups) {
 /**
  * Show or hide the ToolPanel
  *
- * @param {Boolean} show
+ * @param {Boolean} show A flag indicating whether to show (true) or hide (false) the ToolPanel in the Servoy component.
  */
 function showToolPanel(show) {
 }
@@ -78,7 +78,7 @@ function showToolPanel(show) {
 /**
  * Returns true if the ToolPanel is showing
  *
- * @return {Boolean} bla bla blq
+ * @return {Boolean} `true` if the ToolPanel is showing otherwise `false`
  */
 function isToolPanelShowing(show) {
 }
@@ -107,7 +107,7 @@ function getColumnsCount() {
  * @example
  *     %%prefix%%elements.%%elementName%%.getColumn()
  *  
- * @return {column} The column object at the specified index.
+ * @return {CustomType<aggrid-datasettable.column>} The The column object at the specified index.
  */ 
 function getColumn(index) {
 }
@@ -120,7 +120,7 @@ function getColumn(index) {
  * @example
  *     %%prefix%%elements.%%elementName%%.getColumnById('myid')
  *	
- * @return {column} The column object corresponding to the provided id.
+ * @return {CustomType<aggrid-groupingtable.column>} The column object corresponding to the provided id.
  */ 
  function getColumnById(colId) {
  }
@@ -134,7 +134,7 @@ function getColumn(index) {
  * @example
  *     var column = %%prefix%%elements.%%elementName%%.newColumn('dataproviderid')
  *
- * @return {column} The newly created column object at the specified index with the given dataprovider.
+ * @return {CustomType<aggrid-groupingtable.column>} The newly created column object at the specified index with the given dataprovider.
  */
 function newColumn(dataproviderid,index) {
 }
@@ -212,7 +212,7 @@ function getColumnState() {
  * otherwise only for the columns specified.
  *
  * @param {Boolean} readonly Read-only state
- * @param {string[]} [columnids] Array of column ids to make ready-only
+ * @param {Array<String>} [columnids] Array of column ids to make ready-only
  */
 function setReadOnly(readOnly, columnids) {
 }
@@ -273,7 +273,7 @@ function getColumnIndex(colId) {
  * 
  * NOTE: The name of the columns from the model are the id properties of the column.
  *
- * @param {Object} filterModel
+ * @param {Object} filterModel The filter model object defining the filtering criteria for the grid. Each key represents a column's id, and its value specifies the filter configuration, including filter type, conditions, and operator. To clear all filters, pass an empty object ({}).
  * @example <pre>
  *	var filterModel = {
  *		"country": {
@@ -360,7 +360,7 @@ function getGroupedSelection() {
  * The objects should have a `colId` representing the column identifier, and optionally a `groupkey`
  * representing the key of the group. For headers, the `groupkey` should not be included.
  *
- * @param {Object[]} groups The selected headers or groups. Each object should have the following structure:
+ * @param {Array<Object>} groups The selected headers or groups. Each object should have the following structure:
  *                                   - `colId` (String): The identifier of the column.
  *                                   - `groupkey` (String, optional): The key of the group (not included for headers).
  *
@@ -389,7 +389,7 @@ function setCheckboxGroupSelection() {
  * Each object includes a `colId` representing the column identifier and, for groups, a `groupkey` representing the group key.
  * For headers, the `groupkey` property is not included.
  *
- * @return {Object[]} The selected headers or groups. Each object has the following structure:
+ * @return {Array<Object>} The selected headers or groups. Each object has the following structure:
  *                    - `colId` (String): The identifier of the column.
  *                    - `groupkey` (String, optional): The key of the group (not included for headers).
  *
