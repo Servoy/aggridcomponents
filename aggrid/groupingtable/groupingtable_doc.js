@@ -107,7 +107,7 @@ function getColumnsCount() {
  * @example
  *     %%prefix%%elements.%%elementName%%.getColumn()
  *  
- * @return {CustomType<aggrid-datasettable.column>} The The column object at the specified index.
+ * @return {CustomType<aggrid-groupingtable.column>} The column object at the specified index.
  */ 
 function getColumn(index) {
 }

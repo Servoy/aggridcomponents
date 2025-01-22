@@ -81,7 +81,7 @@ function scrollToRow(rowData) {
  * 
  * @param {string} id The unique identifier for the new column to be added.
  * @param {Number} [index] 0-based index
- * @return {column} The column object that was created and added to the table.
+ * @return {CustomType<aggrid-datasettable.column>} The column object that was created and added to the table.
  * 
  */
 function newColumn(id, index) {
@@ -90,7 +90,7 @@ function newColumn(id, index) {
 /**
  * Removes column with id
  * 
- * @param {String} id 
+ * @param {String} id The unique identifier of the column to be removed from the component.
  */
 function deleteColumn(id) {
 }
@@ -118,7 +118,7 @@ function restoreColumnState(columnState) {
 /**
  * Returns all the columns
  * 
- * @return {column[]} An array of all column objects currently defined in the table.
+ * @return {Array<CustomType<aggrid-datasettable.column>>} An array of all column objects currently defined in the table.
  */
 function getAllColumns() {
 }
@@ -129,7 +129,7 @@ function getAllColumns() {
  * 
  * @param {string} id The unique identifier of the column to retrieve in the Servoy grid.
  * @param {Boolean} [forChange] Indicates whether the column is being retrieved for modifications.
- * @return {column} The column object associated with the specified id in the Servoy grid.
+ * @return {CustomType<aggrid-datasettable.column>} The column object at the specified index.
  */
 function getColumn(id, forChange) {
 }
