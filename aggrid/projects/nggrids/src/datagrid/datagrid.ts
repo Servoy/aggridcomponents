@@ -2022,7 +2022,11 @@ export class DataGrid extends NGGridDirective {
 
         let isSelectedRowIndexesChanged = false;
         // old selection
-        const oldSelectedNodes = this.agGrid.api.getSelectedNodes();
+        let oldSelectedNodes = this.agGrid.api.getSelectedNodes();
+        // Ensure oldSelectedNodes is an array or an empty array if it's null or undefined
+        if (!Array.isArray(oldSelectedNodes)) {
+            oldSelectedNodes = [];
+        }
 
         const selectedNodes = new Array();
         if (this.isTableGrouped()) {
