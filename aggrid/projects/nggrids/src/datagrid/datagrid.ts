@@ -2131,11 +2131,6 @@ export class DataGrid extends NGGridDirective {
         }
 
         if(needPurge) {
-            // force updating row ids in the foundset, before re-rendering, because on
-            // the next loading of records, the foundset will have the new ids 
-            if(foundsetManager.foundset.serverSize > 0) {
-                foundsetManager.foundset.loadRecordsAsync(foundsetManager.foundset.viewPort.startIndex, foundsetManager.foundset.viewPort.size - 1);
-            }
             this.purge();
         }
         return needPurge;
