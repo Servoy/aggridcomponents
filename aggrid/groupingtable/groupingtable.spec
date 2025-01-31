@@ -64,7 +64,8 @@
 		"_internalFilterModel": { "type": "object", "tags": {"scope" : "private", "allowaccess": "enabled"}, "pushToServer": "allow" },
 		"_internalGroupRowsSelection": { "type": "record[]", "tags": {"scope" : "private"}, "pushToServer": "allow"},
 		"_internalCheckboxGroupSelection": { "type": "object[]", "tags": {"scope" : "private"}, "pushToServer": "allow"},
-		"_internalFunctionCalls": { "type": "functionCall[]", "tags": {"scope" : "private"}}
+		"_internalFunctionCalls": { "type": "functionCall[]", "tags": {"scope" : "private"}},
+		"_internalHasDoubleClickHandler": { "type": "boolean", "default": false, "tags": {"scope" : "private"}}
 	},
 	"handlers" : {
     	"onSelectedRowsChanged": {
@@ -88,7 +89,7 @@
 			}]
 		},
 		"onCellClick": {
-			"doc": "Called when the mouse is clicked on a row/cell (foundset and column indexes are given).\nThe foundsetindex is always -1 when there are grouped rows.",
+			"doc": "Called when the mouse is clicked on a row/cell (foundset and column indexes are given).\nThe foundsetindex is always -1 when there are grouped rows.\nIf you use enabled=false on a column, make sure to test in the handler for columnindex so you only execute the code for that column IF the columnindex is for that column.",
 			"parameters": [{
 				"name": "foundsetindex",
 				"type": "int"
@@ -107,10 +108,11 @@
 				"name":"dataTarget",
 				"type":"string",
 				"optional": true
-			}]
+			}],
+			"private": true
 		},
 		"onCellDoubleClick": {
-			"doc": "Called when the mouse is clicked on a row/cell (foundset and column indexes are given).\nThe foundsetindex is always -1 when there are grouped rows.",
+			"doc": "Called when the mouse is clicked on a row/cell (foundset and column indexes are given).\nThe foundsetindex is always -1 when there are grouped rows.\nIf you use enabled=false on a column, make sure to test in the handler for columnindex so you only execute the code for that column IF the columnindex is for that column.",
 			"parameters": [{
 				"name": "foundsetindex",
 				"type": "int"
@@ -130,10 +132,11 @@
 				"name":"dataTarget",
 				"type":"string",
 				"optional": true				
-			}]
+			}],
+			"private": true
 		},
 		"onCellRightClick": {
-			"doc": "Called when the right mouse button is clicked on a row/cell (foundset and column indexes are given).\nThe foundsetindex is always -1 when there are grouped rows.",
+			"doc": "Called when the right mouse button is clicked on a row/cell (foundset and column indexes are given).\nThe foundsetindex is always -1 when there are grouped rows.\nIf you use enabled=false on a column, make sure to test in the handler for columnindex so you only execute the code for that column IF the columnindex is for that column.",
 			"parameters": [{
 				"name": "foundsetindex",
 				"type": "int"
@@ -153,7 +156,8 @@
 				"name":"dataTarget",
 				"type":"string",
 				"optional": true
-			}]
+			}],
+			"private": true
 		},
 		"onFooterClick": {
 			"doc": "Called when the mouse is clicked on a footer cell",
@@ -502,7 +506,8 @@
 		},
 		"internalGetColumnState" : {
 			"returns": "string"
-		},		
+		},
+		"onShow" : {},
 		"onHide" : {},
 		"columnStateOnErrorHandler" : {
 			"parameters": [{
@@ -512,6 +517,29 @@
 			{
 				"name": "event",
 				"type": "JSEvent"
+			}]
+		},
+		"cellClick": {
+			"parameters": [{
+				"name": "clicktype",
+				"type": "string"
+			},{
+				"name": "foundsetindex",
+				"type": "int"
+			}, {
+				"name": "columnindex",
+				"type": "int"
+			}, {
+				"name": "record",
+				"type": "record"
+			}, {
+				"name": "event",
+				"type": "JSEvent",
+				"optional": true
+			},{
+				"name":"dataTarget",
+				"type":"string",
+				"optional": true
 			}]
 		}
 	},
@@ -535,6 +563,7 @@
 			"valuelistConfig" : { "type" : "valuelistConfig"},
 			"visible":  { "type": "boolean", "default": true},
 			"excluded":  { "type": "boolean", "default": false, "tags": {"doc": "When true the column is excluded from the UI"}},
+			"enabled":  { "type": "boolean", "default": true, "pushToServer" : "reject"},
 			"width":  { "type": "int", "default": 0},			
 			"initialWidth":  { "type": "int", "tags": {"scope" : "private"}},
 			"minWidth":  { "type": "int"},

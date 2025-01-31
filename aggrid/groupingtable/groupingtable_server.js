@@ -227,6 +227,18 @@ $scope.removeGroupedFoundsetUUID = function(parentFoundset) {
 	return false;
 }
 
+$scope.cellClick = function(clicktype, foundsetindex, columnindex, record, event, dataTarget) {
+	if($scope.model.columns && !$scope.model.columns[columnindex].enabled) return;
+
+	if(clicktype === 'click' && $scope.handlers.onCellClick) {
+		$scope.handlers.onCellClick(foundsetindex, columnindex, record, event, dataTarget);
+	} else if (clicktype === 'doubleClick' && $scope.handlers.onCellDoubleClick) {
+		$scope.handlers.onCellDoubleClick(foundsetindex, columnindex, record, event, dataTarget);
+	} else if (clicktype === 'rightClick' && $scope.handlers.onCellRightClick) {
+		$scope.handlers.onCellRightClick(foundsetindex, columnindex, record, event, dataTarget);
+	}
+}
+
 function getDataproviderNameForGroupingView(dataproviderName) {
 	return dataproviderName ? dataproviderName.replace(/\./g, '_') : dataproviderName;
 }
@@ -626,9 +638,15 @@ function getConvertedDate(clientDateAsString, clientDateAsMs, columnFormat) {
 		return valueMs.getFullYear() + "-" + (valueMs.getMonth() + 1) + "-" + valueMs.getDate();
 	}
 }
+
 /**
  * Servoy component lifecycle callback
  */
+
+$scope.onShow = function() {
+	if($scope.handlers.onCellDoubleClick) $scope.model._internalHasDoubleClickHandler = true;
+}
+
 $scope.onHide = function() {
 	// related foundsets and viewfoundsets (no foundset.removeFoundSetFilterParam')  does not have filters; skip clear/remove filters from them
 	if($scope.model.myFoundset) {

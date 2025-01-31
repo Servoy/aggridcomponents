@@ -37,3 +37,10 @@
 	width: 12px;
 	height: 12px;
 }
+
+.svy-disabled-cell {
+    color: #a0a0a0; /* Gray text color */
+    cursor: not-allowed; /* Cursor indicating not allowed */
+    pointer-events: none; /* Disable pointer events */
+    opacity: 0.2; /* Slightly transparent */
+}
