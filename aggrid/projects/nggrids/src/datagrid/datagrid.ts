@@ -57,6 +57,7 @@ const COLUMN_KEYS_TO_CHECK_FOR_CHANGES = [
     'styleClass',
     'visible',
     'excluded',
+    'enabled',
     'width',
     'minWidth',
     'maxWidth',
@@ -143,6 +144,7 @@ export class DataGrid extends NGGridDirective {
     @Output() _internalCheckboxGroupSelectionChange = new EventEmitter();
 
     @Input() _internalFunctionCalls: Array<FunctionCall>;
+    @Input() _internalHasDoubleClickHandler: boolean;
 
 
     @Input() onCellClick: (foundsetindex: number,columnindex: number,record: unknown,event: Event) => void;
@@ -1355,6 +1357,9 @@ export class DataGrid extends NGGridDirective {
                 colDef.cellClass = this.getCellClass;
             } else {
                 colDef.cellClass =['ag-table-cell'];
+                if(!column.enabled) {
+                    colDef.cellClass.push('svy-disabled-cell');
+                }
                 if(column.styleClass) {
                     colDef.cellClass = colDef.cellClass.concat(column.styleClass.split(' '));
                 }
@@ -1836,6 +1841,9 @@ export class DataGrid extends NGGridDirective {
         const column = dataGrid.getColumn(params.colDef.field);
 
         let cellClass = ['ag-table-cell'];
+        if(!column.enabled) {
+            cellClass.push('svy-disabled-cell');
+        }
         if(column.styleClass) {
             cellClass = cellClass.concat(column.styleClass.split(' '));
         }
@@ -3417,7 +3425,7 @@ export class DataGrid extends NGGridDirective {
                     this.onFooterClick(columnIndex, params.event);
                 }
             } else {
-                if(this.onCellDoubleClick) {
+                if(this._internalHasDoubleClickHandler) {
                     if(this.clickTimer) {
                         clearTimeout(this.clickTimer);
                         this.clickTimer = null;
@@ -3460,41 +3468,14 @@ export class DataGrid extends NGGridDirective {
             }
         }
 
-        if (this.onCellClick) {
-            //						var row = params.data;
-            //						var foundsetManager = getFoundsetManagerByFoundsetUUID(row._svyFoundsetUUID);
-            //						if (!foundsetManager) foundsetManager = foundset;
-            //						var foundsetRef = foundsetManager.foundset;
-            //
-            //						var foundsetIndex;
-            //						if (isTableGrouped()) {
-            //							// TODO search for grouped record in grouped foundset (may not work because of caching issues);
-            //							$log.warn('select grouped record not supported yet');
-            //							foundsetIndex = foundsetManager.getRowIndex(row);
-            //						} else {
-            //							foundsetIndex = params.node.rowIndex;
-            //						}
-            //
-            //						var columnIndex = getColumnIndex(params.colDef.field);
-            //						var record;
-            //						if (foundsetIndex > -1) {
-            //							// FIXME cannot resolve the record when grouped, how can i rebuild the record ?
-            //							// Can i pass in the array ok pks ? do i know the pks ?
-            //							// Can i get the hasmap of columns to get the proper dataProviderID name ?
-            //							record = foundsetRef.viewPort.rows[foundsetIndex - foundsetRef.viewPort.startIndex];
-            //						}
-            //						// no foundset index if record is grouped
-            //						if (foundsetManager.isRoot === false) {
-            //							foundsetIndex = -1;
-            //						}
-
-            if(timeout) {
-                this.setTimeout(() => {
-                    this.onCellClick(this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), params.event);
-                }, timeout);
-            } else {
-                this.onCellClick(this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), params.event);
-            }
+        if(timeout) {
+            this.setTimeout(() => {
+                this.servoyApi.callServerSideApi('cellClick',
+                    ['click', this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), params.event]);
+            }, timeout);
+        } else {
+            this.servoyApi.callServerSideApi('cellClick',
+                ['click', this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), params.event]);
         }
     }
 
@@ -3516,36 +3497,9 @@ export class DataGrid extends NGGridDirective {
 
     onCellDoubleClickedEx(params: any) {
         this.log.debug(params);
-        if (this.onCellDoubleClick && !params.node.rowPinned) {
-            //						var row = params.data;
-            //						var foundsetManager = getFoundsetManagerByFoundsetUUID(row._svyFoundsetUUID);
-            //						if (!foundsetManager) foundsetManager = foundset;
-            //						var foundsetRef = foundsetManager.foundset;
-            //						var foundsetIndex;
-            //						if (isTableGrouped()) {
-            //							// TODO search for grouped record in grouped foundset (may not work because of caching issues);
-            //							$log.warn('select grouped record not supported yet');
-            //							foundsetIndex = foundsetManager.getRowIndex(row);
-            //						} else {
-            //							foundsetIndex = params.node.rowIndex;
-            //						}
-            //
-            //						var columnIndex = getColumnIndex(params.colDef.field);
-            //						var record;
-            //						if (foundsetIndex > -1) {
-            //							// FIXME cannot resolve the record when grouped, how can i rebuild the record ?
-            //							// Can i pass in the array ok pks ? do i know the pks ?
-            //							// Can i get the hasmap of columns to get the proper dataProviderID name ?
-            //							record = foundsetRef.viewPort.rows[foundsetIndex - foundsetRef.viewPort.startIndex];
-            //						}
-            //
-            //						// no foundset index if record is grouped
-            //						if (foundsetManager.isRoot === false) {
-            //							foundsetIndex = -1;
-            //						}
-            //						$scope.handlers.onCellDoubleClick(foundsetIndex, columnIndex, record, params.event);
-
-            this.onCellDoubleClick(this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), params.event);
+        if (!params.node.rowPinned) {
+            this.servoyApi.callServerSideApi('cellClick',
+                ['doubleClick', this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), params.event]);
         }
     }
 
@@ -3556,12 +3510,11 @@ export class DataGrid extends NGGridDirective {
                 this.selectionEvent = { type: 'click', event: params.event, rowIndex: params.node.rowIndex };
                 params.node.setSelected(true, true);
             }
-            if (this.onCellRightClick) {
-                // Added setTimeOut to enable onColumnDataChangeEvent to go first; must be over 250, so selection is sent first
-                this.setTimeout(() => {
-                    this.onCellRightClick(this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), params.event);
-                }, 350);
-            }
+            // Added setTimeOut to enable onColumnDataChangeEvent to go first; must be over 250, so selection is sent first
+            this.setTimeout(() => {
+                this.servoyApi.callServerSideApi('cellClick',
+                    ['rightClick', this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), params.event]);
+            }, 350);
         }
     }
 
@@ -5855,6 +5808,7 @@ export class DataGridColumn extends BaseCustomObject {
     valuelist: any;
     visible: boolean;
     excluded: boolean;
+    enabled: boolean;
     width: number;
     initialWidth: number;
     minWidth: number;
