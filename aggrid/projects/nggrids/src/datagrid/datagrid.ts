@@ -4537,7 +4537,7 @@ class FoundsetManager {
             size = 0;
         }
 
-        if(this.dataGrid.agGridOptions.maxBlocksInCache === -1) {
+        if(this.dataGrid.agGridOptions.maxBlocksInCache === -1 && this.foundset.viewPort.startIndex === 0) {
             return this.foundset.loadExtraRecordsAsync(size);
         } else {
             return this.foundset.loadRecordsAsync(startIndex, size);
