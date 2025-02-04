@@ -275,8 +275,9 @@
 		"onDrop": {
 			"doc": "Called when a row is dropped as a result of a drag-n-drop",
 			"parameters": [{
-				"name": "sourceRecords",
-				"type": "record[]"
+				"name": "sourceRows",
+				"type": "object[]",
+				"doc": "an Array of JSRecord objects if dragged from a data grid, or plain objects if from a power grid"
 			}, {
 				"name": "targetRecord",
 				"type": "record"

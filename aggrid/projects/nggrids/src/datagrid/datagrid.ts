@@ -1529,7 +1529,7 @@ export class DataGrid extends NGGridDirective {
                         params.dragEvent.dataTransfer.setDragImage(dragGhostEl, 0, 0);
                     }
 
-                    params.dragEvent.dataTransfer.setData('nggrids-record/json', JSON.stringify(records));
+                    params.dragEvent.dataTransfer.setData('nggrids/json', JSON.stringify(records));
                 };
             }
 
@@ -4278,7 +4278,7 @@ export class DataGrid extends NGGridDirective {
     }
 
     gridDragOver($event) {
-        const dragSupported = $event.dataTransfer.types.length && $event.dataTransfer.types[0] === 'nggrids-record/json';
+        const dragSupported = $event.dataTransfer.types.length && $event.dataTransfer.types[0] === 'nggrids/json';
         if (dragSupported) {
             this.handleDragViewportScroll($event);
             let dragOver: any = false;
@@ -4317,7 +4317,7 @@ export class DataGrid extends NGGridDirective {
         this.cancelDragViewportScroll();
         if(this.onDrop) {
             const targetNode = this.getNodeForElement($event.target);
-            const jsonData = $event.dataTransfer.getData('nggrids-record/json');
+            const jsonData = $event.dataTransfer.getData('nggrids/json');
             const records = JSON.parse(jsonData);
             this.onDrop(records, targetNode ? this.getRecord(targetNode) : null, $event);
         }
