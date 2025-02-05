@@ -19,6 +19,7 @@ import { ExcelExportModule } from '@ag-grid-enterprise/excel-export';
 import { MenuModule } from '@ag-grid-enterprise/menu';
 import { SideBarModule } from '@ag-grid-enterprise/side-bar';
 import { RowGroupingModule } from '@ag-grid-enterprise/row-grouping';
+import { ClipboardModule } from '@ag-grid-enterprise/clipboard';
 import { ValuelistFilter } from './filters/valuelistfilter';
 import { RadioFilter } from './filters/radiofilter';
 import { AggFuncInfo, PowerGrid, PowerGridColumn } from './powergrid/powergrid';
@@ -74,6 +75,7 @@ export class NGGridsModule {
             MenuModule,
             FiltersToolPanelModule,
             ClientSideRowModelModule,
-            ExcelExportModule]);
+            ExcelExportModule,
+            ClipboardModule]);
     }
 }

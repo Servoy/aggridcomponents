@@ -20,6 +20,7 @@
     "@ag-grid-community/core": "32.3.3",
     "@ag-grid-enterprise/column-tool-panel": "32.3.3",
     "@ag-grid-enterprise/core": "32.3.3",
+    "@ag-grid-enterprise/clipboard": "32.3.3",
     "@ag-grid-enterprise/excel-export": "32.3.3",
     "@ag-grid-enterprise/filter-tool-panel": "32.3.3",
     "@ag-grid-enterprise/menu": "32.3.3",
