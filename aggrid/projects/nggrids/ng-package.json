@@ -9,7 +9,7 @@
   },
   "allowedNonPeerDependencies": ["@eonasdan/tempus-dominus", "@ng-bootstrap/ng-bootstrap","@popperjs/core",  "@angular/cdk", "bootstrap", "lodash-es",
         "@ag-grid-enterprise/column-tool-panel" , "@ag-grid-enterprise/filter-tool-panel",  "@ag-grid-enterprise/menu",  
-        "@ag-grid-enterprise/row-grouping", "@ag-grid-enterprise/side-bar", "@ag-grid-enterprise/excel-export", "@ag-grid-enterprise/range-selection"]
+        "@ag-grid-enterprise/row-grouping", "@ag-grid-enterprise/side-bar", "@ag-grid-enterprise/excel-export", "@ag-grid-enterprise/range-selection", "@ag-grid-enterprise/clipboard"]
                                                             
 
 
