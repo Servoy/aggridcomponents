@@ -1,5 +1,5 @@
 import { NGGridDirective } from '../../nggrid';
-import { RowDropZoneParams } from '@ag-grid-community/core';
+import { RowDropZoneParams } from 'ag-grid-community';
 
 export class GridService {
     public iconConfig: any;

@@ -1,4 +1,4 @@
-import { ICellEditorParams } from '@ag-grid-community/core';
+import { ICellEditorParams } from 'ag-grid-community';
 import { ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
 import { EditorDirective } from './editor';
 

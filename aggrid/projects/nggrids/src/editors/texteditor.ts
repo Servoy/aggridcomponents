@@ -1,4 +1,4 @@
-import { ICellEditorParams } from '@ag-grid-community/core';
+import { ICellEditorParams } from 'ag-grid-community';
 import { Component, HostListener, Input } from '@angular/core';
 import { EditorDirective } from './editor';
 

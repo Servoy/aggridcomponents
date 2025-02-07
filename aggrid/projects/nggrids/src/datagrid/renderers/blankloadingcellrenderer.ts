@@ -1,5 +1,5 @@
-import { ILoadingCellRendererAngularComp } from '@ag-grid-community/angular';
-import { ILoadingCellRendererParams, IAfterGuiAttachedParams } from '@ag-grid-community/core';
+import { ILoadingCellRendererAngularComp } from 'ag-grid-angular';
+import { ILoadingCellRendererParams, IAfterGuiAttachedParams } from 'ag-grid-community';
 import { Component } from '@angular/core';
 
 @Component({

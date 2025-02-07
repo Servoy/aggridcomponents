@@ -1,5 +1,5 @@
-import { AgFloatingFilterComponent } from '@ag-grid-community/angular';
-import { FilterChangedEvent, IFilterParams, IFloatingFilterParams, IFloatingFilterParent } from '@ag-grid-community/core';
+import { AgFloatingFilterComponent } from 'ag-grid-angular';
+import { FilterChangedEvent, IFilterParams, IFloatingFilterParams, IFloatingFilterParent } from 'ag-grid-community';
 import { Directive, ElementRef, HostBinding, ViewChild } from '@angular/core';
 import { NULL_VALUE } from '../datagrid/datagrid';
 import { Deferred } from '@servoy/public';

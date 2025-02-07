@@ -1,6 +1,6 @@
 import { Component, HostListener, Inject } from '@angular/core';
 import { EditorDirective } from './editor';
-import { ICellEditorParams } from '@ag-grid-community/core';
+import { ICellEditorParams } from 'ag-grid-community';
 import { DOCUMENT } from '@angular/common';
 import { Deferred } from '@servoy/public';
 

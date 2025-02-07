@@ -1,5 +1,5 @@
-import { AgGridAngular } from '@ag-grid-community/angular';
-import { GridApi, GridOptions } from '@ag-grid-community/core';
+import { AgGridAngular } from 'ag-grid-angular';
+import { GridApi, GridOptions } from 'ag-grid-community';
 import { ChangeDetectorRef, ContentChild, Directive, ElementRef, Input, TemplateRef, ViewChild } from '@angular/core';
 import { BaseCustomObject, Format, FormattingService, LoggerService, ServoyBaseComponent } from '@servoy/public';
 

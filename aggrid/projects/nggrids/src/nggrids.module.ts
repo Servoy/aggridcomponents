@@ -8,18 +8,9 @@ import { FormEditor } from './editors/formeditor';
 import { SelectEditor } from './editors/selecteditor';
 import { TextEditor } from './editors/texteditor';
 import { TypeaheadEditor } from './editors/typeaheadeditor';
-import { AgGridModule } from '@ag-grid-community/angular';
-import { ModuleRegistry } from '@ag-grid-community/core';
-import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model';
-import { ServerSideRowModelModule } from '@ag-grid-enterprise/server-side-row-model';
-import { ColumnsToolPanelModule } from '@ag-grid-enterprise/column-tool-panel';
-import { FiltersToolPanelModule } from '@ag-grid-enterprise/filter-tool-panel';
-import { RangeSelectionModule } from '@ag-grid-enterprise/range-selection';
-import { ExcelExportModule } from '@ag-grid-enterprise/excel-export';
-import { MenuModule } from '@ag-grid-enterprise/menu';
-import { SideBarModule } from '@ag-grid-enterprise/side-bar';
-import { RowGroupingModule } from '@ag-grid-enterprise/row-grouping';
-import { ClipboardModule } from '@ag-grid-enterprise/clipboard';
+import { AgGridModule } from 'ag-grid-angular';
+import { ClientSideRowModelModule, CellStyleModule, ColumnApiModule, ColumnAutoSizeModule, DragAndDropModule, EventApiModule, LocaleModule, ModuleRegistry, NumberFilterModule, PinnedRowModule, RowApiModule, RowAutoHeightModule, ScrollApiModule, TooltipModule, ValidationModule, TextFilterModule, CustomEditorModule, DateFilterModule, TextEditorModule } from 'ag-grid-community';
+import { ClipboardModule, RowGroupingModule, SideBarModule, MenuModule, ExcelExportModule, CellSelectionModule, FiltersToolPanelModule, ColumnsToolPanelModule, RowGroupingPanelModule, ServerSideRowModelApiModule, ServerSideRowModelModule } from 'ag-grid-enterprise';
 import { ValuelistFilter } from './filters/valuelistfilter';
 import { RadioFilter } from './filters/radiofilter';
 import { AggFuncInfo, PowerGrid, PowerGridColumn } from './powergrid/powergrid';
@@ -68,14 +59,33 @@ export class NGGridsModule {
         // eslint-disable-next-line max-len
         ModuleRegistry.registerModules([
             ServerSideRowModelModule,
-            RangeSelectionModule,
+            CellSelectionModule,
             RowGroupingModule,
+            RowGroupingPanelModule,
             SideBarModule,
             ColumnsToolPanelModule,
             MenuModule,
             FiltersToolPanelModule,
             ClientSideRowModelModule,
             ExcelExportModule,
-            ClipboardModule]);
+            ClipboardModule,
+            PinnedRowModule,
+            ColumnAutoSizeModule,
+            LocaleModule,
+            TooltipModule,
+            CellStyleModule,
+            NumberFilterModule,
+            DragAndDropModule,
+            EventApiModule,
+            ColumnApiModule,
+            RowApiModule,
+            ServerSideRowModelApiModule,
+            ScrollApiModule,
+            RowAutoHeightModule,
+            TextFilterModule,
+            DateFilterModule,
+            TextEditorModule,
+            CustomEditorModule,
+            ValidationModule]);
     }
 }

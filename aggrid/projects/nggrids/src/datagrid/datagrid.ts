@@ -1,7 +1,7 @@
 import { GridOptions, GetRowIdParams, IRowDragItem, DndSourceCallbackParams, ColumnResizedEvent, RowSelectedEvent, SelectionChangedEvent, 
         ColDef, Column, IRowNode, IServerSideDatasource, IServerSideGetRowsParams, LoadSuccessParams, 
         SortChangedEvent,
-        DisplayedColumnsChangedEvent} from '@ag-grid-community/core';
+        DisplayedColumnsChangedEvent} from 'ag-grid-community';
 import { ChangeDetectionStrategy, ChangeDetectorRef, EventEmitter, Inject, Input, Output, Renderer2, SecurityContext, SimpleChanges } from '@angular/core';
 import { Component } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
@@ -398,7 +398,6 @@ export class DataGrid extends NGGridDirective {
                 tooltipComponent: CustomTooltip
             },
             columnDefs,
-            suppressPropertyNamesCheck: true,
             stopEditingWhenCellsLoseFocus: true,
             suppressAnimationFrame: false,
             animateRows: false,
@@ -3073,7 +3072,7 @@ export class DataGrid extends NGGridDirective {
         if(this.isTableGrouped()) {
             const selectedNodes = this.agGrid.api.getSelectedNodes();
             if(selectedNodes && selectedNodes.length) {
-                this.agGrid.api.ensureNodeVisible(selectedNodes[0]);
+                this.agGrid.api.ensureNodeVisible(selectedNodes[0], 'middle');
             }
         } else {
             if (!foundsetManager) {
@@ -3089,7 +3088,7 @@ export class DataGrid extends NGGridDirective {
                 if(foundsetManager.foundset.selectedRowIndexes[0] > rowCount - CHUNK_SIZE) {
                     this.agGrid.api.setRowCount(Math.min(foundsetManager.foundset.selectedRowIndexes[0] + CHUNK_SIZE, foundsetManager.foundset.serverSize));
                 }
-                this.agGrid.api.ensureIndexVisible(foundsetManager.foundset.selectedRowIndexes[0]);
+                this.agGrid.api.ensureIndexVisible(foundsetManager.foundset.selectedRowIndexes[0], 'middle');
             }
         }
     }
@@ -4251,7 +4250,7 @@ export class DataGrid extends NGGridDirective {
      * @param index new position (0-based)
      */
     moveColumn(id: string, index: number) {
-        this.agGrid.api.moveColumn(id, index);
+        this.agGrid.api.moveColumns([id], index);
     }
 
     getAgGridSortModel() {

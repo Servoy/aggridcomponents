@@ -1,4 +1,4 @@
-import { GetRowIdParams, ColumnMenuTab, ColumnResizedEvent, ColDef, Column, IRowNode, IAggFunc, DisplayedColumnsChangedEvent } from '@ag-grid-community/core';
+import { GetRowIdParams, ColumnMenuTab, ColumnResizedEvent, ColDef, Column, IRowNode, IAggFunc, DisplayedColumnsChangedEvent } from 'ag-grid-community';
 import { ChangeDetectorRef, Component, EventEmitter, Inject, Input, Output, Renderer2, SecurityContext, SimpleChanges } from '@angular/core';
 import { BaseCustomObject, FormattingService, ICustomArray } from '@servoy/public';
 import { LoggerFactory } from '@servoy/public';
@@ -2044,7 +2044,7 @@ export class PowerGrid extends NGGridDirective {
      * @param index new position (0-based)
      */
     moveColumn(id: string, index: number) {
-        this.agGrid.api.moveColumn(id, index);
+        this.agGrid.api.moveColumns([id], index);
     }
 
     /**
@@ -2157,7 +2157,7 @@ export class PowerGrid extends NGGridDirective {
                 this.onColumnDataChangePromise.then((r: any) => {
                     if (r === false) {
                         // if old value was reset, clear invalid state
-                        const currentValue = this.agGrid.api.getValue(colId, params.node);
+                        const currentValue = this.agGrid.api.getCellValue({colKey: colId, rowNode: params.node});
                         if (oldValue === currentValue) {
                             this.invalidCellDataIndex.rowIndex = -1;
                             this.invalidCellDataIndex.colKey = '';
