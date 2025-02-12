@@ -410,6 +410,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					// the group manager
 					var groupManager = new GroupManager();
 
+					var mainWindowContainer = $('.svy-main-window-container')[0];
 					var gridDiv = $element.find('.ag-table')[0];
 					gridDiv.addEventListener("click", function(e) {
 						if(e.target.parentNode && e.target.parentNode.classList &&
@@ -771,7 +772,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						tabToNextCell: tabSelectionChangeNavigation,
 
 						sideBar : sideBar,
-						popupParent: gridDiv,
+						popupParent: mainWindowContainer ? mainWindowContainer : gridDiv,
 						onCellEditingStopped : function(event) {
 							// don't allow escape if cell data is invalid
 							if(onColumnDataChangePromise == null) {

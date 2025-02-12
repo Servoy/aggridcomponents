@@ -811,7 +811,8 @@ export class DataGrid extends NGGridDirective {
         } else {
             this.isRendered = true;
         }
-        this.agGridOptions['popupParent'] = this.agGridElementRef.nativeElement;
+        const mainWindowContainer = this.doc.querySelector('.svy-main-window-container');
+        this.agGrid.api.setGridOption('popupParent', mainWindowContainer ? mainWindowContainer : this.agGridElementRef.nativeElement);
 
         this.agGridElementRef.nativeElement.addEventListener('click', (e: any) => {
             if(e.target.parentNode && e.target.parentNode.classList &&
