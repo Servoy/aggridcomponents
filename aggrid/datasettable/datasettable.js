@@ -23,6 +23,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     TOOLPANEL_VISIBLE_CHANGE: 'toolPanelVisibleChange'						
                 }
 
+                var mainWindowContainer = $('.svy-main-window-container')[0];
                 var gridDiv = $element.find('.ag-table')[0];
                 var hasAutoHeightColumn = false;
                 var columnDefs = getColumnDefs();
@@ -381,7 +382,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     navigateToNextCell: selectionChangeNavigation,
                     tabToNextCell: tabSelectionChangeNavigation,
                     sideBar : sideBar,
-                    popupParent: gridDiv,
+                    popupParent: mainWindowContainer ? mainWindowContainer : gridDiv,
                     enableBrowserTooltips: false,
                     onToolPanelVisibleChanged : function(event) {
                         sizeColumnsToFit(GRID_EVENT_TYPES.TOOLPANEL_VISIBLE_CHANGE);
