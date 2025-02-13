@@ -8,7 +8,11 @@ import { EditorDirective } from './editor';
     <div class="ag-input-wrapper">
       <input class="ag-cell-edit-input" [value]="initialDisplayValue" [svyDecimalKeyConverter]="!ngGrid.isInFindMode() ? format : null" [maxLength]="maxLength" #element>
     </div>
-    `
+    `,
+    host: {
+        'style': 'width: 100%; height: 100%;'
+    },
+    standalone: false
 })
 export class TextEditor extends EditorDirective {
 

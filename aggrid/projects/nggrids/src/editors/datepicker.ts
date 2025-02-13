@@ -13,7 +13,11 @@ import { DateTime, Namespace, Options, TempusDominus } from '@eonasdan/tempus-do
       <input class="ag-cell-edit-input" #element>
     </div>
     `,
-    providers: []
+    providers: [],
+    host: {
+        'style': 'width: 100%; height: 100%;'
+    },    
+    standalone: false
 })
 export class DatePicker extends EditorDirective {
 

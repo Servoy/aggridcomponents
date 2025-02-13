@@ -21,7 +21,11 @@ import { EditorDirective } from './editor';
 		    [inputFormatter]="inputFormatter"
         (focus)="focus$.next('')"
         #instance="ngbTypeahead" #element>
-    `
+    `,
+    host: {
+      'style': 'width: 100%; height: 100%;'
+    },
+    standalone: false
 })
 export class TypeaheadEditor extends EditorDirective implements IPopupSupportComponent{
 
