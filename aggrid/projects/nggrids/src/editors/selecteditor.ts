@@ -11,6 +11,9 @@ import { Deferred } from '@servoy/public';
             <select class="ag-cell-edit-input" #element></select>
         </div>
     `,
+    host: {
+        'style': 'width: 100%; height: 100%;'
+    },
     standalone: false
 })
 export class SelectEditor extends EditorDirective {
