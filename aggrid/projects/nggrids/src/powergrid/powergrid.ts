@@ -1265,7 +1265,6 @@ export class PowerGrid extends NGGridDirective {
             this.columnsAutoSizing = 'NONE';
             this.columnsAutoSizingChange.emit('NONE');
         }
-        if (this.hasAutoHeightColumn) this.agGrid.api.resetRowHeights();
     }
 
     storeColumnsState(skipFireColumnStateChanged?: boolean) {
