@@ -9,7 +9,7 @@ import { SelectEditor } from './editors/selecteditor';
 import { TextEditor } from './editors/texteditor';
 import { TypeaheadEditor } from './editors/typeaheadeditor';
 import { AgGridModule } from 'ag-grid-angular';
-import { ClientSideRowModelModule, CellStyleModule, ColumnApiModule, ColumnAutoSizeModule, DragAndDropModule, EventApiModule, LocaleModule, ModuleRegistry, NumberFilterModule, PinnedRowModule, RowApiModule, RowAutoHeightModule, ScrollApiModule, TooltipModule, ValidationModule, TextFilterModule, CustomEditorModule, DateFilterModule, TextEditorModule } from 'ag-grid-community';
+import { ClientSideRowModelModule, CellStyleModule, ColumnApiModule, ColumnAutoSizeModule, DragAndDropModule, EventApiModule, LocaleModule, ModuleRegistry, NumberFilterModule, PinnedRowModule, RowApiModule, RowAutoHeightModule, ScrollApiModule, TooltipModule, ValidationModule, TextFilterModule, CustomEditorModule, DateFilterModule, TextEditorModule, RenderApiModule } from 'ag-grid-community';
 import { ClipboardModule, RowGroupingModule, SideBarModule, MenuModule, ExcelExportModule, CellSelectionModule, FiltersToolPanelModule, ColumnsToolPanelModule, RowGroupingPanelModule, ServerSideRowModelApiModule, ServerSideRowModelModule } from 'ag-grid-enterprise';
 import { ValuelistFilter } from './filters/valuelistfilter';
 import { RadioFilter } from './filters/radiofilter';
@@ -86,6 +86,7 @@ export class NGGridsModule {
             DateFilterModule,
             TextEditorModule,
             CustomEditorModule,
-            ValidationModule]);
+            ValidationModule,
+            RenderApiModule]);
     }
 }
