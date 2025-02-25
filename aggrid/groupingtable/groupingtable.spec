@@ -65,7 +65,8 @@
 		"_internalGroupRowsSelection": { "type": "record[]", "tags": {"scope" : "private"}, "pushToServer": "allow"},
 		"_internalCheckboxGroupSelection": { "type": "object[]", "tags": {"scope" : "private"}, "pushToServer": "allow"},
 		"_internalFunctionCalls": { "type": "functionCall[]", "tags": {"scope" : "private"}},
-		"_internalHasDoubleClickHandler": { "type": "boolean", "default": false, "tags": {"scope" : "private"}}
+		"_internalHasDoubleClickHandler": { "type": "boolean", "default": false, "tags": {"scope" : "private"}},
+		"_internalVisible": { "type": "boolean", "tags": {"scope" : "private"}}
 	},
 	"handlers" : {
     	"onSelectedRowsChanged": {
@@ -360,6 +361,16 @@
 	    "removeAllColumns": {
 	        "returns": "boolean"
 	    },
+	    "getViewColumns": {
+	        "returns": "viewColumn[]"
+	    },
+	    "getViewColumnById" : {
+			"parameters": [{
+				"name": "colId",
+				"type": "string"
+			}],
+			"returns": "viewColumn"
+		},
 	    "setFilterModel": {
 		    "parameters": [{
 				"name": "filterModel",
@@ -595,6 +606,15 @@
 			"columnid": {"type" : "string"},
 			"styleClassDataprovider": { "type": "dataprovider", "forFoundset": "foundset" }
         },
+		"viewColumn" : {
+			"colId": {"type" : "string"},
+			"hide": {"type" : "boolean"},
+			"rowGroup": {"type" : "boolean"},
+			"rowGroupIndex": {"type" : "int"},
+			"sort": {"type" : "string"},
+			"sortIndex": {"type" : "int"},
+			"width": {"type" : "int"}
+		},
 		 "hashedFoundset" : {
             "foundset": "foundset",
             "foundsetUUID": "foundsetRef",

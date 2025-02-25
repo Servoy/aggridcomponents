@@ -644,10 +644,12 @@ function getConvertedDate(clientDateAsString, clientDateAsMs, columnFormat) {
  */
 
 $scope.onShow = function() {
+	$scope.model._internalVisible = true;
 	if($scope.handlers.onCellDoubleClick) $scope.model._internalHasDoubleClickHandler = true;
 }
 
 $scope.onHide = function() {
+	$scope.model._internalVisible = false;
 	// related foundsets and viewfoundsets (no foundset.removeFoundSetFilterParam')  does not have filters; skip clear/remove filters from them
 	if($scope.model.myFoundset) {
 		var myFoundset = $scope.model.myFoundset.foundset;
@@ -780,6 +782,46 @@ $scope.api.removeAllColumns = function() {
 }
 
 /**
+ * Returns the grid's view columns.
+ *
+ * @example
+ * %%prefix%%%%elementName%%.getViewColumns()
+ *
+ * @return {boolean}
+ */
+$scope.api.getViewColumns = function() {
+	var columnState = $scope.api.getColumnState();
+	if(columnState) {
+		var columnsStateJSON = JSON.parse(columnState);
+		columnsStateJSON['columnState'].splice(-2, 2); // the last two columns are helper columns with id: _svyRowId and _svyFoundsetUUID
+		return columnsStateJSON['columnState']
+	}
+	return null;
+}
+
+/**
+ * Gets the viewColumn with id colId
+ * 
+ * @param colId id of the column
+ * 
+ * @example
+ *	%%prefix%%%%elementName%%.getViewColumnById('myid')
+ *	
+ * @return {viewColumn}
+ */ 
+ $scope.api.getViewColumnById = function(colId) {
+	var viewColumns = $scope.api.getViewColumns();
+	if(viewColumns) {
+		for(var i = 0; i < viewColumns.length; i++) {
+			if(viewColumns[i].colId === colId) {
+				return viewColumns[i];
+			}
+		}
+	}
+	return null;
+}
+
+/**
  * Restore columns state to a previously save one, using getColumnState.
  * If no argument is used, it restores the columns to designe time state.
  * If the columns from columnState does not match with the columns of the component,
@@ -822,7 +864,7 @@ $scope.api.sizeColumnsToFit = function() {
  * @return {String}
  */
 $scope.api.getColumnState = function() {
-	var currentColumnState = $scope.model.internalGetColumnState();
+	var currentColumnState = $scope.model._internalVisible && $scope.model.visible ? $scope.model.internalGetColumnState() : null;
 	return currentColumnState ? currentColumnState : $scope.model.columnState;
 }
 

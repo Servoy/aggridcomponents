@@ -255,6 +255,8 @@ export class DataGrid extends NGGridDirective {
 
     footerTextChangeListeners: any[] = [];
 
+    delayedColumnChange = null;
+
     constructor(renderer: Renderer2, public cdRef: ChangeDetectorRef, logFactory: LoggerFactory,
         private servoyService: ServoyPublicService, public formattingService: FormattingService, public ngbTypeaheadConfig: NgbTypeaheadConfig,
         private datagridService: DatagridService, private sanitizer: DomSanitizer, @Inject(DOCUMENT) public doc: Document) {
@@ -373,6 +375,10 @@ export class DataGrid extends NGGridDirective {
                         this._internalInitialColumnState = this.columnState;
                         this._internalInitialColumnStateChange.emit(this._internalInitialColumnState);
                     }
+                }
+                if(this.delayedColumnChange) {
+                    this.applyColumnChange(this.delayedColumnChange);
+                    this.delayedColumnChange = null;
                 }
 
                 if(this.isColumnModelChangedBeforeGridReady) {
@@ -993,86 +999,11 @@ export class DataGrid extends NGGridDirective {
                         break;
                     case 'columns':
                         if(!this.isColumnsFirstChange) {
-                            if(!isEqualWith(change.currentValue, change.previousValue, (objValue: any, othValue: any, key: any) => {
-                                if(key && COLUMN_KEYS_TO_SKIP_IN_CHANGES.indexOf(key) !== -1) {
-                                    return true;
-                                }
-                                return undefined;
-                            }) || (change.currentValue && this.previousColumns && change.currentValue.length !== this.previousColumns.length)) {
-                                this.updateColumnDefs();
+                            if(this.isGridReady) {
+                                this.applyColumnChange(change);
                             } else {
-                                // if the updated property cannot be changed by an aggrid api call recreate the columns
-                                let updateColumnDefs = false;
-                                // for some properties we should not restore the column state after recreating the columns
-                                let restoreColumnState = false;
-                                // if a property is updated with an aggrid api call, store the new state
-                                let storeColumnState = false;
-
-                                for(let i = 0; i < this.columns.length; i++) {
-                                    for(const prop of COLUMN_KEYS_TO_CHECK_FOR_CHANGES) {
-                                        const oldPropertyValue = this.previousColumns &&
-                                            i < this.previousColumns.length ? this.previousColumns[i][prop] : null;
-                                        const newPropertyValue = change.currentValue[i][prop];
-                                        let columnPropertyChanged = newPropertyValue !== oldPropertyValue;
-                                        if(!columnPropertyChanged && newPropertyValue && prop === 'footerText') {
-                                            columnPropertyChanged = true;
-                                        }
-                                        if(columnPropertyChanged) {
-                                            this.log.debug('column property changed');
-
-                                            if(prop !== "headerTooltip" && prop !== 'footerText' && prop !== 'headerTitle' && prop !== 'visible' && prop !== 'width') {
-                                                if(this.isGridReady) {
-                                                    updateColumnDefs = true;
-                                                    if(prop !== 'enableToolPanel' && prop !== 'excluded') {
-                                                        restoreColumnState = true;
-                                                    }
-                                                } else {
-                                                    this.isColumnModelChangedBeforeGridReady = true;        
-                                                }
-                                            } else {
-                                                storeColumnState = true;
-                                                if(prop === 'headerTitle') {
-                                                    this.handleColumnHeader(i, 'headerName', newPropertyValue);
-                                                } else if(prop === 'headerTooltip') {
-                                                    this.handleColumnHeader(i, prop, newPropertyValue);
-                                                } else if (prop === 'footerText') {
-                                                    this.handleColumnFooterText();
-                                                } else if(prop === 'visible' || prop === 'width') {
-                                                    // column id is either the id of the column
-                                                    const column = this.columns[i];
-                                                    let colId = column.id;
-                                                    if (!colId) {	// or column is retrieved by getColumnID !?
-                                                        colId = this.getColumnID(column, i);
-                                                    }
-    
-                                                    if (!colId) {
-                                                        this.log.warn('cannot update "' + property + '" property on column at position index ' + i);
-                                                        return;
-                                                    }
-                                                    if(prop === 'visible') {
-                                                        this.gridApi.setColumnsVisible([colId], newPropertyValue as boolean);
-                                                    } else {
-                                                        const actualWidth = this.gridApi.getColumn(colId).getActualWidth();
-                                                        if(actualWidth !== newPropertyValue as number) {                                                        
-                                                            this.gridApi.setColumnWidths([{ key: colId, newWidth:newPropertyValue as number}]);
-                                                            this.sizeHeaderAndColumnsToFit(GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED);
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-
-                                if(storeColumnState) {
-                                    this.storeColumnsState(true);
-                                }
-                                if(updateColumnDefs) {
-                                    this.updateColumnDefs();
-                                }
-                                if(restoreColumnState) {
-                                    this.restoreColumnsState();
-                                }
+                                this.delayedColumnChange = change;
+                                break;
                             }
                         } else {
                             this.isColumnsFirstChange = false;
@@ -1148,6 +1079,90 @@ export class DataGrid extends NGGridDirective {
             }
         }
         super.svyOnChanges(changes);
+    }
+
+    applyColumnChange(change) {
+        if(!isEqualWith(change.currentValue, change.previousValue, (objValue: any, othValue: any, key: any) => {
+            if(key && COLUMN_KEYS_TO_SKIP_IN_CHANGES.indexOf(key) !== -1) {
+                return true;
+            }
+            return undefined;
+        }) || (change.currentValue && this.previousColumns && change.currentValue.length !== this.previousColumns.length)) {
+            this.updateColumnDefs();
+        } else {
+            // if the updated property cannot be changed by an aggrid api call recreate the columns
+            let updateColumnDefs = false;
+            // for some properties we should not restore the column state after recreating the columns
+            let restoreColumnState = false;
+            // if a property is updated with an aggrid api call, store the new state
+            let storeColumnState = false;
+
+            for(let i = 0; i < this.columns.length; i++) {
+                for(const prop of COLUMN_KEYS_TO_CHECK_FOR_CHANGES) {
+                    const oldPropertyValue = this.previousColumns &&
+                        i < this.previousColumns.length ? this.previousColumns[i][prop] : null;
+                    const newPropertyValue = change.currentValue[i][prop];
+                    let columnPropertyChanged = newPropertyValue !== oldPropertyValue;
+                    if(!columnPropertyChanged && newPropertyValue && prop === 'footerText') {
+                        columnPropertyChanged = true;
+                    }
+                    if(columnPropertyChanged) {
+                        this.log.debug('column property changed');
+
+                        if(prop !== "headerTooltip" && prop !== 'footerText' && prop !== 'headerTitle' && prop !== 'visible' && prop !== 'width') {
+                            if(this.isGridReady) {
+                                updateColumnDefs = true;
+                                if(prop !== 'enableToolPanel' && prop !== 'excluded') {
+                                    restoreColumnState = true;
+                                }
+                            } else {
+                                this.isColumnModelChangedBeforeGridReady = true;        
+                            }
+                        } else {
+                            storeColumnState = true;
+                            if(prop === 'headerTitle') {
+                                this.handleColumnHeader(i, 'headerName', newPropertyValue);
+                            } else if(prop === 'headerTooltip') {
+                                this.handleColumnHeader(i, prop, newPropertyValue);
+                            } else if (prop === 'footerText') {
+                                this.handleColumnFooterText();
+                            } else if(prop === 'visible' || prop === 'width') {
+                                // column id is either the id of the column
+                                const column = this.columns[i];
+                                let colId = column.id;
+                                if (!colId) {	// or column is retrieved by getColumnID !?
+                                    colId = this.getColumnID(column, i);
+                                }
+
+                                if (!colId) {
+                                    this.log.warn('cannot update "' + prop + '" property on column at position index ' + i);
+                                    return;
+                                }
+                                if(prop === 'visible') {
+                                    this.gridApi.setColumnsVisible([colId], newPropertyValue as boolean);
+                                } else {
+                                    const actualWidth = this.gridApi.getColumn(colId).getActualWidth();
+                                    if(actualWidth !== newPropertyValue as number) {                                                        
+                                        this.gridApi.setColumnWidths([{ key: colId, newWidth:newPropertyValue as number}]);
+                                        this.sizeHeaderAndColumnsToFit(GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if(storeColumnState) {
+                this.storeColumnsState(true);
+            }
+            if(updateColumnDefs) {
+                this.updateColumnDefs();
+            }
+            if(restoreColumnState) {
+                this.restoreColumnsState();
+            }
+        }
     }
 
     ngOnDestroy() {
