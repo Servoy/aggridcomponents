@@ -629,7 +629,13 @@ function getConvertedDate(clientDateAsString, clientDateAsMs, columnFormat) {
 /**
  * Servoy component lifecycle callback
  */
+
+$scope.onShow = function() {
+	$scope.model._internalVisible = true;
+}
+
 $scope.onHide = function() {
+	$scope.model._internalVisible = false;
 	// related foundsets and viewfoundsets (no foundset.removeFoundSetFilterParam')  does not have filters; skip clear/remove filters from them
 	if($scope.model.myFoundset) {
 		var myFoundset = $scope.model.myFoundset.foundset;
@@ -804,7 +810,7 @@ $scope.api.sizeColumnsToFit = function() {
  * @return {String}
  */
 $scope.api.getColumnState = function() {
-	var currentColumnState = $scope.model.internalGetColumnState();
+	var currentColumnState = $scope.model._internalVisible && $scope.model.visible ? $scope.model.internalGetColumnState() : null;
 	return currentColumnState ? currentColumnState : $scope.model.columnState;
 }
 

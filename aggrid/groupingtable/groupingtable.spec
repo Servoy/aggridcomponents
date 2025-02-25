@@ -64,7 +64,8 @@
 		"_internalFilterModel": { "type": "object", "tags": {"scope" : "private", "allowaccess": "enabled"}, "pushToServer": "allow" },
 		"_internalGroupRowsSelection": { "type": "record[]", "tags": {"scope" : "private"}, "pushToServer": "allow"},
 		"_internalCheckboxGroupSelection": { "type": "object[]", "tags": {"scope" : "private"}, "pushToServer": "allow"},
-		"_internalFunctionCalls": { "type": "functionCall[]", "tags": {"scope" : "private"}}
+		"_internalFunctionCalls": { "type": "functionCall[]", "tags": {"scope" : "private"}},
+		"_internalVisible": { "type": "boolean", "tags": {"scope" : "private"}}
 	},
 	"handlers" : {
     	"onSelectedRowsChanged": {
