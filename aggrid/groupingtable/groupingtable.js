@@ -2828,6 +2828,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							this.columnIndex = getColumnIndex(params.column.colId);
 							var column = getColumn(params.column.colId);
 							this.filterType = column.filterType;
+							this.isRealValueUUID = false;
 
 							if(this.filterType == 'RADIO' && !column.valuelist) {
 								if(!$scope.filterValuelist) $scope.filterValuelist = {};
@@ -3014,7 +3015,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							}
 							else {
 								this.model = {
-									filterType: isNaN(filterRealValue) ? "text" : "number",
+									filterType: this.isRealValueUUID ? 'uuid' : isNaN(filterRealValue) ? 'text' : 'number',
 									type: "equals",
 									filter: filterRealValue
 								};
@@ -3028,7 +3029,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								}
 								else {
 									condition2 = {
-										filterType: isNaN(filterRealValue) ? "text" : "number",
+										filterType: this.isRealValueUUID ? 'uuid' : isNaN(filterRealValue) ? 'text' : 'number',
 										type: "equals",
 										filter: filterRealValue
 									};
@@ -3061,6 +3062,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 									$scope.filterValuelistPromise[this.columnIndex] = vl.filterList("");
 									var thisFilter = this;
 									$scope.filterValuelistPromise[this.columnIndex].then(function(valuelistValues) {
+										if(valuelistValues.isRealValueUUID) {
+											thisFilter.isRealValueUUID = valuelistValues.isRealValueUUID();
+										}
 										$scope.filterValuelist[thisFilter.columnIndex] = valuelistValues;
 										if(!thisFilter.params.applyButton) {
 											$scope.filterValuelist[thisFilter.columnIndex].splice(0, 0, NULL_VALUE);

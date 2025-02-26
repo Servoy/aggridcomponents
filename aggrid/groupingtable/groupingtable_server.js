@@ -473,8 +473,8 @@ function getFilterWhereClauseForDataprovider(query, filter, dp, columnFormat) {
 	var useNot = false;
 	var useIgnoreCase = false;
 
-	if(filter["filterType"] == "text") {
-		useIgnoreCase = true;
+	if(filter["filterType"] == "text" || filter["filterType"] == "uuid") {
+		useIgnoreCase = filter["filterType"] == "text";
 		switch(filter["type"]) {
 			case "notEqual":
 				useNot = true;

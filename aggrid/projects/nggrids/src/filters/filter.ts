@@ -22,6 +22,7 @@ export class FilterDirective implements AgFloatingFilterComponent, IFloatingFilt
     format: any;
     txtClearFilter: string;
     txtApplyFilter: string;
+    isRealValueUUID: boolean = false;
 
     valuelistValuesDefer: Deferred<any>;
 
@@ -49,6 +50,9 @@ export class FilterDirective implements AgFloatingFilterComponent, IFloatingFilt
         if (valuelist) {
           this.hasValuelistSet = true;
           valuelist.filterList('').subscribe((valuelistValues) => {
+            if(valuelistValues.isRealValueUUID) {
+              this.isRealValueUUID = valuelistValues.isRealValueUUID();
+            }
             this.valuelistValues = valuelistValues;
             if(!this.hasApplyButton()) {
               this.valuelistValues.splice(0, 0, NULL_VALUE);
@@ -88,7 +92,7 @@ export class FilterDirective implements AgFloatingFilterComponent, IFloatingFilt
             this.model = null;
         } else {
             this.model = {
-            filterType: isNaN(filterRealValue) ? 'text' : 'number',
+            filterType: this.isRealValueUUID ? 'uuid' : isNaN(filterRealValue) ? 'text' : 'number',
             type: 'equals',
             filter: filterRealValue,
             uiValue: this.getFilterUIValue(),
@@ -102,7 +106,7 @@ export class FilterDirective implements AgFloatingFilterComponent, IFloatingFilt
             condition2 = null;
           } else {
             condition2 = {
-              filterType: isNaN(filterRealValue) ? 'text' : 'number',
+              filterType: this.isRealValueUUID ? 'uuid' : isNaN(filterRealValue) ? 'text' : 'number',
               type: 'equals',
               filter: filterRealValue
             };
