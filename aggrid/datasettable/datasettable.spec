@@ -302,7 +302,7 @@
 	"api" : {
 		"renderData": {
 			"parameters": [
-				{ "name": "dataset", "type": {"type": "dataset"}, "optional": true},
+				{ "name": "dataset", "type": "dataset", "optional": true},
 				{ "name": "pks", "type" : "string[]", "optional": true }
 			]
 		},
@@ -356,8 +356,8 @@
 		},
 		"appendLazyRequestData": {
 			"parameters": [
-				{ "name": "dataset", "type": {"type": "dataset"} },
-				{ "name": "lastRowIndex", "type": {"type": "long"}, "optional": true }
+				{ "name": "dataset", "type": "dataset" },
+				{ "name": "lastRowIndex", "type": "long", "optional": true }
 			]
 		},
 		"editCellAt": {
