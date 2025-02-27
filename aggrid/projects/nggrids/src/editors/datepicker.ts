@@ -45,7 +45,8 @@ export class DatePicker extends EditorDirective {
                 clear: true,
             },
             inline: false,
-            theme: 'light'
+            theme: 'light',
+            keyboardNavigation: true
         },
         restrictions: {
         },
