@@ -115,8 +115,7 @@ export class FilterDirective implements AgFloatingFilterComponent, IFloatingFilt
           if(this.model && condition2) {
             this.model = {
               operator: 'OR',
-              condition1: this.model,
-              condition2
+              conditions: [this.model, condition2]
             };
           } else if(condition2) {
             this.model = condition2;

@@ -4633,21 +4633,17 @@ class FoundsetServer {
                     updatedFilterModel[columnIndex] = filterModel[c];
                     if(updatedFilterModel[columnIndex]['filterType'] === 'date') {
                         if(updatedFilterModel[columnIndex]['operator']) {
-                            if(updatedFilterModel[columnIndex]['condition1'] && updatedFilterModel[columnIndex]['condition1']['dateFrom']) {
-                                const dateFromSplit = updatedFilterModel[columnIndex]['condition1']['dateFrom'].split(' ')[0].split('-');
-                                updatedFilterModel[columnIndex]['condition1']['dateFromMs'] = new Date(dateFromSplit[0], dateFromSplit[1] - 1, dateFromSplit[2]).getTime();
-                            }
-                            if(updatedFilterModel[columnIndex]['condition1'] && updatedFilterModel[columnIndex]['condition1']['dateTo']) {
-                                const dateFromSplit = updatedFilterModel[columnIndex]['condition1']['dateTo'].split(' ')[0].split('-');
-                                updatedFilterModel[columnIndex]['condition1']['dateToMs'] = new Date(dateFromSplit[0], dateFromSplit[1] - 1, dateFromSplit[2]).getTime();
-                            }
-                            if(updatedFilterModel[columnIndex]['condition2'] && updatedFilterModel[columnIndex]['condition2']['dateFrom']) {
-                                const dateFromSplit = updatedFilterModel[columnIndex]['condition2']['dateFrom'].split(' ')[0].split('-');
-                                updatedFilterModel[columnIndex]['condition2']['dateFromMs'] = new Date(dateFromSplit[0], dateFromSplit[1] - 1, dateFromSplit[2]).getTime();
-                            }
-                            if(updatedFilterModel[columnIndex]['condition2'] && updatedFilterModel[columnIndex]['condition2']['dateTo']) {
-                                const dateFromSplit = updatedFilterModel[columnIndex]['condition2']['dateTo'].split(' ')[0].split('-');
-                                updatedFilterModel[columnIndex]['condition2']['dateToMs'] = new Date(dateFromSplit[0], dateFromSplit[1] - 1, dateFromSplit[2]).getTime();
+                            if(updatedFilterModel[columnIndex]['conditions']) {
+                                for(let i = 0; i < updatedFilterModel[columnIndex]['conditions'].length; i++) {
+                                    if(updatedFilterModel[columnIndex]['conditions'][i]['dateFrom']) {
+                                        const dateFromSplit = updatedFilterModel[columnIndex]['conditions'][i]['dateFrom'].split(' ')[0].split('-');
+                                        updatedFilterModel[columnIndex]['conditions'][i]['dateFromMs'] = new Date(dateFromSplit[0], dateFromSplit[1] - 1, dateFromSplit[2]).getTime();
+                                    }
+                                    if(updatedFilterModel[columnIndex]['conditions'][i]['dateTo']) {
+                                        const dateFromSplit = updatedFilterModel[columnIndex]['conditions'][i]['dateTo'].split(' ')[0].split('-');
+                                        updatedFilterModel[columnIndex]['conditions'][i]['dateToMs'] = new Date(dateFromSplit[0], dateFromSplit[1] - 1, dateFromSplit[2]).getTime();
+                                    }
+                                }
                             }
                         } else {
                             if(updatedFilterModel[columnIndex]['dateFrom']) {

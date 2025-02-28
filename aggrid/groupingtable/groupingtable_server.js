@@ -431,17 +431,15 @@ function filterFoundset(foundset, sFilterModel) {
 					if(filter["operator"]) {
 						var whereClause1ForDP = null;
 						var whereClause2ForDP = null;
-						if(filter["condition1"]) {
-							whereClause1ForDP = getFilterWhereClauseForDataprovider(query, filter["condition1"], dp, $scope.model.columns[i].format);
-						}
-						if(filter["condition2"]) {
-							whereClause2ForDP = getFilterWhereClauseForDataprovider(query, filter["condition2"], dp, $scope.model.columns[i].format);
-						}
-						if(whereClause1ForDP && whereClause2ForDP) {
-							if(filter["operator"] == "AND") {
-								whereClauseForDP = query.and.add(whereClause1ForDP).add(whereClause2ForDP);
-							} else if(filter["operator"] == "OR") {
-								whereClauseForDP = query.or.add(whereClause1ForDP).add(whereClause2ForDP);
+						if(filter["conditions"] && filter["conditions"].length > 1) {
+							whereClause1ForDP = getFilterWhereClauseForDataprovider(query, filter["conditions"][0], dp, $scope.model.columns[i].format);
+							whereClause2ForDP = getFilterWhereClauseForDataprovider(query, filter["conditions"][1], dp, $scope.model.columns[i].format);
+							if(whereClause1ForDP && whereClause2ForDP) {
+								if(filter["operator"] == "AND") {
+									whereClauseForDP = query.and.add(whereClause1ForDP).add(whereClause2ForDP);
+								} else if(filter["operator"] == "OR") {
+									whereClauseForDP = query.or.add(whereClause1ForDP).add(whereClause2ForDP);
+								}
 							}
 						}
 					} else {
@@ -996,16 +994,15 @@ $scope.api.getColumnIndex = function(colId) {
  *		"freight": {
  *			"filterType":"number",
  *			"operator":"OR",
- *			"condition1": { 
+ *			"conditions": [{ 
  *				"filterType":"number",
  *				"type":"equals",
  *				"filter":66
- *			},
- *			"condition2": {
+ *			}, {
  *				"filterType":"number",
  *				"type":"equals",
  *				"filter":23
- *			}
+ *			}]
  *		}
  *	};
  *	
