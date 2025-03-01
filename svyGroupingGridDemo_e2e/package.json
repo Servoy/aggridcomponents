@@ -14,7 +14,7 @@
     "selenium-webdriver": "*",
     "universal-analytics": "*",
     "webdriver-manager": "*",
-    "cucumber-html-reporter": "*",
+    "cucumber-html-reporter": "5.5.1",
     "find": "^0.3.0",
     "fs-extra": "^10.0.1",
     "js-base64": "^3.7.2",
