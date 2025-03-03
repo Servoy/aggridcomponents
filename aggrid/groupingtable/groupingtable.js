@@ -5765,9 +5765,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								checkboxEl.className = getIconCheckboxEditor(getCheckboxEditorBooleanValue(value));
 							}
 							else {
-								if(col != null && col.showAs == 'html') {
+								var showAs = params.node.rowPinned === 'bottom' ? col.footerTextShowAs : col.showAs;
+								if(col != null && showAs == 'html') {
 									value =  value && value.displayValue != undefined ? value.displayValue : value;
-								} else if(col != null && col.showAs == 'sanitizedHtml') {
+								} else if(col != null && showAs == 'sanitizedHtml') {
 									value = $sanitize(value && value.displayValue != undefined ? value.displayValue : value)
 								} else if (value && value.contentType && value.contentType.indexOf('image/') == 0 && value.url) {
 									value = '<img class="ag-table-image-cell" src="' + value.url + '">';
