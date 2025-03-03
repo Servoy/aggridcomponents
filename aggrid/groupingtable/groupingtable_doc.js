@@ -1,6 +1,221 @@
 /* Data Grid is a table with advanced functionality that operates on JSFoundset data (so it can work directly with the database). It is designed to work with a large number of rows, potentially infinite, since data is loaded lazily into the table, even when grouped. */
 
 /**
+ * The foundset where data are fetched from
+ */
+var myFoundset;
+
+/**
+ * List all columns to be used in table as dataprovider
+ */
+var columns;
+
+/**
+ * Table's height to be set in a responsive form. When responsiveHeight is set to 0, the table will use 100% height of the parent container. When responsiveHeight is set to -1, the table will auto-size it's height to the number of rows displayed inside the grid - in this case there is no vertical scrollbar and all rows are rendered
+ */
+var responsiveHeight;
+
+/**
+ * The height in pixels of the table's rows
+ */
+var rowHeight;
+
+/**
+ * Use dataSource calculation as rowStyleClassDataprovider to set styleClass conditionally to rows. The calculation should return the class name (or names) to be applied to the row
+ */
+var rowStyleClassDataprovider;
+
+var styleClass;
+
+/**
+ * Allow the user to resize columns
+ */
+var enableColumnResize;
+
+/**
+ * If moving of columns is enabled
+ */
+var enableColumnMove;
+
+/**
+ * Enable column sorting by clickin on the column's header
+ */
+var enableSorting;
+
+/**
+ * When true the row has a checkbox for selecting/unselecting 
+ */
+var checkboxSelection;
+
+/**
+ * When true the group takes the entire row
+ */
+var groupUseEntireRow;
+
+/**
+ * When true the group has checkbox for selecting/unselecting all child rows 
+ */
+var groupCheckbox;
+
+/**
+ * Tooltip text shown when hovering the refresh button
+ */
+var tooltipTextRefreshData;
+
+var visible;
+
+/**
+ * If the column selection panel should be shown in the column menu
+ */
+var showColumnsMenuTab;
+
+var toolPanelConfig;
+
+var iconConfig;
+
+/**
+ * Map where additional grid properties of ag-grid can be set
+ */
+var gridOptions;
+
+/**
+ * Map where locales of ag-grid can be set
+ */
+var localeText;
+
+var readOnly;
+
+var enabled;
+
+var mainMenuItemsConfig;
+
+/**
+ * Defines action on TEXTFIELD editor for up/down arrow keys
+ */
+var arrowsUpDownMoveWhenEditing;
+
+/**
+ * Auto sizing for columns. SIZE_COLUMNS_TO_FIT: make the currently visible columns fit the screen. AUTO_SIZE: the grid will work out the best width to fit the contents of the 'visible' cells in the column. NONE: no auto sizing action performed
+ */
+var columnsAutoSizing;
+
+/**
+ * Apply 'columnsAutoSizing' whenever columns width are changed
+ */
+var continuousColumnsAutoSizing;
+
+/**
+ * Apply 'columnsAutoSizing' for these events even if 'continuousColumnsAutoSizing' is false
+ */
+var columnsAutoSizingOn;
+
+/**
+ * When true the number of rows for groups is shown, beside the name
+ */
+var showGroupCount;
+
+var showLoadingIndicator;
+
+var editNextCellOnEnter;
+
+var tabSeq;
+
+/**
+ * Callback when dragging over a row - returns one of the strings: 'copy', 'move', 'none' depending on the allowed drag operation.
+ */
+var onDragOverFunc;
+
+/**
+ * Called when row(s) drag-n-drop is started, to get the drag image as an html code.
+ */
+var onDragGetImageFunc;
+
+
+var handlers = {
+    /**
+     * Called when the selected rows have changed.
+     *
+     * @param {Boolean} [isgroupselection]
+     * @param {String} [groupcolumnid]
+     * @param {Object} [groupkey]
+     * @param {Boolean} [groupselection]
+     */
+    onSelectedRowsChanged: function() {},
+
+    /**
+     * Called when the mouse is clicked on a footer cell
+     *
+     * @param {Number} [columnindex]
+     * @param {JSEvent} [event]
+     * @param {String} [dataTarget]
+     */
+    onFooterClick: function() {},
+
+    /**
+     * Called when the columns state is changed
+     *
+     * @param {String} columnState
+     * @param {JSEvent} [event]
+     */
+    onColumnStateChanged: function() {},
+
+    /**
+     * Called when the columns data is changed
+     *
+     * @param {Number} foundsetindex
+     * @param {Number} [columnindex]
+     * @param {Object} [oldvalue]
+     * @param {Object} [newvalue]
+     * @param {JSEvent} [event]
+     * @param {JSRecord} [record]
+     *
+     * @returns {Boolean}
+     */
+    onColumnDataChange: function() {},
+
+    /**
+     * Called when the table is ready to be shown
+     */
+    onReady: function() {},
+
+    /**
+     * Called when the column's form editor is started
+     *
+     * @param {Number} [foundsetindex]
+     * @param {Number} [columnindex]
+     * @param {Object} [value]
+     */
+    onColumnFormEditStarted: function() {},
+
+    /**
+     * Called when sort has changed
+     *
+     * @param {Array<Number>} [columnindexes]
+     * @param {Array<String>} [sorts]
+     */
+    onSort: function() {},
+
+    /**
+     * Called when group is opened/closed
+     *
+     * @param {Array<Number>} [groupcolumnindexes]
+     * @param {Array<Object>} [groupkeys]
+     * @param {Boolean} [isopened]
+     */
+    onRowGroupOpened: function() {},
+
+    /**
+     * Called when a row is dropped as a result of a drag-n-drop
+     *
+     * @param {Array<Object>} sourceRows an Array of JSRecord objects if dragged from a data grid, or plain objects if from a power grid
+     * @param {JSRecord} targetRecord
+     * @param {JSEvent} event
+     */
+    onDrop: function() {}
+};
+
+
+/**
  * Notify the component about a data change. Makes the component aware of a data change that requires a refresh data.
  * 
  * Call this method when you are aware of a relevant data change in the foundset which may affect data grouping (e.g. group node created or removed).
