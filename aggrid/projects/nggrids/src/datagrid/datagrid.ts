@@ -1955,9 +1955,10 @@ export class DataGrid extends NGGridDirective {
             checkboxEl = this.doc.createElement('i');
             checkboxEl.className = this.getIconCheckboxEditor(this.getCheckboxEditorBooleanValue(value));
         } else {
-            if(col != null && col.showAs === 'html') {
+            const showAs = params.node.rowPinned === 'bottom' ? col.footerTextShowAs : col.showAs;
+            if(col != null && showAs === 'html') {
                 value =  value && value.displayValue !== undefined ? value.displayValue : value;
-            } else if(col != null && col.showAs === 'sanitizedHtml') {
+            } else if(col != null && showAs === 'sanitizedHtml') {
                 value = this.sanitizer.sanitize(SecurityContext.HTML, value && value.displayValue !== undefined ? value.displayValue : value);
             } else if (value && value.contentType && value.contentType.indexOf('image/') === 0 && value.url) {
                 value = '<img class="ag-table-image-cell" src="' + value.url + '">';
@@ -5881,6 +5882,7 @@ class GroupNode {
 
 export class DataGridColumn extends BaseCustomObject {
     footerText: string;
+    footerTextShowAs: string;
     headerTitle: string;
     footerStyleClass: string;
     headerStyleClass: string;
