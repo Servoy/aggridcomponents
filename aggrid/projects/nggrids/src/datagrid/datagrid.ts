@@ -198,8 +198,8 @@ export class DataGrid extends NGGridDirective {
     sortHandlerPromises = new Array();
     isSortModelApplied = false;
 
-    // if row autoHeight, we need to do a refresh after first time data are displayed, to allow ag grid to re-calculate the heights
-    isRefreshNeededForAutoHeight = false;
+    // if row autoHeight is set
+    isRowAutoHeight = false;
 
     onSelectionChangedTimeout: any = null;
     requestSelectionPromises = new Array();
@@ -336,12 +336,11 @@ export class DataGrid extends NGGridDirective {
         let maxBlocksInCache = CACHED_CHUNK_BLOCKS;
 
         // if row autoHeight, we need to do a refresh after first time data are displayed, to allow ag grid to re-calculate the heights
-        let isRefreshNeededForAutoHeight = false;
         // if there is 'autoHeight' = true in any column, infinite cache needs to be disabled (ag grid lib requirement)
         for(const columnDef of columnDefs) {
             if(columnDef['autoHeight']) {
                 maxBlocksInCache = -1;
-                isRefreshNeededForAutoHeight = true;
+                this.isRowAutoHeight = true;
                 break;
             }
         }
@@ -4213,8 +4212,23 @@ export class DataGrid extends NGGridDirective {
      */
     scrollToSelection() {
         if(this.isRenderedAndSelectionReady) {
-            this.scrollToSelectionEx();
             this.scrollToSelectionWhenSelectionReady = false;
+            if(this.isRowAutoHeight && this.foundset && this.foundset.foundset) {
+                let isRowLoadedInCache = false;
+                const cache = this.agGrid.api.getCacheBlockState();
+                for (const value of Object.values(cache)) {
+                    if(value['startRow'] !== undefined && value['endRow'] !== undefined) {
+                        if(this.foundset.foundset.selectedRowIndexes[0] >= value['startRow'] &&
+                            this.foundset.foundset.selectedRowIndexes[0] <= value['endRow']
+                        ) {
+                            isRowLoadedInCache = true;
+                            break;
+                        }
+                    }
+                }
+                this.scrollToSelectionWhenSelectionReady = !isRowLoadedInCache;
+                this.scrollToSelectionEx();
+            }
         } else {
             this.scrollToSelectionWhenSelectionReady = true;
         }
@@ -4927,22 +4941,22 @@ class FoundsetDatasource implements IServerSideDatasource {
 
                     // if row autoHeight is on, we need to refresh first time the data are loaded, that means,
                     // the first block has the state == "loaded"
-                    if(_this.dataGrid.isRefreshNeededForAutoHeight) {
-                        const model = this.dataGrid.agGrid.api.getModel();
-                        if(model.rootNode.childrenCache) {
-                            const sortedBlockIds = model.rootNode.childrenCache.getBlockIdsSorted();
-                            if(sortedBlockIds.length) {
-                                const firstBlock = model.rootNode.childrenCache.getBlock(sortedBlockIds[0]);
-                                if(firstBlock.state === 'loaded') {
-                                    _this.dataGrid.isRefreshNeededForAutoHeight = false;
-                                    setTimeout(() => {
-                                        _this.dataGrid.purgeImpl();
-                                    }, 150);
-                                    return;
-                                }
-                            }
-                        }
-                    }
+                    // if(_this.dataGrid.isRowAutoHeight) {
+                    //     const model = _this.dataGrid.agGrid.api.getModel();
+                    //     if(model.rootNode.childrenCache) {
+                    //         const sortedBlockIds = model.rootNode.childrenCache.getBlockIdsSorted();
+                    //         if(sortedBlockIds.length) {
+                    //             const firstBlock = model.rootNode.childrenCache.getBlock(sortedBlockIds[0]);
+                    //             if(firstBlock.state === 'loaded') {
+                    //                 _this.dataGrid.isRowAutoHeight = false;
+                    //                 setTimeout(() => {
+                    //                     _this.dataGrid.purgeImpl();
+                    //                 }, 150);
+                    //                 return;
+                    //             }
+                    //         }
+                    //     }
+                    // }
 
                     _this.dataGrid.isDataLoading = false;
                     // if selection did not changed, mark the selection ready
