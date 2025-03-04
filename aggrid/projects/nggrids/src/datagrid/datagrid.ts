@@ -2793,7 +2793,7 @@ export class DataGrid extends NGGridDirective {
                     if(column.excluded) columnsNr--;
                 }
                 if(savedColumns.length !== columnsNr) {
-                        if(restoreColumns) this.innerColumnStateOnError('Cannot restore columns state, different number of columns in saved state and component');
+                        if(restoreColumns) this.innerColumnStateOnError('Cannot restore columns state, different number of columns in saved state and component - saved: ' + JSON.stringify(savedColumns) + ' columnsNr: ' + columnsNr);
                         return;
                 }
 
