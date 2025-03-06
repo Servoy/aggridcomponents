@@ -2697,8 +2697,8 @@ export class DataGrid extends NGGridDirective {
                 // if columns were added/removed, skip the restore
                 const savedColumns = [];
                 for(const columnState of columnStateJSON.columnState) {
-                    if(columnState.colId.indexOf('_') === 0) {
-                        continue; // if special column, that starts with '_'
+                    if(columnState.colId.indexOf('_svy') === 0 || columnState.colId.startsWith('ag-Grid-')) {
+                        continue; // if special column, that starts with '_' or is a group column
                     }
                     savedColumns.push(columnState.colId);
                 }
@@ -2707,7 +2707,7 @@ export class DataGrid extends NGGridDirective {
                     if(column.excluded) columnsNr--;
                 }
                 if(savedColumns.length !== columnsNr) {
-                        if(restoreColumns) this.innerColumnStateOnError('Cannot restore columns state, different number of columns in saved state and component');
+                        if(restoreColumns) this.innerColumnStateOnError('Cannot restore columns state, different number of columns in saved state and component - saved: ' + JSON.stringify(savedColumns) + ' columnsNr: ' + columnsNr);
                         return;
                 }
 
