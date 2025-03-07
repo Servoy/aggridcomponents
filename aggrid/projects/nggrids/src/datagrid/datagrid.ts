@@ -524,6 +524,9 @@ export class DataGrid extends NGGridDirective {
 
                         let displayedColDef: ColDef;
                         displayedColumns.forEach((displayedCol: Column) => {
+                            if(this.isSpecialColumn(displayedCol.getColId())) {
+                                return;
+                            }
                             displayedColDef = this.agGrid.api.getColumnDef(displayedCol.getColId());
                             displayedColDef.width = displayedCol.getActualWidth();
                             const column = this.getColumn(displayedColDef.field);
@@ -842,6 +845,10 @@ export class DataGrid extends NGGridDirective {
         if(this.onSelectedRowsChanged) {
             this.onSelectedRowsChanged(true, colId, null, event.target['checked'] === true);
         }
+    }
+    
+    private isSpecialColumn(columnID: string): boolean {
+        return columnID.indexOf('_svy') === 0 || columnID.startsWith('ag-Grid-');
     }
 
     svyOnInit() {
@@ -2810,7 +2817,7 @@ export class DataGrid extends NGGridDirective {
                 // if columns were added/removed, skip the restore
                 const savedColumns = [];
                 for(const columnState of columnStateJSON.columnState) {
-                    if(columnState.colId.indexOf('_svy') === 0 || columnState.colId.startsWith('ag-Grid-')) {
+                    if(this.isSpecialColumn(columnState.colId)) {
                         continue; // if special column, that starts with '_' or is a group column
                     }
                     savedColumns.push(columnState.colId);
