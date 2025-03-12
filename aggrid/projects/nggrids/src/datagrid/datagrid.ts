@@ -3542,11 +3542,11 @@ export class DataGrid extends NGGridDirective {
         if(timeout) {
             this.setTimeout(() => {
                 this.servoyApi.callServerSideApi('cellClick',
-                    ['click', this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), params.event, this.getDataTarget(params.event)]);
+                    ['click', this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), this.servoyService.createJSEvent(params.event, params.event.type), this.getDataTarget(params.event)]);
             }, timeout);
         } else {
             this.servoyApi.callServerSideApi('cellClick',
-                ['click', this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), params.event, this.getDataTarget(params.event)]);
+                ['click', this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), this.servoyService.createJSEvent(params.event, params.event.type), this.getDataTarget(params.event)]);
         }
     }
 
@@ -3570,7 +3570,7 @@ export class DataGrid extends NGGridDirective {
         this.log.debug(params);
         if (!params.node.rowPinned) {
             this.servoyApi.callServerSideApi('cellClick',
-                ['doubleClick', this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), params.event, this.getDataTarget(params.event)]);
+                ['doubleClick', this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), this.servoyService.createJSEvent(params.event, params.event.type), this.getDataTarget(params.event)]);
         }
     }
 
@@ -3584,7 +3584,7 @@ export class DataGrid extends NGGridDirective {
             // Added setTimeOut to enable onColumnDataChangeEvent to go first; must be over 250, so selection is sent first
             this.setTimeout(() => {
                 this.servoyApi.callServerSideApi('cellClick',
-                    ['rightClick', this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), params.event, this.getDataTarget(params.event)]);
+                    ['rightClick', this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), this.servoyService.createJSEvent(params.event, params.event.type), this.getDataTarget(params.event)]);
             }, 350);
         }
     }
