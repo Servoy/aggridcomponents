@@ -737,7 +737,8 @@ $scope.api.newColumn = function(dataproviderid,index) {
 		 'enableResize': true,
 		 'enableToolPanel': true,
 		 'autoResize': true,
-		 'rowGroupIndex': -1
+		 'rowGroupIndex': -1,
+		 'enabled': true
 		};
 	 return $scope.model.columns[insertPosition];
 }
