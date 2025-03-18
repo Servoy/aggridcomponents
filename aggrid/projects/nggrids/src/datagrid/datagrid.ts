@@ -632,6 +632,12 @@ export class DataGrid extends NGGridDirective {
                         this.sizeHeaderAndColumnsToFit(GRID_EVENT_TYPES.GRID_ROW_POST_CREATE);
                     }, 0);
                 }
+                if(!this.isRenderedAndSelectionReady && this.scrollToSelectionWhenSelectionReady) {
+                    this.scrollToSelectionWhenSelectionReady = false;
+                    this.setTimeout(()  =>{
+                        this.scrollToSelectionEx();
+                    }, 0);
+                }
             },
             components: {
                 valuelistFilter: ValuelistFilter,
@@ -3110,6 +3116,24 @@ export class DataGrid extends NGGridDirective {
                 return;
             }
 
+            if(this.isRowAutoHeight) {
+                let isRowLoadedInCache = false;
+                const cache = this.agGrid.api.getCacheBlockState();
+                for (const value of Object.values(cache)) {
+                    if(value['startRow'] !== undefined && value['endRow'] !== undefined) {
+                        if(foundsetManager.foundset.selectedRowIndexes[0] >= value['startRow'] &&
+                            foundsetManager.foundset.selectedRowIndexes[0] <= value['endRow']
+                        ) {
+                            isRowLoadedInCache = true;
+                            break;
+                        }
+                    }
+                }
+                if(!isRowLoadedInCache) {
+                    this.scrollToSelectionWhenSelectionReady = true;
+                }
+            }
+
             if(foundsetManager.foundset.selectedRowIndexes.length) {
                 const rowCount = this.agGrid.api.getDisplayedRowCount();
                 if(foundsetManager.foundset.selectedRowIndexes[0] > rowCount - CHUNK_SIZE) {
@@ -4220,22 +4244,7 @@ export class DataGrid extends NGGridDirective {
     scrollToSelection() {
         if(this.isRenderedAndSelectionReady) {
             this.scrollToSelectionWhenSelectionReady = false;
-            if(this.isRowAutoHeight && this.foundset && this.foundset.foundset) {
-                let isRowLoadedInCache = false;
-                const cache = this.agGrid.api.getCacheBlockState();
-                for (const value of Object.values(cache)) {
-                    if(value['startRow'] !== undefined && value['endRow'] !== undefined) {
-                        if(this.foundset.foundset.selectedRowIndexes[0] >= value['startRow'] &&
-                            this.foundset.foundset.selectedRowIndexes[0] <= value['endRow']
-                        ) {
-                            isRowLoadedInCache = true;
-                            break;
-                        }
-                    }
-                }
-                this.scrollToSelectionWhenSelectionReady = !isRowLoadedInCache;
-                this.scrollToSelectionEx();
-            }
+            this.scrollToSelectionEx();
         } else {
             this.scrollToSelectionWhenSelectionReady = true;
         }
