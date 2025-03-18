@@ -627,3 +627,357 @@ function getCheckboxGroupSelection() {
  */
 function sizeColumnsToFit() {
 }
+
+
+var svy_types = {
+
+    column: {
+
+        footerText : null,
+
+        footerTextShowAs : null,
+
+        /**
+         * If the column has a database linked dataprovider, the default value of the headerTitle is the title text of the database column or if that is not set, the database column name.
+         */
+        headerTitle : null,
+
+        footerStyleClass : null,
+
+        headerStyleClass : null,
+
+        /**
+         * (Font awesome) Styles for header icon
+         */
+        headerIconStyleClass : null,
+
+        headerTooltip : null,
+
+        /**
+         * Header group, that this column will be part of
+         */
+        headerGroup : null,
+
+        headerGroupStyleClass : null,
+
+        /**
+         * When true the column has checkbox for selecting/unselecting all rows
+         */
+        headerCheckbox : null,
+
+        dataprovider : null,
+
+        tooltip : null,
+
+        styleClass : null,
+
+        /**
+         * Use a Servoy calculation as styleClassDataprovider to set styleClass conditionally to the table cell
+         */
+        styleClassDataprovider : null,
+
+        format : null,
+
+        valuelist : null,
+
+        valuelistConfig : null,
+
+        visible : null,
+
+        /**
+         * When true the column is excluded from the UI
+         */
+        excluded : null,
+
+        enabled : null,
+
+        width : null,
+
+        minWidth : null,
+
+        maxWidth : null,
+
+        /**
+         * Allow the user to group or ungroup the column
+         */
+        enableRowGroup : null,
+
+        enableSort : null,
+
+        enableResize : null,
+
+        /**
+         * If the column should be visible in the tool panel
+         */
+        enableToolPanel : null,
+
+        autoResize : null,
+
+        /**
+         * Set the rowGroupIndex to group on the column; the index defines the order of the group when there are multiple grouped columns
+         */
+        rowGroupIndex : null,
+
+        /**
+         * Use a Servoy calculation as isEditableDataprovider to set edit state conditionally to the table cell
+         */
+        isEditableDataprovider : null,
+
+        /**
+         * Type of editing used for that column
+         */
+        editType : null,
+
+        /**
+         * Form used as custom editor
+         */
+        editForm : null,
+
+        editFormSize : null,
+
+        stopEditingOnChange : null,
+
+        filterType : null,
+
+        /**
+         * Used to set the column id (colId) property in the serialized column state json string of getColumnState and onColumnStateChanged
+         */
+        id : null,
+
+        /**
+         * Map where additional column properties of ag-grid can be set
+         */
+        columnDef : null,
+
+        showAs : null,
+
+        /**
+         * Allow dragging
+         */
+        dndSource : null,
+
+        /**
+         * Boolean dataprovider for allow/disallow dragging.
+         */
+        dndSourceDataprovider : null,
+
+    },
+
+    groupedColumn: {
+
+        dataprovider : null,
+
+        format : null,
+
+        valuelist : null,
+
+        id : null,
+
+        columnid : null,
+
+        styleClassDataprovider : null,
+
+    },
+
+    viewColumn: {
+
+        colId : null,
+
+        hide : null,
+
+        rowGroup : null,
+
+        rowGroupIndex : null,
+
+        sort : null,
+
+        sortIndex : null,
+
+        width : null,
+
+    },
+
+    hashedFoundset: {
+
+        foundset : null,
+
+        foundsetUUID : null,
+
+        uuid : null,
+
+        columns : null,
+
+    },
+
+    gridConfig: {
+
+        enableSorting : null,
+
+        enableColResize : null,
+
+        groupUseEntireRow : null,
+
+    },
+
+    iconConfig: {
+
+        iconMenu : null,
+
+        iconFilter : null,
+
+        iconColumns : null,
+
+        iconSortAscending : null,
+
+        iconSortDescending : null,
+
+        iconSortUnSort : null,
+
+        iconGroupExpanded : null,
+
+        iconGroupContracted : null,
+
+        iconColumnGroupOpened : null,
+
+        iconColumnGroupClosed : null,
+
+        iconColumnSelectOpen : null,
+
+        iconColumnSelectClosed : null,
+
+        iconCheckboxChecked : null,
+
+        iconCheckboxUnchecked : null,
+
+        iconCheckboxIndeterminate : null,
+
+        iconCheckboxCheckedReadOnly : null,
+
+        iconCheckboxUncheckedReadOnly : null,
+
+        iconCheckboxIndeterminateReadOnly : null,
+
+        iconColumnMovePin : null,
+
+        iconColumnMoveAdd : null,
+
+        iconColumnMoveHide : null,
+
+        iconColumnMoveMove : null,
+
+        iconColumnMoveLeft : null,
+
+        iconColumnMoveRight : null,
+
+        iconColumnMoveGroup : null,
+
+        iconColumnMoveValue : null,
+
+        iconColumnMovePivot : null,
+
+        iconDropNotAllowed : null,
+
+        iconMenuPin : null,
+
+        iconMenuValue : null,
+
+        iconMenuAddRowGroup : null,
+
+        iconMenuRemoveRowGroup : null,
+
+        iconClipboardCopy : null,
+
+        iconClipboardPaste : null,
+
+        iconRowGroupPanel : null,
+
+        iconPivotPanel : null,
+
+        iconValuePanel : null,
+
+        iconRefreshData : null,
+
+        iconEditorChecked : null,
+
+        iconEditorUnchecked : null,
+
+    },
+
+    toolPanelConfig: {
+
+        suppressRowGroups : null,
+
+        suppressSideButtons : null,
+
+        suppressColumnFilter : null,
+
+        suppressColumnSelectAll : null,
+
+        suppressColumnExpandAll : null,
+
+    },
+
+    mainMenuItemsConfig: {
+
+        pinSubMenu : null,
+
+        valueAggSubMenu : null,
+
+        autoSizeThis : null,
+
+        autoSizeAll : null,
+
+        rowGroup : null,
+
+        rowUnGroup : null,
+
+        resetColumns : null,
+
+        expandAll : null,
+
+        contractAll : null,
+
+    },
+
+    functionCall: {
+
+        alias : null,
+
+        f : null,
+
+    },
+
+    columnsAutoSizingOn: {
+
+        /**
+         * Apply 'columnsAutoSizing' when columns are resized
+         */
+        columnResize : null,
+
+        /**
+         * Apply 'columnsAutoSizing' when row grouping is changed
+         */
+        columnRowGroupChange : null,
+
+        /**
+         * Apply 'columnsAutoSizing' when columns are added/removed
+         */
+        displayedColumnsChange : null,
+
+        /**
+         * Apply 'columnsAutoSizing' when grid is ready to be shown
+         */
+        gridReady : null,
+
+        /**
+         * Apply 'columnsAutoSizing' when grid size changes
+         */
+        gridSizeChange : null,
+
+        /**
+         * Apply 'columnsAutoSizing' when the toolpanel visibility is changed
+         */
+        toolPanelVisibleChange : null,
+
+    }
+}

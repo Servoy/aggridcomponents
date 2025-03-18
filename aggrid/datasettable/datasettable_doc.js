@@ -485,3 +485,360 @@ function autoSizeAllColumns() {
  */
 function sizeColumnsToFit() {
 }
+
+var svy_types = {
+
+    column: {
+
+        footerText : null,
+
+        footerStyleClass : null,
+
+        /**
+         * Header group, that this column will be part of
+         */
+        headerGroup : null,
+
+        headerGroupStyleClass : null,
+
+        headerTitle : null,
+
+        headerStyleClass : null,
+
+        /**
+         * (Font awesome) Styles for header icon
+         */
+        headerIconStyleClass : null,
+
+        headerTooltip : null,
+
+        dataprovider : null,
+
+        tooltip : null,
+
+        styleClass : null,
+
+        visible : null,
+
+        /**
+         * When true the column is excluded from the UI
+         */
+        excluded : null,
+
+        width : null,
+
+        minWidth : null,
+
+        maxWidth : null,
+
+        /**
+         * Allow the user to group or ungroup the column
+         */
+        enableRowGroup : null,
+
+        /**
+         * Set the rowGroupIndex to group on the column; the index defines the order of the group when there are multiple grouped columns
+         */
+        rowGroupIndex : null,
+
+        /**
+         * If the column can be used as pivot
+         */
+        enablePivot : null,
+
+        /**
+         * Set this in columns you want to pivot by
+         */
+        pivotIndex : null,
+
+        /**
+         * Name of function to use for aggregation
+         */
+        aggFunc : null,
+
+        enableSort : null,
+
+        enableResize : null,
+
+        enableToolPanel : null,
+
+        autoResize : null,
+
+        cellStyleClassFunc : null,
+
+        /**
+         * Function to change the cell rendering
+         */
+        cellRendererFunc : null,
+
+        /**
+         * Format for the type set in formatType
+         */
+        format : null,
+
+        /**
+         * Type of data the format is applied on
+         */
+        formatType : null,
+
+        /**
+         * Type of editing used for that column
+         */
+        editType : null,
+
+        /**
+         * Form used as custom editor
+         */
+        editForm : null,
+
+        editFormSize : null,
+
+        filterType : null,
+
+        /**
+         * Used to set the column id (colId) property in the serialized column state json string of getColumnState and onColumnStateChanged
+         */
+        id : null,
+
+        /**
+         * Map where additional column properties of ag-grid can be set
+         */
+        columnDef : null,
+
+        showAs : null,
+
+        /**
+         * If exportData api should export the display value (with format applied) instead of the raw data of the dataset
+         */
+        exportDisplayValue : null,
+
+        /**
+         * Function to sort the pivot columns
+         */
+        pivotComparatorFunc : null,
+
+        /**
+         * Proxy function for getting the cell value from the model
+         */
+        valueGetterFunc : null,
+
+        /**
+         * Allow dragging
+         */
+        dndSource : null,
+
+        /**
+         * Boolean function for allow/disallow dragging.
+         */
+        dndSourceFunc : null,
+
+        valuelist : null,
+
+        valuelistConfig : null,
+
+    },
+
+    iconConfig: {
+
+        iconMenu : null,
+
+        iconFilter : null,
+
+        iconColumns : null,
+
+        iconSortAscending : null,
+
+        iconSortDescending : null,
+
+        iconSortUnSort : null,
+
+        iconGroupExpanded : null,
+
+        iconGroupContracted : null,
+
+        iconColumnGroupOpened : null,
+
+        iconColumnGroupClosed : null,
+
+        iconColumnSelectOpen : null,
+
+        iconColumnSelectClosed : null,
+
+        iconCheckboxChecked : null,
+
+        iconCheckboxUnchecked : null,
+
+        iconCheckboxIndeterminate : null,
+
+        iconCheckboxCheckedReadOnly : null,
+
+        iconCheckboxUncheckedReadOnly : null,
+
+        iconCheckboxIndeterminateReadOnly : null,
+
+        iconColumnMovePin : null,
+
+        iconColumnMoveAdd : null,
+
+        iconColumnMoveHide : null,
+
+        iconColumnMoveMove : null,
+
+        iconColumnMoveLeft : null,
+
+        iconColumnMoveRight : null,
+
+        iconColumnMoveGroup : null,
+
+        iconColumnMoveValue : null,
+
+        iconColumnMovePivot : null,
+
+        iconDropNotAllowed : null,
+
+        iconMenuPin : null,
+
+        iconMenuValue : null,
+
+        iconMenuAddRowGroup : null,
+
+        iconMenuRemoveRowGroup : null,
+
+        iconClipboardCopy : null,
+
+        iconClipboardPaste : null,
+
+        iconRowGroupPanel : null,
+
+        iconPivotPanel : null,
+
+        iconValuePanel : null,
+
+        iconRefreshData : null,
+
+        iconEditorChecked : null,
+
+        iconEditorUnchecked : null,
+
+    },
+
+    columnVO: {
+
+        id : null,
+
+        displayName : null,
+
+        aggFunc : null,
+
+    },
+
+    sortModelVO: {
+
+        colId : null,
+
+        sort : null,
+
+    },
+
+    filterModelVO: {
+
+        id : null,
+
+        operator : null,
+
+        value : null,
+
+    },
+
+    rowInfo: {
+
+        rowData : null,
+
+        rowIndex : null,
+
+    },
+
+    toolPanelConfig: {
+
+        suppressRowGroups : null,
+
+        suppressValues : null,
+
+        suppressPivots : null,
+
+        suppressPivotMode : null,
+
+        suppressSideButtons : null,
+
+        suppressColumnFilter : null,
+
+        suppressColumnSelectAll : null,
+
+        suppressColumnExpandAll : null,
+
+    },
+
+    mainMenuItemsConfig: {
+
+        pinSubMenu : null,
+
+        valueAggSubMenu : null,
+
+        autoSizeThis : null,
+
+        autoSizeAll : null,
+
+        rowGroup : null,
+
+        rowUnGroup : null,
+
+        resetColumns : null,
+
+        expandAll : null,
+
+        contractAll : null,
+
+    },
+
+    aggFuncInfo: {
+
+        name : null,
+
+        aggFunc : null,
+
+    },
+
+    columnsAutoSizingOn: {
+
+        /**
+         * Apply 'columnsAutoSizing' when columns are resized
+         */
+        columnResize : null,
+
+        /**
+         * Apply 'columnsAutoSizing' when row grouping is changed
+         */
+        columnRowGroupChange : null,
+
+        /**
+         * Apply 'columnsAutoSizing' when columns are added/removed
+         */
+        displayedColumnsChange : null,
+
+        /**
+         * Apply 'columnsAutoSizing' when grid is ready to be shown
+         */
+        gridReady : null,
+
+        /**
+         * Apply 'columnsAutoSizing' when grid size changes
+         */
+        gridSizeChange : null,
+
+        /**
+         * Apply 'columnsAutoSizing' when the toolpanel visibility is changed
+         */
+        toolPanelVisibleChange : null,
+
+    }
+}
