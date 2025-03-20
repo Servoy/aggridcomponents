@@ -62,6 +62,9 @@ var groupCheckbox;
  */
 var tooltipTextRefreshData;
 
+/**
+ * Controls the visibility of the grid component.
+ */
 var visible;
 
 /**
@@ -69,8 +72,15 @@ var visible;
  */
 var showColumnsMenuTab;
 
+/**
+ * Configuration object for the ag‑grid tool panel (e.g., which panels to show, button behavior).
+ */
 var toolPanelConfig;
 
+
+/**
+ * Custom icon configuration for grid features (e.g., sort, filter, group icons).
+ */
 var iconConfig;
 
 /**
@@ -83,10 +93,19 @@ var gridOptions;
  */
 var localeText;
 
+/**
+ * Flag indicating if the grid is in read‑only mode, disabling editing.
+ */
 var readOnly;
 
+/**
+ * Flag indicating if the grid is enabled for user interaction.
+ */
 var enabled;
 
+/**
+ * Configuration for main menu items (customizes options like column pinning, sorting, etc.).
+ */
 var mainMenuItemsConfig;
 
 /**
@@ -114,10 +133,19 @@ var columnsAutoSizingOn;
  */
 var showGroupCount;
 
+/**
+ * When true, shows a loading indicator while data is being fetched or refreshed.
+ */
 var showLoadingIndicator;
 
+/**
+ * Determines whether the focus should move to the next cell when Enter is pressed.
+ */
 var editNextCellOnEnter;
 
+/**
+ * Tab sequence index used for keyboard navigation in the grid.
+ */
 var tabSeq;
 
 /**
@@ -135,41 +163,41 @@ var handlers = {
     /**
      * Called when the selected rows have changed.
      *
-     * @param {Boolean} [isgroupselection]
-     * @param {String} [groupcolumnid]
-     * @param {Object} [groupkey]
-     * @param {Boolean} [groupselection]
+     * @param {Boolean} [isgroupselection] Indicates if the selection change pertains to a group row.
+     * @param {String} [groupcolumnid] The ID of the column used for grouping, if applicable.
+     * @param {Object} [groupkey] The key identifying the group whose selection has changed.
+     * @param {Boolean} [groupselection] True if the entire group is selected; false if deselected.
      */
     onSelectedRowsChanged: function() {},
 
     /**
      * Called when the mouse is clicked on a footer cell
      *
-     * @param {Number} [columnindex]
-     * @param {JSEvent} [event]
-     * @param {String} [dataTarget]
+     * @param {Number} [columnindex] The index of the footer cell that was clicked.
+     * @param {JSEvent} [event] The event object associated with the click.
+     * @param {String} [dataTarget] Optional identifier indicating the target data context of the click.
      */
     onFooterClick: function() {},
 
     /**
      * Called when the columns state is changed
      *
-     * @param {String} columnState
-     * @param {JSEvent} [event]
+     * @param {String} columnState The new serialized state of the columns (e.g., widths, order, visibility).
+     * @param {JSEvent} [event] The event object triggering the state change.
      */
     onColumnStateChanged: function() {},
 
     /**
      * Called when the columns data is changed
      *
-     * @param {Number} foundsetindex
-     * @param {Number} [columnindex]
-     * @param {Object} [oldvalue]
-     * @param {Object} [newvalue]
-     * @param {JSEvent} [event]
-     * @param {JSRecord} [record]
+     * @param {Number} foundsetindex The index of the row that changed (1-based).
+     * @param {Number} [columnindex] The index of the column that changed (0-based).
+     * @param {Object} [oldvalue] The previous value of the cell.
+     * @param {Object} [newvalue] The new value of the cell.
+     * @param {JSEvent} [event] The event object associated with the data change.
+     * @param {JSRecord} [record] The record object representing the changed row.
      *
-     * @returns {Boolean}
+     * @returns {Boolean} True if the change was handled successfully.
      */
     onColumnDataChange: function() {},
 
@@ -181,26 +209,26 @@ var handlers = {
     /**
      * Called when the column's form editor is started
      *
-     * @param {Number} [foundsetindex]
-     * @param {Number} [columnindex]
-     * @param {Object} [value]
+     * @param {Number} [foundsetindex] The row index where editing starts.
+     * @param {Number} [columnindex] The column index where editing starts.
+     * @param {Object} [value] The initial value of the cell being edited.
      */
     onColumnFormEditStarted: function() {},
 
     /**
      * Called when sort has changed
      *
-     * @param {Array<Number>} [columnindexes]
-     * @param {Array<String>} [sorts]
+     * @param {Array<Number>} [columnindexes] An array of column indexes that have been sorted.
+     * @param {Array<String>} [sorts] An array of sort orders (e.g., 'asc', 'desc') corresponding to the sorted columns.
      */
     onSort: function() {},
 
     /**
      * Called when group is opened/closed
      *
-     * @param {Array<Number>} [groupcolumnindexes]
-     * @param {Array<Object>} [groupkeys]
-     * @param {Boolean} [isopened]
+     * @param {Array<Number>} [groupcolumnindexes] An array of column indexes associated with the group.
+     * @param {Array<Object>} [groupkeys] An array of keys representing the group hierarchy.
+     * @param {Boolean} [isopened] True if the group is opened; false if closed.
      */
     onRowGroupOpened: function() {},
 
@@ -208,8 +236,8 @@ var handlers = {
      * Called when a row is dropped as a result of a drag-n-drop
      *
      * @param {Array<Object>} sourceRows an Array of JSRecord objects if dragged from a data grid, or plain objects if from a power grid
-     * @param {JSRecord} targetRecord
-     * @param {JSEvent} event
+     * @param {JSRecord} targetRecord The target record where the rows were dropped.
+     * @param {JSEvent} event The event object associated with the drop action.
      */
     onDrop: function() {}
 };
@@ -628,90 +656,155 @@ function getCheckboxGroupSelection() {
 function sizeColumnsToFit() {
 }
 
-
+/**
+ * Type definitions for aggrid-groupingtable types.
+ */
 var svy_types = {
 
+    /**
+     * Type definition for a grid column.
+     */
     column: {
 
-        footerText : null,
+        /**
+         * Footer text to display in the column.
+         */
+        footerText: null,
 
-        footerTextShowAs : null,
+        /**
+         * Defines how the footer text is rendered (e.g., inline, tooltip).
+         */
+        footerTextShowAs: null,
 
         /**
          * If the column has a database linked dataprovider, the default value of the headerTitle is the title text of the database column or if that is not set, the database column name.
          */
         headerTitle : null,
 
-        footerStyleClass : null,
+        /**
+         * CSS class for the column footer.
+         */
+        footerStyleClass: null,
 
-        headerStyleClass : null,
+        /**
+         * CSS class for the column header.
+         */
+        headerStyleClass: null,
 
         /**
          * (Font awesome) Styles for header icon
          */
         headerIconStyleClass : null,
 
-        headerTooltip : null,
+        /**
+         * Tooltip text for the header.
+         */
+        headerTooltip: null,
 
         /**
          * Header group, that this column will be part of
          */
         headerGroup : null,
 
-        headerGroupStyleClass : null,
+        /**
+         * CSS class for the header group.
+         */
+        headerGroupStyleClass: null,
 
         /**
          * When true the column has checkbox for selecting/unselecting all rows
          */
         headerCheckbox : null,
 
-        dataprovider : null,
+        /**
+         * Data provider identifier for the column.
+         */
+        dataprovider: null,
 
-        tooltip : null,
+        /**
+         * Tooltip text for the cell.
+         */
+        tooltip: null,
 
-        styleClass : null,
+        /**
+         * CSS class for the cell.
+         */
+        styleClass: null,
 
         /**
          * Use a Servoy calculation as styleClassDataprovider to set styleClass conditionally to the table cell
          */
         styleClassDataprovider : null,
 
-        format : null,
+        /**
+         * Format pattern for the column's data.
+         */
+        format: null,
 
-        valuelist : null,
+        /**
+         * Value list used to map column values.
+         */
+        valuelist: null,
 
-        valuelistConfig : null,
+        /**
+         * Configuration for the value list.
+         */
+        valuelistConfig: null,
 
-        visible : null,
+        /**
+         * Visibility state of the column.
+         */
+        visible: null,
 
         /**
          * When true the column is excluded from the UI
          */
         excluded : null,
 
-        enabled : null,
+        /**
+         * Flag indicating if the column is enabled.
+         */
+        enabled: null,
 
-        width : null,
+        /**
+         * Column width in pixels.
+         */
+        width: null,
 
-        minWidth : null,
+        /**
+         * Minimum width in pixels.
+         */
+        minWidth: null,
 
-        maxWidth : null,
+        /**
+         * Maximum width in pixels.
+         */
+        maxWidth: null,
 
         /**
          * Allow the user to group or ungroup the column
          */
         enableRowGroup : null,
 
-        enableSort : null,
+        /**
+         * Allows sorting on this column.
+         */
+        enableSort: null,
 
-        enableResize : null,
+        /**
+         * Allows resizing of the column.
+         */
+        enableResize: null,
 
         /**
          * If the column should be visible in the tool panel
          */
         enableToolPanel : null,
 
-        autoResize : null,
+       /**
+         * Enables auto-resizing for the column.
+         */
+        autoResize: null,
 
         /**
          * Set the rowGroupIndex to group on the column; the index defines the order of the group when there are multiple grouped columns
@@ -733,11 +826,20 @@ var svy_types = {
          */
         editForm : null,
 
-        editFormSize : null,
+        /**
+         * Size configuration for the custom editor form.
+         */
+        editFormSize: null,
 
-        stopEditingOnChange : null,
+        /**
+         * When true, editing stops on change.
+         */
+        stopEditingOnChange: null,
 
-        filterType : null,
+        /**
+         * Filter type to be used for this column.
+         */
+        filterType: null,
 
         /**
          * Used to set the column id (colId) property in the serialized column state json string of getColumnState and onColumnStateChanged
@@ -749,7 +851,10 @@ var svy_types = {
          */
         columnDef : null,
 
-        showAs : null,
+        /**
+         * Defines an alternative display mode for the column.
+         */
+        showAs: null,
 
         /**
          * Allow dragging
@@ -763,190 +868,328 @@ var svy_types = {
 
     },
 
+    /**
+     * Type definition for a grouped column.
+     */
     groupedColumn: {
 
-        dataprovider : null,
+        /**
+         * Data provider for the grouped column.
+         */
+        dataprovider: null,
 
-        format : null,
+        /**
+         * Format pattern for the grouped column.
+         */
+        format: null,
 
-        valuelist : null,
+        /**
+         * Value list for mapping grouped column data.
+         */
+        valuelist: null,
 
-        id : null,
+        /**
+         * Unique identifier for the grouped column.
+         */
+        id: null,
 
-        columnid : null,
+        /**
+         * Original column identifier associated with this group.
+         */
+        columnid: null,
 
-        styleClassDataprovider : null,
-
+        /**
+         * Calculation to conditionally set CSS classes for the group.
+         */
+        styleClassDataprovider: null,
     },
 
+    /**
+     * Type definition for a view column.
+     */
     viewColumn: {
 
-        colId : null,
+        /**
+         * Unique identifier for the view column.
+         */
+        colId: null,
 
-        hide : null,
+        /**
+         * When true, the column is hidden.
+         */
+        hide: null,
 
-        rowGroup : null,
+        /**
+         * Indicates if the column is used for grouping.
+         */
+        rowGroup: null,
 
-        rowGroupIndex : null,
+        /**
+         * Grouping order index.
+         */
+        rowGroupIndex: null,
 
-        sort : null,
+        /**
+         * Sorting order (e.g., asc, desc).
+         */
+        sort: null,
 
-        sortIndex : null,
+        /**
+         * Index for multi-column sorting.
+         */
+        sortIndex: null,
 
-        width : null,
-
+        /**
+         * Width of the view column.
+         */
+        width: null,
     },
 
+    /**
+     * Type definition for a hashed foundset.
+     */
     hashedFoundset: {
 
-        foundset : null,
+        /**
+         * The foundset object reference.
+         */
+        foundset: null,
 
-        foundsetUUID : null,
+        /**
+         * Unique identifier for the foundset.
+         */
+        foundsetUUID: null,
 
-        uuid : null,
+        /**
+         * Unique hash identifier.
+         */
+        uuid: null,
 
-        columns : null,
+        /**
+         * Column configuration for the foundset.
+         */
+        columns: null,
 
     },
 
+    /**
+     * Grid configuration options.
+     */
     gridConfig: {
 
-        enableSorting : null,
+        /**
+         * Enables column sorting.
+         */
+        enableSorting: null,
 
-        enableColResize : null,
-
-        groupUseEntireRow : null,
+        /**
+         * Enables column resizing.
+         */
+        enableColResize: null,
+        
+        /**
+         * When true, group rows span the entire row.
+         */
+        groupUseEntireRow: null,
 
     },
 
+    /**
+     * Icon configuration for various grid features.
+     */
     iconConfig: {
 
-        iconMenu : null,
+         /** Icon for the menu. */
+        iconMenu: null,
 
-        iconFilter : null,
+        /** Icon for filtering. */
+        iconFilter: null,
 
-        iconColumns : null,
+        /** Icon for the columns panel. */
+        iconColumns: null,
 
-        iconSortAscending : null,
+        /** Icon for ascending sort. */
+        iconSortAscending: null,
 
-        iconSortDescending : null,
+        /** Icon for descending sort. */
+        iconSortDescending: null,
 
-        iconSortUnSort : null,
+        /** Icon for unsorted state. */
+        iconSortUnSort: null,
 
-        iconGroupExpanded : null,
+        /** Icon indicating an expanded group. */
+        iconGroupExpanded: null,
 
-        iconGroupContracted : null,
+        /** Icon indicating a contracted group. */
+        iconGroupContracted: null,
 
-        iconColumnGroupOpened : null,
+        /** Icon for an open column group. */
+        iconColumnGroupOpened: null,
 
-        iconColumnGroupClosed : null,
+        /** Icon for a closed column group. */
+        iconColumnGroupClosed: null,
 
-        iconColumnSelectOpen : null,
+        /** Icon for open column selection. */
+        iconColumnSelectOpen: null,
 
-        iconColumnSelectClosed : null,
+        /** Icon for closed column selection. */
+        iconColumnSelectClosed: null,
 
-        iconCheckboxChecked : null,
+        /** Icon for a checked checkbox. */
+        iconCheckboxChecked: null,
 
-        iconCheckboxUnchecked : null,
+        /** Icon for an unchecked checkbox. */
+        iconCheckboxUnchecked: null,
 
-        iconCheckboxIndeterminate : null,
+        /** Icon for an indeterminate checkbox. */
+        iconCheckboxIndeterminate: null,
 
-        iconCheckboxCheckedReadOnly : null,
+        /** Icon for a read-only checked checkbox. */
+        iconCheckboxCheckedReadOnly: null,
 
-        iconCheckboxUncheckedReadOnly : null,
+        /** Icon for a read-only unchecked checkbox. */
+        iconCheckboxUncheckedReadOnly: null,
 
-        iconCheckboxIndeterminateReadOnly : null,
+        /** Icon for a read-only indeterminate checkbox. */
+        iconCheckboxIndeterminateReadOnly: null,
 
-        iconColumnMovePin : null,
+        /** Icon for pinning a column. */
+        iconColumnMovePin: null,
 
-        iconColumnMoveAdd : null,
+        /** Icon for adding a column. */
+        iconColumnMoveAdd: null,
 
-        iconColumnMoveHide : null,
+        /** Icon for hiding a column. */
+        iconColumnMoveHide: null,
 
-        iconColumnMoveMove : null,
+        /** Icon for moving a column. */
+        iconColumnMoveMove: null,
 
-        iconColumnMoveLeft : null,
+        /** Icon for moving a column to the left. */
+        iconColumnMoveLeft: null,
 
-        iconColumnMoveRight : null,
+        /** Icon for moving a column to the right. */
+        iconColumnMoveRight: null,
 
-        iconColumnMoveGroup : null,
+        /** Icon for grouping a column. */
+        iconColumnMoveGroup: null,
 
-        iconColumnMoveValue : null,
+        /** Icon for moving a column's value. */
+        iconColumnMoveValue: null,
 
-        iconColumnMovePivot : null,
+        /** Icon for pivoting a column. */
+        iconColumnMovePivot: null,
 
-        iconDropNotAllowed : null,
+        /** Icon indicating drop is not allowed. */
+        iconDropNotAllowed: null,
 
-        iconMenuPin : null,
+        /** Icon for pinning in the header menu. */
+        iconMenuPin: null,
 
-        iconMenuValue : null,
+        /** Icon for displaying values in the header menu. */
+        iconMenuValue: null,
 
-        iconMenuAddRowGroup : null,
+        /** Icon for adding a row group via the menu. */
+        iconMenuAddRowGroup: null,
 
-        iconMenuRemoveRowGroup : null,
+        /** Icon for removing a row group via the menu. */
+        iconMenuRemoveRowGroup: null,
 
-        iconClipboardCopy : null,
+        /** Icon for copying to the clipboard. */
+        iconClipboardCopy: null,
 
-        iconClipboardPaste : null,
+        /** Icon for pasting from the clipboard. */
+        iconClipboardPaste: null,
 
-        iconRowGroupPanel : null,
+        /** Icon for the row group panel. */
+        iconRowGroupPanel: null,
 
-        iconPivotPanel : null,
+        /** Icon for the pivot panel. */
+        iconPivotPanel: null,
 
-        iconValuePanel : null,
+        /** Icon for the value panel. */
+        iconValuePanel: null,
 
-        iconRefreshData : null,
+        /** Icon for refreshing data. */
+        iconRefreshData: null,
 
-        iconEditorChecked : null,
-
-        iconEditorUnchecked : null,
+        /** Icon for a checked editor state. */
+        iconEditorChecked: null,
+        
+        /** Icon for an unchecked editor state. */
+        iconEditorUnchecked: null,
 
     },
 
+    /**
+     * Configuration options for the ag‑grid tool panel.
+     */
     toolPanelConfig: {
 
-        suppressRowGroups : null,
+        /** Suppress row groups in the tool panel. */
+        suppressRowGroups: null,
 
-        suppressSideButtons : null,
+        /** Suppress side buttons in the tool panel. */
+        suppressSideButtons: null,
 
-        suppressColumnFilter : null,
+        /** Suppress the column filter in the tool panel. */
+        suppressColumnFilter: null,
 
-        suppressColumnSelectAll : null,
+        /** Suppress the "select all" option in the tool panel. */
+        suppressColumnSelectAll: null,
 
-        suppressColumnExpandAll : null,
+        /** Suppress the "expand all" option in the tool panel. */
+        suppressColumnExpandAll: null,
 
     },
 
+    /**
+     * Configuration options for main menu items.
+     */
     mainMenuItemsConfig: {
 
-        pinSubMenu : null,
+        /** Configuration for the pin sub-menu. */
+        pinSubMenu: null,
 
-        valueAggSubMenu : null,
+        /** Configuration for the value aggregation sub-menu. */
+        valueAggSubMenu: null,
 
-        autoSizeThis : null,
+        /** Option to auto-size the current column. */
+        autoSizeThis: null,
 
-        autoSizeAll : null,
+        /** Option to auto-size all columns. */
+        autoSizeAll: null,
 
-        rowGroup : null,
+        /** Option to group rows by this column. */
+        rowGroup: null,
 
-        rowUnGroup : null,
+        /** Option to ungroup rows. */
+        rowUnGroup: null,
 
-        resetColumns : null,
+        /** Option to reset columns to default. */
+        resetColumns: null,
 
-        expandAll : null,
+        /** Option to expand all groups. */
+        expandAll: null,
 
-        contractAll : null,
-
+        /** Option to contract all groups. */
+        contractAll: null,
     },
 
+    /**
+     * Definition for a Servoy solution function call.
+     */
     functionCall: {
+        /** Alias for the function call. */
+        alias: null,
 
-        alias : null,
-
-        f : null,
-
+        /** The function reference to execute. */
+        f: null,
     },
 
+    /**
+     * Events that trigger auto-sizing of columns.
+     */
     columnsAutoSizingOn: {
 
         /**

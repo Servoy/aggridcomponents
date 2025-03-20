@@ -20,10 +20,19 @@ var rowHeight;
  */
 var rowStyleClassFunc;
 
+/**
+ * Default CSS style class for the table.
+ */
 var styleClass;
 
+/**
+ * Controls whether the table is visible.
+ */
 var visible;
 
+/**
+ * Enables column resizing by user interaction.
+ */
 var enableColumnResize;
 
 /**
@@ -41,24 +50,54 @@ var checkboxSelection;
  */
 var pivotMode;
 
+/**
+ * Default icon configuration for grid controls.
+ */
 var iconConfig;
 
+/**
+ * CSS style class applied to group rows.
+ */
 var groupStyleClass;
 
+/**
+ * Fixed width (in pixels) for group rows.
+ */
 var groupWidth;
 
+/**
+ * Minimum allowed width (in pixels) for group rows.
+ */
 var groupMinWidth;
 
+/**
+ * Maximum allowed width (in pixels) for group rows.
+ */
 var groupMaxWidth;
 
+/**
+ * When true, the table uses lazy loading to fetch data on demand.
+ */
 var useLazyLoading;
 
+/**
+ * When true, multiple rows can be selected simultaneously.
+ */
 var multiSelect;
 
+/**
+ * The height (in pixels) of the table header.
+ */
 var headerHeight;
 
+/**
+ * When true, a dedicated columns menu tab is displayed.
+ */
 var showColumnsMenuTab;
 
+/**
+ * Configuration options for the grid’s tool panel.
+ */
 var toolPanelConfig;
 
 /**
@@ -76,6 +115,9 @@ var localeText;
  */
 var groupRowRendererFunc;
 
+/**
+ * Configuration options for main menu items in the grid.
+ */
 var mainMenuItemsConfig;
 
 /**
@@ -83,10 +125,19 @@ var mainMenuItemsConfig;
  */
 var arrowsUpDownMoveWhenEditing;
 
+/**
+ * When true, pressing Enter during editing will automatically move to the next cell.
+ */
 var editNextCellOnEnter;
 
+/**
+ * When true, the table operates in read‑only mode.
+ */
 var readOnly;
 
+/**
+ * When false, disables user interaction with the table.
+ */
 var enabled;
 
 /**
@@ -94,6 +145,9 @@ var enabled;
  */
 var isEditableFunc;
 
+/**
+ * The tab order index for keyboard navigation within the table.
+ */
 var tabSeq;
 
 /**
@@ -126,79 +180,79 @@ var handlers = {
     /**
      * Called when the mouse is clicked on a row/cell
      *
-     * @param {Object} rowData
-     * @param {Boolean} selected
-     * @param {JSEvent} [event]
+     * @param {Object} rowData The data for the clicked row.
+     * @param {Boolean} selected True if the row has been selected, false if deselected.
+     * @param {JSEvent} [event] The event object associated with the click.
      */
     onRowSelected: function() {},
 
     /**
      * Called when the mouse is clicked on a row/cell
      *
-     * @param {Object} rowData
-     * @param {String} [columnId]
-     * @param {Object} [cellData]
-     * @param {JSEvent} [event]
-     * @param {String} [dataTarget]
+     * @param {Object} rowData The data for the clicked row.
+     * @param {String} [columnId] The identifier of the clicked column.
+     * @param {Object} [cellData] The data of the clicked cell.
+     * @param {JSEvent} [event] The event object associated with the click.
+     * @param {String} [dataTarget] Optional data target identifier.
      */
     onCellClick: function() {},
 
     /**
      * Called when the mouse is double clicked on a row/cell
      *
-     * @param {Object} rowData
-     * @param {String} [columnId]
-     * @param {Object} [cellData]
-     * @param {JSEvent} [event]
-     * @param {String} [dataTarget]
+     * @param {Object} rowData The data for the double-clicked row.
+     * @param {String} [columnId] The identifier of the double-clicked column.
+     * @param {Object} [cellData] The data of the double-clicked cell.
+     * @param {JSEvent} [event] The event object associated with the double-click.
+     * @param {String} [dataTarget] Optional data target identifier.
      */
     onCellDoubleClick: function() {},
 
     /**
      * Called when the right mouse button is clicked on a row/cell
      *
-     * @param {Object} rowData
-     * @param {String} [columnId]
-     * @param {Object} [cellData]
-     * @param {JSEvent} [event]
-     * @param {String} [dataTarget]
+     * @param {Object} rowData The data for the right-clicked row.
+     * @param {String} [columnId] The identifier of the right-clicked column.
+     * @param {Object} [cellData] The data of the right-clicked cell.
+     * @param {JSEvent} [event] The event object associated with the right-click.
+     * @param {String} [dataTarget] Optional data target identifier.
      */
     onCellRightClick: function() {},
 
     /**
      * Called when the columns state is changed
      *
-     * @param {String} columnState
-     * @param {JSEvent} [event]
+     * @param {String} columnState A JSON string representing the new state of the columns.
+     * @param {JSEvent} [event] The event that triggered the change.
      */
     onColumnStateChanged: function() {},
 
     /**
      * Called when the columns data is changed
      *
-     * @param {Number} rowindex
-     * @param {Number} [columnindex]
-     * @param {Object} [oldvalue]
-     * @param {Object} [newvalue]
-     * @param {JSEvent} [event]
-     * @param {Object} rowData
+     * @param {Number} rowindex The index of the row where the change occurred.
+     * @param {Number} [columnindex] The index of the column where the change occurred.
+     * @param {Object} [oldvalue] The previous value of the cell.
+     * @param {Object} [newvalue] The new value of the cell.
+     * @param {JSEvent} [event] The event that triggered the change.
+     * @param {Object} rowData The full data object for the row.
      *
-     * @returns {Boolean}
+     * @returns {Boolean} True if the change was successfully handled.
      */
     onColumnDataChange: function() {},
 
     /**
      * Called when lazy loading is used, and new rows are requested to display
      *
-     * @param {Long} startRow
-     * @param {Long} endRow
-     * @param {Array<CustomType<aggrid-datasettable.columnVO>>} rowGroupCols
-     * @param {Array<CustomType<aggrid-datasettable.columnVO>>} valueCols
-     * @param {Array<CustomType<aggrid-datasettable.columnVO>>} pivotCols
-     * @param {Boolean} pivotMode
-     * @param {Array<String>} groupKeys
-     * @param {Array<CustomType<aggrid-datasettable.filterModelVO>>} filterModels
-     * @param {Array<CustomType<aggrid-datasettable.sortModelVO>>} sortModels
+     * @param {Long} startRow The index of the first row to load.
+     * @param {Long} endRow The index of the last row to load.
+     * @param {Array<CustomType<aggrid-datasettable.columnVO>>} rowGroupCols The columns used for grouping.
+     * @param {Array<CustomType<aggrid-datasettable.columnVO>>} valueCols The columns used for values.
+     * @param {Array<CustomType<aggrid-datasettable.columnVO>>} pivotCols The columns used for pivoting.
+     * @param {Boolean} pivotMode Indicates if pivot mode is enabled.
+     * @param {Array<String>} groupKeys The keys representing the current grouping.
+     * @param {Array<CustomType<aggrid-datasettable.filterModelVO>>} filterModels The current filter models.
+     * @param {Array<CustomType<aggrid-datasettable.sortModelVO>>} sortModels The current sort models.
      */
     onLazyLoadingGetRows: function() {},
 
@@ -210,18 +264,18 @@ var handlers = {
     /**
      * Called when the column's form editor is started
      *
-     * @param {Number} [rowindex]
-     * @param {Number} [columnindex]
-     * @param {Object} [value]
+     * @param {Number} [rowindex] The index of the row being edited.
+     * @param {Number} [columnindex] The index of the column being edited.
+     * @param {Object} [value] The initial value of the cell for editing.
      */
     onColumnFormEditStarted: function() {},
 
     /**
      * Called when group is opened/closed
      *
-     * @param {Array<Number>} [groupcolumnindexes]
-     * @param {Array<Object>} [groupkeys]
-     * @param {Boolean} [isopened]
+     * @param {Array<Number>} [groupcolumnindexes] An array of column indexes associated with the group.
+     * @param {Array<Object>} [groupkeys] The keys representing the group hierarchy.
+     * @param {Boolean} [isopened] True if the group was expanded, false if collapsed.
      */
     onRowGroupOpened: function() {},
 
@@ -229,17 +283,17 @@ var handlers = {
      * Called when a row is dropped as a result of a drag-n-drop
      *
      * @param {Array<Object>} sourceRows an Array of plain objects if dragged from a power grid, or JSRecord objects if from a data grid
-     * @param {Object} targetRow
-     * @param {JSEvent} event
+     * @param {Object} targetRow The target row where the rows were dropped.
+     * @param {JSEvent} event The event object associated with the drop action.
      */
     onDrop: function() {},
 
     /**
      * Called when the mouse is clicked on a footer cell
      *
-     * @param {Number} [columnindex]
-     * @param {JSEvent} [event]
-     * @param {String} [dataTarget]
+     * @param {Number} [columnindex] The index of the footer column that was clicked.
+     * @param {JSEvent} [event] The event object associated with the click.
+     * @param {String} [dataTarget] Optional target identifier for the click.
      */
     onFooterClick: function() {}
 };
@@ -488,48 +542,90 @@ function sizeColumnsToFit() {
 
 var svy_types = {
 
+    /**
+     * Defines a column configuration for the grid.
+     */
     column: {
 
-        footerText : null,
+        /**
+         * The text to be displayed in the column footer.
+         */
+        footerText: null,
 
-        footerStyleClass : null,
+        /**
+         * CSS style class for the column footer.
+         */
+        footerStyleClass: null,
 
         /**
          * Header group, that this column will be part of
          */
         headerGroup : null,
 
-        headerGroupStyleClass : null,
+        /**
+         * CSS style class for the header group.
+         */
+        headerGroupStyleClass: null,
 
-        headerTitle : null,
+        /**
+         * The title text to be displayed in the column header.
+         */
+        headerTitle: null,
 
-        headerStyleClass : null,
+        /**
+         * CSS style class for the column header.
+         */
+        headerStyleClass: null,
 
         /**
          * (Font awesome) Styles for header icon
          */
         headerIconStyleClass : null,
 
-        headerTooltip : null,
+        /**
+         * Tooltip text for the column header.
+         */
+        headerTooltip: null,
 
-        dataprovider : null,
+        /**
+         * The data provider name associated with the column.
+         */
+        dataprovider: null,
 
-        tooltip : null,
+        /**
+         * Tooltip text for the cell.
+         */
+        tooltip: null,
 
-        styleClass : null,
+        /**
+         * CSS style class for the cell.
+         */
+        styleClass: null,
 
-        visible : null,
+        /**
+         * Visibility flag; when false the column is hidden.
+         */
+        visible: null,
 
         /**
          * When true the column is excluded from the UI
          */
         excluded : null,
 
-        width : null,
+        /**
+         * The width of the column in pixels.
+         */
+        width: null,
 
-        minWidth : null,
+        /**
+         * The minimum width allowed for the column in pixels.
+         */
+        minWidth: null,
 
-        maxWidth : null,
+        /**
+         * The maximum width allowed for the column in pixels.
+         */
+        maxWidth: null,
 
         /**
          * Allow the user to group or ungroup the column
@@ -556,15 +652,30 @@ var svy_types = {
          */
         aggFunc : null,
 
-        enableSort : null,
+        /**
+         * Enables sorting for this column.
+         */
+        enableSort: null,
 
-        enableResize : null,
+        /**
+         * Enables resizing for this column.
+         */
+        enableResize: null,
 
-        enableToolPanel : null,
+        /**
+         * When true, the column is available in the tool panel.
+         */
+        enableToolPanel: null,
 
-        autoResize : null,
+        /**
+         * Enables auto-resizing of the column based on its content.
+         */
+        autoResize: null,
 
-        cellStyleClassFunc : null,
+        /**
+         * Function to determine the CSS style class for the cell dynamically.
+         */
+        cellStyleClassFunc: null,
 
         /**
          * Function to change the cell rendering
@@ -591,9 +702,15 @@ var svy_types = {
          */
         editForm : null,
 
-        editFormSize : null,
+        /**
+         * Size configuration for the custom cell editor form.
+         */
+        editFormSize: null,
 
-        filterType : null,
+        /**
+         * The type of filter applied to this column.
+         */
+        filterType: null,
 
         /**
          * Used to set the column id (colId) property in the serialized column state json string of getColumnState and onColumnStateChanged
@@ -605,7 +722,10 @@ var svy_types = {
          */
         columnDef : null,
 
-        showAs : null,
+        /**
+         * Alternative display mode for the column.
+         */
+        showAs: null,
 
         /**
          * If exportData api should export the display value (with format applied) instead of the raw data of the dataset
@@ -632,179 +752,391 @@ var svy_types = {
          */
         dndSourceFunc : null,
 
-        valuelist : null,
+        /**
+         * Value list for mapping the column's values.
+         */
+        valuelist: null,
 
-        valuelistConfig : null,
+        /**
+         * Configuration settings for the value list.
+         */
+        valuelistConfig: null,
 
     },
 
     iconConfig: {
 
-        iconMenu : null,
+        /**
+         * Icon for the grid menu.
+         */
+        iconMenu: null,
 
-        iconFilter : null,
+        /**
+         * Icon for filtering functionality.
+         */
+        iconFilter: null,
 
-        iconColumns : null,
+        /**
+         * Icon representing the columns panel.
+         */
+        iconColumns: null,
 
-        iconSortAscending : null,
+        /**
+         * Icon indicating ascending sort order.
+         */
+        iconSortAscending: null,
 
-        iconSortDescending : null,
+        /**
+         * Icon indicating descending sort order.
+         */
+        iconSortDescending: null,
 
-        iconSortUnSort : null,
+        /**
+         * Icon indicating an unsorted column.
+         */
+        iconSortUnSort: null,
 
-        iconGroupExpanded : null,
+        /**
+         * Icon representing an expanded group.
+         */
+        iconGroupExpanded: null,
 
-        iconGroupContracted : null,
+        /**
+         * Icon representing a collapsed group.
+         */
+        iconGroupContracted: null,
 
-        iconColumnGroupOpened : null,
+        /**
+         * Icon for an open column group.
+         */
+        iconColumnGroupOpened: null,
 
-        iconColumnGroupClosed : null,
+        /**
+         * Icon for a closed column group.
+         */
+        iconColumnGroupClosed: null,
 
-        iconColumnSelectOpen : null,
+        /**
+         * Icon for an open column selection.
+         */
+        iconColumnSelectOpen: null,
 
-        iconColumnSelectClosed : null,
+        /**
+         * Icon for a closed column selection.
+         */
+        iconColumnSelectClosed: null,
 
-        iconCheckboxChecked : null,
+        /**
+         * Icon for a checked checkbox.
+         */
+        iconCheckboxChecked: null,
 
-        iconCheckboxUnchecked : null,
+        /**
+         * Icon for an unchecked checkbox.
+         */
+        iconCheckboxUnchecked: null,
 
-        iconCheckboxIndeterminate : null,
+        /**
+         * Icon for an indeterminate checkbox state.
+         */
+        iconCheckboxIndeterminate: null,
 
-        iconCheckboxCheckedReadOnly : null,
+        /**
+         * Icon for a read-only checked checkbox.
+         */
+        iconCheckboxCheckedReadOnly: null,
 
-        iconCheckboxUncheckedReadOnly : null,
+        /**
+         * Icon for a read-only unchecked checkbox.
+         */
+        iconCheckboxUncheckedReadOnly: null,
 
-        iconCheckboxIndeterminateReadOnly : null,
+        /**
+         * Icon for a read-only indeterminate checkbox.
+         */
+        iconCheckboxIndeterminateReadOnly: null,
 
-        iconColumnMovePin : null,
+        /**
+         * Icon for pinning a column.
+         */
+        iconColumnMovePin: null,
 
-        iconColumnMoveAdd : null,
+        /**
+         * Icon for adding a column.
+         */
+        iconColumnMoveAdd: null,
 
-        iconColumnMoveHide : null,
+        /**
+         * Icon for hiding a column.
+         */
+        iconColumnMoveHide: null,
 
-        iconColumnMoveMove : null,
+        /**
+         * Icon for moving a column.
+         */
+        iconColumnMoveMove: null,
 
-        iconColumnMoveLeft : null,
+        /**
+         * Icon for moving a column to the left.
+         */
+        iconColumnMoveLeft: null,
 
-        iconColumnMoveRight : null,
+        /**
+         * Icon for moving a column to the right.
+         */
+        iconColumnMoveRight: null,
 
-        iconColumnMoveGroup : null,
+        /**
+         * Icon for grouping columns.
+         */
+        iconColumnMoveGroup: null,
 
-        iconColumnMoveValue : null,
+        /**
+         * Icon for moving a column's value.
+         */
+        iconColumnMoveValue: null,
 
-        iconColumnMovePivot : null,
+        /**
+         * Icon for pivoting a column.
+         */
+        iconColumnMovePivot: null,
 
-        iconDropNotAllowed : null,
+        /**
+         * Icon indicating that a drop operation is not allowed.
+         */
+        iconDropNotAllowed: null,
 
-        iconMenuPin : null,
+        /**
+         * Icon for pinning via the menu.
+         */
+        iconMenuPin: null,
 
-        iconMenuValue : null,
+        /**
+         * Icon for displaying values in the menu.
+         */
+        iconMenuValue: null,
 
-        iconMenuAddRowGroup : null,
+        /**
+         * Icon for adding a row group via the menu.
+         */
+        iconMenuAddRowGroup: null,
 
-        iconMenuRemoveRowGroup : null,
+        /**
+         * Icon for removing a row group via the menu.
+         */
+        iconMenuRemoveRowGroup: null,
 
-        iconClipboardCopy : null,
+        /**
+         * Icon for copying to the clipboard.
+         */
+        iconClipboardCopy: null,
 
-        iconClipboardPaste : null,
+        /**
+         * Icon for pasting from the clipboard.
+         */
+        iconClipboardPaste: null,
 
-        iconRowGroupPanel : null,
+        /**
+         * Icon for the row group panel.
+         */
+        iconRowGroupPanel: null,
 
-        iconPivotPanel : null,
+        /**
+         * Icon for the pivot panel.
+         */
+        iconPivotPanel: null,
 
-        iconValuePanel : null,
+        /**
+         * Icon for the value panel.
+         */
+        iconValuePanel: null,
 
-        iconRefreshData : null,
+        /**
+         * Icon for refreshing grid data.
+         */
+        iconRefreshData: null,
 
-        iconEditorChecked : null,
+        /**
+         * Icon for a checked state in an editor.
+         */
+        iconEditorChecked: null,
 
-        iconEditorUnchecked : null,
-
+        /**
+         * Icon for an unchecked state in an editor.
+         */
+        iconEditorUnchecked: null,
     },
 
     columnVO: {
 
-        id : null,
+        /**
+         * Unique identifier of the column.
+         */
+        id: null,
 
-        displayName : null,
+        /**
+         * The display name for the column.
+         */
+        displayName: null,
 
-        aggFunc : null,
+        /**
+         * The aggregation function associated with the column.
+         */
+        aggFunc: null,
 
     },
 
     sortModelVO: {
 
-        colId : null,
+       /**
+         * The column identifier to which this sorting model applies.
+         */
+       colId: null,
 
-        sort : null,
+       /**
+        * The sort direction ('asc' for ascending, 'desc' for descending).
+        */
+       sort: null,
 
     },
 
     filterModelVO: {
 
-        id : null,
+        /**
+         * The unique identifier of the filter.
+         */
+        id: null,
 
-        operator : null,
+        /**
+         * The operator used in the filter (e.g., '=', '>', '<').
+         */
+        operator: null,
 
-        value : null,
+        /**
+         * The value used for filtering.
+         */
+        value: null,
 
     },
 
     rowInfo: {
 
-        rowData : null,
+        /**
+         * The data object for the row.
+         */
+        rowData: null,
 
-        rowIndex : null,
+        /**
+         * The index of the row in the grid.
+         */
+        rowIndex: null,
 
     },
 
     toolPanelConfig: {
 
-        suppressRowGroups : null,
+        /**
+         * When true, row groups are suppressed in the tool panel.
+         */
+        suppressRowGroups: null,
 
-        suppressValues : null,
+        /**
+         * When true, values are suppressed in the tool panel.
+         */
+        suppressValues: null,
 
-        suppressPivots : null,
+        /**
+         * When true, pivot options are suppressed in the tool panel.
+         */
+        suppressPivots: null,
 
-        suppressPivotMode : null,
+        /**
+         * When true, the pivot mode option is suppressed in the tool panel.
+         */
+        suppressPivotMode: null,
 
-        suppressSideButtons : null,
+        /**
+         * When true, side buttons in the tool panel are suppressed.
+         */
+        suppressSideButtons: null,
 
-        suppressColumnFilter : null,
+        /**
+         * When true, the column filter is suppressed in the tool panel.
+         */
+        suppressColumnFilter: null,
 
-        suppressColumnSelectAll : null,
+        /**
+         * When true, the option to select all columns is suppressed in the tool panel.
+         */
+        suppressColumnSelectAll: null,
 
-        suppressColumnExpandAll : null,
+        /**
+         * When true, the option to expand all columns is suppressed in the tool panel.
+         */
+        suppressColumnExpandAll: null,
 
     },
 
     mainMenuItemsConfig: {
 
-        pinSubMenu : null,
+        /**
+         * Configuration for the pin sub-menu.
+         */
+        pinSubMenu: null,
 
-        valueAggSubMenu : null,
+        /**
+         * Configuration for the value aggregation sub-menu.
+         */
+        valueAggSubMenu: null,
 
-        autoSizeThis : null,
+        /**
+         * Option to auto-size the current column.
+         */
+        autoSizeThis: null,
 
-        autoSizeAll : null,
+        /**
+         * Option to auto-size all columns.
+         */
+        autoSizeAll: null,
 
-        rowGroup : null,
+        /**
+         * Option to group rows by this column.
+         */
+        rowGroup: null,
 
-        rowUnGroup : null,
+        /**
+         * Option to ungroup rows.
+         */
+        rowUnGroup: null,
 
-        resetColumns : null,
+        /**
+         * Option to reset columns to their default state.
+         */
+        resetColumns: null,
 
-        expandAll : null,
+        /**
+         * Option to expand all groups in the grid.
+         */
+        expandAll: null,
 
-        contractAll : null,
+        /**
+         * Option to collapse all groups in the grid.
+         */
+        contractAll: null,
 
     },
 
     aggFuncInfo: {
 
-        name : null,
+        /**
+         * The name of the aggregation function.
+         */
+        name: null,
 
-        aggFunc : null,
+        /**
+         * The aggregation function implementation.
+         */
+        aggFunc: null,
 
     },
 
