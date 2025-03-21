@@ -171,6 +171,48 @@ var handlers = {
     onSelectedRowsChanged: function() {},
 
     /**
+     * Called when the mouse is clicked on a row/cell.
+     * The foundsetindex is always -1 when there are grouped rows.
+     * If a column is disabled (enabled = false), ensure that you only execute code for that column if columnindex corresponds to it.
+     *
+     * @param {Number} foundsetindex - The index of the clicked row in the foundset (or -1 for grouped rows).
+     * @param {Number} columnindex - The index of the clicked column in the grid.
+     * @param {JSRecord} record - The record object corresponding to the clicked row. (Optional)
+     * @param {JSEvent} [event] - The event object associated with the click. (Optional)
+     * @param {String} [dataTarget] - Optional identifier indicating the target data context. (Optional)
+     * @private
+     */
+    onCellClick: function() {},
+
+    /**
+     * Called when the mouse is double-clicked on a row/cell.
+     * The foundsetindex is always -1 when there are grouped rows.
+     * If a column is disabled (enabled = false), ensure that you only execute code for that column if columnindex corresponds to it.
+     *
+     * @param {Number} foundsetindex - The index of the double-clicked row in the foundset (or -1 for grouped rows).
+     * @param {Number} [columnindex] - The index of the double-clicked column in the grid. (Optional)
+     * @param {JSRecord} [record] - The record object corresponding to the double-clicked row. (Optional)
+     * @param {JSEvent} [event] - The event object associated with the double-click. (Optional)
+     * @param {String} [dataTarget] - Optional identifier indicating the target data context. (Optional)
+     * @private
+     */
+    onCellDoubleClick: function() {},
+
+    /**
+     * Called when the right mouse button is clicked on a row/cell.
+     * The foundsetindex is always -1 when there are grouped rows.
+     * If a column is disabled (enabled = false), ensure that you only execute code for that column if columnindex corresponds to it.
+     *
+     * @param {Number} foundsetindex - The index of the row where the right-click occurred (or -1 for grouped rows).
+     * @param {Number} [columnindex] - The index of the right-clicked column in the grid. (Optional)
+     * @param {JSRecord} [record] - The record object corresponding to the right-clicked row. (Optional)
+     * @param {JSEvent} [event] - The event object associated with the right-click. (Optional)
+     * @param {String} [dataTarget] - Optional identifier indicating the target data context. (Optional)
+     * @private
+     */
+    onCellRightClick: function(î) {},
+
+    /**
      * Called when the mouse is clicked on a footer cell
      *
      * @param {Number} [columnindex] The index of the footer cell that was clicked.
@@ -197,7 +239,7 @@ var handlers = {
      * @param {JSEvent} [event] The event object associated with the data change.
      * @param {JSRecord} [record] The record object representing the changed row.
      *
-     * @returns {Boolean} True if the change was handled successfully.
+     * @return {Boolean} True if the change was handled successfully.
      */
     onColumnDataChange: function() {},
 

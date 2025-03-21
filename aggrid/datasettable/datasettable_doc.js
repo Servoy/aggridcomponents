@@ -237,7 +237,7 @@ var handlers = {
      * @param {JSEvent} [event] The event that triggered the change.
      * @param {Object} rowData The full data object for the row.
      *
-     * @returns {Boolean} True if the change was successfully handled.
+     * @return {Boolean} True if the change was successfully handled.
      */
     onColumnDataChange: function() {},
 
