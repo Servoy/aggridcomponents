@@ -66,7 +66,8 @@
 		"_internalCheckboxGroupSelection": { "type": "object[]", "tags": {"scope" : "private"}, "pushToServer": "allow"},
 		"_internalFunctionCalls": { "type": "functionCall[]", "tags": {"scope" : "private"}},
 		"_internalHasDoubleClickHandler": { "type": "boolean", "default": false, "tags": {"scope" : "private"}},
-		"_internalVisible": { "type": "boolean", "tags": {"scope" : "private"}}
+		"_internalVisible": { "type": "boolean", "tags": {"scope" : "private"}},
+		"customMainMenu": {"type": "JSMenu", "extraPropertiesCategory" : "DataGrid", "extraProperties": { "isSeparator": "boolean", "hideForColIds": "string", "showForColIds": "string"}, "tags": {"doc": "Menu items to append to the columns menu, beside the default aggrid menus."}}
 	},
 	"handlers" : {
     	"onSelectedRowsChanged": {
@@ -286,6 +287,17 @@
 				"name": "event",
 				"type": "JSEvent"
 			}]			
+		},
+		"onCustomMainMenuAction" : {
+			"doc": "Called when a custom main menu item is chosen",
+			"parameters": [{
+				"name": "menuItemName",
+				"type": "string",
+				"doc": "Chosen menu item name"
+			}, {
+				"name": "colId",
+				"type": "string"
+			}]
 		}
 	}, 
 	"api" : {

@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { GridService } from './commons/grid.service';
+import { IJSMenu } from '@servoy/public';
 
 @Injectable({
   providedIn: 'root'
@@ -7,4 +8,6 @@ import { GridService } from './commons/grid.service';
 export class DatagridService extends GridService {
     public arrowsUpDownMoveWhenEditing: string;
     public editNextCellOnEnter: boolean;
+    public customMainMenu: IJSMenu;
+    
 }
