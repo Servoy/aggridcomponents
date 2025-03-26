@@ -540,6 +540,9 @@ function autoSizeAllColumns() {
 function sizeColumnsToFit() {
 }
 
+/**
+ * Type definitions for aggrid-datasettable types.
+ */
 var svy_types = {
 
     /**
@@ -764,6 +767,9 @@ var svy_types = {
 
     },
 
+    /**
+     * Icon configuration for grid components.
+     */
     iconConfig: {
 
         /**
@@ -967,6 +973,9 @@ var svy_types = {
         iconEditorUnchecked: null,
     },
 
+    /**
+     * Represents a simplified column value object used in the grid.
+     */
     columnVO: {
 
         /**
@@ -986,6 +995,9 @@ var svy_types = {
 
     },
 
+    /**
+     * Model representing the sorting state for a column.
+     */
     sortModelVO: {
 
        /**
@@ -1000,6 +1012,9 @@ var svy_types = {
 
     },
 
+    /**
+     * Model representing a filter applied to a column.
+     */
     filterModelVO: {
 
         /**
@@ -1019,6 +1034,9 @@ var svy_types = {
 
     },
 
+    /**
+     * Information about a row in the grid.
+     */
     rowInfo: {
 
         /**
@@ -1033,6 +1051,9 @@ var svy_types = {
 
     },
 
+    /**
+     * Configuration options for the grid's tool panel.
+     */
     toolPanelConfig: {
 
         /**
@@ -1077,6 +1098,9 @@ var svy_types = {
 
     },
 
+    /**
+     * Configuration options for the main menu items in the grid.
+     */
     mainMenuItemsConfig: {
 
         /**
@@ -1126,6 +1150,9 @@ var svy_types = {
 
     },
 
+    /**
+     * Information about an aggregation function used in the grid.
+     */
     aggFuncInfo: {
 
         /**
@@ -1140,6 +1167,9 @@ var svy_types = {
 
     },
 
+    /**
+     * Events that trigger auto-sizing of columns.
+     */
     columnsAutoSizingOn: {
 
         /**
