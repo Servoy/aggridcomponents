@@ -553,7 +553,7 @@ export class DataGrid extends NGGridDirective {
                     }, 500);
                 } else {
                     this.sizeHeader();
-                    this.storeColumnsState();
+                    this.storeColumnsState(e.source === 'api');
                 }
             },
             onColumnVisible: (event) => {
@@ -585,7 +585,7 @@ export class DataGrid extends NGGridDirective {
                         this.updateColumnDefs();
                     }
                     this.sizeHeaderAndColumnsToFit(GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED);
-                    this.storeColumnsState();
+                    this.storeColumnsState(e.source === 'api');
                 }
             },
             getContextMenuItems: () => this.contextMenuItems,
