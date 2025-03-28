@@ -1379,7 +1379,7 @@ export class DataGrid extends NGGridDirective {
             items = ['rowGroup', 'rowUnGroup'];
         }
         const menuItems: any = [];
-        const customMainMenu = dataGrid.customMainMenu ? dataGrid.customMainMenu : dataGrid.datagridService.customMainMenu;
+        const customMainMenu = dataGrid.customMainMenu ? dataGrid.customMainMenu : dataGrid.registrationService.datagridService.customMainMenu;
         if(customMainMenu) {
             const column = dataGrid.getColumn(params.column.getColDef().field);
             if(column) {
