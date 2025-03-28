@@ -6,7 +6,6 @@ import { ColumnsAutoSizingOn, GRID_EVENT_TYPES, IconConfig, MainMenuItemsConfig,
 import { DatePicker } from '../editors/datepicker';
 import { FormEditor } from '../editors/formeditor';
 import { TextEditor } from '../editors/texteditor';
-import { PowergridService } from './powergrid.service';
 import { DomSanitizer } from '@angular/platform-browser';
 import { DOCUMENT } from '@angular/common';
 import { CustomTooltip } from '../datagrid/commons/tooltip';
@@ -16,6 +15,7 @@ import { TypeaheadEditor } from '../editors/typeaheadeditor';
 import { ValuelistFilter } from '../filters/valuelistfilter';
 import { RadioFilter } from '../filters/radiofilter';
 import { NgbTypeaheadConfig } from '@ng-bootstrap/ng-bootstrap';
+import { RegistrationService } from '../datagrid/commons/registration.service';
 
 const TABLE_PROPERTIES_DEFAULTS = {
     rowHeight: { gridOptionsProperty: 'rowHeight', default: 25 },
@@ -170,8 +170,8 @@ export class PowerGrid extends NGGridDirective {
     lazyLoadingRemoteDatasource: RemoteDatasource;
 
     constructor(renderer: Renderer2, cdRef: ChangeDetectorRef, logFactory: LoggerFactory,
-        private powergridService: PowergridService, public formattingService: FormattingService, public ngbTypeaheadConfig: NgbTypeaheadConfig,
-        private sanitizer: DomSanitizer, @Inject(DOCUMENT) public doc: Document) {
+        public formattingService: FormattingService, public ngbTypeaheadConfig: NgbTypeaheadConfig,
+        private sanitizer: DomSanitizer, @Inject(DOCUMENT) public doc: Document, private registrationService: RegistrationService) {
         super(renderer, cdRef);
         this.ngbTypeaheadConfig.container = 'body';
         this.log = logFactory.getLogger('PowerGrid');
@@ -180,14 +180,14 @@ export class PowerGrid extends NGGridDirective {
     ngOnInit() {
         super.ngOnInit();
         // if nggrids service is present read its defaults
-        let toolPanelConfig = this.powergridService.toolPanelConfig ? this.powergridService.toolPanelConfig : null;
-        let iconConfig = this.powergridService.iconConfig ? this.powergridService.iconConfig : null;
-        let userGridOptions = this.powergridService.gridOptions ? this.powergridService.gridOptions : null;
-        let localeText = this.powergridService.localeText ? this.powergridService.localeText : null;
-        const mainMenuItemsConfig = this.powergridService.mainMenuItemsConfig ? this.powergridService.mainMenuItemsConfig : null;
+        let toolPanelConfig = this.registrationService.powergridService.toolPanelConfig ? this.registrationService.powergridService.toolPanelConfig : null;
+        let iconConfig = this.registrationService.powergridService.iconConfig ? this.registrationService.powergridService.iconConfig : null;
+        let userGridOptions = this.registrationService.powergridService.gridOptions ? this.registrationService.powergridService.gridOptions : null;
+        let localeText = this.registrationService.powergridService.localeText ? this.registrationService.powergridService.localeText : null;
+        const mainMenuItemsConfig = this.registrationService.powergridService.mainMenuItemsConfig ? this.registrationService.powergridService.mainMenuItemsConfig : null;
 
-        if (this.powergridService.continuousColumnsAutoSizing) {
-            this.agContinuousColumnsAutoSizing = this.powergridService.continuousColumnsAutoSizing;
+        if (this.registrationService.powergridService.continuousColumnsAutoSizing) {
+            this.agContinuousColumnsAutoSizing = this.registrationService.powergridService.continuousColumnsAutoSizing;
         }
 
         this.initialColumnsAutoSizing = this.columnsAutoSizing;
@@ -606,8 +606,8 @@ export class PowerGrid extends NGGridDirective {
     private getColumnsAutoSizingOn(): unknown {
         if(this.columnsAutoSizingOn) {
             return this.columnsAutoSizingOn;
-        } else if(this.powergridService.columnsAutoSizingOn) {
-            return this.powergridService.columnsAutoSizingOn
+        } else if(this.registrationService.powergridService.columnsAutoSizingOn) {
+            return this.registrationService.powergridService.columnsAutoSizingOn
         }
         return null;
     }
@@ -966,12 +966,12 @@ export class PowerGrid extends NGGridDirective {
                             dragDatas.push(rowData);
                         });
 
-                        this.powergridService.setDragData(dragDatas);
+                        this.registrationService.powergridService.setDragData(dragDatas);
 
                         if(this.onDragGetImageFunc) {
                             const dragGhostEl = this.doc.createElement('div') as HTMLElement;
                             dragGhostEl.id = 'nggrids-drag-ghost';
-                            dragGhostEl.innerHTML = this.onDragGetImageFunc(this.powergridService.getDragData(), params.dragEvent);
+                            dragGhostEl.innerHTML = this.onDragGetImageFunc(this.registrationService.powergridService.getDragData(), params.dragEvent);
                             dragGhostEl.style.position = 'absolute';
                             dragGhostEl.style.top = '-1000px';
                             this.doc.body.appendChild(dragGhostEl);
@@ -998,7 +998,7 @@ export class PowerGrid extends NGGridDirective {
                     }
                 }
 
-                let columnOptions = this.powergridService.columnOptions ? this.powergridService.columnOptions : {};
+                let columnOptions = this.registrationService.powergridService.columnOptions ? this.registrationService.powergridService.columnOptions : {};
                 columnOptions = this.mergeConfig(columnOptions, column.columnDef);
 
                 if (columnOptions) {
@@ -1846,7 +1846,7 @@ export class PowerGrid extends NGGridDirective {
     }
 
     getIconCheckboxEditor(state: any) {
-        const checkboxEditorIconConfig = this.powergridService.iconConfig ? this.mergeConfig(this.powergridService.iconConfig, this.iconConfig) : this.iconConfig;
+        const checkboxEditorIconConfig = this.registrationService.powergridService.iconConfig ? this.mergeConfig(this.registrationService.powergridService.iconConfig, this.iconConfig) : this.iconConfig;
 
         if (state) {
             return checkboxEditorIconConfig && checkboxEditorIconConfig['iconEditorChecked'] && checkboxEditorIconConfig['iconEditorChecked'] !== 'glyphicon glyphicon-check' ?
@@ -2232,7 +2232,7 @@ export class PowerGrid extends NGGridDirective {
                 if (overRow) {
                     overRowData = overRow.data || Object.assign(overRow.groupData, overRow.aggData);
                 }
-                dragOver = this.onDragOverFunc(this.powergridService.getDragData(), overRowData, $event);
+                dragOver = this.onDragOverFunc(this.registrationService.powergridService.getDragData(), overRowData, $event);
             } else {
                 dragOver = true;
             }

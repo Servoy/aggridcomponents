@@ -7,7 +7,6 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, EventEmitter, Inject, Input
 import { Component } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { LoggerFactory, ChangeType, IFoundset, FoundsetChangeEvent, Deferred, FormattingService, ServoyPublicService, BaseCustomObject, IJSMenu, IJSMenuItem } from '@servoy/public';
-import { DatagridService } from './datagrid.service';
 import { DatePicker } from '../editors/datepicker';
 import { FormEditor } from '../editors/formeditor';
 import { SelectEditor } from '../editors/selecteditor';
@@ -21,6 +20,7 @@ import { BlankLoadingCellRendrer } from './renderers/blankloadingcellrenderer';
 import { NgbTypeaheadConfig } from '@ng-bootstrap/ng-bootstrap';
 import { CustomTooltip } from './commons/tooltip';
 import { isEqualWith } from 'lodash-es';
+import { RegistrationService } from './commons/registration.service';
 
 const TABLE_PROPERTIES_DEFAULTS = {
     rowHeight: { gridOptionsProperty: 'rowHeight', default: 25 },
@@ -262,7 +262,7 @@ export class DataGrid extends NGGridDirective {
 
     constructor(renderer: Renderer2, public cdRef: ChangeDetectorRef, logFactory: LoggerFactory,
         private servoyService: ServoyPublicService, public formattingService: FormattingService, public ngbTypeaheadConfig: NgbTypeaheadConfig,
-        private datagridService: DatagridService, private sanitizer: DomSanitizer, @Inject(DOCUMENT) public doc: Document) {
+        private sanitizer: DomSanitizer, @Inject(DOCUMENT) public doc: Document, private registrationService: RegistrationService) {
         super(renderer, cdRef);
         this.ngbTypeaheadConfig.container = 'body';
         this.log = logFactory.getLogger('DataGrid');
@@ -271,20 +271,20 @@ export class DataGrid extends NGGridDirective {
     ngOnInit() {
         super.ngOnInit();
         // if nggrids service is present read its defaults
-        let toolPanelConfig = this.datagridService.toolPanelConfig ? this.datagridService.toolPanelConfig : null;
-        let iconConfig = this.datagridService.iconConfig ? this.datagridService.iconConfig : null;
-        let userGridOptions = this.datagridService.gridOptions ? this.datagridService.gridOptions : null;
-        let localeText = this.datagridService.localeText ? this.datagridService.localeText : null;
-        const mainMenuItemsConfig = this.datagridService.mainMenuItemsConfig ? this.datagridService.mainMenuItemsConfig : null;
+        let toolPanelConfig = this.registrationService.datagridService.toolPanelConfig ? this.registrationService.datagridService.toolPanelConfig : null;
+        let iconConfig = this.registrationService.datagridService.iconConfig ? this.registrationService.datagridService.iconConfig : null;
+        let userGridOptions = this.registrationService.datagridService.gridOptions ? this.registrationService.datagridService.gridOptions : null;
+        let localeText = this.registrationService.datagridService.localeText ? this.registrationService.datagridService.localeText : null;
+        const mainMenuItemsConfig = this.registrationService.datagridService.mainMenuItemsConfig ? this.registrationService.datagridService.mainMenuItemsConfig : null;
 
-        if(this.datagridService.arrowsUpDownMoveWhenEditing) {
-            this.agArrowsUpDownMoveWhenEditing = this.datagridService.arrowsUpDownMoveWhenEditing;
+        if(this.registrationService.datagridService.arrowsUpDownMoveWhenEditing) {
+            this.agArrowsUpDownMoveWhenEditing = this.registrationService.datagridService.arrowsUpDownMoveWhenEditing;
         }
-        if(this.datagridService.editNextCellOnEnter) {
-            this.agEditNextCellOnEnter = this.datagridService.editNextCellOnEnter;
+        if(this.registrationService.datagridService.editNextCellOnEnter) {
+            this.agEditNextCellOnEnter = this.registrationService.datagridService.editNextCellOnEnter;
         }
-        if(this.datagridService.continuousColumnsAutoSizing) {
-            this.agContinuousColumnsAutoSizing = this.datagridService.continuousColumnsAutoSizing;
+        if(this.registrationService.datagridService.continuousColumnsAutoSizing) {
+            this.agContinuousColumnsAutoSizing = this.registrationService.datagridService.continuousColumnsAutoSizing;
         }
 
         this.initialColumnsAutoSizing = this.columnsAutoSizing;
@@ -780,8 +780,8 @@ export class DataGrid extends NGGridDirective {
     private getColumnsAutoSizingOn(): unknown {
         if(this.columnsAutoSizingOn) {
             return this.columnsAutoSizingOn;
-        } else if(this.datagridService.columnsAutoSizingOn) {
-            return this.datagridService.columnsAutoSizingOn
+        } else if(this.registrationService.datagridService.columnsAutoSizingOn) {
+            return this.registrationService.datagridService.columnsAutoSizingOn
         }
         return null;
     }
@@ -1581,12 +1581,12 @@ export class DataGrid extends NGGridDirective {
                         records.push(this.getRecord(row));
                     });
 
-                    this.datagridService.setDragData(dragDatas);
+                    this.registrationService.datagridService.setDragData(dragDatas);
 
                     if(this.onDragGetImageFunc) {
                         const dragGhostEl = this.doc.createElement('div') as HTMLElement;
                         dragGhostEl.id = 'nggrids-drag-ghost';
-                        dragGhostEl.innerHTML = this.onDragGetImageFunc(this.datagridService.getDragData(), params.dragEvent);
+                        dragGhostEl.innerHTML = this.onDragGetImageFunc(this.registrationService.datagridService.getDragData(), params.dragEvent);
                         dragGhostEl.style.position = 'absolute';
                         dragGhostEl.style.top = '-1000px';
                         this.doc.body.appendChild(dragGhostEl);
@@ -1598,7 +1598,7 @@ export class DataGrid extends NGGridDirective {
                 };
             }
 
-            let columnOptions = this.datagridService.columnOptions ? this.datagridService.columnOptions : {};
+            let columnOptions = this.registrationService.datagridService.columnOptions ? this.registrationService.datagridService.columnOptions : {};
             columnOptions = this.mergeConfig(columnOptions, column.columnDef);
 
             if(columnOptions) {
@@ -3296,13 +3296,13 @@ export class DataGrid extends NGGridDirective {
     }
 
     getIconRefreshData() {
-        const refreshEditorIconConfig = this.datagridService.iconConfig ? this.mergeConfig(this.datagridService.iconConfig, this.iconConfig) : this.iconConfig;
+        const refreshEditorIconConfig = this.registrationService.datagridService.iconConfig ? this.mergeConfig(this.registrationService.datagridService.iconConfig, this.iconConfig) : this.iconConfig;
         return refreshEditorIconConfig && refreshEditorIconConfig['iconRefreshData'] &&  refreshEditorIconConfig['iconRefreshData'] !== 'glyphicon glyphicon-refresh' ?
             this.iconConfig['iconRefreshData'] : 'fa fa-sync';
     }
 
     getIconCheckboxEditor(state: any) {
-        const checkboxEditorIconConfig = this.datagridService.iconConfig ? this.mergeConfig(this.datagridService.iconConfig, this.iconConfig) : this.iconConfig;
+        const checkboxEditorIconConfig = this.registrationService.datagridService.iconConfig ? this.mergeConfig(this.registrationService.datagridService.iconConfig, this.iconConfig) : this.iconConfig;
 
         if(state) {
             return checkboxEditorIconConfig && checkboxEditorIconConfig['iconEditorChecked'] && checkboxEditorIconConfig['iconEditorChecked'] !== 'glyphicon glyphicon-check' ?
@@ -4385,7 +4385,7 @@ export class DataGrid extends NGGridDirective {
                         }
                     }
                 }
-                dragOver = this.onDragOverFunc(this.datagridService.getDragData(), overDragData, $event);
+                dragOver = this.onDragOverFunc(this.registrationService.datagridService.getDragData(), overDragData, $event);
             } else {
                 dragOver = true;
             }
