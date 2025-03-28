@@ -9,8 +9,6 @@ import { SelectEditor } from './editors/selecteditor';
 import { TextEditor } from './editors/texteditor';
 import { TypeaheadEditor } from './editors/typeaheadeditor';
 import { AgGridModule } from 'ag-grid-angular';
-import { ClientSideRowModelModule, CellStyleModule, ColumnApiModule, ColumnAutoSizeModule, DragAndDropModule, EventApiModule, LocaleModule, ModuleRegistry, NumberFilterModule, PinnedRowModule, RowApiModule, RowAutoHeightModule, ScrollApiModule, TooltipModule, ValidationModule, TextFilterModule, CustomEditorModule, DateFilterModule, TextEditorModule, RenderApiModule, RowStyleModule } from 'ag-grid-community';
-import { ClipboardModule, RowGroupingModule, SideBarModule, MenuModule, ExcelExportModule, CellSelectionModule, FiltersToolPanelModule, ColumnsToolPanelModule, RowGroupingPanelModule, ServerSideRowModelApiModule, ServerSideRowModelModule } from 'ag-grid-enterprise';
 import { ValuelistFilter } from './filters/valuelistfilter';
 import { RadioFilter } from './filters/radiofilter';
 import { AggFuncInfo, PowerGrid, PowerGridColumn } from './powergrid/powergrid';
@@ -56,38 +54,5 @@ export class NGGridsModule {
         specTypesService.registerType('aggrid-datasettable.toolPanelConfig', ToolPanelConfig);
         specTypesService.registerType('aggrid-datasettable.mainMenuItemsConfig', MainMenuItemsConfig);
         specTypesService.registerType('aggrid-datasettable.aggFuncInfo', AggFuncInfo);
-        // eslint-disable-next-line max-len
-        ModuleRegistry.registerModules([
-            ServerSideRowModelModule,
-            CellSelectionModule,
-            RowGroupingModule,
-            RowGroupingPanelModule,
-            SideBarModule,
-            ColumnsToolPanelModule,
-            MenuModule,
-            FiltersToolPanelModule,
-            ClientSideRowModelModule,
-            ExcelExportModule,
-            ClipboardModule,
-            PinnedRowModule,
-            ColumnAutoSizeModule,
-            LocaleModule,
-            TooltipModule,
-            CellStyleModule,
-            NumberFilterModule,
-            DragAndDropModule,
-            EventApiModule,
-            ColumnApiModule,
-            RowApiModule,
-            ServerSideRowModelApiModule,
-            ScrollApiModule,
-            RowAutoHeightModule,
-            TextFilterModule,
-            DateFilterModule,
-            TextEditorModule,
-            CustomEditorModule,
-            ValidationModule,
-            RenderApiModule,
-            RowStyleModule]);
     }
 }
