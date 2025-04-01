@@ -25,6 +25,9 @@ var rowHeight;
  */
 var rowStyleClassDataprovider;
 
+/**
+ * CSS class for the cell.
+ */
 var styleClass;
 
 /**
@@ -157,6 +160,11 @@ var onDragOverFunc;
  * Called when row(s) drag-n-drop is started, to get the drag image as an html code.
  */
 var onDragGetImageFunc;
+
+/**
+ * Menu items to append to the columns menu, beside the default aggrid menus.
+ */
+var customMainMenu;
 
 
 var handlers = {
