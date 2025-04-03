@@ -285,11 +285,20 @@ var handlers = {
     /**
      * Called when a row is dropped as a result of a drag-n-drop
      *
-     * @param {Array<Object>} sourceRows an Array of JSRecord objects if dragged from a data grid, or plain objects if from a power grid
+     * @param {Array<Object>} sourceRows An Array of JSRecord objects if dragged from a data grid, or plain objects if from a power grid
      * @param {JSRecord} targetRecord The target record where the rows were dropped.
      * @param {JSEvent} event The event object associated with the drop action.
      */
-    onDrop: function() {}
+    onDrop: function() {},
+
+    /**
+     * Called when a custom main menu item is chosen.
+     *
+     * @param {String} menuItemName The name of the custom menu item that was selected.
+     * @param {String} colId The column identifier associated with the menu action.
+     */
+    onCustomMainMenuAction: function() {}
+
 };
 
 
@@ -454,6 +463,26 @@ function removeColumn(index) {
  * @return {Boolean} True if all columns were successfully removed; otherwise, false.
  */
 function removeAllColumns() {
+}
+
+/**
+ * Returns an array of view columns currently visible in the grid.
+ *
+ * @return {Array<CustomType<aggrid-groupingtable.viewColumn>>} An array of view column objects representing the columns currently displayed.
+ */
+function getViewColumns() {
+
+}
+
+/**
+ * Returns the view column corresponding to the given column ID.
+ *
+ * @param {String} colId - The unique identifier of the column.
+ * 
+ * @return {CustomType<aggrid-groupingtable.viewColumn>} The view column object corresponding to the specified column ID.
+ */
+function getViewColumnById() {
+
 }
 
 /**
