@@ -3576,7 +3576,7 @@ export class DataGrid extends NGGridDirective {
                     this.onFooterClick(columnIndex, params.event, this.getDataTarget(params.event));
                 }
             } else {
-                if(this._internalHasDoubleClickHandler) {
+                if(this._internalHasDoubleClickHandler || (params.colDef.editable && this.isColumnEditable(params))) {
                     if(this.clickTimer) {
                         clearTimeout(this.clickTimer);
                         this.clickTimer = null;
