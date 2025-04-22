@@ -155,10 +155,11 @@ function convertData(value, columnName) {
  * 
  * @param {JSDataSet} dataset
  * @param {Number} lastRowIndex 
+ * @param {Array<String>} [pks] list of dataprovider names; needed in case of using apis: updateRows and deleteRows
  */
-$scope.api.appendLazyRequestData = function(dataset, lastRowIndex) {
+$scope.api.appendLazyRequestData = function(dataset, lastRowIndex, pks) {
     $scope.model.lastRowIndex = null;
-    $scope.api.renderData(dataset);
+    $scope.api.renderData(dataset, pks ? pks : $scope.model.pks);
     if(lastRowIndex) {
         $scope.model.lastRowIndex = lastRowIndex;
     }

@@ -357,7 +357,8 @@
 		"appendLazyRequestData": {
 			"parameters": [
 				{ "name": "dataset", "type": "dataset" },
-				{ "name": "lastRowIndex", "type": "long", "optional": true }
+				{ "name": "lastRowIndex", "type": "long", "optional": true },
+				{ "name": "pks", "type" : "string[]", "optional": true }
 			]
 		},
 		"editCellAt": {
