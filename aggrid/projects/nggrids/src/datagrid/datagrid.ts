@@ -1196,7 +1196,11 @@ export class DataGrid extends NGGridDirective {
     displayValueGetter(params: any) {
         const field = params.colDef.field;
         if (field && params.data) {
-            return params.data[field];
+            let value = params.data[field];
+            if (value == null) {
+                value = NULL_VALUE; // need to use an object for null, else grouping won't work in ag grid
+            } 
+            return value;
         }
 
         return '';
@@ -4951,7 +4955,7 @@ class FoundsetDatasource implements IServerSideDatasource {
         // the row group cols, ie the cols that the user has dragged into the 'group by' zone, eg 'Country' and 'Customerid'
         const rowGroupCols = params.request.rowGroupCols;
         // the keys we are looking at. will be empty if looking at top level (either no groups, or looking at top level groups). eg ['United States','2002']
-        const groupKeys = params.request.groupKeys;
+        const groupKeys = params.request.groupKeys as any[];
 
         // resolve valuelist display values to real values
         const filterPromises = [];
@@ -4959,6 +4963,9 @@ class FoundsetDatasource implements IServerSideDatasource {
         let removeAllFoundsetRefPostponed = false;
         const _this = this;
         for (let i = 0; i < groupKeys.length; i++) {
+            if (groupKeys[i] == NULL_VALUE) {
+                groupKeys[i] = null;	// reset to real null, so we use the right value for grouping
+            }
             if (groupKeys[i] !== null) {
                 const vl = this.dataGrid.getValuelistEx(params.parentNode.data, rowGroupCols[i]['id']);
                 if(vl) {
