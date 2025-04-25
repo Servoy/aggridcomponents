@@ -1017,7 +1017,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                             if(column.formatType == 'DATETIME' && column.format.useLocalDateTime) {
                                 colDef.valueGetter = function(params) {
                                     var field = params.colDef.field;
-                                    if (field && params.data) {
+                                    if (field && params.data && params.data[field]) {
                                         return new Date(params.data[field]);
                                     }
                                     return undefined;				

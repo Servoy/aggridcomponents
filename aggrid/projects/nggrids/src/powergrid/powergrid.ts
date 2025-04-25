@@ -873,7 +873,7 @@ export class PowerGrid extends NGGridDirective {
                     if (column.formatType === 'DATETIME' && column.format.useLocalDateTime) {
                         colDef.valueGetter = (params: any) => {
                             const field = params.colDef.field;
-                            if (field && params.data) {
+                            if (field && params.data && params.data[field]) {
                                 return new Date(params.data[field]);
                             }
                             return '';
