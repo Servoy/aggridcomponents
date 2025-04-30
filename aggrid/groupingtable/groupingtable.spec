@@ -88,6 +88,10 @@
 				"name": "groupselection",
 				"type": "boolean",
 				"optional": true
+			},{
+				"name": "event",
+				"type": "JSEvent",
+				"optional": true
 			}]
 		},
 		"onCellClick": {

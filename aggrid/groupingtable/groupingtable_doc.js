@@ -175,6 +175,7 @@ var handlers = {
      * @param {String} [groupcolumnid] The ID of the column used for grouping, if applicable.
      * @param {Object} [groupkey] The key identifying the group whose selection has changed.
      * @param {Boolean} [groupselection] True if the entire group is selected; false if deselected.
+     * @param {JSEvent} [event] - The event object associated with selection changed. (Optional)
      */
     onSelectedRowsChanged: function() {},
 
