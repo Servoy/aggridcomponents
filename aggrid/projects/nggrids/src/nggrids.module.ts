@@ -15,6 +15,7 @@ import { AggFuncInfo, PowerGrid, PowerGridColumn } from './powergrid/powergrid';
 import { BlankLoadingCellRendrer } from './datagrid/renderers/blankloadingcellrenderer';
 import { FormsModule } from '@angular/forms';
 import { IconConfig, MainMenuItemsConfig, ToolPanelConfig } from './nggrid';
+import { DateFilter } from './filters/datefilter';
 
 @NgModule({
     declarations: [
@@ -26,6 +27,7 @@ import { IconConfig, MainMenuItemsConfig, ToolPanelConfig } from './nggrid';
         TypeaheadEditor,
         ValuelistFilter,
         RadioFilter,
+        DateFilter,
         BlankLoadingCellRendrer,
         PowerGrid
     ],

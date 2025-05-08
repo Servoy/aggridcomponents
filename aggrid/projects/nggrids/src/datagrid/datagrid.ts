@@ -21,6 +21,7 @@ import { NgbTypeaheadConfig } from '@ng-bootstrap/ng-bootstrap';
 import { CustomTooltip } from './commons/tooltip';
 import { isEqualWith } from 'lodash-es';
 import { RegistrationService } from './commons/registration.service';
+import { DateFilter } from '../filters/datefilter';
 
 const TABLE_PROPERTIES_DEFAULTS = {
     rowHeight: { gridOptionsProperty: 'rowHeight', default: 25 },
@@ -644,7 +645,8 @@ export class DataGrid extends NGGridDirective {
             },
             components: {
                 valuelistFilter: ValuelistFilter,
-                radioFilter: RadioFilter
+                radioFilter: RadioFilter,
+                dateFilter: DateFilter
             }
         } as GridOptions;
 
@@ -1542,16 +1544,19 @@ export class DataGrid extends NGGridDirective {
                 } else if(column.filterType === 'NUMBER') {
                     colDef.filter = 'agNumberColumnFilter';
                 } else if(column.filterType === 'DATE') {
-                    colDef.filter = 'agDateColumnFilter';
+                    //colDef.filter = 'agDateColumnFilter';
+                    colDef.filter = 'dateFilter';
+                    colDef.filterParams['suppressAndOrCondition'] = true;
+                    if(!this.servoyApi.isInDesigner()) colDef.floatingFilterComponent = 'dateFilter';
                 } else if(column.filterType === 'VALUELIST') {
                     colDef.filter = 'valuelistFilter';
                     colDef.filterParams['suppressAndOrCondition'] = true;
-                    colDef.floatingFilterComponent = 'valuelistFilter';
+                    if(!this.servoyApi.isInDesigner()) colDef.floatingFilterComponent = 'valuelistFilter';
                     //colDef.floatingFilterComponentParams = { suppressFilterButton : true};
                 } else if(column.filterType === 'RADIO') {
                     colDef.filter = 'radioFilter';
                     colDef.filterParams['suppressAndOrCondition'] = true;
-                    colDef.floatingFilterComponent = 'radioFilter';
+                    if(!this.servoyApi.isInDesigner()) colDef.floatingFilterComponent = 'radioFilter';
                     //colDef.floatingFilterComponentParams = { suppressFilterButton : true};
                 }
             }

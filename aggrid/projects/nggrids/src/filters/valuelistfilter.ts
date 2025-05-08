@@ -8,7 +8,7 @@ import { NULL_VALUE } from '../datagrid/datagrid';
 @Component({
     selector: 'aggrid-datagrid-valuelistfilter',
     template: `
-      <div><div class="{{ !isFloating ? 'ag-filter-body-wrapper' : '' }}">
+      <div><div class="{{ !isFloating ? 'ag-filter-body-wrapper ag-simple-filter-body-wrapper' : '' }}">
         <div class="ag-filter-body">
           <div class="ag-input-wrapper">
             <input class="ag-filter-filter ag-input-field-input" type="text" id="filterText" autocomplete="off"
@@ -38,8 +38,8 @@ import { NULL_VALUE } from '../datagrid/datagrid';
         </div>
       </div>
       <div *ngIf="hasApplyButton()" class="ag-filter-apply-panel">
-          <button type="button" id="btnClearFilter" (click)="onClearFilter()">{{ txtClearFilter }}</button>
-          <button type="button" id="btnApplyFilter" (click)="onApplyFilter()">{{ txtApplyFilter }}</button>
+        <button type="button" id="btnApplyFilter" class="ag-button ag-standard-button ag-filter-apply-panel-button" (click)="onApplyFilter()">{{ txtApplyFilter }}</button>      
+        <button type="button" id="btnClearFilter" class="ag-button ag-standard-button ag-filter-apply-panel-button" (click)="onClearFilter()">{{ txtClearFilter }}</button>
       </div></div>
       <ng-template #rt let-r="result" let-t="term">
         <ngb-highlight [result]="getFormatedDisplayValue(r.displayValue)" [term]="t"></ngb-highlight>

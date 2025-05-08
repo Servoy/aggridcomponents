@@ -4,7 +4,7 @@ import { FilterDirective } from './filter';
 @Component({
     selector: 'aggrid-datagrid-radiofilter',
     template: `
-      <div class="{{ !isFloating ? 'ag-filter-body-wrapper' : '' }}">
+      <div class="{{ !isFloating ? 'ag-filter-body-wrapper ag-simple-filter-body-wrapper' : '' }}">
         <div *ngIf="!useCheckboxForFloatingFilter()" class="ag-filter-body" #element>
           <label class="ag-radio-filter" id="filterRadio" *ngFor="let item of valuelistValues">
             <input type="radio" name="{{ getName() }}" [value]="getFormatedDisplayValue(item.displayValue)" (change)="valueChanged()"/>
@@ -23,8 +23,8 @@ import { FilterDirective } from './filter';
         </div>
       </div>
       <div *ngIf="hasApplyButton()" class="ag-filter-apply-panel">
-          <button type="button" id="btnClearFilter" (click)="onClearFilter()">{{ txtClearFilter }}</button>
-          <button type="button" id="btnApplyFilter" (click)="onApplyFilter()">{{ txtApplyFilter }}</button>
+        <button type="button" id="btnApplyFilter" class="ag-button ag-standard-button ag-filter-apply-panel-button" (click)="onApplyFilter()">{{ txtApplyFilter }}</button>      
+        <button type="button" id="btnClearFilter" class="ag-button ag-standard-button ag-filter-apply-panel-button" (click)="onClearFilter()">{{ txtClearFilter }}</button>
       </div>
     `,
     standalone: false

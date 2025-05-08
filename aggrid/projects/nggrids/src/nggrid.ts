@@ -1,7 +1,8 @@
 import { AgGridAngular } from 'ag-grid-angular';
 import { GridApi, GridOptions } from 'ag-grid-community';
 import { ChangeDetectorRef, ContentChild, Directive, ElementRef, Input, TemplateRef, ViewChild } from '@angular/core';
-import { BaseCustomObject, Format, FormattingService, LoggerService, ServoyBaseComponent } from '@servoy/public';
+import { Deferred, BaseCustomObject, Format, FormattingService, LoggerService, ServoyBaseComponent } from '@servoy/public';
+import { Options } from '@eonasdan/tempus-dominus';
 
 export const GRID_EVENT_TYPES = {
     GRID_READY: 'gridReady',
@@ -177,6 +178,49 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
         }
         return null;
     }
+
+    loadCalendarLocale(config: Options): Deferred<any> {
+        const locale = config.localization.locale;
+        const localeDefer  = new Deferred();
+        const index = locale.indexOf('-');
+        let language = locale.toLowerCase();
+        if (index > 0 && language !== 'ar-sa' && language !== 'sr-latn') {
+            language = locale.substring(0, index);
+        }
+        const moduleLoader =  (module: { default: { localization: { [key: string]: string | number} }}) => {
+            const copy = Object.assign({}, module.default.localization);
+            copy.startOfTheWeek =   config.localization.startOfTheWeek;
+            copy.hourCycle = config.localization.hourCycle;
+            config.localization = copy;
+            localeDefer.resolve(locale);
+        }
+        const errorHandler = () => {
+			localeDefer.resolve('');
+        }
+        switch(language) {
+            case 'ar-sa': import('@eonasdan/tempus-dominus/dist/locales/ar-SA.js').then(moduleLoader,errorHandler); break;
+            case 'ar': import('@eonasdan/tempus-dominus/dist/locales/ar.js').then(moduleLoader,errorHandler); break;
+            case 'ca': import('@eonasdan/tempus-dominus/dist/locales/ca.js').then(moduleLoader,errorHandler); break;
+            case 'cs': import('@eonasdan/tempus-dominus/dist/locales/cs.js').then(moduleLoader,errorHandler); break;
+            case 'de': import('@eonasdan/tempus-dominus/dist/locales/de.js').then(moduleLoader,errorHandler); break;
+            case 'es': import('@eonasdan/tempus-dominus/dist/locales/es.js').then(moduleLoader,errorHandler); break;
+            case 'fi': import('@eonasdan/tempus-dominus/dist/locales/fi.js').then(moduleLoader,errorHandler); break;
+            case 'fr': import('@eonasdan/tempus-dominus/dist/locales/fr.js').then(moduleLoader,errorHandler); break;
+            case 'hr': import('@eonasdan/tempus-dominus/dist/locales/hr.js').then(moduleLoader,errorHandler); break;
+            case 'hy': import('@eonasdan/tempus-dominus/dist/locales/hy.js').then(moduleLoader,errorHandler); break;
+            case 'it': import('@eonasdan/tempus-dominus/dist/locales/it.js').then(moduleLoader,errorHandler); break;
+            case 'nl': import('@eonasdan/tempus-dominus/dist/locales/nl.js').then(moduleLoader,errorHandler); break;
+            case 'pl': import('@eonasdan/tempus-dominus/dist/locales/pl.js').then(moduleLoader,errorHandler); break;
+            case 'ro': import('@eonasdan/tempus-dominus/dist/locales/ro.js').then(moduleLoader,errorHandler); break;
+            case 'ru': import('@eonasdan/tempus-dominus/dist/locales/ru.js').then(moduleLoader,errorHandler); break;
+            case 'sl': import('@eonasdan/tempus-dominus/dist/locales/sl.js').then(moduleLoader,errorHandler); break;
+            case 'sr': import('@eonasdan/tempus-dominus/dist/locales/sr.js').then(moduleLoader,errorHandler); break;
+            case 'sr-latn': import('@eonasdan/tempus-dominus/dist/locales/sr-Latn.js').then(moduleLoader,errorHandler); break;
+            case 'tr': import('@eonasdan/tempus-dominus/dist/locales/tr.js').then(moduleLoader,errorHandler); break;
+            default: localeDefer.resolve('');
+        }
+        return localeDefer;
+    }    
 
     abstract getColumn(field: any, columnsModel?: any): any;
 

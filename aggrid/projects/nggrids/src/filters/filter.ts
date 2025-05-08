@@ -41,9 +41,9 @@ export class FilterDirective implements AgFloatingFilterComponent, IFloatingFilt
         this.ngGrid = this.params.context.componentParent;
 
         this.txtClearFilter = this.ngGrid.agGridOptions['localeText'] && this.ngGrid.agGridOptions['localeText']['clearFilter'] ?
-          this.ngGrid.agGridOptions['localeText'] && this.ngGrid.agGridOptions['localeText']['clearFilter'] : 'Clear Filter';
+          this.ngGrid.agGridOptions['localeText'] && this.ngGrid.agGridOptions['localeText']['clearFilter'] : 'Clear';
         this.txtApplyFilter = this.ngGrid.agGridOptions['localeText'] && this.ngGrid.agGridOptions['localeText']['applyFilter'] ?
-          this.ngGrid.agGridOptions['localeText'] && this.ngGrid.agGridOptions['localeText']['applyFilter'] : 'Apply Filter';
+          this.ngGrid.agGridOptions['localeText'] && this.ngGrid.agGridOptions['localeText']['applyFilter'] : 'Apply';
 
         this.valuelistValuesDefer = new Deferred();
         const valuelist = this.ngGrid.getValuelistForFilter(this.params);
@@ -91,12 +91,7 @@ export class FilterDirective implements AgFloatingFilterComponent, IFloatingFilt
         if(filterRealValue === '' || filterRealValue === null) {
             this.model = null;
         } else {
-            this.model = {
-            filterType: this.isRealValueUUID ? 'uuid' : isNaN(filterRealValue) ? 'text' : 'number',
-            type: 'equals',
-            filter: filterRealValue,
-            uiValue: this.getFilterUIValue(),
-            };
+            this.model = this.getCondition(filterRealValue);
         }
 
         if(!this.suppressAndOrCondition()) {
@@ -105,11 +100,7 @@ export class FilterDirective implements AgFloatingFilterComponent, IFloatingFilt
           if(filterRealValue === '' || filterRealValue === null) {
             condition2 = null;
           } else {
-            condition2 = {
-              filterType: this.isRealValueUUID ? 'uuid' : isNaN(filterRealValue) ? 'text' : 'number',
-              type: 'equals',
-              filter: filterRealValue
-            };
+            condition2 = this.getCondition2(filterRealValue);
           }
 
           if(this.model && condition2) {
@@ -206,5 +197,22 @@ export class FilterDirective implements AgFloatingFilterComponent, IFloatingFilt
 
     suppressAndOrCondition(): boolean {
       return this.params['suppressAndOrCondition'] === true;
+    }
+
+    getCondition(realValue): any {
+      return {
+        filterType: this.isRealValueUUID ? 'uuid' : isNaN(realValue) ? 'text' : 'number',
+        type: 'equals',
+        filter: realValue,
+        uiValue: this.getFilterUIValue(),
+      };
+    }
+
+    getCondition2(realValue): any {
+      return {
+        filterType: this.isRealValueUUID ? 'uuid' : isNaN(realValue) ? 'text' : 'number',
+        type: 'equals',
+        filter: realValue
+      };
     }
 }

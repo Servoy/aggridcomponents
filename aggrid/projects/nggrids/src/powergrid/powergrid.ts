@@ -913,16 +913,19 @@ export class PowerGrid extends NGGridDirective {
                     } else if (column.filterType === 'NUMBER') {
                         colDef.filter = 'agNumberColumnFilter';
                     } else if (column.filterType === 'DATE') {
-                        colDef.filter = 'agDateColumnFilter';
+                        //colDef.filter = 'agDateColumnFilter';
+                        colDef.filter = 'dateFilter';
+                        colDef.filterParams['suppressAndOrCondition'] = true;
+                        if(!this.servoyApi.isInDesigner()) colDef.floatingFilterComponent = 'dateFilter';
                     } else if (column.filterType === 'VALUELIST') {
                         colDef.filter = 'valuelistFilter';
                         colDef.filterParams['suppressAndOrCondition'] = true;
-                        colDef.floatingFilterComponent = 'valuelistFilter';
+                        if(!this.servoyApi.isInDesigner()) colDef.floatingFilterComponent = 'valuelistFilter';
                         //colDef.floatingFilterComponentParams = { suppressFilterButton : true};
                     } else if (column.filterType === 'RADIO') {
                         colDef.filter = 'radioFilter';
                         colDef.filterParams['suppressAndOrCondition'] = true;
-                        colDef.floatingFilterComponent = 'radioFilter';
+                        if(!this.servoyApi.isInDesigner()) colDef.floatingFilterComponent = 'radioFilter';
                         //colDef.floatingFilterComponentParams = { suppressFilterButton : true};
                     }
                 }
