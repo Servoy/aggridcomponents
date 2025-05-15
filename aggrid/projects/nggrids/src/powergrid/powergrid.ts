@@ -988,7 +988,7 @@ export class PowerGrid extends NGGridDirective {
                             params.dragEvent.dataTransfer.setDragImage(dragGhostEl, 0, 0);
                         }                        
 
-                        params.dragEvent.dataTransfer.setData('nggrids-drag/json', JSON.stringify(this.registrationService.powergridService.getDragData));
+                        params.dragEvent.dataTransfer.setData('nggrids-drag/json', JSON.stringify(this.registrationService.powergridService.getDragData()));
                     };
                 }
 
