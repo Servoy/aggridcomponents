@@ -1,8 +1,8 @@
 import { GetRowIdParams, ColumnMenuTab, ColumnResizedEvent, ColDef, Column, IRowNode, IAggFunc, DisplayedColumnsChangedEvent } from 'ag-grid-community';
 import { ChangeDetectorRef, Component, EventEmitter, Inject, Input, Output, Renderer2, SecurityContext, SimpleChanges } from '@angular/core';
-import { BaseCustomObject, FormattingService, ICustomArray } from '@servoy/public';
+import { BaseCustomObject, FormattingService, ICustomArray, ServoyPublicService } from '@servoy/public';
 import { LoggerFactory } from '@servoy/public';
-import { ColumnsAutoSizingOn, GRID_EVENT_TYPES, IconConfig, MainMenuItemsConfig, NGGridDirective, ToolPanelConfig } from '../nggrid';
+import { ColumnsAutoSizingOn, DragTransferData, GRID_EVENT_TYPES, IconConfig, JSDNDEvent, MainMenuItemsConfig, NGGridDirective, ToolPanelConfig } from '../nggrid';
 import { DatePicker } from '../editors/datepicker';
 import { FormEditor } from '../editors/formeditor';
 import { TextEditor } from '../editors/texteditor';
@@ -170,7 +170,7 @@ export class PowerGrid extends NGGridDirective {
     lazyLoadingRemoteDatasource: RemoteDatasource;
 
     constructor(renderer: Renderer2, cdRef: ChangeDetectorRef, logFactory: LoggerFactory,
-        public formattingService: FormattingService, public ngbTypeaheadConfig: NgbTypeaheadConfig,
+        private servoyService: ServoyPublicService, public formattingService: FormattingService, public ngbTypeaheadConfig: NgbTypeaheadConfig,
         private sanitizer: DomSanitizer, @Inject(DOCUMENT) public doc: Document, private registrationService: RegistrationService) {
         super(renderer, cdRef);
         this.ngbTypeaheadConfig.container = 'body';
@@ -959,6 +959,7 @@ export class PowerGrid extends NGGridDirective {
                 }
 
                 if (colDef.dndSource) {
+                    const sourceColumnId = colDef.colId;
                     colDef.dndSourceOnRowDrag = (params) => {
                         const dragDatas = [];
 
@@ -969,12 +970,17 @@ export class PowerGrid extends NGGridDirective {
                             dragDatas.push(rowData);
                         });
 
-                        this.registrationService.powergridService.setDragData(dragDatas);
+                        this.registrationService.powergridService.setDragData(new DragTransferData(dragDatas, this.name, sourceColumnId) );
 
                         if(this.onDragGetImageFunc) {
+                            const jsDragGetImageEvent = this.servoyService.createJSEvent(params.dragEvent, 'onDragGetImage') as JSDNDEvent;                
+                            jsDragGetImageEvent.targetColumnId = sourceColumnId;
+                            jsDragGetImageEvent.sourceGridName = this.name;
+                            jsDragGetImageEvent.sourceColumnId = sourceColumnId;
+
                             const dragGhostEl = this.doc.createElement('div') as HTMLElement;
                             dragGhostEl.id = 'nggrids-drag-ghost';
-                            dragGhostEl.innerHTML = this.onDragGetImageFunc(this.registrationService.powergridService.getDragData(), params.dragEvent);
+                            dragGhostEl.innerHTML = this.onDragGetImageFunc(dragDatas, jsDragGetImageEvent);
                             dragGhostEl.style.position = 'absolute';
                             dragGhostEl.style.top = '-1000px';
                             this.doc.body.appendChild(dragGhostEl);
@@ -982,7 +988,7 @@ export class PowerGrid extends NGGridDirective {
                             params.dragEvent.dataTransfer.setDragImage(dragGhostEl, 0, 0);
                         }                        
 
-                        params.dragEvent.dataTransfer.setData('nggrids/json', JSON.stringify(dragDatas));
+                        params.dragEvent.dataTransfer.setData('nggrids-drag/json', JSON.stringify(this.registrationService.powergridService.getDragData));
                     };
                 }
 
@@ -2225,7 +2231,7 @@ export class PowerGrid extends NGGridDirective {
     }
 
     gridDragOver($event) {
-        const dragSupported = $event.dataTransfer.types.length && $event.dataTransfer.types[0] === 'nggrids/json';
+        const dragSupported = $event.dataTransfer.types.length && $event.dataTransfer.types[0] === 'nggrids-drag/json';
         if (dragSupported) {
             this.handleDragViewportScroll($event);
             let dragOver: any = false;
@@ -2235,7 +2241,14 @@ export class PowerGrid extends NGGridDirective {
                 if (overRow) {
                     overRowData = overRow.data || Object.assign(overRow.groupData, overRow.aggData);
                 }
-                dragOver = this.onDragOverFunc(this.registrationService.powergridService.getDragData(), overRowData, $event);
+                const targetColumn = $event.target.closest('[col-id]');
+                const dragData = this.registrationService.datagridService.getDragData();
+
+                const jsDragOverEvent = this.servoyService.createJSEvent($event, 'onDragOver') as JSDNDEvent;                
+                jsDragOverEvent.targetColumnId = targetColumn ? targetColumn.getAttribute('col-id') : '';
+                jsDragOverEvent.sourceGridName = dragData.sourceGridName;
+                jsDragOverEvent.sourceColumnId = dragData.sourceColumnId;
+                dragOver = this.onDragOverFunc(dragData.records, overRowData, jsDragOverEvent);
             } else {
                 dragOver = true;
             }
@@ -2254,11 +2267,19 @@ export class PowerGrid extends NGGridDirective {
         $event.preventDefault();
         this.cancelDragViewportScroll();
         if (this.onDrop) {
+            const targetColumn = $event.target.closest('[col-id]');
             const targetNode = this.getNodeForElement($event.target);
-            const jsonData = $event.dataTransfer.getData('nggrids/json');
-            const rowDatas = JSON.parse(jsonData);
+            const jsonData = $event.dataTransfer.getData('nggrids-drag/json');
+            const dragTranferData = JSON.parse(jsonData) as DragTransferData;
+
+            const jsDropEvent = this.servoyService.createJSEvent($event, 'onDrop') as JSDNDEvent;
+            jsDropEvent.targetColumnId = targetColumn ? targetColumn.getAttribute('col-id') : '';
+            jsDropEvent.sourceGridName = dragTranferData.sourceGridName;
+            jsDropEvent.sourceColumnId = dragTranferData.sourceColumnId;
+
+            const rowDatas = dragTranferData.records;
             const overRowData = targetNode ? (targetNode.data || Object.assign(targetNode.groupData, targetNode.aggData)) : null;
-            this.onDrop(rowDatas, overRowData, $event);
+            this.onDrop(rowDatas, overRowData, jsDropEvent);
         }
     }
 

@@ -279,7 +279,7 @@
 				"type": "object"
 			}, {
 				"name": "event",
-				"type": "JSEvent"
+				"type": "JSDNDEvent"
 			}]
 		},
 		"onFooterClick": {
@@ -592,6 +592,14 @@
 			"gridReady" : { "type": "boolean", "default": true, "tags": {"scope": "design", "doc": "Apply 'columnsAutoSizing' when grid is ready to be shown"} },
 			"gridSizeChange" : { "type": "boolean", "default": true, "tags": {"scope": "design", "doc": "Apply 'columnsAutoSizing' when grid size changes"} },
 			"toolPanelVisibleChange" : { "type": "boolean", "default": true, "tags": {"scope": "design", "doc": "Apply 'columnsAutoSizing' when the toolpanel visibility is changed"} }
+		},
+		"JSDNDEvent" : {
+			"extends" : "JSEvent",
+			"model":{
+				"targetColumnId": {"type" : "string"},
+				"sourceGridName": {"type" : "string"},
+				"sourceColumnId": {"type" : "string"}
+        	}
 		}
 	}
 }

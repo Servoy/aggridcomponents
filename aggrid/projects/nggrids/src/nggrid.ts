@@ -1,7 +1,7 @@
 import { AgGridAngular } from 'ag-grid-angular';
 import { GridApi, GridOptions } from 'ag-grid-community';
 import { ChangeDetectorRef, ContentChild, Directive, ElementRef, Input, TemplateRef, ViewChild } from '@angular/core';
-import { Deferred, BaseCustomObject, Format, FormattingService, LoggerService, ServoyBaseComponent } from '@servoy/public';
+import { Deferred, BaseCustomObject, Format, FormattingService, LoggerService, ServoyBaseComponent, JSEvent } from '@servoy/public';
 import { Options } from '@eonasdan/tempus-dominus';
 
 export const GRID_EVENT_TYPES = {
@@ -249,4 +249,15 @@ export class MainMenuItemsConfig extends BaseCustomObject {
 }
 
 export class ColumnsAutoSizingOn extends BaseCustomObject {   
+}
+
+export class DragTransferData {
+    constructor(public records: any, public sourceGridName: string, public sourceColumnId: string) {
+    }
+}
+
+export class JSDNDEvent extends JSEvent{
+    targetColumnId: string;
+    sourceColumnId: string;
+    sourceGridName: string;
 }

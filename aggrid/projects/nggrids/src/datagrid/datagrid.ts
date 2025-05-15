@@ -6,7 +6,7 @@ import { GridOptions, GetRowIdParams, IRowDragItem, DndSourceCallbackParams, Col
 import { ChangeDetectionStrategy, ChangeDetectorRef, EventEmitter, Inject, Input, Output, Renderer2, SecurityContext, SimpleChanges } from '@angular/core';
 import { Component } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
-import { LoggerFactory, ChangeType, IFoundset, FoundsetChangeEvent, Deferred, FormattingService, ServoyPublicService, BaseCustomObject, IJSMenu, IJSMenuItem } from '@servoy/public';
+import { LoggerFactory, ChangeType, IFoundset, FoundsetChangeEvent, Deferred, FormattingService, ServoyPublicService, BaseCustomObject, IJSMenu, IJSMenuItem, JSEvent } from '@servoy/public';
 import { DatePicker } from '../editors/datepicker';
 import { FormEditor } from '../editors/formeditor';
 import { SelectEditor } from '../editors/selecteditor';
@@ -14,7 +14,7 @@ import { TextEditor } from '../editors/texteditor';
 import { TypeaheadEditor } from '../editors/typeaheadeditor';
 import { RadioFilter } from '../filters/radiofilter';
 import { ValuelistFilter } from '../filters/valuelistfilter';
-import { ColumnsAutoSizingOn, GRID_EVENT_TYPES, IconConfig, MainMenuItemsConfig, NGGridDirective, ToolPanelConfig } from '../nggrid';
+import { ColumnsAutoSizingOn, DragTransferData, GRID_EVENT_TYPES, IconConfig, JSDNDEvent, MainMenuItemsConfig, NGGridDirective, ToolPanelConfig } from '../nggrid';
 import { DOCUMENT } from '@angular/common';
 import { BlankLoadingCellRendrer } from './renderers/blankloadingcellrenderer';
 import { NgbTypeaheadConfig } from '@ng-bootstrap/ng-bootstrap';
@@ -1569,6 +1569,7 @@ export class DataGrid extends NGGridDirective {
             }
 
             if(colDef.dndSource) {
+                const sourceColumnId = colDef.colId;
                 colDef.dndSourceOnRowDrag = (params) => {
                     const dragDatas = [];
                     const records = [];
@@ -1590,20 +1591,24 @@ export class DataGrid extends NGGridDirective {
                         records.push(this.getRecord(row));
                     });
 
-                    this.registrationService.datagridService.setDragData(dragDatas);
+                    this.registrationService.datagridService.setDragData(new DragTransferData(dragDatas, this.name, sourceColumnId) );
 
                     if(this.onDragGetImageFunc) {
+                        const jsDragGetImageEvent = this.servoyService.createJSEvent(params.dragEvent, 'onDragGetImage') as JSDNDEvent;                
+                        jsDragGetImageEvent.targetColumnId = sourceColumnId;
+                        jsDragGetImageEvent.sourceGridName = this.name;
+                        jsDragGetImageEvent.sourceColumnId = sourceColumnId;
+
                         const dragGhostEl = this.doc.createElement('div') as HTMLElement;
                         dragGhostEl.id = 'nggrids-drag-ghost';
-                        dragGhostEl.innerHTML = this.onDragGetImageFunc(this.registrationService.datagridService.getDragData(), params.dragEvent);
+                        dragGhostEl.innerHTML = this.onDragGetImageFunc(dragDatas, jsDragGetImageEvent);
                         dragGhostEl.style.position = 'absolute';
                         dragGhostEl.style.top = '-1000px';
                         this.doc.body.appendChild(dragGhostEl);
     
                         params.dragEvent.dataTransfer.setDragImage(dragGhostEl, 0, 0);
                     }
-
-                    params.dragEvent.dataTransfer.setData('nggrids/json', JSON.stringify(records));
+                    params.dragEvent.dataTransfer.setData('nggrids-drag/json', JSON.stringify(new DragTransferData(records, this.name, sourceColumnId)));
                 };
             }
 
@@ -4378,7 +4383,7 @@ export class DataGrid extends NGGridDirective {
     }
 
     gridDragOver($event) {
-        const dragSupported = $event.dataTransfer.types.length && $event.dataTransfer.types[0] === 'nggrids/json';
+        const dragSupported = $event.dataTransfer.types.length && $event.dataTransfer.types[0] === 'nggrids-drag/json';
         if (dragSupported) {
             this.handleDragViewportScroll($event);
             let dragOver: any = false;
@@ -4397,7 +4402,14 @@ export class DataGrid extends NGGridDirective {
                         }
                     }
                 }
-                dragOver = this.onDragOverFunc(this.registrationService.datagridService.getDragData(), overDragData, $event);
+                const targetColumn = $event.target.closest('[col-id]');
+                const dragData = this.registrationService.datagridService.getDragData();
+
+                const jsDragOverEvent = this.servoyService.createJSEvent($event, 'onDragOver') as JSDNDEvent;                
+                jsDragOverEvent.targetColumnId = targetColumn ? targetColumn.getAttribute('col-id') : '';
+                jsDragOverEvent.sourceGridName = dragData.sourceGridName;
+                jsDragOverEvent.sourceColumnId = dragData.sourceColumnId;
+                dragOver = this.onDragOverFunc(dragData.records, overDragData, jsDragOverEvent);
             } else {
                 dragOver = true;
             }
@@ -4416,10 +4428,17 @@ export class DataGrid extends NGGridDirective {
         $event.preventDefault();
         this.cancelDragViewportScroll();
         if(this.onDrop) {
+            const targetColumn = $event.target.closest('[col-id]');
             const targetNode = this.getNodeForElement($event.target);
-            const jsonData = $event.dataTransfer.getData('nggrids/json');
-            const records = JSON.parse(jsonData);
-            this.onDrop(records, targetNode ? this.getRecord(targetNode) : null, $event);
+            const jsonData = $event.dataTransfer.getData('nggrids-drag/json');
+            const dragTranferData = JSON.parse(jsonData) as DragTransferData;
+
+            const jsDropEvent = this.servoyService.createJSEvent($event, 'onDrop') as JSDNDEvent;
+            jsDropEvent.targetColumnId = targetColumn ? targetColumn.getAttribute('col-id') : '';
+            jsDropEvent.sourceGridName = dragTranferData.sourceGridName;
+            jsDropEvent.sourceColumnId = dragTranferData.sourceColumnId;
+
+            this.onDrop(dragTranferData.records, targetNode ? this.getRecord(targetNode) : null, jsDropEvent);
         }
     }
 

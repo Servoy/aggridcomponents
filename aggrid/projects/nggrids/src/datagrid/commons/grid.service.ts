@@ -1,4 +1,4 @@
-import { NGGridDirective } from '../../nggrid';
+import { DragTransferData, NGGridDirective } from '../../nggrid';
 import { RowDropZoneParams } from 'ag-grid-community';
 
 export class GridService {
@@ -14,13 +14,13 @@ export class GridService {
     public columnsAutoSizingOn: any;
     public licenseKey: string;
 
-    private dragData: any[];
+    private dragData: DragTransferData;
 
-    setDragData(dragData: any[]) {
+    setDragData(dragData: DragTransferData) {
       this.dragData = dragData;
     }
 
-    getDragData() {
+    getDragData(): DragTransferData {
       return this.dragData;
     }
 }
