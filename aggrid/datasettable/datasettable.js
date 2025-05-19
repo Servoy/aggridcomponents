@@ -552,10 +552,15 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                             if(focuseFromEl && (focuseFromEl.classList.contains('ag-cell') || focuseFromEl.classList.contains('ag-header-cell'))) { // focuse out from the grid
                                 gridOptions.api.clearFocusedCell();
                             } else if (gridOptions.columnApi.columnController.rowGroupColumns.length === 0){
-                                gridOptions.api.ensureIndexVisible(0);
+                                var selectedRows = gridOptions.api.getSelectedNodes();
+                                var selectedRowIdx = 0;
+                                if(selectedRows && selectedRows.length > 0) {
+                                    selectedRowIdx = selectedRows[0].rowIndex;
+                                } else {
+                                    $scope.api.setSelectedRows([0]);
+                                }
                                 gridOptions.api.ensureColumnVisible(allDisplayedColumns[0]);
-                                $scope.api.setSelectedRows([0]);
-                                gridOptions.api.setFocusedCell(0, allDisplayedColumns[0]);                            
+                                gridOptions.api.setFocusedCell(selectedRowIdx, allDisplayedColumns[0]);
                             }
                         }
                     }
