@@ -640,10 +640,15 @@ export class PowerGrid extends NGGridDirective {
                     if (focuseFromEl && (focuseFromEl.classList.contains('ag-cell') || focuseFromEl.classList.contains('ag-header-cell'))) { // focuse out from the grid
                         this.agGrid.api.clearFocusedCell();
                     } else if (this.agGridOptions.groupDisplayType !== 'groupRows') {
-                        this.agGrid.api.ensureIndexVisible(0);
+                        const selectedRows = this.agGrid.api.getSelectedNodes();
+                        let selectedRowIdx = 0;
+                        if(selectedRows && selectedRows.length > 0) {
+                            selectedRowIdx = selectedRows[0].rowIndex;
+                        } else {
+                            this.setSelectedRows([0]);
+                        }
                         this.agGrid.api.ensureColumnVisible(allDisplayedColumns[0]);
-                        this.setSelectedRows([0]);
-                        this.agGrid.api.setFocusedCell(0, allDisplayedColumns[0]);
+                        this.agGrid.api.setFocusedCell(selectedRowIdx, allDisplayedColumns[0]);
                     }
                 }
             }
