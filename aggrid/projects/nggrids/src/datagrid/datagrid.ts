@@ -421,22 +421,28 @@ export class DataGrid extends NGGridDirective {
             getMainMenuItems: this.getMainMenuItems,
             rowHeight: this.rowHeight,
 
-            rowSelection: {
-                mode: this.myFoundset && (this.myFoundset.multiSelect === true) ? 'multiRow' : 'singleRow',
-                enableClickSelection: this.enabled,
-                checkboxes: this.enabled && this.checkboxSelection,
-                headerCheckbox: false,
-                isRowSelectable: (node: IRowNode) => {
-                    return !node.group || (this.groupCheckbox && this.myFoundset && (this.myFoundset.multiSelect === true));
-                }
-            },
-            //suppressCellFocus: !this.enabled,
-            cellSelection: false,
-            singleClickEdit: false,
-            suppressClickEdit: false,
-            enableGroupEdit: false,
-            groupDisplayType: this.groupUseEntireRow ? 'groupRows' : 'multipleColumns',
-            suppressAggFuncInHeader: true, // TODO support aggregations
+			rowSelection: {
+				mode: this.myFoundset && (this.myFoundset.multiSelect === true) ? 'multiRow' : 'singleRow',
+				enableClickSelection: this.enabled,
+				checkboxes: this.enabled && this.checkboxSelection,
+				headerCheckbox: false,
+				isRowSelectable: (node: IRowNode) => {
+					return !node.group || (this.groupCheckbox && this.myFoundset && (this.myFoundset.multiSelect === true));
+				}
+			},
+			selectionColumnDef: {
+				pinned: 'left',
+				sortable: false,
+				resizable: false,
+				suppressHeaderMenuButton: true
+			},
+			//suppressCellFocus: !this.enabled,
+			cellSelection: false,
+			singleClickEdit: false,
+			suppressClickEdit: false,
+			enableGroupEdit: false,
+			groupDisplayType: this.groupUseEntireRow ? 'groupRows' : 'multipleColumns',
+			suppressAggFuncInHeader: true, // TODO support aggregations
 
             suppressColumnVirtualisation: false,
             suppressScrollOnNewData: true,
