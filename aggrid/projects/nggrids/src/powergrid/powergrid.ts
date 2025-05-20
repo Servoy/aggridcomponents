@@ -654,7 +654,10 @@ export class PowerGrid extends NGGridDirective {
             }
         });
 
-        const mainWindowContainer = this.doc.querySelector('.svy-main-window-container');
+        let mainWindowContainer = this.agGridElementRef.nativeElement.closest('.svy-main-window-container');
+        if(!mainWindowContainer) {
+            mainWindowContainer = this.agGridElementRef.nativeElement.closest('.svy-dialog');
+        }
         this.agGrid.api.setGridOption('popupParent', mainWindowContainer ? mainWindowContainer : this.agGridElementRef.nativeElement);
         // register listener for selection changed
         this.agGrid.api.addEventListener('rowSelected', (event: any) => this.onRowSelectedHandler(event));

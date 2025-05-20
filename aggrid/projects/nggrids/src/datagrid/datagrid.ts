@@ -876,14 +876,17 @@ export class DataGrid extends NGGridDirective {
 			//     rowData: []
 			// };
 
-			// // init the grid
-			// new agGrid.Grid(gridDiv, designGridOptions);
-			return;
-		} else {
-			this.isRendered = true;
-		}
-		const mainWindowContainer = this.doc.querySelector('.svy-main-window-container');
-		this.agGrid.api.setGridOption('popupParent', mainWindowContainer ? mainWindowContainer : this.agGridElementRef.nativeElement);
+            // // init the grid
+            // new agGrid.Grid(gridDiv, designGridOptions);
+            return;
+        } else {
+            this.isRendered = true;
+        }
+        let mainWindowContainer = this.agGridElementRef.nativeElement.closest('.svy-main-window-container');
+        if(!mainWindowContainer) {
+            mainWindowContainer = this.agGridElementRef.nativeElement.closest('.svy-dialog');
+        }
+        this.agGrid.api.setGridOption('popupParent', mainWindowContainer ? mainWindowContainer : this.agGridElementRef.nativeElement);
 
 		this.agGridElementRef.nativeElement.addEventListener('click', (e: any) => {
 			if (e.target.parentNode && e.target.parentNode.classList &&
