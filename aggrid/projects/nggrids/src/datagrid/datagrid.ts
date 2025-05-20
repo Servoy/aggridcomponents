@@ -433,6 +433,12 @@ export class DataGrid extends NGGridDirective {
 					return !node.group || (this.groupCheckbox && this.myFoundset && (this.myFoundset.multiSelect === true));
 				}
 			},
+			selectionColumnDef: {
+				pinned: 'left',
+				sortable: false,
+				resizable: false,
+				suppressHeaderMenuButton: true
+			},
 			//suppressCellFocus: !this.enabled,
 			cellSelection: false,
 			singleClickEdit: false,

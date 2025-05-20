@@ -282,6 +282,12 @@ export class PowerGrid extends NGGridDirective {
                 checkboxes: this.enabled && (this.checkboxSelection || this.multiSelect),
                 headerCheckbox: false 
             },
+			selectionColumnDef: {
+				pinned: 'left',
+				sortable: false,
+				resizable: false,
+				suppressHeaderMenuButton: true
+			},
             //                suppressRowClickSelection: rowGroupColsDefault.length === 0 ? false : true,
             cellSelection: false,
 
