@@ -348,40 +348,39 @@ export class DataGrid extends NGGridDirective {
             }
         }
 
-        // setup grid options
-        this.agGridOptions = {
-            context: {
-                componentParent: this
-            },
-            debug: false,
-            rowModelType: 'serverSide',
-            rowGroupPanelShow: 'onlyWhenGrouping', // TODO expose property,
-            onGridReady: (event) => {
-                this.gridApi = event.api;
-                this.log.debug('gridReady');
-                this.isGridReady = true;
-                if(this.isRendered) {
-                    const emptyValue = '_empty';
-                    if(this._internalColumnState !== emptyValue) {
-                        this.columnState = this._internalColumnState;
-                        this.columnStateChange.emit(this._internalColumnState);
-                        // need to clear it, so the watch can be used, if columnState changes, and we want to apply the same _internalColumnState again
-                        this._internalColumnState = emptyValue;
-                        this._internalColumnStateChange.emit(emptyValue);
-                    }
-                    if(!this.columnState) {
-                        this.storeColumnsState(true);
-                    }
-                    this.restoreColumnsState();
-                    if(!this._internalInitialColumnState) {
-                        this._internalInitialColumnState = this.columnState;
-                        this._internalInitialColumnStateChange.emit(this._internalInitialColumnState);
-                    }
-                }
-                if(this.delayedColumnChange) {
-                    this.applyColumnChange(this.delayedColumnChange);
-                    this.delayedColumnChange = null;
-                }
+		// setup grid options
+		this.agGridOptions = {
+			context: {
+				componentParent: this
+			},
+			debug: false,
+			rowModelType: 'serverSide',
+			rowGroupPanelShow: 'onlyWhenGrouping', // TODO expose property,
+			onGridReady: (event) => {
+				this.log.debug('gridReady');
+				this.isGridReady = true;
+				if (this.isRendered) {
+					const emptyValue = '_empty';
+					if (this._internalColumnState !== emptyValue) {
+						this.columnState = this._internalColumnState;
+						this.columnStateChange.emit(this._internalColumnState);
+						// need to clear it, so the watch can be used, if columnState changes, and we want to apply the same _internalColumnState again
+						this._internalColumnState = emptyValue;
+						this._internalColumnStateChange.emit(emptyValue);
+					}
+					if (!this.columnState) {
+						this.storeColumnsState(true);
+					}
+					this.restoreColumnsState();
+					if (!this._internalInitialColumnState) {
+						this._internalInitialColumnState = this.columnState;
+						this._internalInitialColumnStateChange.emit(this._internalInitialColumnState);
+					}
+				}
+				if (this.delayedColumnChange) {
+					this.applyColumnChange(this.delayedColumnChange);
+					this.delayedColumnChange = null;
+				}
 
                 if(this.isColumnModelChangedBeforeGridReady) {
                     this.updateColumnDefs();
@@ -1158,24 +1157,24 @@ export class DataGrid extends NGGridDirective {
                                     colId = this.getColumnID(column, i);
                                 }
 
-                                if (!colId) {
-                                    this.log.warn('cannot update "' + prop + '" property on column at position index ' + i);
-                                    return;
-                                }
-                                if(prop === 'visible') {
-                                    this.gridApi.setColumnsVisible([colId], newPropertyValue as boolean);
-                                } else {
-                                    const actualWidth = this.gridApi.getColumn(colId).getActualWidth();
-                                    if(actualWidth !== newPropertyValue as number) {                                                        
-                                        this.gridApi.setColumnWidths([{ key: colId, newWidth:newPropertyValue as number}]);
-                                        this.sizeHeaderAndColumnsToFit(GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+								if (!colId) {
+									this.log.warn('cannot update "' + prop + '" property on column at position index ' + i);
+									return;
+								}
+								if (prop === 'visible') {
+									this.agGrid.api.setColumnsVisible([colId], newPropertyValue as boolean);
+								} else {
+									const actualWidth = this.agGrid.api.getColumn(colId).getActualWidth();
+									if (actualWidth !== newPropertyValue as number) {
+										this.agGrid.api.setColumnWidths([{ key: colId, newWidth: newPropertyValue as number }]);
+										this.sizeHeaderAndColumnsToFit(GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED);
+									}
+								}
+							}
+						}
+					}
+				}
+			}
 
             if(storeColumnState) {
                 this.storeColumnsState(true);
@@ -1885,13 +1884,13 @@ export class DataGrid extends NGGridDirective {
         return rowGroupCols.length > 0;
     }
 
-    /**
-     * Returns table's rowGroupColumns
-     * */
-    getRowGroupColumns(): any {
-        const rowGroupCols = this.gridApi ? this.gridApi.getRowGroupColumns() : null;
-        return rowGroupCols ? rowGroupCols : [];
-    }
+	/**
+	 * Returns table's rowGroupColumns
+	 * */
+	getRowGroupColumns(): any {
+		const rowGroupCols = this.agGrid && this.agGrid.api ? this.agGrid.api.getRowGroupColumns() : null;
+		return rowGroupCols ? rowGroupCols : [];
+	}
 
     /**
      * Returns the group hierarchy for the given node
@@ -4832,18 +4831,18 @@ class FoundsetServer {
             const foundsetSort = this.dataGrid.stripUnsortableColumns(this.dataGrid.foundset.getSortColumns());
             const isSortChanged = foundsetRefManager.isRoot && sortString !== foundsetSort && currentGridSort.sortString !== foundsetSort;
 
-            if(isSortChanged) {
-                this.dataGrid.log.debug('CHANGE SORT REQUEST');
-                let isColumnSortable = false;
-                // check sort columns in both the reques and model, because it is disable in the grid, it will be only in the model
-                const sortColumns = sortModel.concat(this.dataGrid.getSortModel());
-                for(const sortCol of sortColumns) {
-                    const col = this.dataGrid.gridApi.getColumn(sortCol.colId);
-                    if(col && col.getColDef().sortable) {
-                        isColumnSortable = true;
-                        break;
-                    }
-                }
+			if (isSortChanged) {
+				this.dataGrid.log.debug('CHANGE SORT REQUEST');
+				let isColumnSortable = false;
+				// check sort columns in both the reques and model, because it is disable in the grid, it will be only in the model
+				const sortColumns = sortModel.concat(this.dataGrid.getSortModel());
+				for (const sortCol of sortColumns) {
+					const col = this.dataGrid.agGrid.api.getColumn(sortCol.colId);
+					if (col && col.getColDef().sortable) {
+						isColumnSortable = true;
+						break;
+					}
+				}
 
                 if(isColumnSortable) {
                     if(this.dataGrid.isSortModelApplied) {
@@ -4944,11 +4943,11 @@ class FoundsetServer {
         }
     }
 
-    getFoundsetRefError(e: any) {
-        this.dataGrid.log.error(e);
-        this.dataGrid.isDataLoading = false;
-        this.dataGrid.gridApi.setRowGroupColumns([]);
-    }
+	getFoundsetRefError(e: any) {
+		this.dataGrid.log.error(e);
+		this.dataGrid.isDataLoading = false;
+		this.dataGrid.agGrid.api.setRowGroupColumns([]);
+	}
 }
 
 class FoundsetDatasource implements IServerSideDatasource {
