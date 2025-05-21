@@ -305,7 +305,6 @@ export class PowerGrid extends NGGridDirective {
 
             onGridReady: (event) => {
                 this.log.debug('gridReady');
-                this.gridApi = event.api;
                 this.isGridReady = true;
                 const emptyValue = '_empty';
                 if (this._internalColumnState !== emptyValue) {
@@ -746,11 +745,11 @@ export class PowerGrid extends NGGridDirective {
                                                 }
 
                                                 if (prop === 'visible') {
-                                                    this.gridApi.setColumnsVisible([colId], newPropertyValue as boolean);
+                                                    this.agGrid.api.setColumnsVisible([colId], newPropertyValue as boolean);
                                                 } else {
-                                                    const actualWidth = this.gridApi.getColumn(colId).getActualWidth();
+                                                    const actualWidth = this.agGrid.api.getColumn(colId).getActualWidth();
                                                     if(actualWidth !== newPropertyValue as number) {                                                    
-                                                        this.gridApi.setColumnWidths([{ key: colId, newWidth:newPropertyValue as number}]);
+                                                        this.agGrid.api.setColumnWidths([{ key: colId, newWidth:newPropertyValue as number}]);
                                                         this.svySizeColumnsToFit(GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED);
                                                     }
                                                 }
@@ -1514,7 +1513,7 @@ export class PowerGrid extends NGGridDirective {
      * When Column Group Changes
      */
     onColumnRowGroupChanged(event: any) {
-        const rowGroupCols = this.gridApi ? this.gridApi.getRowGroupColumns() : null;
+        const rowGroupCols = this.agGrid && this.agGrid.api ? this.agGrid.api.getRowGroupColumns() : null;
         const columns: any = rowGroupCols ? rowGroupCols : [];
         const groupFields = [];
         let levelToRemove = null;

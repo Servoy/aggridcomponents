@@ -360,7 +360,6 @@ export class DataGrid extends NGGridDirective {
 			rowModelType: 'serverSide',
 			rowGroupPanelShow: 'onlyWhenGrouping', // TODO expose property,
 			onGridReady: (event) => {
-				this.gridApi = event.api;
 				this.log.debug('gridReady');
 				this.isGridReady = true;
 				if (this.isRendered) {
@@ -1167,11 +1166,11 @@ export class DataGrid extends NGGridDirective {
 									return;
 								}
 								if (prop === 'visible') {
-									this.gridApi.setColumnsVisible([colId], newPropertyValue as boolean);
+									this.agGrid.api.setColumnsVisible([colId], newPropertyValue as boolean);
 								} else {
-									const actualWidth = this.gridApi.getColumn(colId).getActualWidth();
+									const actualWidth = this.agGrid.api.getColumn(colId).getActualWidth();
 									if (actualWidth !== newPropertyValue as number) {
-										this.gridApi.setColumnWidths([{ key: colId, newWidth: newPropertyValue as number }]);
+										this.agGrid.api.setColumnWidths([{ key: colId, newWidth: newPropertyValue as number }]);
 										this.sizeHeaderAndColumnsToFit(GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED);
 									}
 								}
@@ -1901,7 +1900,7 @@ export class DataGrid extends NGGridDirective {
 	 * Returns table's rowGroupColumns
 	 * */
 	getRowGroupColumns(): any {
-		const rowGroupCols = this.gridApi ? this.gridApi.getRowGroupColumns() : null;
+		const rowGroupCols = this.agGrid && this.agGrid.api ? this.agGrid.api.getRowGroupColumns() : null;
 		return rowGroupCols ? rowGroupCols : [];
 	}
 
@@ -4868,7 +4867,7 @@ class FoundsetServer {
 				// check sort columns in both the reques and model, because it is disable in the grid, it will be only in the model
 				const sortColumns = sortModel.concat(this.dataGrid.getSortModel());
 				for (const sortCol of sortColumns) {
-					const col = this.dataGrid.gridApi.getColumn(sortCol.colId);
+					const col = this.dataGrid.agGrid.api.getColumn(sortCol.colId);
 					if (col && col.getColDef().sortable) {
 						isColumnSortable = true;
 						break;
@@ -4977,7 +4976,7 @@ class FoundsetServer {
 	getFoundsetRefError(e: any) {
 		this.dataGrid.log.error(e);
 		this.dataGrid.isDataLoading = false;
-		this.dataGrid.gridApi.setRowGroupColumns([]);
+		this.dataGrid.agGrid.api.setRowGroupColumns([]);
 	}
 }
 

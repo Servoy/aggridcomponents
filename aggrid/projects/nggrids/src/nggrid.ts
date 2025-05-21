@@ -38,7 +38,6 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
     doc: Document;
 
     agGridOptions: GridOptions;
-    gridApi: GridApi;
     cdRef: ChangeDetectorRef;
     formattingService: FormattingService;
     selectionEvent: any;
