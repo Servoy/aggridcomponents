@@ -6,7 +6,7 @@ import { GridOptions, GetRowIdParams, IRowDragItem, DndSourceCallbackParams, Col
 import { ChangeDetectionStrategy, ChangeDetectorRef, EventEmitter, Inject, Input, Output, Renderer2, SecurityContext, SimpleChanges } from '@angular/core';
 import { Component } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
-import { LoggerFactory, ChangeType, IFoundset, FoundsetChangeEvent, Deferred, FormattingService, ServoyPublicService, BaseCustomObject, IJSMenu, IJSMenuItem } from '@servoy/public';
+import { LoggerFactory, ChangeType, IFoundset, FoundsetChangeEvent, Deferred, FormattingService, ServoyPublicService, BaseCustomObject, IJSMenu, IJSMenuItem, JSEvent } from '@servoy/public';
 import { DatePicker } from '../editors/datepicker';
 import { FormEditor } from '../editors/formeditor';
 import { SelectEditor } from '../editors/selecteditor';
@@ -3588,6 +3588,7 @@ export class DataGrid extends NGGridDirective {
                     this.onFooterClick(columnIndex, params.event, this.getDataTarget(params.event));
                 }
             } else {
+                const jsEvent = this.servoyService.createJSEvent(params.event, params.event.type);
                 if(this._internalHasDoubleClickHandler || (params.colDef.editable && this.isColumnEditable(params))) {
                     if(this.clickTimer) {
                         clearTimeout(this.clickTimer);
@@ -3595,18 +3596,18 @@ export class DataGrid extends NGGridDirective {
                     } else {
                         this.clickTimer = this.setTimeout(() => {
                             this.clickTimer = null;
-                            this.onCellClicked(params);
+                            this.onCellClicked(params, jsEvent);
                         }, 350);
                     }
                 } else {
                     // Added timeout to enable onColumnDataChangeEvent to go first; must be over 250, so selection is sent first
-                    this.onCellClicked(params, 350);
+                    this.onCellClicked(params, jsEvent, 350);
                 }
             }
         }
     }
 
-    onCellClicked(params: any, timeout?: number) {
+    onCellClicked(params: any, jsEvent: JSEvent, timeout?: number) {
         this.log.debug(params);
         const col = params.colDef.field ? this.getColumn(params.colDef.field) : null;
         if(col && col.editType === 'CHECKBOX' && params.colDef.editable && this.isColumnEditable(params)) {
@@ -3616,11 +3617,11 @@ export class DataGrid extends NGGridDirective {
         if(timeout) {
             this.setTimeout(() => {
                 this.servoyApi.callServerSideApi('cellClick',
-                    ['click', this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), this.servoyService.createJSEvent(params.event, params.event.type), this.getDataTarget(params.event)]);
+                    ['click', this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), jsEvent, this.getDataTarget(params.event)]);
             }, timeout);
         } else {
             this.servoyApi.callServerSideApi('cellClick',
-                ['click', this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), this.servoyService.createJSEvent(params.event, params.event.type), this.getDataTarget(params.event)]);
+                ['click', this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), jsEvent, this.getDataTarget(params.event)]);
         }
     }
 
@@ -3633,18 +3634,19 @@ export class DataGrid extends NGGridDirective {
             if(currentEditCells.length > 0) {
                 return;
             }
+            const jsEvent = this.servoyService.createJSEvent(params.event, params.event.type);
             // need timeout because the selection is also in a 250ms timeout
             this.setTimeout(() => {
-                this.onCellDoubleClickedEx(params);
+                this.onCellDoubleClickedEx(params, jsEvent);
             }, 250);
         }
     }
 
-    onCellDoubleClickedEx(params: any) {
+    onCellDoubleClickedEx(params: any, jsEvent: JSEvent) {
         this.log.debug(params);
         if (!params.node.rowPinned) {
             this.servoyApi.callServerSideApi('cellClick',
-                ['doubleClick', this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), this.servoyService.createJSEvent(params.event, params.event.type), this.getDataTarget(params.event)]);
+                ['doubleClick', this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), jsEvent, this.getDataTarget(params.event)]);
         }
     }
 
@@ -3655,10 +3657,11 @@ export class DataGrid extends NGGridDirective {
                 this.selectionEvent = { type: 'click', event: params.event, rowIndex: params.node.rowIndex };
                 params.node.setSelected(true, true);
             }
+            const jsEvent = this.servoyService.createJSEvent(params.event, params.event.type);
             // Added setTimeOut to enable onColumnDataChangeEvent to go first; must be over 250, so selection is sent first
             this.setTimeout(() => {
                 this.servoyApi.callServerSideApi('cellClick',
-                    ['rightClick', this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), this.servoyService.createJSEvent(params.event, params.event.type), this.getDataTarget(params.event)]);
+                    ['rightClick', this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), jsEvent, this.getDataTarget(params.event)]);
             }, 350);
         }
     }
