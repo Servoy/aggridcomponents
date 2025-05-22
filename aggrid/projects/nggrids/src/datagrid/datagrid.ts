@@ -3594,90 +3594,92 @@ export class DataGrid extends NGGridDirective {
 		}
 	}
 
-	cellClickHandler(params: any) {
-		if (this.enabled) {
-			this.selectionEvent = { type: 'click', event: params.event, rowIndex: params.node.rowIndex };
-			if (params.node.rowPinned) {
-				if (params.node.rowPinned === 'bottom' && this.onFooterClick) {
-					const columnIndex = this.getColumnIndex(params.column.colId);
-					this.onFooterClick(columnIndex, params.event, this.getDataTarget(params.event));
-				}
-			} else {
-				if (this._internalHasDoubleClickHandler || (params.colDef.editable && this.isColumnEditable(params))) {
-					if (this.clickTimer) {
-						clearTimeout(this.clickTimer);
-						this.clickTimer = null;
-					} else {
-						this.clickTimer = this.setTimeout(() => {
-							this.clickTimer = null;
-							this.onCellClicked(params);
-						}, 350);
-					}
-				} else {
-					// Added timeout to enable onColumnDataChangeEvent to go first; must be over 250, so selection is sent first
-					this.onCellClicked(params, 350);
-				}
-			}
-		}
-	}
+    cellClickHandler(params: any) {
+        if(this.enabled) {
+            this.selectionEvent = { type: 'click', event: params.event, rowIndex: params.node.rowIndex };
+            if(params.node.rowPinned) {
+                if (params.node.rowPinned === 'bottom' && this.onFooterClick) {
+                    const columnIndex = this.getColumnIndex(params.column.colId);
+                    this.onFooterClick(columnIndex, params.event, this.getDataTarget(params.event));
+                }
+            } else {
+                const jsEvent = this.servoyService.createJSEvent(params.event, params.event.type);
+                if(this._internalHasDoubleClickHandler || (params.colDef.editable && this.isColumnEditable(params))) {
+                    if(this.clickTimer) {
+                        clearTimeout(this.clickTimer);
+                        this.clickTimer = null;
+                    } else {
+                        this.clickTimer = this.setTimeout(() => {
+                            this.clickTimer = null;
+                            this.onCellClicked(params, jsEvent);
+                        }, 350);
+                    }
+                } else {
+                    // Added timeout to enable onColumnDataChangeEvent to go first; must be over 250, so selection is sent first
+                    this.onCellClicked(params, jsEvent, 350);
+                }
+            }
+        }
+    }
 
-	onCellClicked(params: any, timeout?: number) {
-		this.log.debug(params);
-		const col = params.colDef.field ? this.getColumn(params.colDef.field) : null;
-		if (col && col.editType === 'CHECKBOX' && params.colDef.editable && this.isColumnEditable(params)) {
-			params.node.setDataValue(params.column.colId, this.getCheckboxEditorToggleValue(params.value));
-		}
-		if (col) {
-			if (timeout) {
-				this.setTimeout(() => {
-					this.servoyApi.callServerSideApi('cellClick',
-						['click', this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), this.servoyService.createJSEvent(params.event, params.event.type), this.getDataTarget(params.event)]);
-				}, timeout);
-			} else {
-				this.servoyApi.callServerSideApi('cellClick',
-					['click', this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), this.servoyService.createJSEvent(params.event, params.event.type), this.getDataTarget(params.event)]);
-			}
-		}
-	}
+    onCellClicked(params: any, jsEvent: JSEvent, timeout?: number) {
+        this.log.debug(params);
+        const col = params.colDef.field ? this.getColumn(params.colDef.field) : null;
+        if(col && col.editType === 'CHECKBOX' && params.colDef.editable && this.isColumnEditable(params)) {
+            params.node.setDataValue(params.column.colId, this.getCheckboxEditorToggleValue(params.value));
+        }
 
-	onCellDoubleClicked(params: any) {
-		if (this.enabled) {
-			// ignore dblclick handler while editing, because it is the
-			// default trigger for start editing and/or can be used by the editor
-			// like texteditor, for selection
-			const currentEditCells = this.agGrid.api.getEditingCells();
-			if (currentEditCells.length > 0) {
-				return;
-			}
-			// need timeout because the selection is also in a 250ms timeout
-			this.setTimeout(() => {
-				this.onCellDoubleClickedEx(params);
-			}, 250);
-		}
-	}
+        if(timeout) {
+            this.setTimeout(() => {
+                this.servoyApi.callServerSideApi('cellClick',
+                    ['click', this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), jsEvent, this.getDataTarget(params.event)]);
+            }, timeout);
+        } else {
+            this.servoyApi.callServerSideApi('cellClick',
+                ['click', this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), jsEvent, this.getDataTarget(params.event)]);
+        }
+    }
 
-	onCellDoubleClickedEx(params: any) {
-		this.log.debug(params);
-		if (!params.node.rowPinned) {
-			this.servoyApi.callServerSideApi('cellClick',
-				['doubleClick', this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), this.servoyService.createJSEvent(params.event, params.event.type), this.getDataTarget(params.event)]);
-		}
-	}
+    onCellDoubleClicked(params: any) {
+        if(this.enabled) {
+            // ignore dblclick handler while editing, because it is the
+            // default trigger for start editing and/or can be used by the editor
+            // like texteditor, for selection
+            const currentEditCells = this.agGrid.api.getEditingCells();
+            if(currentEditCells.length > 0) {
+                return;
+            }
+            const jsEvent = this.servoyService.createJSEvent(params.event, params.event.type);
+            // need timeout because the selection is also in a 250ms timeout
+            this.setTimeout(() => {
+                this.onCellDoubleClickedEx(params, jsEvent);
+            }, 250);
+        }
+    }
 
-	onCellContextMenu(params: any) {
-		if (this.enabled && !params.node.rowPinned && !params.node.group) {
-			this.log.debug(params);
-			if (!params.node.isSelected()) {
-				this.selectionEvent = { type: 'click', event: params.event, rowIndex: params.node.rowIndex };
-				params.node.setSelected(true, true);
-			}
-			// Added setTimeOut to enable onColumnDataChangeEvent to go first; must be over 250, so selection is sent first
-			this.setTimeout(() => {
-				this.servoyApi.callServerSideApi('cellClick',
-					['rightClick', this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), this.servoyService.createJSEvent(params.event, params.event.type), this.getDataTarget(params.event)]);
-			}, 350);
-		}
-	}
+    onCellDoubleClickedEx(params: any, jsEvent: JSEvent) {
+        this.log.debug(params);
+        if (!params.node.rowPinned) {
+            this.servoyApi.callServerSideApi('cellClick',
+                ['doubleClick', this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), jsEvent, this.getDataTarget(params.event)]);
+        }
+    }
+
+    onCellContextMenu(params: any) {
+        if(this.enabled && !params.node.rowPinned && !params.node.group) {
+            this.log.debug(params);
+            if(!params.node.isSelected()) {
+                this.selectionEvent = { type: 'click', event: params.event, rowIndex: params.node.rowIndex };
+                params.node.setSelected(true, true);
+            }
+            const jsEvent = this.servoyService.createJSEvent(params.event, params.event.type);
+            // Added setTimeOut to enable onColumnDataChangeEvent to go first; must be over 250, so selection is sent first
+            this.setTimeout(() => {
+                this.servoyApi.callServerSideApi('cellClick',
+                    ['rightClick', this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), jsEvent, this.getDataTarget(params.event)]);
+            }, 350);
+        }
+    }
 
 	onColumnRowGroupChanged(event: any) {
 		// return;
