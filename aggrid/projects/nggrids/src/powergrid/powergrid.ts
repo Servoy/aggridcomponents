@@ -1107,7 +1107,7 @@ export class PowerGrid extends NGGridDirective {
     }
 
     getValuelistForFilter(params: any): any {
-        return this.agGrid.api ? this.getValuelist(params) : null;
+        return this.agGrid && this.agGrid.api ? this.getValuelist(params) : null;
     }
 
     isColumnEditable(args: any) {
@@ -1149,7 +1149,15 @@ export class PowerGrid extends NGGridDirective {
         } else {
             items = ['rowGroup', 'rowUnGroup'];
         }
-        const menuItems = [];
+
+        const menuItems: any = [];
+		const customMainMenu = powerGrid.customMainMenu ? powerGrid.customMainMenu : powerGrid.registrationService.powergridService.customMainMenu;
+		if (customMainMenu) {
+			const column = powerGrid.getColumn(params.column.getColDef().field);
+			if (column) {
+				powerGrid.createCustomMainMenuItems(menuItems, customMainMenu, column, params.column.getColId());
+			}
+		}
         params.defaultItems.forEach((item: any) => {
             if (items.indexOf(item) > -1) {
                 menuItems.push(item);
