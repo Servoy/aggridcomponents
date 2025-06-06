@@ -62,7 +62,8 @@
 		"continuousColumnsAutoSizing":  { "type": "boolean", "default": false, "deprecated" : "use columnsAutoSizingOn instead", "tags": {"doc": "Apply 'columnsAutoSizing' whenever columns width are changed"} },
 		"columnsAutoSizingOn":  { "type": "columnsAutoSizingOn", "tags": {"doc": "Apply 'columnsAutoSizing' for these events even if 'continuousColumnsAutoSizing' is false"} },
 		"onDragOverFunc": {"type": "clientfunction", "tags": {"doc": "Callback when dragging over a row - returns one of the strings: 'copy', 'move', 'none' depending on the allowed drag operation."}},
-		"onDragGetImageFunc": {"type": "clientfunction", "tags": {"doc": "Called when row(s) drag-n-drop is started, to get the drag image as an html code."}}
+		"onDragGetImageFunc": {"type": "clientfunction", "tags": {"doc": "Called when row(s) drag-n-drop is started, to get the drag image as an html code."}},
+		"customMainMenu": {"type": "JSMenu", "extraPropertiesCategory" : "NG-Grids", "extraProperties": { "isSeparator": "boolean", "hideForColIds": "string", "showForColIds": "string", "agGridMenuItem": {"type": "string", "values": ["", "sortAscending", "sortDescending", "sortUnSort", "columnFilter", "columnChooser", "pinSubMenu", "valueAggSubMenu", "autoSizeThis", "autoSizeAll", "rowGroup", "rowUnGroup", "resetColumns", "expandAll", "contractAll"] } }, "tags": {"doc": "Menu items to append to the columns menu, beside the default aggrid menus."}}
 	},
 	"handlers" : {
 		"onRowSelected": {
@@ -296,6 +297,17 @@
 				"name":"dataTarget",
 				"type":"string",
 				"optional": true				
+			}]
+		},
+		"onCustomMainMenuAction" : {
+			"doc": "Called when a custom main menu item is chosen",
+			"parameters": [{
+				"name": "menuItemName",
+				"type": "string",
+				"doc": "Chosen menu item name"
+			}, {
+				"name": "colId",
+				"type": "string"
 			}]
 		}
 	}, 
@@ -571,6 +583,11 @@
 			"suppressColumnExpandAll": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}}
 		},
 		"mainMenuItemsConfig" : {
+			"sortAscending": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},
+			"sortDescending": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},
+			"sortUnSort": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},
+			"columnFilter": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},
+			"columnChooser": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},
 			"pinSubMenu": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},
 			"valueAggSubMenu": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},
 			"autoSizeThis": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},

@@ -67,7 +67,7 @@
 		"_internalFunctionCalls": { "type": "functionCall[]", "tags": {"scope" : "private"}},
 		"_internalHasDoubleClickHandler": { "type": "boolean", "default": false, "tags": {"scope" : "private"}},
 		"_internalVisible": { "type": "boolean", "tags": {"scope" : "private"}},
-		"customMainMenu": {"type": "JSMenu", "extraPropertiesCategory" : "DataGrid", "extraProperties": { "isSeparator": "boolean", "hideForColIds": "string", "showForColIds": "string"}, "tags": {"doc": "Menu items to append to the columns menu, beside the default aggrid menus."}}
+		"customMainMenu": {"type": "JSMenu", "extraPropertiesCategory" : "NG-Grids", "extraProperties": { "isSeparator": "boolean", "hideForColIds": "string", "showForColIds": "string", "agGridMenuItem": {"type": "string", "values": ["", "sortAscending", "sortDescending", "sortUnSort", "columnFilter", "columnChooser", "pinSubMenu", "valueAggSubMenu", "autoSizeThis", "autoSizeAll", "rowGroup", "rowUnGroup", "resetColumns", "expandAll", "contractAll"] } }, "tags": {"doc": "Menu items to append to the columns menu, beside the default aggrid menus."}}
 	},
 	"handlers" : {
     	"onSelectedRowsChanged": {
@@ -695,6 +695,11 @@
 			"suppressColumnExpandAll": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}}
 		},
 		"mainMenuItemsConfig" : {
+			"sortAscending": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},
+			"sortDescending": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},
+			"sortUnSort": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},
+			"columnFilter": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},
+			"columnChooser": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},
 			"pinSubMenu": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},
 			"valueAggSubMenu": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},
 			"autoSizeThis": {"type": "boolean", "default" : false, "tags" : {"scope": "design"}},

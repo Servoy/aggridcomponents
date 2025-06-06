@@ -1,7 +1,7 @@
 import { AgGridAngular } from 'ag-grid-angular';
-import { GridApi, GridOptions } from 'ag-grid-community';
+import { GridOptions } from 'ag-grid-community';
 import { ChangeDetectorRef, ContentChild, Directive, ElementRef, Input, TemplateRef, ViewChild } from '@angular/core';
-import { BaseCustomObject, Format, FormattingService, LoggerService, ServoyBaseComponent } from '@servoy/public';
+import { BaseCustomObject, Format, FormattingService, LoggerService, ServoyBaseComponent, IJSMenu, IJSMenuItem } from '@servoy/public';
 
 export const GRID_EVENT_TYPES = {
     GRID_READY: 'gridReady',
@@ -33,6 +33,9 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
     @Input() onColumnFormEditStarted: any;
 
     @Input() responsiveHeight: number;
+    @Input() customMainMenu: IJSMenu;
+
+    @Input() onCustomMainMenuAction: (menuItemName: string, colId: string) => void;
 
     doc: Document;
 
@@ -176,6 +179,36 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
         }
         return null;
     }
+
+	createCustomMainMenuItems(menuItems: any[], customMainMenu: any, column: any, colId: string): any[] {
+		customMainMenu.items.forEach((item: IJSMenuItem) => {
+			let hideForColIds: string[] = typeof item.extraProperties['NG-Grids']['hideForColIds'] === 'string' && item.extraProperties['NG-Grids']['hideForColIds'].trim().length > 0 ? item.extraProperties['NG-Grids']['hideForColIds'].split(',') : [];
+			let showForColIds: string[] = typeof item.extraProperties['NG-Grids']['showForColIds'] === 'string' && item.extraProperties['NG-Grids']['showForColIds'].trim().length > 0 ? item.extraProperties['NG-Grids']['showForColIds'].split(',') : [];
+			if ((!column.id && showForColIds.length === 0) || ((hideForColIds.length === 0 || hideForColIds.indexOf(column.id) === -1) &&
+				(showForColIds.length === 0 || showForColIds.indexOf(column.id) !== -1))) {
+				if (item.extraProperties['NG-Grids']['isSeparator']) {
+					menuItems.push('separator');
+				} else if(item.extraProperties['NG-Grids']['agGridMenuItem']) {
+					menuItems.push(item.extraProperties['NG-Grids']['agGridMenuItem']);
+				} else {
+					menuItems.push({
+						name: item.menuText,
+						icon: item.iconStyleClass ? '<span class="' + item.iconStyleClass + '"></span>' : null,
+						disabled: !item.enabled,
+						checked: item.isSelected,
+						tooltip: item.tooltipText,
+						action: () => {
+							if (this.onCustomMainMenuAction) {
+								this.onCustomMainMenuAction(item.itemID, colId);
+							}
+						},
+						subMenu: item.items ? this.createCustomMainMenuItems([], item, column, colId) : null
+					});
+				}
+			}
+		});
+		return menuItems;
+	}
 
     abstract getColumn(field: any, columnsModel?: any): any;
 

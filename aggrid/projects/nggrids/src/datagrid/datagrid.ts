@@ -6,7 +6,7 @@ import { GridOptions, GetRowIdParams, IRowDragItem, DndSourceCallbackParams, Col
 import { ChangeDetectionStrategy, ChangeDetectorRef, EventEmitter, Inject, Input, Output, Renderer2, SecurityContext, SimpleChanges } from '@angular/core';
 import { Component } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
-import { LoggerFactory, ChangeType, IFoundset, FoundsetChangeEvent, Deferred, FormattingService, ServoyPublicService, BaseCustomObject, IJSMenu, IJSMenuItem, JSEvent } from '@servoy/public';
+import { LoggerFactory, ChangeType, IFoundset, FoundsetChangeEvent, Deferred, FormattingService, ServoyPublicService, BaseCustomObject, JSEvent } from '@servoy/public';
 import { DatePicker } from '../editors/datepicker';
 import { FormEditor } from '../editors/formeditor';
 import { SelectEditor } from '../editors/selecteditor';
@@ -123,7 +123,6 @@ export class DataGrid extends NGGridDirective {
     @Output() columnsAutoSizingChange = new EventEmitter();
     @Input() continuousColumnsAutoSizing: boolean;
     @Input() columnsAutoSizingOn: ColumnsAutoSizingOn;
-    @Input() customMainMenu: IJSMenu;
 
     @Input() toolPanelConfig: ToolPanelConfig;
     @Input() iconConfig: IconConfig;
@@ -162,7 +161,6 @@ export class DataGrid extends NGGridDirective {
     @Input() onRowGroupOpened: (groupcolumnindexes: number[],groupkeys: unknown[],isopened: boolean) => void;
     @Input() onSelectedRowsChanged: (isgroupselection?: boolean,groupcolumnid?: string,groupkey?: unknown, groupselection?: boolean) => void;
     @Input() onSort: (columnindexes: number[], sorts: string[]) => Promise<unknown>;
-    @Input() onCustomMainMenuAction: (menuItemName: string, colId: string) => void;
     @Input() tooltipTextRefreshData: string;
     // used in HTML template to toggle sync button
     @Output() isGroupView = false;
@@ -1401,34 +1399,6 @@ export class DataGrid extends NGGridDirective {
         params.defaultItems.forEach((item: any) => {
             if (items.indexOf(item) > -1) {
                 menuItems.push(item);
-            }
-        });
-        return menuItems;
-    }
-
-    private createCustomMainMenuItems(menuItems: any[], customMainMenu: any, column: any, colId: string): any[] {
-        customMainMenu.items.forEach((item: IJSMenuItem) => {
-            let hideForColIds: string[] = typeof item.extraProperties['DataGrid']['hideForColIds'] === 'string' ? item.extraProperties['DataGrid']['hideForColIds'].split(',') : [];
-            let showForColIds: string[] = typeof item.extraProperties['DataGrid']['showForColIds'] === 'string' ? item.extraProperties['DataGrid']['showForColIds'].split(',') : [];
-            if(!column.id || ((hideForColIds.length === 0 || hideForColIds.indexOf(column.id) === -1) &&
-                (showForColIds.length === 0 || showForColIds.indexOf(column.id) !== -1))) {
-                if(item.extraProperties['DataGrid']['isSeparator']) {
-                    menuItems.push('separator');
-                } else {
-                    menuItems.push({
-                        name: item.menuText,
-                        icon: item.iconStyleClass ? '<span class="' + item.iconStyleClass + '"></span>' : null,
-                        disabled: !item.enabled,
-                        checked: item.isSelected,
-                        tooltip: item.tooltipText,
-                        action: () => {
-                            if(this.onCustomMainMenuAction) {
-                                this.onCustomMainMenuAction(item.itemID, colId);
-                            }
-                        },
-                        subMenu: item.items ? this.createCustomMainMenuItems([], item, column, colId) : null
-                    });
-                }
             }
         });
         return menuItems;

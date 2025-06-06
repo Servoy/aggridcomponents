@@ -1,5 +1,5 @@
+import { IJSMenu } from '@servoy/public';
 import { NGGridDirective } from '../../nggrid';
-import { RowDropZoneParams } from 'ag-grid-community';
 
 export class GridService {
     public iconConfig: any;
@@ -13,6 +13,7 @@ export class GridService {
     public continuousColumnsAutoSizing: boolean;
     public columnsAutoSizingOn: any;
     public licenseKey: string;
+    public customMainMenu: IJSMenu;
 
     private dragData: any[];
 
