@@ -716,9 +716,7 @@ export class DataGrid extends NGGridDirective {
 		this.setHeight();
 
 		// locale text
-		if (localeText) {
-			this.agGridOptions['localeText'] = localeText;
-		}
+		this.agGridOptions['localeText'] = this.mergeConfig(this.servoyService.getAGGridLocale(), localeText)
 
 		// fill user grid options properties
 		if (userGridOptions) {

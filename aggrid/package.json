@@ -23,7 +23,7 @@
     "@eonasdan/tempus-dominus": "6.10.4",
     "@ng-bootstrap/ng-bootstrap": "18.0.0",
     "@popperjs/core": "2.11.8",
-    "@servoy/public": "2025.3.0",
+    "@servoy/public": "2025.9.0",
     "ag-grid-angular": "33.3.0",
     "ag-grid-enterprise": "33.3.0",
     "lodash-es": "4.17.21",
