@@ -2117,9 +2117,9 @@ export class DataGrid extends NGGridDirective {
                 foundsetManager = this.foundset;
             }
 
-            if (!foundsetManager.foundset) {
-                return false;
-            }
+			if (!foundsetManager || !foundsetManager.foundset) {
+				return false;
+			}
 
             for(const selectedRowIndex of foundsetManager.foundset.selectedRowIndexes) {
 
