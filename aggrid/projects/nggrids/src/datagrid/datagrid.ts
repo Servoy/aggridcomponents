@@ -3559,8 +3559,6 @@ export class DataGrid extends NGGridDirective {
 
 		if (e.source === "checkboxSelected" && e.node.group && this.onSelectedRowsChanged) {
 			this.onSelectedRowsChanged(true, e.node.rowGroupColumn.getColId(), e.node.data[e.node.field], e.node.isSelected(), this.createJSEvent());
-		} else if (!e.node.group && this.onSelectedRowsChanged) {
-			this.onSelectedRowsChanged(false, null, null, null, this.createJSEvent());
 		}
 	}
 
