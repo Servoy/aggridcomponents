@@ -37,10 +37,6 @@ export class SelectEditor extends EditorDirective {
         let vl = this.ngGrid.getValuelist(params);
         if (vl) {
             this.valuelistValuesDefer = new Deferred();
-            let v = params.value;
-            if (v && v.displayValue !== undefined) {
-                v = v.displayValue;
-            }
             if(this.ngGrid.hasValuelistResolvedDisplayData()) {
                 vl.filterList('').subscribe((valuelistValues: any) => {
                     let hasRealValues = false;
@@ -54,10 +50,10 @@ export class SelectEditor extends EditorDirective {
                     // make sure initial value has the "realValue" set, so when oncolumndatachange is called
                     // the previous value has the "realValue"
                     if(hasRealValues && params.value && (params.value['realValue'] === undefined)) {
-                        let rv = params.value;
+                        let rv = this.initialValueFormated;
                         let rvFound = false;
                         for (const item of valuelistValues) {
-                            if (item.displayValue === params.value) {
+                            if (item.displayValue === this.initialValueFormated) {
                                 rv = item.realValue;
                                 rvFound = true;
                                 break;
@@ -69,26 +65,26 @@ export class SelectEditor extends EditorDirective {
                             vl = this.ngGrid.getValuelist(params);
                             vl.filterList(params.value).subscribe((valuelistWithInitialValue: any) => {
                                 for (const item of valuelistWithInitialValue) {
-                                    if (item.displayValue === params.value) {
+                                    if (item.displayValue === this.initialValueFormated) {
                                         rv = item.realValue;
                                         break;
                                     }
                                 }
-                                params.node['data'][params.column.getColDef()['field']] = {realValue: rv, displayValue: params.value};
+                                params.node['data'][params.column.getColDef()['field']] = {realValue: rv, displayValue: this.initialValueFormated};
                                 let newValuelistValues = valuelistValues.slice();
-                                newValuelistValues.push({realValue: rv, displayValue: params.value});
-                                this.valuelistValuesDefer.resolve({valuelist: newValuelistValues, value: v});
+                                newValuelistValues.push({realValue: rv, displayValue: this.initialValueFormated});
+                                this.valuelistValuesDefer.resolve({valuelist: newValuelistValues, value: this.initialValueFormated});
                             });
                         } else {
-                            params.node['data'][params.column.getColDef()['field']] = {realValue: rv, displayValue: params.value};
-                            this.valuelistValuesDefer.resolve({valuelist: valuelistValues, value: v});
+                            params.node['data'][params.column.getColDef()['field']] = {realValue: rv, displayValue: this.initialValueFormated};
+                            this.valuelistValuesDefer.resolve({valuelist: valuelistValues, value: this.initialValueFormated});
                         }
                     } else {
-                        this.valuelistValuesDefer.resolve({valuelist: valuelistValues, value: v});
+                        this.valuelistValuesDefer.resolve({valuelist: valuelistValues, value: this.initialValueFormated});
                     }
                 });
             } else {
-                this.valuelistValuesDefer.resolve({valuelist: vl, value: v});
+                this.valuelistValuesDefer.resolve({valuelist: vl, value: this.initialValueFormated});
             }
         }
     }
@@ -117,7 +113,18 @@ export class SelectEditor extends EditorDirective {
     }
     // returns the new value after editing
     getValue(): any {
-        const displayValue = this.elementRef.nativeElement.selectedIndex > -1 ? this.elementRef.nativeElement.options[this.elementRef.nativeElement.selectedIndex].text : '';
+        let displayValue = this.elementRef.nativeElement.selectedIndex > -1 ? this.elementRef.nativeElement.options[this.elementRef.nativeElement.selectedIndex].text : '';
+        const columnFormat = this.ngGrid.getColumnFormat(this.params.column.getColId());
+        if(columnFormat) {
+            const editFormat = columnFormat.edit ? columnFormat.edit : columnFormat.display;
+            if(editFormat) {
+                displayValue = this.ngGrid.formattingService.unformat(displayValue, editFormat, columnFormat.type, this.initialValue);
+            }
+            if (columnFormat.type === 'TEXT' && (columnFormat.uppercase || columnFormat.lowercase)) {
+                if (columnFormat.uppercase) displayValue = displayValue.toUpperCase();
+                else if (columnFormat.lowercase) displayValue = displayValue.toLowerCase();
+            }
+        }
         const realValue = this.elementRef.nativeElement.value === '_SERVOY_NULL' ? null : this.elementRef.nativeElement.value;
         return displayValue !== realValue ? { displayValue, realValue } : realValue;
     }
