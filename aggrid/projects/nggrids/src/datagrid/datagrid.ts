@@ -1097,11 +1097,15 @@ export class DataGrid extends NGGridDirective {
 
     displayValueGetter(params: any) {
         const field = params.colDef.field;
-        if (field && params.data) {
-            return params.data[field];
+        let displayValue = field && params.data ? params.data[field] : '';
+
+        const dataGrid = params.context.componentParent;
+        const column = dataGrid.getColumn(params.column.colId);
+        if(column && column.valuelist && displayValue.displayValue === undefined && !(typeof displayValue === 'string' || displayValue instanceof String) && column.format) {
+            displayValue = dataGrid.format(displayValue, column.format, false);
         }
 
-        return '';
+        return displayValue;
     }
 
     displayValueFormatter(params: any): string {
@@ -1113,12 +1117,12 @@ export class DataGrid extends NGGridDirective {
         if (value && value.displayValue !== undefined) {
             value = value.displayValue;
         }
-        // skip format for pinned rows (footer), they are always text
+        // skip format for pinned rows (footer) and valuelist linked dp, they are always text
         if(!params.node.rowPinned) {
             const dataGrid = params.context.componentParent;
             const column = dataGrid.getColumn(params.column.colId);
 
-            if (column && column.format ) {
+            if (column && !column.valuelist && column.format) {
                 value = dataGrid.format(value, column.format, false);
             }
         }

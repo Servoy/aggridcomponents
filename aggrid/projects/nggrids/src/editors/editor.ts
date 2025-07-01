@@ -10,7 +10,6 @@ export class EditorDirective implements ICellEditorAngularComp {
     ngGrid: NGGridDirective;
     params: ICellEditorParams;
     initialValue: any;
-    initialValueFormated: any;
     instance: any;
 
     constructor() {
@@ -24,15 +23,6 @@ export class EditorDirective implements ICellEditorAngularComp {
         this.initialValue = params.value;
         if(this.initialValue && this.initialValue.displayValue !== undefined) {
             this.initialValue = this.initialValue.displayValue;
-        }
-        this.initialValueFormated = this.initialValue;
-        const columnFormat = this.ngGrid.getColumnFormat(params.column.getColId());
-        if(columnFormat) {
-            if(columnFormat.edit) {
-                this.initialValueFormated = this.ngGrid.format(this.initialValueFormated, columnFormat, true);
-            } else if(columnFormat.display) {
-                this.initialValueFormated = this.ngGrid.format(this.initialValueFormated, columnFormat, false);
-            }
         }
     }
 

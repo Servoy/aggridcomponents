@@ -81,10 +81,10 @@ export class TypeaheadEditor extends EditorDirective implements IPopupSupportCom
         // make sure initial value has the "realValue" set, so when oncolumndatachange is called
         // the previous value has the "realValue"
         if(this.hasRealValues && params.value && (params.value['realValue'] === undefined)) {
-          let rv = this.initialValueFormated;
+          let rv = this.initialValue;
           let rvFound = false;
           for (const item of valuelistValues) {
-            if (item.displayValue === this.initialValueFormated) {
+            if (item.displayValue === this.initialValue) {
               rv = item.realValue;
               rvFound = true;
               break;
@@ -96,16 +96,16 @@ export class TypeaheadEditor extends EditorDirective implements IPopupSupportCom
             valuelist = this.ngGrid.getValuelist(params);
             valuelist.filterList(params.value).subscribe((valuelistWithInitialValue: any) => {
               for (const item of valuelistWithInitialValue) {
-                if (item.displayValue === this.initialValueFormated) {
+                if (item.displayValue === this.initialValue) {
                   rv = item.realValue;
                   break;
                 }
               }
-              params.node['data'][params.column.colDef['field']] = {realValue: rv, displayValue: this.initialValueFormated};
+              params.node['data'][params.column.colDef['field']] = {realValue: rv, displayValue: this.initialValue};
               this.initialRealValue = rv;
             });
           } else {
-            params.node['data'][params.column.colDef['field']] = {realValue: rv, displayValue: this.initialValueFormated};
+            params.node['data'][params.column.colDef['field']] = {realValue: rv, displayValue: this.initialValue};
             this.initialRealValue = rv;
           }
         }
@@ -115,11 +115,8 @@ export class TypeaheadEditor extends EditorDirective implements IPopupSupportCom
       });
     }
 
-    if(this.initialValue && this.initialValue.displayValue !== undefined) {
-      this.initialValue = this.initialValue.displayValue;
-    }
     this.initialRealValue = this.initialValue;
-    this.initialDisplayValue = this.initialValueFormated;
+    this.initialDisplayValue = this.initialValue;
     this.format = this.ngGrid.getColumnFormat(params.column.getColId());
     if(this.format && this.format.maxLength) {
       this.maxLength = this.format.maxLength;
@@ -179,24 +176,12 @@ export class TypeaheadEditor extends EditorDirective implements IPopupSupportCom
 
   // returns the new value after editing
   getValue(): any {
-    let formatedDisplayValue = this.elementRef.nativeElement.value;
-    let displayValue = formatedDisplayValue;
-
-    if(this.format) {
-        const editFormat = this.format.edit ? this.format.edit : this.format.display;
-        if(editFormat) {
-            displayValue = this.ngGrid.formattingService.unformat(displayValue, editFormat, this.format.type, this.initialValue);
-        }
-        if (this.format.type === 'TEXT' && (this.format.uppercase || this.format.lowercase)) {
-            if (this.format.uppercase) displayValue = displayValue.toUpperCase();
-            else if (this.format.lowercase) displayValue = displayValue.toLowerCase();
-        }
-    }
+    let displayValue = this.elementRef.nativeElement.value;
     let realValue = displayValue;
 
     if (this.valuelistValues) {
       let hasMatchingDisplayValue = false;
-      const fDisplayValue = this.findDisplayValue(this.valuelistValues, formatedDisplayValue);
+      const fDisplayValue = this.findDisplayValue(this.valuelistValues, displayValue);
       if(fDisplayValue != null) {
         hasMatchingDisplayValue = fDisplayValue['hasMatchingDisplayValue'];
         realValue = fDisplayValue['realValue'];
