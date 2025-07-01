@@ -1201,15 +1201,21 @@ export class DataGrid extends NGGridDirective {
 
     displayValueGetter(params: any) {
         const field = params.colDef.field;
+        let displayValue: any = '';
         if (field && params.data) {
-            let value = params.data[field];
-            if (value == null) {
-                value = NULL_VALUE; // need to use an object for null, else grouping won't work in ag grid
-            } 
-            return value;
+            displayValue = params.data[field];
+            if (displayValue == null) {
+                displayValue = NULL_VALUE; // need to use an object for null, else grouping won't work in ag grid
+            } else {
+                const dataGrid = params.context.componentParent;
+                const column = dataGrid.getColumn(params.column.colId);
+                if(column && column.valuelist && displayValue.displayValue === undefined && !(typeof displayValue === 'string' || displayValue instanceof String) && column.format) {
+                    displayValue = dataGrid.format(displayValue, column.format, false);
+                }
+            }
         }
 
-        return '';
+        return displayValue;
     }
 
     displayValueFormatter(params: any): string {
@@ -1221,12 +1227,12 @@ export class DataGrid extends NGGridDirective {
         if (value && value.displayValue !== undefined) {
             value = value.displayValue;
         }
-        // skip format for pinned rows (footer), they are always text
+        // skip format for pinned rows (footer) and valuelist linked dp, they are always text
         if(!params.node.rowPinned) {
             const dataGrid = params.context.componentParent;
             const column = dataGrid.getColumn(params.column.colId);
 
-            if (column && column.format ) {
+            if (column && !column.valuelist && column.format) {
                 value = dataGrid.format(value, column.format, false);
             }
         }
