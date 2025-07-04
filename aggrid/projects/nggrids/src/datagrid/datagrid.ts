@@ -1101,7 +1101,7 @@ export class DataGrid extends NGGridDirective {
 
         const dataGrid = params.context.componentParent;
         const column = dataGrid.getColumn(params.column.colId);
-        if(column && column.valuelist && displayValue.displayValue === undefined && !(typeof displayValue === 'string' || displayValue instanceof String) && column.format) {
+        if(column && column.valuelist && displayValue != null && displayValue !== undefined && displayValue.displayValue === undefined && !(typeof displayValue === 'string' || displayValue instanceof String) && column.format) {
             displayValue = dataGrid.format(displayValue, column.format, false);
         }
 
