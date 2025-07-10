@@ -900,9 +900,11 @@ export class DataGrid extends NGGridDirective {
             }
         });
 
-        this.agGridElementRef.nativeElement.addEventListener('contextmenu', (e: any) => {
-            e.preventDefault();
-        });
+		if(!this.enableBrowserContextMenu) {
+			this.agGridElementRef.nativeElement.addEventListener('contextmenu', (e: any) => {
+				e.preventDefault();
+			});
+		}
 
         this.agGridElementRef.nativeElement.addEventListener('focus', (e: any) => {
             if(this.agGrid.api) {
