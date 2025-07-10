@@ -24,6 +24,7 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
     @ViewChild('element') agGrid: AgGridAngular;
     @ViewChild('element', { read: ElementRef }) agGridElementRef: ElementRef;
 
+    @Input() enableBrowserContextMenu: boolean;
     @Input() arrowsUpDownMoveWhenEditing: any;
     @Input() editNextCellOnEnter: boolean;
     @Input() _internalFormEditorValue: any;

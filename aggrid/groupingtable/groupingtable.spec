@@ -31,6 +31,7 @@
 		"rowHeight" : {"type" : "int", "default": 25, "tags": {"scope": "design", "doc": "The height in pixels of the table's rows"}},
 		"rowStyleClassDataprovider": { "type": "dataprovider", "forFoundset": "myFoundset", "tags": {"doc": "Use dataSource calculation as rowStyleClassDataprovider to set styleClass conditionally to rows. The calculation should return the class name (or names) to be applied to the row"} },
 		"styleClass": { "type": "styleclass", "default" : "ag-theme-alpine" },
+		"enableBrowserContextMenu" : {"type": "boolean", "default" : false, "tags" : {"scope": "design", "doc": "When true the browser context menu is shown"}},
 		"enableColumnResize": { "type": "boolean", "default": true, "tags": {"scope": "design", "doc": "Allow the user to resize columns"}},
 		"enableColumnMove": { "type": "boolean", "default": true, "tags": {"scope": "design", "doc": "If moving of columns is enabled"}},
 		"enableSorting": { "type": "boolean", "default": true, "tags": {"scope": "design", "doc": "Enable column sorting by clickin on the column's header"}},

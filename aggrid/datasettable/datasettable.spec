@@ -484,6 +484,7 @@
 			"enablePivot":  {"type": "boolean", "default": false, "tags": {"doc": "If the column can be used as pivot"}},
 			"pivotIndex":  {"type": "int", "default": -1, "tags": {"doc": "Set this in columns you want to pivot by"}},
 			"aggFunc": {"type": "string", "values" : ["sum", "min", "max", "count", "avg", "first", "last"], "default": "", "tags": {"doc": "Name of function to use for aggregation"}},
+			"enableBrowserContextMenu" : {"type": "boolean", "default" : false, "tags" : {"scope": "design", "doc": "When true the browser context menu is shown"}},
 			"enableSort" : {"type": "boolean", "default" : true},
 			"enableResize" : {"type": "boolean", "default" : true},
 			"enableToolPanel" : {"type": "boolean", "default" : true},
