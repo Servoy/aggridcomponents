@@ -894,6 +894,7 @@ export class PowerGrid extends NGGridDirective {
                             return '';
                         };
                     }
+                    colDef.keyCreator = this.createValueFormatter(column.format);
                     colDef.valueFormatter = this.createValueFormatter(column.format);
                 }
 
