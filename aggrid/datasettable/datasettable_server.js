@@ -118,6 +118,7 @@ $scope.api.renderData = function(dataset, pks) {
             var rowData = {};
             for(var j = 0; j < row.length; j++) {
                 var columnName = dataset.getColumnName(j + 1);
+				columnName = columnName.toLowerCase();
                 rowData[columnName] = convertData(row[j], columnName);
             }
             $scope.model.data.push(rowData);
