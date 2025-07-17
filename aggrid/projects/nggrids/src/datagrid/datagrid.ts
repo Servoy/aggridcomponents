@@ -1793,12 +1793,13 @@ export class DataGrid extends NGGridDirective {
 		}
 		if (value === null) return 1;
 
-		if (!Number.isNaN(value)) {
-			return parseInt(value, 10) > 0 ? 0 : 1;
-		}
-		this.log.warn('Cant toggle value for checkbox editor from ' + value);
-		return null;
-	}
+        const num = Number(value);
+        if (!Number.isNaN(num)) {
+            return num > 0 ? 0 : 1;
+        }
+        this.log.warn('Cant toggle value for checkbox editor from ' + value);
+        return null;
+    }
 
 	getCheckboxEditorBooleanValue(value: any): boolean {
 		switch (value) {
@@ -1820,12 +1821,13 @@ export class DataGrid extends NGGridDirective {
 		}
 		if (value === null) return false;
 
-		if (!Number.isNaN(value)) {
-			return parseInt(value, 10) > 0;
-		}
-		this.log.warn('Cant make a boolean value for checkbox editor from ' + value);
-		return null;
-	}
+        const num = Number(value);
+        if (!Number.isNaN(num)) {
+            return num > 0;
+        }
+        this.log.warn('Cant make a boolean value for checkbox editor from ' + value);
+        return null;
+    }
 
 	stripUnsortableColumns(sortString: string): string {
 		if (sortString) {
@@ -2025,20 +2027,20 @@ export class DataGrid extends NGGridDirective {
 		let returnValueFormatted = false;
 		let checkboxEl = null;
 
-		if (col && col.editType === 'CHECKBOX' && !params.node.group) {
-			checkboxEl = this.doc.createElement('i');
-			checkboxEl.className = this.getIconCheckboxEditor(this.getCheckboxEditorBooleanValue(value));
-		} else {
-			const showAs = params.node.rowPinned === 'bottom' ? col.footerTextShowAs : col.showAs;
-			if (col != null && showAs === 'html') {
-				value = value && value.displayValue !== undefined ? value.displayValue : value;
-			} else if (col != null && showAs === 'sanitizedHtml') {
-				value = this.sanitizer.sanitize(SecurityContext.HTML, value && value.displayValue !== undefined ? value.displayValue : value);
-			} else if (value && value.contentType && value.contentType.indexOf('image/') === 0 && value.url) {
-				value = '<img class="ag-table-image-cell" src="' + value.url + '">';
-			} else {
-				returnValueFormatted = true;
-			}
+        if(col && col.editType === 'CHECKBOX' && !params.node.group) {
+            checkboxEl = this.doc.createElement('i');
+            checkboxEl.className = this.getIconCheckboxEditor(this.isInFindMode() && value ===  '' ? null : this.getCheckboxEditorBooleanValue(value));
+        } else {
+            const showAs = params.node.rowPinned === 'bottom' ? col.footerTextShowAs : col.showAs;
+            if(col != null && showAs === 'html') {
+                value =  value && value.displayValue !== undefined ? value.displayValue : value;
+            } else if(col != null && showAs === 'sanitizedHtml') {
+                value = this.sanitizer.sanitize(SecurityContext.HTML, value && value.displayValue !== undefined ? value.displayValue : value);
+            } else if (value && value.contentType && value.contentType.indexOf('image/') === 0 && value.url) {
+                value = '<img class="ag-table-image-cell" src="' + value.url + '">';
+            } else {
+                returnValueFormatted = true;
+            }
 
 			if (value instanceof Date) returnValueFormatted = true;
 		}
@@ -2737,20 +2739,20 @@ export class DataGrid extends NGGridDirective {
 		// skip pinned (footer) nodes
 		if (args.node.rowPinned) return false;
 
-		// not enabled/security-accesible
-		if (!_this.enabled) return false;
+        // not enabled/security-accesible
+        if(!_this.enabled) return false;
+
+        const col = args.colDef.field ? _this.getColumn(args.colDef.field) : null;
+        if(col && col.editType === 'CHECKBOX' && (!args.event || args.event.target.tagName !== 'I')) {
+            return false;
+        }
 
 		if (_this.isInFindMode()) {
 			return true;
 		}
 
-		// if read-only and no r-o columns
-		if (_this.readOnly && !_this.readOnlyColumnIds) return false;
-
-		const col = args.colDef.field ? _this.getColumn(args.colDef.field) : null;
-		if (col && col.editType === 'CHECKBOX' && (!args.event || args.event.target.tagName !== 'I')) {
-			return false;
-		}
+        // if read-only and no r-o columns
+        if(_this.readOnly && !_this.readOnlyColumnIds) return false;
 
 		const rowGroupCols = _this.getRowGroupColumns();
 		for (const rowGroupCol of rowGroupCols) {
@@ -3304,14 +3306,16 @@ export class DataGrid extends NGGridDirective {
 	getIconCheckboxEditor(state: any) {
 		const checkboxEditorIconConfig = this.registrationService.datagridService.iconConfig ? this.mergeConfig(this.registrationService.datagridService.iconConfig, this.iconConfig) : this.iconConfig;
 
-		if (state) {
-			return checkboxEditorIconConfig && checkboxEditorIconConfig['iconEditorChecked'] && checkboxEditorIconConfig['iconEditorChecked'] !== 'glyphicon glyphicon-check' ?
-				checkboxEditorIconConfig['iconEditorChecked'] : 'far fa-check-square';
-		} else {
-			return checkboxEditorIconConfig && checkboxEditorIconConfig['iconEditorUnchecked'] && checkboxEditorIconConfig['iconEditorUnchecked'] !== 'glyphicon glyphicon-unchecked' ?
-				checkboxEditorIconConfig['iconEditorUnchecked'] : 'far fa-square';
-		}
-	}
+        if(state) {
+            return checkboxEditorIconConfig && checkboxEditorIconConfig['iconEditorChecked'] && checkboxEditorIconConfig['iconEditorChecked'] !== 'glyphicon glyphicon-check' ?
+            checkboxEditorIconConfig['iconEditorChecked']: 'far fa-check-square';
+        } else if(state == null) {
+                return checkboxEditorIconConfig && checkboxEditorIconConfig['iconEditorIndeterminate'] ? checkboxEditorIconConfig['iconEditorIndeterminate'] : 'far fa-square-minus';
+        } else {
+            return checkboxEditorIconConfig && checkboxEditorIconConfig['iconEditorUnchecked'] && checkboxEditorIconConfig['iconEditorUnchecked'] !== 'glyphicon glyphicon-unchecked' ?
+            checkboxEditorIconConfig['iconEditorUnchecked'] : 'far fa-square';
+        }
+    }
 
 	handleColumnHeader(index: any, property: any, newValue: any) {
 		this.log.debug('header column property changed');
@@ -3599,8 +3603,16 @@ export class DataGrid extends NGGridDirective {
     onCellClicked(params: any, jsEvent: JSEvent, timeout?: number) {
         this.log.debug(params);
         const col = params.colDef.field ? this.getColumn(params.colDef.field) : null;
-        if(col && col.editType === 'CHECKBOX' && params.colDef.editable && this.isColumnEditable(params)) {
-            params.node.setDataValue(params.column.colId, this.getCheckboxEditorToggleValue(params.value));
+        if(col && col.editType === 'CHECKBOX' && params.colDef.editable && (this.isInFindMode() || this.isColumnEditable(params))) {
+            let checkValue = params.value;
+            if(col.format && (col.format.type === 'INTEGER' || col.format.type === 'NUMBER') && checkValue == '') {
+                checkValue = 0;
+            }
+            if(this.isInFindMode() && !this.getCheckboxEditorBooleanValue(checkValue) && params.value != '') {
+                params.node.setDataValue(params.column.colId, '');
+            } else {
+                params.node.setDataValue(params.column.colId, this.getCheckboxEditorToggleValue(checkValue));
+            }
         }
 
         if(timeout) {
