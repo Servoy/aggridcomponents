@@ -88,7 +88,7 @@ export class FilterDirective implements AgFloatingFilterComponent, IFloatingFilt
             this.model = null;
         } else {
             this.model = {
-            filterType: isNaN(filterRealValue) ? 'text' : 'number',
+            filterType: isNaN(Number(filterRealValue)) ? 'text' : 'number',
             type: 'equals',
             filter: filterRealValue,
             uiValue: this.getFilterUIValue(),
@@ -102,7 +102,7 @@ export class FilterDirective implements AgFloatingFilterComponent, IFloatingFilt
             condition2 = null;
           } else {
             condition2 = {
-              filterType: isNaN(filterRealValue) ? 'text' : 'number',
+              filterType: isNaN(Number(filterRealValue)) ? 'text' : 'number',
               type: 'equals',
               filter: filterRealValue
             };

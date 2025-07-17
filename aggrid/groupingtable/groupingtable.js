@@ -227,8 +227,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						if(state) {
 							return checkboxEditorIconConfig && checkboxEditorIconConfig.iconEditorChecked ?
 							checkboxEditorIconConfig.iconEditorChecked : "glyphicon glyphicon-check";
-						}
-						else {
+        				} else if(state == null) {
+                			return checkboxEditorIconConfig && checkboxEditorIconConfig.iconEditorIndeterminate ?
+							checkboxEditorIconConfig.iconEditorIndeterminate : 'glyphicon glyphicon-minus';
+
+						} else {
 							return checkboxEditorIconConfig && checkboxEditorIconConfig.iconEditorUnchecked ?
 							checkboxEditorIconConfig.iconEditorUnchecked : "glyphicon glyphicon-unchecked";
 						}
@@ -1222,8 +1225,17 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					function onCellClicked(params) {
 						$log.debug(params);
 						var col = params.colDef.field ? getColumn(params.colDef.field) : null;
-						if(col && col.editType == 'CHECKBOX' && params.colDef.editable && isColumnEditable(params)) {
-							params.node.setDataValue(params.column.colId, getCheckboxEditorToggleValue(params.value));
+						if(col && col.editType == 'CHECKBOX' && params.colDef.editable && (isInFindMode() || isColumnEditable(params))) {
+							var checkValue = params.value;
+							if(col.format && (col.format.type === 'INTEGER' || col.format.type === 'NUMBER') && checkValue == '') {
+								checkValue = 0;
+							}
+							if(isInFindMode() && !getCheckboxEditorBooleanValue(checkValue) && params.value != '') {
+								params.node.setDataValue(params.column.colId, '');
+							}
+							else {
+								params.node.setDataValue(params.column.colId, getCheckboxEditorToggleValue(checkValue));
+							}
 						}
 						if ($scope.handlers.onCellClick) {
 							//						var row = params.data;
@@ -3014,7 +3026,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							}
 							else {
 								this.model = {
-									filterType: isNaN(filterRealValue) ? "text" : "number",
+									filterType: isNaN(parseInt(filterRealValue)) ? "text" : "number",
 									type: "equals",
 									filter: filterRealValue
 								};
@@ -3028,7 +3040,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								}
 								else {
 									condition2 = {
-										filterType: isNaN(filterRealValue) ? "text" : "number",
+										filterType: isNaN(parseInt(filterRealValue)) ? "text" : "number",
 										type: "equals",
 										filter: filterRealValue
 									};
@@ -5652,17 +5664,17 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						// not enabled/security-accesible
 						if(!$scope.model.enabled) return false;
 
+						var col = args.colDef.field ? getColumn(args.colDef.field) : null;
+						if(col && col.editType === 'CHECKBOX' && (!args.event || args.event.target.tagName !== 'I')) {
+							return false;
+						}
+
 						if(isInFindMode()) {
 							return true;
 						}
 
 						// if read-only and no r-o columns
 						if($scope.model.readOnly && !$scope.model.readOnlyColumnIds) return false;
-
-						var col = args.colDef.field ? getColumn(args.colDef.field) : null;
-						if(col && col.editType === 'CHECKBOX' && (!args.event || args.event.target.tagName !== 'I')) {
-							return false;
-						}
 
 						var rowGroupCols = getRowGroupColumns();
 						for (var i = 0; i < rowGroupCols.length; i++) {
@@ -5758,7 +5770,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 							if(col && col.editType == 'CHECKBOX' && !params.node.group) {
 								checkboxEl = document.createElement('i');
-								checkboxEl.className = getIconCheckboxEditor(getCheckboxEditorBooleanValue(value));
+								checkboxEl.className = getIconCheckboxEditor(isInFindMode() && value === '' ? null : getCheckboxEditorBooleanValue(value));
 							}
 							else {
 								if(col != null && col.showAs == 'html') {
