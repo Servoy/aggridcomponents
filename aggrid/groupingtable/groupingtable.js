@@ -3026,7 +3026,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							}
 							else {
 								this.model = {
-									filterType: isNaN(parseInt(filterRealValue)) ? "text" : "number",
+									filterType: isNaN(filterRealValue) ? "text" : "number",
 									type: "equals",
 									filter: filterRealValue
 								};
@@ -3040,7 +3040,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								}
 								else {
 									condition2 = {
-										filterType: isNaN(parseInt(filterRealValue)) ? "text" : "number",
+										filterType: isNaN(filterRealValue) ? "text" : "number",
 										type: "equals",
 										filter: filterRealValue
 									};
