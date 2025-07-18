@@ -3027,7 +3027,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							}
 							else {
 								this.model = {
-									filterType: this.isRealValueUUID ? 'uuid' : isNaN(parseInt(filterRealValue)) ? 'text' : 'number',
+									filterType: this.isRealValueUUID ? 'uuid' : isNaN(filterRealValue) ? 'text' : 'number',
 									type: "equals",
 									filter: filterRealValue
 								};
@@ -3041,7 +3041,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								}
 								else {
 									condition2 = {
-										filterType: this.isRealValueUUID ? 'uuid' : isNaN(parseInt(filterRealValue)) ? 'text' : 'number',
+										filterType: this.isRealValueUUID ? 'uuid' : isNaN(filterRealValue) ? 'text' : 'number',
 										type: "equals",
 										filter: filterRealValue
 									};
