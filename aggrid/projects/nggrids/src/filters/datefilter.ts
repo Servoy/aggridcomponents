@@ -1,9 +1,9 @@
-import { Component, ElementRef, Inject, Renderer2, ViewChild } from "@angular/core";
+import { Component, ElementRef, Inject, Renderer2, ViewChild, DOCUMENT } from "@angular/core";
 import { FilterDirective } from "./filter";
 import { Format, FormattingService, getFirstDayOfWeek, MaskFormat, ServoyPublicService } from '@servoy/public';
 import { DateTime as DateTimeLuxon} from 'luxon';
 import { DateTime, Options, Namespace, TempusDominus } from '@eonasdan/tempus-dominus';
-import { DOCUMENT } from "@angular/common";
+
 
 @Component({
   selector: 'aggrid-datagrid-datefilter',
@@ -11,13 +11,13 @@ import { DOCUMENT } from "@angular/common";
     <div><div class="{{ !isFloating ? 'ag-filter-body-wrapper ag-simple-filter-body-wrapper' : '' }}">
       <div [hidden]="isFloating" class="ag-picker-field ag-labeled ag-label-align-left ag-select ag-filter-select">
         <select style="width:100%;" [(ngModel)]="selectedFilterOperation" (change)="onFilterOperationChange($event)">
-            <option value="equals">{{ equals }}</option>
-            <option value="notEqual">{{ notEqual }}</option>
-            <option value="lessThan">{{ lessThan }}</option>
-            <option value="greaterThan">{{ greaterThan }}</option>
-            <option value="inRange">{{ inRange }}</option>
-            <option value="blank">{{ blank }}</option>
-            <option value="notBlank">{{ notBlank }}</option>
+          <option value="equals">{{ equals }}</option>
+          <option value="notEqual">{{ notEqual }}</option>
+          <option value="lessThan">{{ lessThan }}</option>
+          <option value="greaterThan">{{ greaterThan }}</option>
+          <option value="inRange">{{ inRange }}</option>
+          <option value="blank">{{ blank }}</option>
+          <option value="notBlank">{{ notBlank }}</option>
         </select>
       </div>
       <div class="ag-filter-body">
@@ -36,18 +36,24 @@ import { DOCUMENT } from "@angular/common";
           </div>
         </div>
       </div>
-      <div *ngIf="!suppressAndOrCondition()" class="ag-filter-condition"><label>OR</label></div>
-      <div *ngIf="!suppressAndOrCondition()" class="ag-filter-body">
-        <div class="ag-input-wrapper">
-          <input class="ag-filter-filter ag-input-field-input" type="text" id="filterText1" autocomplete="off" #element1>
+      @if (!suppressAndOrCondition()) {
+        <div class="ag-filter-condition"><label>OR</label></div>
+      }
+      @if (!suppressAndOrCondition()) {
+        <div class="ag-filter-body">
+          <div class="ag-input-wrapper">
+            <input class="ag-filter-filter ag-input-field-input" type="text" id="filterText1" autocomplete="off" #element1>
+          </div>
         </div>
-      </div>
+      }
     </div>
-    <div *ngIf="hasApplyButton()" class="ag-filter-apply-panel">
-      <button type="button" id="btnApplyFilter" class="ag-button ag-standard-button ag-filter-apply-panel-button" (click)="onApplyFilter()">{{ txtApplyFilter }}</button>      
-      <button type="button" id="btnClearFilter" class="ag-button ag-standard-button ag-filter-apply-panel-button" (click)="onClearFilter()">{{ txtClearFilter }}</button>
-    </div></div>
-  `,
+    @if (hasApplyButton()) {
+      <div class="ag-filter-apply-panel">
+        <button type="button" id="btnApplyFilter" class="ag-button ag-standard-button ag-filter-apply-panel-button" (click)="onApplyFilter()">{{ txtApplyFilter }}</button>
+        <button type="button" id="btnClearFilter" class="ag-button ag-standard-button ag-filter-apply-panel-button" (click)="onClearFilter()">{{ txtClearFilter }}</button>
+      </div>
+    }</div>
+    `,
   standalone: false
 })
 export class DateFilter extends FilterDirective {

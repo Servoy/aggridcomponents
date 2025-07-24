@@ -1,7 +1,7 @@
-import { Component, Inject, Input, Renderer2 } from '@angular/core';
+import { Component, Inject, Input, Renderer2, DOCUMENT } from '@angular/core';
 import { EditorDirective } from './editor';
 import { ICellEditorParams } from 'ag-grid-community';
-import { DOCUMENT } from '@angular/common';
+
 import { Format, FormattingService, getFirstDayOfWeek, MaskFormat, ServoyPublicService } from '@servoy/public';
 import { DateTime as DateTimeLuxon} from 'luxon';
 import { DateTime, Namespace, Options, TempusDominus } from '@eonasdan/tempus-dominus';

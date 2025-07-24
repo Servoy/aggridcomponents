@@ -1,13 +1,15 @@
 <div [id]="servoyApi.getMarkupId()" style="height:100%; width:100%; position: relative;" (dragover)="gridDragOver($event)" (drop)="gridDrop($event)" (dragend)="gridDragEnd($event)">
-	<ag-grid-angular
+  <ag-grid-angular
     #element
     style="height: 100%;"
     class="ag-table"
     [ngClass]="styleClass"
     [sabloTabseq]="tabSeq"
     [gridOptions]="agGridOptions">
-    </ag-grid-angular>
-	<span *ngIf="isGroupView" class="ag-table-info" [ngClass]="dirtyCache ? 'ag-table-info-notify' : ''" [svyTooltip]="tooltipTextRefreshData">
-		<i [ngClass]="getIconRefreshData()" (click)="purge()"></i>
-	</span>
+  </ag-grid-angular>
+  @if (isGroupView) {
+    <span class="ag-table-info" [ngClass]="dirtyCache ? 'ag-table-info-notify' : ''" [svyTooltip]="tooltipTextRefreshData">
+      <i [ngClass]="getIconRefreshData()" (click)="purge()"></i>
+    </span>
+  }
 </div>

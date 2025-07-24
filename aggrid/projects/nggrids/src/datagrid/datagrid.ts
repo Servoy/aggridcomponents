@@ -5,7 +5,7 @@ import {
 	DisplayedColumnsChangedEvent,
 	GetMainMenuItemsParams
 } from 'ag-grid-community';
-import { ChangeDetectionStrategy, ChangeDetectorRef, EventEmitter, Inject, Input, Output, Renderer2, SecurityContext, SimpleChanges } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, EventEmitter, Inject, Input, Output, Renderer2, SecurityContext, SimpleChanges, DOCUMENT } from '@angular/core';
 import { Component } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { LoggerFactory, ChangeType, IFoundset, FoundsetChangeEvent, Deferred, FormattingService, ServoyPublicService, BaseCustomObject, JSEvent } from '@servoy/public';
@@ -17,7 +17,7 @@ import { TypeaheadEditor } from '../editors/typeaheadeditor';
 import { RadioFilter } from '../filters/radiofilter';
 import { ValuelistFilter } from '../filters/valuelistfilter';
 import { ColumnsAutoSizingOn, DragTransferData, GRID_EVENT_TYPES, IconConfig, JSDNDEvent, MainMenuItemsConfig, NGGridDirective, ToolPanelConfig } from '../nggrid';
-import { DOCUMENT } from '@angular/common';
+
 import { BlankLoadingCellRendrer } from './renderers/blankloadingcellrenderer';
 import { NgbTypeaheadConfig } from '@ng-bootstrap/ng-bootstrap';
 import { CustomTooltip } from './commons/tooltip';

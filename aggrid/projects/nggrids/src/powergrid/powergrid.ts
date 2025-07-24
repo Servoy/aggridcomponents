@@ -1,5 +1,5 @@
 import { GetRowIdParams, ColumnMenuTab, ColumnResizedEvent, ColDef, Column, IRowNode, IAggFunc, DisplayedColumnsChangedEvent } from 'ag-grid-community';
-import { ChangeDetectorRef, Component, EventEmitter, Inject, Input, Output, Renderer2, SecurityContext, SimpleChanges } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Inject, Input, Output, Renderer2, SecurityContext, SimpleChanges, DOCUMENT } from '@angular/core';
 import { BaseCustomObject, FormattingService, ICustomArray, ServoyPublicService } from '@servoy/public';
 import { LoggerFactory } from '@servoy/public';
 import { ColumnsAutoSizingOn, DragTransferData, GRID_EVENT_TYPES, IconConfig, JSDNDEvent, MainMenuItemsConfig, NGGridDirective, ToolPanelConfig } from '../nggrid';
@@ -7,7 +7,7 @@ import { DatePicker } from '../editors/datepicker';
 import { FormEditor } from '../editors/formeditor';
 import { TextEditor } from '../editors/texteditor';
 import { DomSanitizer } from '@angular/platform-browser';
-import { DOCUMENT } from '@angular/common';
+
 import { CustomTooltip } from '../datagrid/commons/tooltip';
 import { isEqualWith } from 'lodash-es';
 import { SelectEditor } from '../editors/selecteditor';

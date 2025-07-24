@@ -12,20 +12,23 @@ import { NULL_VALUE } from '../datagrid/datagrid';
         <div class="ag-filter-body">
           <div class="ag-input-wrapper">
             <input class="ag-filter-filter ag-input-field-input" type="text" id="filterText" autocomplete="off"
-                [ngbTypeahead]="filterValues"
-                (selectItem)="valueChanged()"
-                [resultFormatter]="resultFormatter"
-                [inputFormatter]="inputFormatter"
-                (focus)="focus$.next('')"
-                [resultTemplate]="rt"
-                [popupClass]="'ag-custom-component-popup'"
-                #instance="ngbTypeahead" #element>
+              [ngbTypeahead]="filterValues"
+              (selectItem)="valueChanged()"
+              [resultFormatter]="resultFormatter"
+              [inputFormatter]="inputFormatter"
+              (focus)="focus$.next('')"
+              [resultTemplate]="rt"
+              [popupClass]="'ag-custom-component-popup'"
+              #instance="ngbTypeahead" #element>
           </div>
         </div>
-        <div *ngIf="!suppressAndOrCondition()" class="ag-filter-condition"><label>OR</label></div>
-        <div *ngIf="!suppressAndOrCondition()" class="ag-filter-body">
-          <div class="ag-input-wrapper">
-            <input class="ag-filter-filter ag-input-field-input" type="text" id="filterText1" autocomplete="off"
+        @if (!suppressAndOrCondition()) {
+          <div class="ag-filter-condition"><label>OR</label></div>
+        }
+        @if (!suppressAndOrCondition()) {
+          <div class="ag-filter-body">
+            <div class="ag-input-wrapper">
+              <input class="ag-filter-filter ag-input-field-input" type="text" id="filterText1" autocomplete="off"
                 [ngbTypeahead]="filterValues1"
                 (selectItem)="valueChanged()"
                 [resultFormatter]="resultFormatter"
@@ -34,17 +37,20 @@ import { NULL_VALUE } from '../datagrid/datagrid';
                 [resultTemplate]="rt"
                 [popupClass]="'ag-custom-component-popup'"
                 #instance="ngbTypeahead" #element1>
+            </div>
           </div>
-        </div>
+        }
       </div>
-      <div *ngIf="hasApplyButton()" class="ag-filter-apply-panel">
-        <button type="button" id="btnApplyFilter" class="ag-button ag-standard-button ag-filter-apply-panel-button" (click)="onApplyFilter()">{{ txtApplyFilter }}</button>      
-        <button type="button" id="btnClearFilter" class="ag-button ag-standard-button ag-filter-apply-panel-button" (click)="onClearFilter()">{{ txtClearFilter }}</button>
-      </div></div>
+      @if (hasApplyButton()) {
+        <div class="ag-filter-apply-panel">
+          <button type="button" id="btnApplyFilter" class="ag-button ag-standard-button ag-filter-apply-panel-button" (click)="onApplyFilter()">{{ txtApplyFilter }}</button>
+          <button type="button" id="btnClearFilter" class="ag-button ag-standard-button ag-filter-apply-panel-button" (click)="onClearFilter()">{{ txtClearFilter }}</button>
+        </div>
+      }</div>
       <ng-template #rt let-r="result" let-t="term">
         <ngb-highlight [result]="getFormatedDisplayValue(r.displayValue)" [term]="t"></ngb-highlight>
       </ng-template>
-    `,
+      `,
     standalone: false
 })
 export class ValuelistFilter extends FilterDirective {

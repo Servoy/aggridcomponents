@@ -5,28 +5,42 @@ import { FilterDirective } from './filter';
     selector: 'aggrid-datagrid-radiofilter',
     template: `
       <div class="{{ !isFloating ? 'ag-filter-body-wrapper ag-simple-filter-body-wrapper' : '' }}">
-        <div *ngIf="!useCheckboxForFloatingFilter()" class="ag-filter-body" #element>
-          <label class="ag-radio-filter" id="filterRadio" *ngFor="let item of valuelistValues">
-            <input type="radio" name="{{ getName() }}" [value]="getFormatedDisplayValue(item.displayValue)" (change)="valueChanged()"/>
-            <span>{{ getFormatedDisplayValue(item.displayValue) }}</span>
-          </label>
-        </div>
-        <div *ngIf="useCheckboxForFloatingFilter()" class="ag-filter-body">
-          <input type="checkbox" style="width: 100%; height: 100%;" (click)="onCheckboxClick()" #element/>
-        </div>  
-        <div *ngIf="!suppressAndOrCondition()" class="ag-filter-condition"><label>OR</label></div>
-        <div *ngIf="!suppressAndOrCondition()" class="ag-filter-body" #element1>
-          <label class="ag-radio-filter" id="filterRadio1" *ngFor="let item of valuelistValues">
-            <input type="radio" name="{{ getName('1') }}" [value]="getFormatedDisplayValue(item.displayValue)" (change)="valueChanged()"/>
-            <span>{{ getFormatedDisplayValue(item.displayValue) }}</span>
-          </label>
-        </div>
+        @if (!useCheckboxForFloatingFilter()) {
+          <div class="ag-filter-body" #element>
+            @for (item of valuelistValues; track item) {
+              <label class="ag-radio-filter" id="filterRadio">
+                <input type="radio" name="{{ getName() }}" [value]="getFormatedDisplayValue(item.displayValue)" (change)="valueChanged()"/>
+                <span>{{ getFormatedDisplayValue(item.displayValue) }}</span>
+              </label>
+            }
+          </div>
+        }
+        @if (useCheckboxForFloatingFilter()) {
+          <div class="ag-filter-body">
+            <input type="checkbox" style="width: 100%; height: 100%;" (click)="onCheckboxClick()" #element/>
+          </div>
+        }
+        @if (!suppressAndOrCondition()) {
+          <div class="ag-filter-condition"><label>OR</label></div>
+        }
+        @if (!suppressAndOrCondition()) {
+          <div class="ag-filter-body" #element1>
+            @for (item of valuelistValues; track item) {
+              <label class="ag-radio-filter" id="filterRadio1">
+                <input type="radio" name="{{ getName('1') }}" [value]="getFormatedDisplayValue(item.displayValue)" (change)="valueChanged()"/>
+                <span>{{ getFormatedDisplayValue(item.displayValue) }}</span>
+              </label>
+            }
+          </div>
+        }
       </div>
-      <div *ngIf="hasApplyButton()" class="ag-filter-apply-panel">
-        <button type="button" id="btnApplyFilter" class="ag-button ag-standard-button ag-filter-apply-panel-button" (click)="onApplyFilter()">{{ txtApplyFilter }}</button>      
-        <button type="button" id="btnClearFilter" class="ag-button ag-standard-button ag-filter-apply-panel-button" (click)="onClearFilter()">{{ txtClearFilter }}</button>
-      </div>
-    `,
+      @if (hasApplyButton()) {
+        <div class="ag-filter-apply-panel">
+          <button type="button" id="btnApplyFilter" class="ag-button ag-standard-button ag-filter-apply-panel-button" (click)="onApplyFilter()">{{ txtApplyFilter }}</button>
+          <button type="button" id="btnClearFilter" class="ag-button ag-standard-button ag-filter-apply-panel-button" (click)="onClearFilter()">{{ txtClearFilter }}</button>
+        </div>
+      }
+      `,
     standalone: false
 })
 export class RadioFilter extends FilterDirective {
