@@ -286,7 +286,8 @@ export class PowerGrid extends NGGridDirective {
 				pinned: 'left',
 				sortable: false,
 				resizable: false,
-				suppressHeaderMenuButton: true
+				suppressHeaderMenuButton: true,
+                suppressSizeToFit: true
 			},
             //                suppressRowClickSelection: rowGroupColsDefault.length === 0 ? false : true,
             cellSelection: false,
