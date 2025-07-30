@@ -434,7 +434,8 @@ export class DataGrid extends NGGridDirective {
 				pinned: 'left',
 				sortable: false,
 				resizable: false,
-				suppressHeaderMenuButton: true
+				suppressHeaderMenuButton: true,
+				suppressSizeToFit: true
 			},
 			//suppressCellFocus: !this.enabled,
 			cellSelection: false,
