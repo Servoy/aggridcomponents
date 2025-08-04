@@ -2845,67 +2845,35 @@ export class DataGrid extends NGGridDirective {
 			const restoreFilter = restoreStates === undefined || restoreStates.filter === true;
 			const restoreSort = restoreStates === undefined || restoreStates.sort === true;
 
-			if (restoreColumns) {
-				// can't parse columnState
-				if (columnStateJSON == null || !Array.isArray(columnStateJSON.columnState)) {
-					if (restoreColumns) this.innerColumnStateOnError('Cannot restore columns state, invalid format');
-					return;
-				}
+            if (restoreColumns) {
+                // can't parse columnState
+                if(columnStateJSON == null || !Array.isArray(columnStateJSON.columnState)) {
+                    this.innerColumnStateOnError('Cannot restore columns state, invalid format');
+                    return;
+                }
 
-				// if columns were added/removed, skip the restore
-				const savedColumns = [];
-				for (const columnState of columnStateJSON.columnState) {
-					if (this.isSpecialColumn(columnState.colId)) {
-						continue; // if special column, that starts with '_' or is a group column
-					}
-					savedColumns.push(columnState.colId);
-				}
-				let columnsNr = this.columns.length;
-				for (const column of this.columns) {
-					if (column.excluded) columnsNr--;
-				}
-				if (savedColumns.length !== columnsNr) {
-					if (restoreColumns) this.innerColumnStateOnError('Cannot restore columns state, different number of columns in saved state and component - saved: ' + JSON.stringify(savedColumns) + ' columnsNr: ' + columnsNr);
-					return;
-				}
+                // if columns were added/removed, skip the restore
+                const savedColumns = [];
+                for(const columnState of columnStateJSON.columnState) {
+                    if(this.isSpecialColumn(columnState.colId)) {
+                        continue; // if special column, that starts with '_' or is a group column
+                    }
+                    savedColumns.push(columnState.colId);
+                }
+                
+                if(!this.haveAllColumnsUniqueIds()) {
+                    this.innerColumnStateOnError('Cannot restore columns state, not all columns have id or dataprovider set.');
+                    return;
+                }
 
-				if (!this.haveAllColumnsUniqueIds()) {
-					if (restoreColumns) this.innerColumnStateOnError('Cannot restore columns state, not all columns have id or dataprovider set.');
-					return;
-				}
+                const missingColumnIdsFromState = this.getMissingColumnIdsFromState(savedColumns, columnStateJSON);
+                const missingColumnIdsFromModel = this.getMissingColumnIdsFromModel(savedColumns, columnStateJSON);
+                if(missingColumnIdsFromState.length !== 0 || missingColumnIdsFromModel.length !== 0) {
+                    this.innerColumnStateOnError('Cannot restore columns state, different columns in state and model.', missingColumnIdsFromState, missingColumnIdsFromModel);
+                    return;
 
-				for (const fieldToCompare of savedColumns) {
-					let columnExist = false;
-
-					for (let j = 0; j < this.columns.length; j++) {
-						// TODO shall i simply check if column exists using gridOptions.columnApi.getColumn(fieldToCompare) instead ?
-
-						// check if fieldToCompare has a matching column id
-						if (this.columns[j].id && fieldToCompare === this.columns[j].id) {
-							columnExist = true;
-						} else if (fieldToCompare === this.getColumnID(this.columns[j], j)) {
-							// if no column id check if column has matching column identifier
-
-							// if a column id has been later set. Update the columnState
-							if (this.columns[j].id) {
-
-								for (const columnState of columnStateJSON.columnState) {
-									// find the column in columnState
-									if (columnState.colId === fieldToCompare) {
-										columnState.colId = this.columns[j].id;
-										break;
-									}
-								}
-							}
-							columnExist = true;
-						}
-					}
-					if (!columnExist) {
-						if (restoreColumns) this.innerColumnStateOnError('Cannot restore columns state, cant find column from state in component columns');
-						return;
-					}
-				}
-			}
+                }
+            }
 
 			if (columnStateJSON != null) {
 
@@ -2949,7 +2917,87 @@ export class DataGrid extends NGGridDirective {
 		}
 	}
 
-	innerColumnStateOnError(errorMsg: any) {
+    getMissingColumnIdsFromModel(savedColumns: string[], columnStateJSON): string[] {
+        const missingColumnIdsFromModel: string[] = [];
+
+        for(const fieldToCompare of savedColumns) {
+            let columnExist = false;
+
+            for (let j = 0; j < this.columns.length; j++) {
+                if(this.columns[j].excluded) continue;
+                // TODO shall i simply check if column exists using gridOptions.columnApi.getColumn(fieldToCompare) instead ?
+
+                // check if fieldToCompare has a matching column id
+                if (this.columns[j].id && fieldToCompare === this.columns[j].id) {
+                    columnExist = true;
+                } else if (fieldToCompare === this.getColumnID(this.columns[j], j)) {
+                    // if no column id check if column has matching column identifier
+
+                    // if a column id has been later set. Update the columnState
+                    if (this.columns[j].id) {
+
+                        for (const columnState of columnStateJSON.columnState) {
+                            // find the column in columnState
+                            if (columnState.colId === fieldToCompare) {
+                                columnState.colId = this.columns[j].id;
+                                break;
+                            }
+                        }
+                    }
+                    columnExist = true;
+                }
+                if(columnExist) break;
+            }
+            if(!columnExist) {
+                missingColumnIdsFromModel.push(fieldToCompare);
+            }
+        }
+
+        return missingColumnIdsFromModel;
+    }
+
+    getMissingColumnIdsFromState(savedColumns: string[], columnStateJSON): string[] {
+        const missingColumnIdsFromState: string[] = [];
+
+        for (let j = 0; j < this.columns.length; j++) {
+            if(this.columns[j].excluded) continue;
+            let columnExist = false;
+
+            for(const fieldToCompare of savedColumns) {
+
+                // check if fieldToCompare has a matching column id
+                if (this.columns[j].id && fieldToCompare === this.columns[j].id) {
+                    columnExist = true;
+                } else if (fieldToCompare === this.getColumnID(this.columns[j], j)) {
+                    // if no column id check if column has matching column identifier
+
+                    // if a column id has been later set. Update the columnState
+                    if (this.columns[j].id) {
+
+                        for (const columnState of columnStateJSON.columnState) {
+                            // find the column in columnState
+                            if (columnState.colId === fieldToCompare) {
+                                columnState.colId = this.columns[j].id;
+                                break;
+                            }
+                        }
+                    }
+                    columnExist = true;
+                }
+                if(columnExist) break;
+            }
+
+            if(!columnExist) {
+                missingColumnIdsFromState.push(this.columns[j].id ? this.columns[j].id : this.getColumnID(this.columns[j], j));
+            }
+        }
+
+        return missingColumnIdsFromState;
+    }
+
+    innerColumnStateOnError(errorMsg: string, missingColumnIdsFromState?: string[], missingColumnIdsFromModel?: string[]) {
+
+        const oldColumnState = this.columnState;
 
 		// if the restore goes wrong, make sure the actual column state is persisted in the model.columnState
 		try {
@@ -2958,13 +3006,13 @@ export class DataGrid extends NGGridDirective {
 			console.error(e);
 		}
 
-		if (this.columnStateOnError) {
-			// can't parse columnState
-			this.servoyApi.callServerSideApi('columnStateOnErrorHandler', [errorMsg, this.createJSEvent()]);
-		} else {
-			console.error(errorMsg);
-		}
-	}
+        if (this.columnStateOnError) {
+            // can't parse columnState
+            this.servoyApi.callServerSideApi('columnStateOnErrorHandler', [errorMsg, this.createJSEvent(), oldColumnState, missingColumnIdsFromState, missingColumnIdsFromModel]);
+        } else {
+            console.error(errorMsg);
+        }
+    }
 
 	haveAllColumnsUniqueIds() {
 		const ids = [];
