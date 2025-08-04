@@ -320,6 +320,19 @@
 				{ "name": "sort", "type": "boolean", "optional": true}
 			]
 		},
+		"getColumnsFromState" : {
+			"parameters": [
+				{ "name": "columnState", "type": "string", "optional": true}
+			],
+			"returns": "columnStateColumn[]"
+		},
+		"setColumnsToState" : {
+			"parameters": [
+				{ "name": "columns", "type": "columnStateColumn[]"},
+				{ "name": "columnState", "type": "string", "optional": true}
+			],
+			"returns": "string"
+		},
 		"autoSizeAllColumns" : {
 			"parameters": [
 			]
@@ -721,6 +734,20 @@
 			"gridReady" : { "type": "boolean", "default": true, "tags": {"scope": "design", "doc": "Apply 'columnsAutoSizing' when grid is ready to be shown"} },
 			"gridSizeChange" : { "type": "boolean", "default": true, "tags": {"scope": "design", "doc": "Apply 'columnsAutoSizing' when grid size changes"} },
 			"toolPanelVisibleChange" : { "type": "boolean", "default": true, "tags": {"scope": "design", "doc": "Apply 'columnsAutoSizing' when the toolpanel visibility is changed"} }
+		},
+		"columnStateColumn" : {
+			"colId" : { "type" : "string" },
+			"width" : { "type": "int" },
+			"hide" : { "type": "boolean" },
+			"pinned" : { "type" : "string" },
+			"sort" : { "type" : "string" },
+			"sortIndex" : { "type": "int" },
+			"aggFunc" : { "type" : "string" },
+			"rowGroup" : { "type": "boolean" },
+			"rowGroupIndex" : { "type": "int" },
+			"pivot" : { "type": "boolean" },
+			"pivotIndex" : { "type": "int" },
+			"flex" : { "type": "int" }
 		}
 	}
 }

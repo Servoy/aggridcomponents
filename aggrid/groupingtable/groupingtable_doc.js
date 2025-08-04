@@ -422,6 +422,27 @@ function autoSizeAllColumns() {
 function getColumnState() {
 }
 
+
+/**
+ * Returns the columns from the columnState string, if specified, or from the current columnState
+ * 
+ * @param {String} columnState
+ * 
+ * @return {Array<columnStateColumn>}
+ */
+function getColumnsFromState(columnState) {
+}
+
+
+/**
+ * Sets the columns to the columnState string, if specified, or to the current columnState
+ * 
+ * @param {Array<columnStateColumn>} columns
+ * @param {String} columnState
+ */
+function setColumnsToState(columns, columnState) {
+}
+
 /**
  * Set the table read-only state. If no columnids is used, all columns read-only state is set,
  * otherwise only for the columns specified.

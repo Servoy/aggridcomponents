@@ -658,9 +658,10 @@ $scope.onHide = function() {
 }
 
 
-$scope.columnStateOnErrorHandler = function(errorMsg, event) {
+$scope.columnStateOnErrorHandler = function(errorMsg, event, oldColumnState, missingColumnIdsFromState, missingColumnIdsFromModel) {
 	if($scope.model.columnStateOnError) {
-		$scope.model.columnStateOnError(errorMsg, event);
+
+		$scope.model.columnStateOnError(errorMsg, event, $scope.api.getColumnsFromState(oldColumnState), missingColumnIdsFromState, missingColumnIdsFromModel);
 	}
 }
 
@@ -866,6 +867,47 @@ $scope.api.getColumnState = function() {
 	var currentColumnState = $scope.model._internalVisible && $scope.model.visible ? $scope.model.internalGetColumnState() : null;
 	return currentColumnState ? currentColumnState : $scope.model.columnState;
 }
+
+
+/**
+ * Returns the columns from the columnState string, if specified, or from the current columnState
+ * 
+ * @param {String} columnState
+ * 
+ * @return {Array<columnStateColumn>}
+ */
+$scope.api.getColumnsFromState = function(columnState) {
+	var theColumnState = columnState ? columnState : $scope.api.getColumnState();
+	try {
+		var columnStateJSON = JSON.parse(theColumnState);
+		return columnStateJSON.columnState;
+
+	} catch(e) {
+		log(e, LOG_LEVEL.ERROR);
+	}
+	return null;
+}
+
+
+/**
+ * Sets the columns to the columnState string, if specified, or to the current columnState
+ * 
+ * @param {Array<columnStateColumn>} columns
+ * @param {String} columnState
+ * 
+ */
+$scope.api.setColumnsToState = function(columns, columnState) {
+	var theColumnState = columnState ? columnState : $scope.api.getColumnState();
+	try {
+		var columnStateJSON = JSON.parse(theColumnState);
+		columnStateJSON.columnState = columns;
+		$scope.model._internalColumnState = JSON.stringify(columnStateJSON);
+
+	} catch(e) {
+		log(e, LOG_LEVEL.ERROR);
+	}
+}
+
 
 /**
  * Set the table read-only state. If no columnids is used, all columns read-only state is set,
