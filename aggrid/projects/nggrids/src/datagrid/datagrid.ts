@@ -1451,7 +1451,7 @@ export class DataGrid extends NGGridDirective {
 				colDef.cellClass = this.getCellClass;
 			} else {
 				colDef.cellClass = ['ag-table-cell'];
-				if (!column.enabled) {
+				if (column.enabled === false) {
 					colDef.cellClass.push('svy-disabled-cell');
 				}
 				if (column.styleClass) {
@@ -1956,7 +1956,7 @@ export class DataGrid extends NGGridDirective {
 		const column = dataGrid.getColumn(params.colDef.field);
 
 		let cellClass = ['ag-table-cell'];
-		if (!column.enabled) {
+		if (column.enabled === false) {
 			cellClass.push('svy-disabled-cell');
 		}
 		if (column.styleClass) {
