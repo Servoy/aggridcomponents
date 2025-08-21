@@ -2998,7 +2998,7 @@ export class DataGrid extends NGGridDirective {
                 return;
             }
 
-            if(foundsetManager.foundset.selectedRowIndexes.length) {
+            if(this.agGrid.api['serverSideRowModel'] && foundsetManager.foundset.selectedRowIndexes.length) {
                 const rowCount = this.agGrid.api['serverSideRowModel'].getRowCount();
                 if(foundsetManager.foundset.selectedRowIndexes[0] > rowCount - CHUNK_SIZE) {
                     this.agGrid.api['serverSideRowModel'].setRowCount(Math.min(foundsetManager.foundset.selectedRowIndexes[0] + CHUNK_SIZE, foundsetManager.foundset.serverSize));
