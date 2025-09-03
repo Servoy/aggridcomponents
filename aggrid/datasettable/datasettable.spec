@@ -21,7 +21,7 @@
 		"data": { "type": "object[]", "tags": {"scope" : "private"}, "pushToServer": "allow"},
 		"pks": { "type": "string[]", "tags": {"scope" : "private"}},
 		"updateData": { "type": "object", "tags": {"scope" : "private"}},
-		"columns": { "type": "column[]", "droppable" : true, "tags": {"doc": "List all columns to be used in table as dataprovider"}},
+		"columns": { "type": "column[]", "droppable" : true, "tags": {"doc": "List all columns to be used in table as dataprovider", "basic": true}},
 		"columnState": { "type": "string", "tags": {"scope" : "private", "allowaccess": "enabled"}, "pushToServer": "allow"},
 		"_internalColumnState": { "type": "string", "tags": {"scope" : "private", "allowaccess": "enabled"}, "pushToServer": "allow"},
 		"_internalExpandedState": { "type": "object", "tags": {"scope" : "private", "allowaccess": "enabled"}, "pushToServer": "allow"},
