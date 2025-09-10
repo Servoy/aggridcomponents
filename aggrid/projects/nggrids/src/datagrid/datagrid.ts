@@ -3652,9 +3652,15 @@ export class DataGrid extends NGGridDirective {
             } else {
                 params.node.setDataValue(params.column.colId, this.getCheckboxEditorToggleValue(checkValue));
             }
+
+			if(!this.isInFindMode()) {
+				// if not in find mode, it means it is a checkbox edit - leave time for updateFoundsetRecord to execute first (triggered by params.node.setDataValue),
+				// so the click handler will have the record with the new value
+				timeout = 0;
+			}
         }
 
-        if(timeout) {
+        if(timeout !== undefined) {
             this.setTimeout(() => {
                 this.servoyApi.callServerSideApi('cellClick',
                     ['click', this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), jsEvent, this.getDataTarget(params.event)]);
