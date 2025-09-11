@@ -3184,6 +3184,7 @@ export class DataGrid extends NGGridDirective {
 		this.agGrid.api.setGridOption('columnDefs', this.getColumnDefs())
 		// selColumnDefs should redraw the grid, but it stopped doing so from v19.1.2
 		this.purge();
+		this.restoreColumnsState();
 	}
 
 	scrollToSelectionEx(foundsetManager?: any) {
