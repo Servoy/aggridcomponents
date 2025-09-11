@@ -2066,19 +2066,20 @@ export class DataGrid extends NGGridDirective {
             }
         }
 
-        if(styleClassProvider) {
-            const divContainer = this.doc.createElement('div');
-            divContainer.className = styleClassProvider;
-            if(checkboxEl) {
-                divContainer.appendChild(checkboxEl);
-            } else {
-                if(returnValueFormatted) {
-                    const textNode = this.doc.createTextNode(params.valueFormatted);
-                    divContainer.appendChild(textNode);
-                } else {
-                    divContainer.innerHTML = value;
-                }
-            }
+		if (styleClassProvider) {
+			const divContainer = this.doc.createElement('div');
+			divContainer.style.pointerEvents = 'none';
+			divContainer.className = styleClassProvider;
+			if (checkboxEl) {
+				divContainer.appendChild(checkboxEl);
+			} else {
+				if (returnValueFormatted) {
+					const textNode = this.doc.createTextNode(params.valueFormatted);
+					divContainer.appendChild(textNode);
+				} else {
+					divContainer.innerHTML = value;
+				}
+			}
 
             return divContainer;
         } else {
