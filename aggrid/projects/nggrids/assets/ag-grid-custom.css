@@ -22,11 +22,6 @@
     color: black;
 }
 
-/* No cell borders */
-.ag-table .ag-body .ag-cell-value {
-	border: 0;
-}
-
 /* Clickable & Draggable empty header */
 .ag-cell-label-container {
     height: 100%;
