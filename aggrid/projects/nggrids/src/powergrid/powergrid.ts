@@ -430,6 +430,9 @@ export class PowerGrid extends NGGridDirective {
                 this.svySizeColumnsToFit(GRID_EVENT_TYPES.TOOLPANEL_VISIBLE_CHANGE);
             },
             onCellEditingStopped: (event) => {
+				this.setTimeout(() => {
+                	this.popupStateService.deactivatePopup(this.agGridElementRef.nativeElement.parentNode.id);
+                }, 200);
                 // don't allow escape if cell data is invalid
                 if (this.onColumnDataChangePromise == null) {
                     const rowIndex = event.rowIndex;
@@ -443,6 +446,7 @@ export class PowerGrid extends NGGridDirective {
                 }
             },
             onCellEditingStarted: (event) => {
+                this.popupStateService.activatePopup(this.agGridElementRef.nativeElement.parentNode.id);
                 // don't allow editing another cell if we have an invalidCellData
                 if (this.invalidCellDataIndex.rowIndex !== -1 && this.invalidCellDataIndex.colKey !== '') {
                     const rowIndex = event.rowIndex;
@@ -634,12 +638,6 @@ export class PowerGrid extends NGGridDirective {
             return;
         }
 
-		if(!this.enableBrowserContextMenu) {
-			this.agGridElementRef.nativeElement.addEventListener('contextmenu', (e: any) => {
-				e.preventDefault();
-			});
-		}
-
         this.agGridElementRef.nativeElement.addEventListener('focus', (e: any) => {
             if (this.agGrid.api) {
                 const allDisplayedColumns = this.agGrid.api.getAllDisplayedColumns();
@@ -662,11 +660,6 @@ export class PowerGrid extends NGGridDirective {
             }
         });
 
-        let mainWindowContainer = this.agGridElementRef.nativeElement.closest('.svy-main-window-container');
-        if(!mainWindowContainer) {
-            mainWindowContainer = this.agGridElementRef.nativeElement.closest('.svy-dialog');
-        }
-        this.agGrid.api.setGridOption('popupParent', mainWindowContainer ? mainWindowContainer : this.agGridElementRef.nativeElement);
         // register listener for selection changed
         this.agGrid.api.addEventListener('rowSelected', (event: any) => this.onRowSelectedHandler(event));
         this.agGrid.api.addEventListener('cellClicked', (params: any) => this.cellClickHandler(params));

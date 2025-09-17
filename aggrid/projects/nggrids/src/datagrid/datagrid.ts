@@ -8,7 +8,7 @@ import {
 import { ChangeDetectionStrategy, ChangeDetectorRef, EventEmitter, Inject, Input, Output, Renderer2, SecurityContext, SimpleChanges, DOCUMENT } from '@angular/core';
 import { Component } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
-import { LoggerFactory, ChangeType, IFoundset, FoundsetChangeEvent, Deferred, FormattingService, ServoyPublicService, BaseCustomObject, JSEvent } from '@servoy/public';
+import { LoggerFactory, ChangeType, IFoundset, FoundsetChangeEvent, Deferred, FormattingService, ServoyPublicService, BaseCustomObject, JSEvent, PopupStateService } from '@servoy/public';
 import { DatePicker } from '../editors/datepicker';
 import { FormEditor } from '../editors/formeditor';
 import { SelectEditor } from '../editors/selecteditor';
@@ -263,7 +263,7 @@ export class DataGrid extends NGGridDirective {
 
 	constructor(renderer: Renderer2, public cdRef: ChangeDetectorRef, logFactory: LoggerFactory,
 		private servoyService: ServoyPublicService, public formattingService: FormattingService, public ngbTypeaheadConfig: NgbTypeaheadConfig,
-		private sanitizer: DomSanitizer, @Inject(DOCUMENT) public doc: Document, private registrationService: RegistrationService) {
+		private sanitizer: DomSanitizer, @Inject(DOCUMENT) public doc: Document, private registrationService: RegistrationService, protected popupStateService: PopupStateService) {
 		super(renderer, cdRef);
 		this.ngbTypeaheadConfig.container = 'body';
 		this.log = logFactory.getLogger('DataGrid');
@@ -469,6 +469,9 @@ export class DataGrid extends NGGridDirective {
 				}, 150);
 			},
 			onCellEditingStopped: (event) => {
+				this.setTimeout(() => {
+                	this.popupStateService.deactivatePopup(this.agGridElementRef.nativeElement.parentNode.id);
+                }, 200);
 				// don't allow escape if cell data is invalid
 				if (this.onColumnDataChangePromise == null) {
 					const rowIndex = event.rowIndex;
@@ -482,6 +485,7 @@ export class DataGrid extends NGGridDirective {
 				}
 			},
 			onCellEditingStarted: (event) => {
+				this.popupStateService.activatePopup(this.agGridElementRef.nativeElement.parentNode.id);
 				// don't allow editing another cell if we have an invalidCellData
 				if (this.invalidCellDataIndex.rowIndex !== -1 && this.invalidCellDataIndex.colKey !== '') {
 					const rowIndex = event.rowIndex;
@@ -884,11 +888,6 @@ export class DataGrid extends NGGridDirective {
         } else {
             this.isRendered = true;
         }
-        let mainWindowContainer = this.agGridElementRef.nativeElement.closest('.svy-main-window-container');
-        if(!mainWindowContainer) {
-            mainWindowContainer = this.agGridElementRef.nativeElement.closest('.svy-dialog');
-        }
-        this.agGrid.api.setGridOption('popupParent', mainWindowContainer ? mainWindowContainer : this.agGridElementRef.nativeElement);
 
 		this.agGridElementRef.nativeElement.addEventListener('click', (e: any) => {
 			if (e.target.parentNode && e.target.parentNode.classList &&
@@ -900,12 +899,6 @@ export class DataGrid extends NGGridDirective {
 				}
 			}
 		});
-
-		if(!this.enableBrowserContextMenu) {
-			this.agGridElementRef.nativeElement.addEventListener('contextmenu', (e: any) => {
-				e.preventDefault();
-			});
-		}
 
 		this.agGridElementRef.nativeElement.addEventListener('focus', (e: any) => {
 			if (this.agGrid.api) {

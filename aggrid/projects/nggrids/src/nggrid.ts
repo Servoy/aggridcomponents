@@ -1,7 +1,7 @@
 import { AgGridAngular } from 'ag-grid-angular';
 import { GridOptions } from 'ag-grid-community';
 import { ChangeDetectorRef, ContentChild, Directive, ElementRef, Input, TemplateRef, ViewChild } from '@angular/core';
-import { Deferred, BaseCustomObject, Format, FormattingService, LoggerService, ServoyBaseComponent, JSEvent, IJSMenu, IJSMenuItem } from '@servoy/public';
+import { Deferred, BaseCustomObject, Format, FormattingService, LoggerService, ServoyBaseComponent, JSEvent, IJSMenu, IJSMenuItem, PopupStateService } from '@servoy/public';
 import { Options } from '@eonasdan/tempus-dominus';
 
 export const GRID_EVENT_TYPES = {
@@ -57,8 +57,52 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
 
     private destroyed = false;
 
+    protected popupStateService: PopupStateService
+    private popupParent: HTMLElement;
+    private popupParentObserver: MutationObserver;
+
+	svyOnInit() {
+		super.svyOnInit();
+		if (!this.servoyApi.isInDesigner()) {
+            let mainWindowContainer = this.agGridElementRef.nativeElement.closest('.svy-main-window-container');
+            if(!mainWindowContainer) {
+                mainWindowContainer = this.agGridElementRef.nativeElement.closest('.svy-dialog');
+            }
+            this.popupParent = mainWindowContainer ? mainWindowContainer : this.agGridElementRef.nativeElement;
+            this.agGrid.api.setGridOption('popupParent', this.popupParent);
+            this.popupParentObserver = new MutationObserver((mutations) => {
+                mutations.forEach(mutation => {
+                    // Added nodes
+                    mutation.addedNodes.forEach(node => {
+                        if (node instanceof HTMLElement && (node.classList.contains('ag-popup') /*|| node.classList.contains('ag-custom-component-popup')*/)) {
+                            this.popupStateService.activatePopup(this.agGridElementRef.nativeElement.parentNode.id);
+                        }
+                    });
+                    // Removed nodes
+                    mutation.removedNodes.forEach(node => {
+                        if (node instanceof HTMLElement && (node.classList.contains('ag-popup') /*|| node.classList.contains('ag-custom-component-popup')*/)) {
+                            this.setTimeout(() => {
+                                this.popupStateService.deactivatePopup(this.agGridElementRef.nativeElement.parentNode.id);
+                            }, 200);
+                        }
+                    });
+                });
+            });
+
+            this.popupParentObserver.observe(this.popupParent, { childList: true, subtree: false });
+            //this.popupParentObserver.observe(this.doc.body, { childList: true, subtree: false });
+
+            if(!this.enableBrowserContextMenu) {
+                this.agGridElementRef.nativeElement.addEventListener('contextmenu', (e: any) => {
+                    e.preventDefault();
+                });
+            }
+        }
+    }
+
     destroy(): any {
         this.cancelDragViewportScroll();
+        if (this.popupParentObserver) this.popupParentObserver.disconnect();
         if(!this.agGrid.api.isDestroyed()) this.agGrid.api.destroy();
         this.destroyed = true;
     }
