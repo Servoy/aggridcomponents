@@ -1772,27 +1772,27 @@ export class DataGrid extends NGGridDirective {
 		return this.foundset.foundset['findMode'];
 	}
 
-	getCheckboxEditorToggleValue(value: any): any {
-		switch (value) {
-			case 'yes':
-				return 'no';
-			case 'y':
-				return 'n';
-			case 'true':
-				return 'false';
-			case 't':
-				return 'f';
-			case 'no':
-				return 'yes';
-			case 'n':
-				return 'y';
-			case '':
-			case 'false':
-				return 'true';
-			case 'f':
-				return 't';
-		}
-		if (value === null) return 1;
+    getCheckboxEditorToggleValue(value: any): any {
+        switch(value) {
+            case 'yes':
+                return 'no';
+            case 'y':
+                return 'n';
+            case 'true':
+                return 'false';
+            case 't':
+                return 'f';
+            case 'no':
+                return 'yes';
+            case 'n':
+                return 'y';
+            case '':
+            case 'false':
+                return 'true';
+            case 'f':
+                return 't';
+        }
+        if(value === null || value === NULL_VALUE) return 1;
 
         const num = Number(value);
         if (!Number.isNaN(num)) {
@@ -1802,25 +1802,25 @@ export class DataGrid extends NGGridDirective {
         return null;
     }
 
-	getCheckboxEditorBooleanValue(value: any): boolean {
-		switch (value) {
-			case 'yes':
-			case 'Yes':
-			case 'y':
-			case 'true':
-			case 'True':
-			case 't':
-				return true;
-			case 'no':
-			case 'No':
-			case 'n':
-			case '':
-			case 'false':
-			case 'False':
-			case 'f':
-				return false;
-		}
-		if (value === null) return false;
+    getCheckboxEditorBooleanValue(value: any): boolean {
+        switch(value) {
+            case 'yes':
+            case 'Yes':    
+            case 'y':
+            case 'true':
+            case 'True':    
+            case 't':
+                return true;
+            case 'no':
+            case 'No':
+            case 'n':
+            case '':
+            case 'false':
+            case 'False':
+            case 'f':
+                return false;
+        }
+        if(value === null || value === NULL_VALUE) return false;
 
         const num = Number(value);
         if (!Number.isNaN(num)) {
