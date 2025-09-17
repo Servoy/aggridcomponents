@@ -1783,7 +1783,7 @@ export class DataGrid extends NGGridDirective {
             case 'f':
                 return 't';
         }
-        if(value === null) return 1;
+        if(value === null || value === NULL_VALUE) return 1;
 
         const num = Number(value);
         if (!Number.isNaN(num)) {
@@ -1811,7 +1811,7 @@ export class DataGrid extends NGGridDirective {
             case 'f':
                 return false;
         }
-        if(value === null) return false;
+        if(value === null || value === NULL_VALUE) return false;
 
         const num = Number(value);
         if (!Number.isNaN(num)) {
