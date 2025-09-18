@@ -81,9 +81,7 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
                     // Removed nodes
                     mutation.removedNodes.forEach(node => {
                         if (node instanceof HTMLElement && (node.classList.contains('ag-popup') /*|| node.classList.contains('ag-custom-component-popup')*/)) {
-                            this.setTimeout(() => {
-                                this.popupStateService.deactivatePopup(this.agGridElementRef.nativeElement.parentNode.id);
-                            }, 200);
+                            this.popupStateService.deactivatePopup(this.agGridElementRef.nativeElement.parentNode.id);
                         }
                     });
                 });

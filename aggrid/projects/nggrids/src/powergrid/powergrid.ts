@@ -430,9 +430,7 @@ export class PowerGrid extends NGGridDirective {
                 this.svySizeColumnsToFit(GRID_EVENT_TYPES.TOOLPANEL_VISIBLE_CHANGE);
             },
             onCellEditingStopped: (event) => {
-				this.setTimeout(() => {
-                	this.popupStateService.deactivatePopup(this.agGridElementRef.nativeElement.parentNode.id);
-                }, 200);
+                this.popupStateService.deactivatePopup(this.agGridElementRef.nativeElement.parentNode.id);
                 // don't allow escape if cell data is invalid
                 if (this.onColumnDataChangePromise == null) {
                     const rowIndex = event.rowIndex;

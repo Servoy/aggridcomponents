@@ -469,9 +469,7 @@ export class DataGrid extends NGGridDirective {
 				}, 150);
 			},
 			onCellEditingStopped: (event) => {
-				this.setTimeout(() => {
-                	this.popupStateService.deactivatePopup(this.agGridElementRef.nativeElement.parentNode.id);
-                }, 200);
+				this.popupStateService.deactivatePopup(this.agGridElementRef.nativeElement.parentNode.id);
 				// don't allow escape if cell data is invalid
 				if (this.onColumnDataChangePromise == null) {
 					const rowIndex = event.rowIndex;
