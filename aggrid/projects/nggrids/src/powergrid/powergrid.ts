@@ -592,6 +592,18 @@ export class PowerGrid extends NGGridDirective {
         if (this.styleClass === 'ag-theme-fresh') {
             this.log.warn('ag-theme-fresh is deprecated, see: https://www.ag-grid.com/javascript-grid/themes-v23-migration/');
         }
+
+        // Use Servoy's UI settings for tooltip delays, fallback to ag-Grid defaults if not present or invalid
+        let tooltipInitialDelay = this.servoyService.getUIProperty?.('tooltipInitialDelay');
+        let tooltipHideDelay = this.servoyService.getUIProperty?.('tooltipDismissDelay');
+
+        // ag-Grid default: tooltipShowDelay = 200, tooltipHideDelay = 1000
+        if (typeof tooltipInitialDelay === 'number' && !Number.isNaN(tooltipInitialDelay)) {
+            this.agGridOptions.tooltipShowDelay = tooltipInitialDelay;
+        }
+        if (typeof tooltipHideDelay === 'number' && !Number.isNaN(tooltipHideDelay)) {
+            this.agGridOptions.tooltipHideDelay = tooltipHideDelay;
+        }
     }
 
     private setupHeaderIconStyleClass(): void {
