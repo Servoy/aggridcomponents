@@ -372,8 +372,12 @@ export class DataGrid extends NGGridDirective {
 					if (!this.columnState) {
 						this.storeColumnsState(true);
 					}
-					this.restoreColumnsState(
-						this.restoreStates && (this.restoreStates.columns !== undefined || this.restoreStates.filter !== undefined || this.restoreStates.sort !== undefined) ? this.restoreStates : undefined);
+					if(this.restoreStates) {
+						this.restoreColumnsState(this.restoreStates);
+						this.restoreStates = undefined;
+					} else {
+						this.restoreColumnsState();
+					}
 					if (!this._internalInitialColumnState) {
 						this._internalInitialColumnState = this.columnState;
 						this._internalInitialColumnStateChange.emit(this._internalInitialColumnState);
