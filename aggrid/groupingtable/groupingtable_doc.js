@@ -33,7 +33,7 @@ var styleClass;
 /**
  * When true the browser context menu is shown
  */
-enableBrowserContextMenu;
+var enableBrowserContextMenu;
 
 /**
  * Allow the user to resize columns
@@ -550,8 +550,10 @@ function getColumnsFromState(columnState) {
 /**
  * Sets the columns to the columnState string, if specified, or to the current columnState
  * 
- * @param {Array<CustomType<aggrid-groupingtable.columnStateColumn>} columns Columns to update.
+ * @param {Array<CustomType<aggrid-groupingtable.columnStateColumn>>} columns Columns to update.
  * @param {String} [columnState] The column state to update, if not set the grid's current column state is used.
+ * 
+ * @return {String} The updated columns state.
  */
 function setColumnsToState(columns, columnState) {
 }
@@ -1254,31 +1256,74 @@ var svy_types = {
      */
     mainMenuItemsConfig: {
 
-        /** Configuration for the pin sub-menu. */
+        /**
+         * Option to sort the column in ascending order.
+         */
+        sortAscending: null,
+
+        /**
+         * Option to sort the column in descending order.
+         */
+        sortDescending: null,
+
+        /**
+         * Option to clear the sort on the column.
+         */
+        sortUnSort: null, 
+
+        /**
+         * Option to show the column filter.
+         */
+        columnFilter: null,
+
+        /**
+         * Option to show the column chooser.
+         */
+        columnChooser: null,
+
+        /**
+         * Configuration for the pin sub-menu.
+         */
         pinSubMenu: null,
 
-        /** Configuration for the value aggregation sub-menu. */
+        /**
+         * Configuration for the value aggregation sub-menu.
+         */
         valueAggSubMenu: null,
 
-        /** Option to auto-size the current column. */
+        /**
+         * Option to auto-size the current column.
+         */
         autoSizeThis: null,
 
-        /** Option to auto-size all columns. */
+        /**
+         * Option to auto-size all columns.
+         */
         autoSizeAll: null,
 
-        /** Option to group rows by this column. */
+        /**
+         * Option to group rows by this column.
+         */
         rowGroup: null,
 
-        /** Option to ungroup rows. */
+        /**
+         * Option to ungroup rows.
+         */
         rowUnGroup: null,
 
-        /** Option to reset columns to default. */
+        /**
+         * Option to reset columns to their default state.
+         */
         resetColumns: null,
 
-        /** Option to expand all groups. */
+        /**
+         * Option to expand all groups in the grid.
+         */
         expandAll: null,
 
-        /** Option to contract all groups. */
+        /**
+         * Option to collapse all groups in the grid.
+         */
         contractAll: null,
     },
 
@@ -1359,62 +1404,62 @@ var svy_types = {
         /**
          * Id of the column.
          */
-	    colId,
+	    colId: null,
 
         /**
          * Width of the column in pixels.
          */
-		width,
+		width: null,
 
         /**
          * True if the column is hidden.
          */
-		hide,
+		hide: null,
 
         /**
          * Set if column is pinned.
          */
-		pinned,
+		pinned: null,
 
         /**
          * Sort applied to the column.
          */
-		sort,
+		sort: null,
 
         /**
          * The order of the sort, if sorting by many columns.
          */
-		sortIndex,
+		sortIndex: null,
 
         /**
          * The aggregation function applied.
          */
-		aggFunc,
+		aggFunc: null,
 
         /**
          * True if row group active.
          */
-		rowGroup,
+		rowGroup: null,
 
         /**
          * The order of the row group, if grouping by many columns.
          */
-		rowGroupIndex,
+		rowGroupIndex: null,
 
         /**
          * True if pivot active.
          */
-		pivot,
+		pivot: null,
 
         /**
          * The order of the pivot, if pivoting by many columns.
          */
-		pivotIndex,
+		pivotIndex: null,
 
         /**
          * Column's flex if flex is set.
          */
-		flex
+		flex: null
 	}
 
 }

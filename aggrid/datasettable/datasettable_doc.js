@@ -175,6 +175,11 @@ var onDragOverFunc;
  */
 var onDragGetImageFunc;
 
+/**
+ * Menu items to append to the columns menu, beside the default aggrid menus.
+ */
+var customMainMenu;
+
 
 var handlers = {
     /**
