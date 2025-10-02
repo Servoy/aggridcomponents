@@ -224,7 +224,7 @@ var handlers = {
      * @param {String} [dataTarget] - Optional identifier indicating the target data context. (Optional)
      * @private
      */
-    onCellRightClick: function(î) {},
+    onCellRightClick: function() {},
 
     /**
      * Called when the mouse is clicked on a footer cell
