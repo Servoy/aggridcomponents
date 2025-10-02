@@ -31,6 +31,11 @@ var rowStyleClassDataprovider;
 var styleClass;
 
 /**
+ * When true the browser context menu is shown
+ */
+enableBrowserContextMenu;
+
+/**
  * Allow the user to resize columns
  */
 var enableColumnResize;
@@ -288,7 +293,7 @@ var handlers = {
      *
      * @param {Array<Object>} sourceRows An Array of JSRecord objects if dragged from a data grid, or plain objects if from a power grid
      * @param {JSRecord} targetRecord The target record where the rows were dropped.
-     * @param {JSEvent} event The event object associated with the drop action.
+     * @param {CustomType<aggrid-groupingtable.JSDNDEvent>} event The event object associated with the drop action.
      */
     onDrop: function() {},
 
@@ -534,9 +539,9 @@ function getColumnState() {
 /**
  * Returns the columns from the columnState string, if specified, or from the current columnState
  * 
- * @param {String} columnState
+ * @param {String} [columnState] The column state to use, if not set the grid's current column state is used.
  * 
- * @return {Array<columnStateColumn>}
+ * @return {Array<CustomType<aggrid-groupingtable.columnStateColumn>>} The columns in the state.
  */
 function getColumnsFromState(columnState) {
 }
@@ -545,8 +550,8 @@ function getColumnsFromState(columnState) {
 /**
  * Sets the columns to the columnState string, if specified, or to the current columnState
  * 
- * @param {Array<columnStateColumn>} columns
- * @param {String} columnState
+ * @param {Array<CustomType<aggrid-groupingtable.columnStateColumn>} columns Columns to update.
+ * @param {String} [columnState] The column state to update, if not set the grid's current column state is used.
  */
 function setColumnsToState(columns, columnState) {
 }
@@ -1323,5 +1328,93 @@ var svy_types = {
          */
         toolPanelVisibleChange : null,
 
-    }
+    },
+
+    /**
+     * Drag and drop event type
+     */
+    JSDNDEvent: {
+
+        /**
+         * Drop target column id.
+         */
+        targetColumnId: null,
+
+        /**
+         * Name of the grid that with the drag source.
+         */
+        sourceGridName: null,
+
+        /**
+         * Drag source column id.
+         */
+        sourceColumnId: null,
+    },
+
+    /**
+     * Column object used by the grid api for manipulating saved grid states.
+     */
+	columnStateColumn : {
+
+        /**
+         * Id of the column.
+         */
+	    colId,
+
+        /**
+         * Width of the column in pixels.
+         */
+		width,
+
+        /**
+         * True if the column is hidden.
+         */
+		hide,
+
+        /**
+         * Set if column is pinned.
+         */
+		pinned,
+
+        /**
+         * Sort applied to the column.
+         */
+		sort,
+
+        /**
+         * The order of the sort, if sorting by many columns.
+         */
+		sortIndex,
+
+        /**
+         * The aggregation function applied.
+         */
+		aggFunc,
+
+        /**
+         * True if row group active.
+         */
+		rowGroup,
+
+        /**
+         * The order of the row group, if grouping by many columns.
+         */
+		rowGroupIndex,
+
+        /**
+         * True if pivot active.
+         */
+		pivot,
+
+        /**
+         * The order of the pivot, if pivoting by many columns.
+         */
+		pivotIndex,
+
+        /**
+         * Column's flex if flex is set.
+         */
+		flex
+	}
+
 }

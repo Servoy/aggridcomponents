@@ -284,7 +284,7 @@ var handlers = {
      *
      * @param {Array<Object>} sourceRows an Array of plain objects if dragged from a power grid, or JSRecord objects if from a data grid
      * @param {Object} targetRow The target row where the rows were dropped.
-     * @param {JSEvent} event The event object associated with the drop action.
+     * @param {CustomType<aggrid-datasettable.JSDNDEvent>} event The event object associated with the drop action.
      */
     onDrop: function() {},
 
@@ -454,8 +454,9 @@ function renderData(dataset, pks) {
  * 
  * @param {JSDataset} dataset The dataset containing the new rows to append to the table. The dataset's structure must align with the table's columns for proper data binding.
  * @param {long} [lastRowIndex] The index of the last row available on the server. If not provided, lazy loading will function as infinite scrolling until this value is set.
+ * @param {Array<String>} [pks] list of dataprovider names; needed in case of using apis: updateRows and deleteRows
  */
-function appendLazyRequestData(dataset, lastRowIndex) {
+function appendLazyRequestData(dataset, lastRowIndex, pks) {
 }
 
 /**
@@ -654,6 +655,11 @@ var svy_types = {
          * Name of function to use for aggregation
          */
         aggFunc : null,
+
+        /**
+         * When true the browser context menu is shown
+         */
+        enableBrowserContextMenu : null,
 
         /**
          * Enables sorting for this column.
@@ -1104,6 +1110,31 @@ var svy_types = {
     mainMenuItemsConfig: {
 
         /**
+         * Option to sort the column in ascending order.
+         */
+        sortAscending: null,
+
+        /**
+         * Option to sort the column in descending order.
+         */
+        sortDescending: null,
+
+        /**
+         * Option to clear the sort on the column.
+         */
+        sortUnSort: null, 
+
+        /**
+         * Option to show the column filter.
+         */
+        columnFilter: null,
+
+        /**
+         * Option to show the column chooser.
+         */
+        columnChooser: null,
+
+        /**
          * Configuration for the pin sub-menu.
          */
         pinSubMenu: null,
@@ -1202,5 +1233,27 @@ var svy_types = {
          */
         toolPanelVisibleChange : null,
 
+    },
+
+    /**
+     * Drag and drop event type
+     */
+    JSDNDEvent: {
+
+        /**
+         * Drop target column id.
+         */
+        targetColumnId: null,
+
+        /**
+         * Name of the grid that with the drag source.
+         */
+        sourceGridName: null,
+
+        /**
+         * Drag source column id.
+         */
+        sourceColumnId: null,
     }
+
 }
