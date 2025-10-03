@@ -2228,7 +2228,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 									});
 								}
 							}
-							else if(this.editType == 'TEXTFIELD' && column && column.format) {
+							else if(this.editType == 'TEXTFIELD' && column && column.format && !isInFindMode()) {
 								var attConverter = document.createAttribute("svy-decimal-key-converter");
 								this.eInput.setAttributeNode(attConverter);
 								$scope.model.format = column.format;
@@ -2241,7 +2241,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								this.initialValue = this.initialValue.displayValue;
 							}
 							var v = this.initialValue;
-							if(column && column.format) {
+							if(column && column.format && (this.editType != 'TEXTFIELD' || !isInFindMode())) {
 								this.format = column.format;
 								if (this.format.maxLength) {
 									this.eInput.setAttribute('maxlength', this.format.maxLength);
@@ -2346,7 +2346,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							if(this.editType == 'TEXTFIELD') {
 								this.eInput.select();
 							}
-							if(this.format) {
+							if(this.format && (this.editType != 'TEXTFIELD' || !isInFindMode())) {
 								var editFormat = this.format.edit ? this.format.edit : this.format.display;
 								if(editFormat && this.format.isMask) {
 									var settings = {};
@@ -2391,7 +2391,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 									}
 								}
 							}
-							if(this.format && !isInFindMode()) {
+							if(this.format && (this.editType != 'TEXTFIELD' || !isInFindMode())) {
 								var editFormat = this.format.edit ? this.format.edit : this.format.display;
 								if(editFormat) {
 									displayValue = $formatterUtils.unformat(displayValue, editFormat, this.format.type, this.initialValue);
