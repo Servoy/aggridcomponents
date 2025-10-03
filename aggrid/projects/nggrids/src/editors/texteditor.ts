@@ -6,7 +6,7 @@ import { EditorDirective } from './editor';
     selector: 'aggrid-texteditor',
     template: `
     <div class="ag-input-wrapper">
-      <input class="ag-cell-edit-input" [value]="initialDisplayValue" [svyDecimalKeyConverter]="format" [maxLength]="maxLength" #element>
+      <input class="ag-cell-edit-input" [value]="initialDisplayValue" [svyDecimalKeyConverter]="!ngGrid.isInFindMode() ? format : null" [maxLength]="maxLength" #element>
     </div>
     `,
     host: {
@@ -79,7 +79,7 @@ export class TextEditor extends EditorDirective {
         const isNavigationLeftRightKey = e.keyCode === 37 || e.keyCode === 39;
         const isNavigationUpDownEntertKey = e.keyCode === 38 || e.keyCode === 40 || e.keyCode === 13;
 
-        if(!(isNavigationLeftRightKey || isNavigationUpDownEntertKey) && this.format) {
+        if(!(isNavigationLeftRightKey || isNavigationUpDownEntertKey) && !this.ngGrid.isInFindMode()) {
             return this.ngGrid.formattingService.testForNumbersOnly(e, null, this.elementRef.nativeElement, false, true, this.format, false);
         } else return true;
     }
@@ -92,7 +92,7 @@ export class TextEditor extends EditorDirective {
         }
         let v = this.initialValue;
         this.format = this.ngGrid.getColumnFormat(params.column.getColId());
-        if(this.format) {
+        if(this.format && !this.ngGrid.isInFindMode()) {
             if (this.format.maxLength) {
                 this.maxLength = this.format.maxLength;
             }
@@ -110,7 +110,7 @@ export class TextEditor extends EditorDirective {
         setTimeout(() => {
             this.elementRef.nativeElement.select();
 
-            if(this.format) {
+            if(this.format && !this.ngGrid.isInFindMode()) {
                 const editFormat = this.format.edit ? this.format.edit : this.format.display;
                 if(editFormat && this.format.isMask) {
                     const settings = {};
