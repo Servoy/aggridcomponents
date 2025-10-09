@@ -3,7 +3,8 @@ import { GridOptions, GetRowIdParams, IRowDragItem, DndSourceCallbackParams, Col
         ColDef, Column, IRowNode, IServerSideDatasource, IServerSideGetRowsParams, LoadSuccessParams, 
         SortChangedEvent,
         DisplayedColumnsChangedEvent,
-        GetMainMenuItemsParams } from 'ag-grid-community';
+        GetMainMenuItemsParams, 
+        ProcessRowParams} from 'ag-grid-community';
 import { ChangeDetectionStrategy, ChangeDetectorRef, EventEmitter, Inject, Input, Output, Renderer2, SecurityContext, SimpleChanges } from '@angular/core';
 import { Component } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
@@ -625,7 +626,7 @@ export class DataGrid extends NGGridDirective {
                         }
                 }
             },
-            processRowPostCreate: (params) => {
+            processRowPostCreate: (params: ProcessRowParams) => {
                 if(this.postFocusCell && this.postFocusCell.rowIndex === params.rowIndex) {
                     const rowIndex = this.postFocusCell.rowIndex;
                     const colKey = this.postFocusCell.colKey;
@@ -645,11 +646,17 @@ export class DataGrid extends NGGridDirective {
                         this.sizeHeaderAndColumnsToFit(GRID_EVENT_TYPES.GRID_ROW_POST_CREATE);
                     }, 0);
                 }
-                if(!this.isRenderedAndSelectionReady && this.scrollToSelectionWhenSelectionReady) {
-                    this.scrollToSelectionWhenSelectionReady = false;
-                    this.setTimeout(()  =>{
-                        this.scrollToSelectionEx();
-                    }, 0);
+                if(!this.isRenderedAndSelectionReady && this.scrollToSelectionWhenSelectionReady
+                    && this.foundset && this.foundset.foundset
+                    && this.foundset.foundset.selectedRowIndexes.length
+                ) {
+                    let rowNode = this.agGrid.api.getDisplayedRowAtIndex(this.foundset.foundset.selectedRowIndexes[0]);
+                    if((rowNode && (rowNode.id !== undefined)) || (this.foundset.foundset.selectedRowIndexes[0] == params.rowIndex)) {
+                        this.scrollToSelectionWhenSelectionReady = false;
+                        this.setTimeout(()  =>{
+                            this.scrollToSelectionEx();
+                        }, 0);
+                    }
                 }
             },
             components: {
