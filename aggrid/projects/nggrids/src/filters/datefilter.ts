@@ -194,11 +194,12 @@ export class DateFilter extends FilterDirective {
         setTimeout(() => {
             if (this.format.isMask) {
                 this.maskFormat = new MaskFormat(this.format, this._renderer, this.elementRef.nativeElement, this.formattingService, this.doc);
-                this.elementRef.nativeElement.focus();
-                this.elementRef.nativeElement.setSelectionRange(0, 0);
-
+                if(!this.isFloating) {
+                  this.elementRef.nativeElement.focus();
+                  this.elementRef.nativeElement.setSelectionRange(0, 0);
+                }
                 this.maskFormatTo = new MaskFormat(this.format, this._renderer, this.elementToRef.nativeElement, this.formattingService, this.doc);
-            } else {
+            } else if (!this.isFloating) {
                 this.elementRef.nativeElement.select();
             }
         }, 0);
