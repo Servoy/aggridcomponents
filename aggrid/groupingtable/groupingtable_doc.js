@@ -1,4 +1,7 @@
-/* Data Grid is a table with advanced functionality that operates on JSFoundset data (so it can work directly with the database). It is designed to work with a large number of rows, potentially infinite, since data is loaded lazily into the table, even when grouped. */
+/*
+ * Data Grid is a table with advanced functionality that operates on JSFoundset data (so it can work directly with the database).
+ * It is designed to work with a large number of rows, potentially infinite, since data is loaded lazily into the table, even when grouped.
+ */
 
 /**
  * The foundset where data are fetched from
