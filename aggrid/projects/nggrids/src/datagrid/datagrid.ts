@@ -1784,7 +1784,7 @@ export class DataGrid extends NGGridDirective {
 	}
 
 	isInFindMode(): boolean {
-		return this.foundset.foundset['findMode'];
+		return	this.foundset?.foundset?.findMode ?? false;
 	}
 
     getCheckboxEditorToggleValue(value: any): any {
