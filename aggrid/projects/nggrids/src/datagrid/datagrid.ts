@@ -651,7 +651,7 @@ export class DataGrid extends NGGridDirective {
                     && this.foundset.foundset.selectedRowIndexes.length
                 ) {
                     let rowNode = this.agGrid.api.getDisplayedRowAtIndex(this.foundset.foundset.selectedRowIndexes[0]);
-                    if((rowNode && (rowNode.id !== undefined)) || (this.foundset.foundset.selectedRowIndexes[0] == params.rowIndex)) {
+                    if((rowNode && rowNode.displayed) || (this.foundset.foundset.selectedRowIndexes[0] == params.rowIndex)) {
                         this.scrollToSelectionWhenSelectionReady = false;
                         this.setTimeout(()  =>{
                             this.scrollToSelectionEx();
