@@ -473,7 +473,8 @@ export class DataGrid extends NGGridDirective {
             onFilterChanged: () => {
              this.storeColumnsState();
             },
-            onSortChanged: () => {
+            onSortChanged: (event) => {
+                if(event.source === 'uiColumnSorted') this.isSortModelApplied = true; // sort model applied via UI
                 this.storeColumnsState();
                 if(this.isTableGrouped()) {
                     this.removeAllFoundsetRef = true;
