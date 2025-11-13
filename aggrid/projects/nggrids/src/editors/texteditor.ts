@@ -6,7 +6,7 @@ import { EditorDirective } from './editor';
     selector: 'aggrid-texteditor',
     template: `
     <div class="ag-input-wrapper">
-      <input class="ag-cell-edit-input" [value]="initialDisplayValue" [svyDecimalKeyConverter]="!ngGrid.isInFindMode() ? format : null" [maxLength]="maxLength" #element>
+      <input class="ag-cell-edit-input" [type]="inputType" [value]="initialDisplayValue" [svyDecimalKeyConverter]="!ngGrid.isInFindMode() ? format : null" [maxLength]="maxLength" #element>
     </div>
     `,
     host: {
@@ -19,6 +19,7 @@ export class TextEditor extends EditorDirective {
     @Input() initialDisplayValue: any;
     @Input() format: any;
     @Input() maxLength = 524288;
+    @Input() inputType: any;
 
     @HostListener('keydown',['$event']) onKeyDown(e: KeyboardEvent) {
         if((this.ngGrid.arrowsUpDownMoveWhenEditing && this.ngGrid.arrowsUpDownMoveWhenEditing !== 'NONE') || this.ngGrid.editNextCellOnEnter) {
@@ -86,6 +87,7 @@ export class TextEditor extends EditorDirective {
 
     agInit(params: ICellEditorParams): void {
         super.agInit(params);
+        if(params.colDef['cellDisplayType'] === 'number') this.inputType = 'number';
 
         if(this.initialValue && this.initialValue.displayValue !== undefined) {
             this.initialValue = this.initialValue.displayValue;
