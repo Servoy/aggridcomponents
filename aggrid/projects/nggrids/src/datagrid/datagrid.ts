@@ -1116,6 +1116,11 @@ export class DataGrid extends NGGridDirective {
 								this.scrollToSelection();
 						}
 						break;
+					case 'gridOptions':
+						if(!change.firstChange) {
+							this.agGrid.api.updateGridOptions(change.currentValue);
+						}
+						break;
 				}
 			}
 		}

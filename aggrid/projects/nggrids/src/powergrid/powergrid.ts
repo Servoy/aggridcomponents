@@ -810,6 +810,11 @@ export class PowerGrid extends NGGridDirective {
                             this.agGrid.api.setGridOption('serverSideDatasource', this.lazyLoadingRemoteDatasource);
                         }
                         break;
+					case 'gridOptions':
+						if(!change.firstChange) {
+							this.agGrid.api.updateGridOptions(change.currentValue);
+						}
+						break;
                 }
             }
         }
