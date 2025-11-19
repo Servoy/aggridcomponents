@@ -87,7 +87,7 @@ export class TextEditor extends EditorDirective {
 
     agInit(params: ICellEditorParams): void {
         super.agInit(params);
-        if(params.colDef['cellDisplayType'] === 'number') this.inputType = 'number';
+        if(params.colDef['cellDataType'] === 'number') this.inputType = 'number';
 
         if(this.initialValue && this.initialValue.displayValue !== undefined) {
             this.initialValue = this.initialValue.displayValue;
