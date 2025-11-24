@@ -155,6 +155,11 @@ var showLoadingIndicator;
 var editNextCellOnEnter;
 
 /**
+ * When tab is pressed during cell editing, move to the next editable cell.
+ */
+var moveToNextEditableCellOnTab;
+
+/**
  * Tab sequence index used for keyboard navigation in the grid.
  */
 var tabSeq;

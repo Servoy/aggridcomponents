@@ -215,6 +215,7 @@ export class DataGrid extends NGGridDirective {
 	agArrowsUpDownMoveWhenEditing: any;
 	agEditNextCellOnEnter = false;
 	agContinuousColumnsAutoSizing = false;
+	agMoveToNextEditableCellOnTab = true;
 
 	initialColumnsAutoSizing: string;
 
@@ -285,6 +286,9 @@ export class DataGrid extends NGGridDirective {
 		if (this.registrationService.datagridService.editNextCellOnEnter) {
 			this.agEditNextCellOnEnter = this.registrationService.datagridService.editNextCellOnEnter;
 		}
+		if (this.registrationService.datagridService.moveToNextEditableCellOnTab !== undefined) {
+			this.agMoveToNextEditableCellOnTab = this.registrationService.datagridService.moveToNextEditableCellOnTab;
+		}
 		if (this.registrationService.datagridService.continuousColumnsAutoSizing) {
 			this.agContinuousColumnsAutoSizing = this.registrationService.datagridService.continuousColumnsAutoSizing;
 		}
@@ -300,8 +304,8 @@ export class DataGrid extends NGGridDirective {
 		if (this.arrowsUpDownMoveWhenEditing) {
 			this.agArrowsUpDownMoveWhenEditing = this.arrowsUpDownMoveWhenEditing;
 		}
-		if (this.editNextCellOnEnter) {
-			this.agEditNextCellOnEnter = this.editNextCellOnEnter;
+		if (this.moveToNextEditableCellOnTab === false) {
+			this.agMoveToNextEditableCellOnTab = this.moveToNextEditableCellOnTab;
 		}
 		if (this.continuousColumnsAutoSizing) {
 			this.agContinuousColumnsAutoSizing = this.continuousColumnsAutoSizing;
@@ -409,7 +413,13 @@ export class DataGrid extends NGGridDirective {
 				valueFormatter: this.displayValueFormatter,
 				sortable: this.enableSorting,
 				resizable: this.enableColumnResize,
-				tooltipComponent: CustomTooltip
+				tooltipComponent: CustomTooltip,
+				suppressKeyboardEvent: (params: any) => {
+					if(this.agMoveToNextEditableCellOnTab === false && params.editing && params.event.keyCode === 9) {
+						this.agGrid.api.stopEditing();
+					}
+					return false;
+				}
 			},
 			columnDefs,
 			stopEditingWhenCellsLoseFocus: true,
@@ -628,6 +638,14 @@ export class DataGrid extends NGGridDirective {
 								}
 							}
 						}
+						break;
+					case 13: // ENTER
+						// Don't trigger cellClickHandler if in edit mode or find mode
+						const currentEditCells = this.agGrid.api.getEditingCells();
+						if (currentEditCells.length === 0 && !this.isInFindMode()) {
+							this.cellClickHandler(param);
+						}
+						break;
 				}
 			},
 			processRowPostCreate: (params: ProcessRowParams) => {

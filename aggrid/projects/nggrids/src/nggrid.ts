@@ -27,6 +27,7 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
     @Input() enableBrowserContextMenu: boolean;
     @Input() arrowsUpDownMoveWhenEditing: any;
     @Input() editNextCellOnEnter: boolean;
+    @Input() moveToNextEditableCellOnTab: boolean;
     @Input() _internalFormEditorValue: any;
     @Input() onDragOverFunc: any;
     @Input() onDragGetImageFunc: any;

@@ -59,6 +59,7 @@
 		"showGroupCount" : {"type": "boolean", "default" : false, "tags" : {"scope": "design", "doc": "When true the number of rows for groups is shown, beside the name"}},
 		"showLoadingIndicator":  { "type": "boolean", "default": true },
 		"editNextCellOnEnter":  { "type": "boolean", "default": false },
+		"moveToNextEditableCellOnTab":  { "type": "boolean", "default": true, "tags": {"doc": "When tab is pressed during cell editing, move to the next editable cell."} },
 		"tabSeq": { "type": "tabseq", "tags": { "scope": "design" } },
 		"onDragOverFunc": {"type": "clientfunction", "tags": {"doc": "Callback when dragging over a row - returns one of the strings: 'copy', 'move', 'none' depending on the allowed drag operation."}},
 		"onDragGetImageFunc": {"type": "clientfunction", "tags": {"doc": "Called when row(s) drag-n-drop is started, to get the drag image as an html code."}},
