@@ -12,14 +12,14 @@ import { NULL_VALUE } from '../datagrid/datagrid';
         <div class="ag-filter-body">
           <div class="ag-input-wrapper">
             <input class="ag-filter-filter ag-input-field-input" type="text" id="filterText" autocomplete="off"
-                [ngbTypeahead]="filterValues"
-                (selectItem)="valueChanged()"
-                [resultFormatter]="resultFormatter"
-                [inputFormatter]="inputFormatter"
-                (focus)="focus$.next('')"
-                [resultTemplate]="rt"
-                [popupClass]="'ag-custom-component-popup'"
-                #instance="ngbTypeahead" #element>
+              [ngbTypeahead]="filterValues"
+              (selectItem)="valueChanged()"
+              [resultFormatter]="resultFormatter"
+              [inputFormatter]="inputFormatter"
+              (focus)="focus$.next('')"
+              [resultTemplate]="rt"
+              [popupClass]="'ag-custom-component-popup svy-typeahead-zindex'"
+              #instance="ngbTypeahead" #element>
           </div>
         </div>
         <div *ngIf="!suppressAndOrCondition()" class="ag-filter-condition"><label>OR</label></div>
@@ -32,7 +32,7 @@ import { NULL_VALUE } from '../datagrid/datagrid';
                 [inputFormatter]="inputFormatter"
                 (focus)="focus1$.next('')"
                 [resultTemplate]="rt"
-                [popupClass]="'ag-custom-component-popup'"
+                [popupClass]="'ag-custom-component-popup svy-typeahead-zindex'"
                 #instance="ngbTypeahead" #element1>
           </div>
         </div>
