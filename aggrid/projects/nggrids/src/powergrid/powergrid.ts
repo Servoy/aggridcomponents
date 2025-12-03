@@ -857,6 +857,9 @@ export class PowerGrid extends NGGridDirective {
                 if (column.formatType === 'TEXT') {
                     colDef.cellClass.push('stringType');
                 }
+                if(column.editType) {
+					colDef.cellClass.push('svy-nggrid-edittype-' + column.editType.toLowerCase());
+				}
                 if (column.styleClass) {
                     colDef.cellClass = colDef.cellClass.concat(column.styleClass.split(' '));
                 }
