@@ -1454,22 +1454,25 @@ export class DataGrid extends NGGridDirective {
                 colDef.colId = column.id;
             }
 
-            // styleClass
-            colDef.headerClass = ['ag-table-header'];
-            if(column.headerStyleClass) {
-                colDef.headerClass = colDef.headerClass.concat(column.headerStyleClass.split(' '));
-            }
-            if (column.styleClassDataprovider) {
-                colDef.cellClass = this.getCellClass;
-            } else {
-                colDef.cellClass =['ag-table-cell'];
-                if(column.enabled === false) {
-                    colDef.cellClass.push('svy-disabled-cell');
-                }
-                if(column.styleClass) {
-                    colDef.cellClass = colDef.cellClass.concat(column.styleClass.split(' '));
-                }
-            }
+			// styleClass
+			colDef.headerClass = ['ag-table-header'];
+			if (column.headerStyleClass) {
+				colDef.headerClass = colDef.headerClass.concat(column.headerStyleClass.split(' '));
+			}
+			if (column.styleClassDataprovider) {
+				colDef.cellClass = this.getCellClass;
+			} else {
+				colDef.cellClass = ['ag-table-cell'];
+				if (column.enabled === false) {
+					colDef.cellClass.push('svy-disabled-cell');
+				}
+				if(column.editType) {
+					colDef.cellClass.push('svy-nggrid-edittype-' + column.editType.toLowerCase());
+				}
+				if (column.styleClass) {
+					colDef.cellClass = colDef.cellClass.concat(column.styleClass.split(' '));
+				}
+			}
 
             // column grouping
             colDef.enableRowGroup = this.enabled && column.enableRowGroup && column.dataprovider !== undefined;
