@@ -493,7 +493,7 @@
 			"cellRendererFunc": {"type": "clientfunction", "tags": {"doc": "Function to change the cell rendering"}},
 			"format": {"type": "format", "for": ["formatType"], "tags": {"basic": true, "doc": "Format for the type set in formatType"}},
 			"formatType": {"type": "string", "values": ["TEXT", "NUMBER", "DATETIME"], "default": "TEXT", "tags": {"doc": "Type of data the format is applied on"}},
-			"editType": {"type": "string", "values": [{"NONE":null}, {"TEXTFIELD":"TEXTFIELD"}, {"DATEPICKER":"DATEPICKER"}, {"COMBOBOX":"COMBOBOX"}, {"TYPEAHEAD":"TYPEAHEAD"}, {"FORM":"FORM"}, {"CHECKBOX":"CHECKBOX"}], "tags": {"doc": "Type of editing used for that column"}},
+			"editType": {"type": "string", "values": [{"NONE":null}, {"TEXTFIELD":"TEXTFIELD"}, {"DATEPICKER":"DATEPICKER"}, {"COMBOBOX":"COMBOBOX"}, {"TYPEAHEAD":"TYPEAHEAD"}, {"FORM":"FORM"}, {"CHECKBOX":"CHECKBOX"}], "tags": {"doc": "Type of editing used for that column. An svy-nggrid-edittype-editType (ex: svy-nggrid-edittype-textfield) class is added to the cells that can be used to customize the display of cells that are editable."}},
 			"editForm": {"type": "form", "tags": {"doc": "Form used as custom editor"}},
 			"editFormSize": {"type": "dimension", "default" : {"width":300, "height":200}},
 			"filterType": {"type": "string", "values": [{"NONE":null}, {"TEXT":"TEXT"}, {"NUMBER":"NUMBER"}, {"DATE":"DATE"}, {"VALUELIST":"VALUELIST"}, {"RADIO":"RADIO"}]},

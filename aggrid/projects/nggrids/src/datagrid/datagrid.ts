@@ -1493,6 +1493,9 @@ export class DataGrid extends NGGridDirective {
 				if (column.enabled === false) {
 					colDef.cellClass.push('svy-disabled-cell');
 				}
+				if(column.editType) {
+					colDef.cellClass.push('svy-nggrid-edittype-' + column.editType.toLowerCase());
+				}
 				if (column.styleClass) {
 					colDef.cellClass = colDef.cellClass.concat(column.styleClass.split(' '));
 				}
