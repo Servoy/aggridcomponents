@@ -18,7 +18,7 @@ import { NULL_VALUE } from '../datagrid/datagrid';
               [inputFormatter]="inputFormatter"
               (focus)="focus$.next('')"
               [resultTemplate]="rt"
-              [popupClass]="'ag-custom-component-popup'"
+              [popupClass]="'ag-custom-component-popup svy-typeahead-zindex'"
               #instance="ngbTypeahead" #element>
           </div>
         </div>
@@ -35,7 +35,7 @@ import { NULL_VALUE } from '../datagrid/datagrid';
                 [inputFormatter]="inputFormatter"
                 (focus)="focus1$.next('')"
                 [resultTemplate]="rt"
-                [popupClass]="'ag-custom-component-popup'"
+                [popupClass]="'ag-custom-component-popup svy-typeahead-zindex'"
                 #instance="ngbTypeahead" #element1>
             </div>
           </div>
