@@ -159,6 +159,8 @@ export class DataGrid extends NGGridDirective {
 
 
 	@Input() onColumnDataChange: (foundsetindex: number, columnindex: number, oldvalue: unknown, newvalue: unknown, event: Event, record: unknown,) => void;
+	@Input() onCellEditingStarted: (foundsetindex: number, columnindex: number, value: unknown, event: Event, record: unknown,) => void;
+	@Input() onCellEditingStopped: (foundsetindex: number, columnindex: number, oldvalue: unknown, newvalue: unknown, event: Event, record: unknown,) => void;
 	@Input() onColumnStateChanged: (columnState: string, event: Event) => void;
 	@Input() onFooterClick: (columnindex: number, event: Event, dataTarget: string) => void;
 	@Input() onReady: () => void;
@@ -486,6 +488,16 @@ export class DataGrid extends NGGridDirective {
 				}, 150);
 			},
 			onCellEditingStopped: (event) => {
+				if (this.onCellEditingStopped) {
+					this.onCellEditingStopped(
+						this.getFoundsetIndexFromEvent(event),
+						this.getColumnIndex(event.column.getColId()),
+						event.oldValue,
+						event.newValue,
+						this.createJSEvent(),
+						this.getRecord(event)
+					);
+				}
 				this.popupStateService.deactivatePopup(this.agGridElementRef.nativeElement.parentNode.id);
 				// don't allow escape if cell data is invalid
 				if (this.onColumnDataChangePromise == null) {
@@ -500,6 +512,15 @@ export class DataGrid extends NGGridDirective {
 				}
 			},
 			onCellEditingStarted: (event) => {
+				if (this.onCellEditingStarted) {
+					this.onCellEditingStarted(
+						this.getFoundsetIndexFromEvent(event),
+						this.getColumnIndex(event.column.getColId()),
+						event.value,
+						this.createJSEvent(),
+						this.getRecord(event)
+					);
+				}
 				this.popupStateService.activatePopup(this.agGridElementRef.nativeElement.parentNode.id);
 				// don't allow editing another cell if we have an invalidCellData
 				if (this.invalidCellDataIndex.rowIndex !== -1 && this.invalidCellDataIndex.colKey !== '') {

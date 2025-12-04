@@ -227,6 +227,56 @@
 			"returns": {"type": "boolean", "default": true},
 			"ignoreNGBlockDuplicateEvents": true
 		},
+		"onCellEditingStarted": {
+			"doc": "Called when cell editing started",
+			"parameters": [{
+				"name": "foundsetindex",
+				"type": "int"
+			}, {
+				"name": "columnindex",
+				"type": "int",
+				"optional": true
+			}, {
+				"name": "value",
+				"type": "object",
+				"optional": true
+			}, {
+				"name": "event",
+				"type": "JSEvent",
+				"optional": true
+			}, {
+				"name": "record",
+				"type": "record",
+				"optional": true
+			}]
+		},
+		"onCellEditingStopped": {
+			"doc": "Called when cell editing stopped",
+			"parameters": [{
+				"name": "foundsetindex",
+				"type": "int"
+			}, {
+				"name": "columnindex",
+				"type": "int",
+				"optional": true
+			}, {
+				"name": "oldvalue",
+				"type": "object",
+				"optional": true
+			}, {
+				"name": "newvalue",
+				"type": "object",
+				"optional": true
+			}, {
+				"name": "event",
+				"type": "JSEvent",
+				"optional": true
+			}, {
+				"name": "record",
+				"type": "record",
+				"optional": true
+			}]
+		},
 		"onElementDataChange": {
            "deprecated" : "dummy handler for onElementDataChange to be called"
         },
