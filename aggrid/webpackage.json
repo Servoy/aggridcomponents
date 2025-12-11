@@ -95,7 +95,8 @@
                     {"version":"2025.3.3","url":"https://github.com/Servoy/aggridcomponents/releases/download/v2025.3.3/aggrid.zip", "servoy-version":"2025.3.0 - 2025.3.x"},
                     {"version":"2025.3.4","url":"https://github.com/Servoy/aggridcomponents/releases/download/v2025.3.4/aggrid.zip", "servoy-version":"2025.3.0 - 2025.3.x"},
                     {"version":"2025.6.0","url":"https://github.com/Servoy/aggridcomponents/releases/download/v2025.6.0/aggrid.zip", "servoy-version":"2025.6.0"},
-                    {"version":"2025.9.0","url":"https://github.com/Servoy/aggridcomponents/releases/download/v2025.9.0/aggrid.zip", "servoy-version":"2025.9.0"}
+                    {"version":"2025.9.0","url":"https://github.com/Servoy/aggridcomponents/releases/download/v2025.9.0/aggrid.zip", "servoy-version":"2025.9.0"},
+                    {"version":"2025.12.0","url":"https://github.com/Servoy/aggridcomponents/releases/download/v2025.12.0/aggrid.zip", "servoy-version":"2025.12.0"}
 
         
                  ]
