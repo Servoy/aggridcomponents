@@ -118,6 +118,12 @@ var showLoadingIndicator;
 
 var editNextCellOnEnter;
 
+/**
+ * When the component is hidden, if a filter is applied, keep it applied on the foundset.
+ */
+var keepAppliedFilterOnHide
+
+
 var tabSeq;
 
 /**
