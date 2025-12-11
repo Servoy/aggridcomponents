@@ -1,3 +1,5 @@
+var appliedFilter = null;
+
 /**
  * @param {Array<Number>} groupColumns
  * @param {Array} groupKeys
@@ -404,6 +406,12 @@ function filterFoundset(foundset, sFilterModel) {
 	var shouldReloadWithFilters = false;
 
 	if(foundset.removeFoundSetFilterParam) { // if foundset supports filters
+		if(appliedFilter && appliedFilter.filterModel == sFilterModel) {
+			var foundsetFilterParams = foundset.getFoundSetFilterParams("ag-groupingtable");
+			if(foundsetFilterParams && foundsetFilterParams.length && JSON.stringify(foundsetFilterParams[0][0]) == appliedFilter.query) {
+				return false;
+			}
+		}
 		var filterModel = JSON.parse(sFilterModel);
 
 		if(foundset.removeFoundSetFilterParam("ag-groupingtable")) {
@@ -455,6 +463,7 @@ function filterFoundset(foundset, sFilterModel) {
 		}
 
 		if(isFilterSet) {
+			appliedFilter = { filterModel: sFilterModel, query: JSON.stringify(query) };
 			servoyApi.addFoundSetFilterParam(foundset, query, "ag-groupingtable");
 			shouldReloadWithFilters = true;
 		}
@@ -651,7 +660,7 @@ $scope.onHide = function() {
 	// related foundsets and viewfoundsets (no foundset.removeFoundSetFilterParam')  does not have filters; skip clear/remove filters from them
 	if($scope.model.myFoundset) {
 		var myFoundset = $scope.model.myFoundset.foundset;
-		if(myFoundset && myFoundset.removeFoundSetFilterParam && (!myFoundset.getRelationName || !myFoundset.getRelationName())) {
+		if(!$scope.model.keepAppliedFilterOnHide && myFoundset && myFoundset.removeFoundSetFilterParam && (!myFoundset.getRelationName || !myFoundset.getRelationName())) {
 			$scope.filterMyFoundset("{}");
 		}
 	}
