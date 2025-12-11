@@ -158,6 +158,10 @@ var editNextCellOnEnter;
  * When tab is pressed during cell editing, move to the next editable cell.
  */
 var moveToNextEditableCellOnTab;
+/**
+ * When the component is hidden, if a filter is applied, keep it applied on the foundset.
+ */
+var keepAppliedFilterOnHide
 
 /**
  * Tab sequence index used for keyboard navigation in the grid.
