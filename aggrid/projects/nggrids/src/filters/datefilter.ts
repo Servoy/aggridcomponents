@@ -238,6 +238,9 @@ export class DateFilter extends FilterDirective {
     }
 
     getFilterRealValue(second?: boolean): any {
+      if(this.selectedFilterOperation === 'blank' || this.selectedFilterOperation === 'notBlank') {
+        return ' ';
+      }
       const displayValue = second ? this.getSecondFilterUIValue() : this.getFilterUIValue();
       const parsed = this.formattingService.parse(displayValue, this.format, this.format.edit && !this.format.isMask, null, true);
       if (parsed instanceof Date && !isNaN(parsed.getTime())) return parsed;
@@ -247,6 +250,10 @@ export class DateFilter extends FilterDirective {
     onFilterOperationChange(event: Event): void {
       const operation = (event.target as HTMLSelectElement).value;
       this.selectedFilterOperation = operation;
+      if(this.selectedFilterOperation === 'blank' || this.selectedFilterOperation === 'notBlank') {
+        this.setFilterUIValue('');
+        this.valueChanged();
+      }
     }
 
     getCondition(realValue): any {
@@ -256,16 +263,18 @@ export class DateFilter extends FilterDirective {
         uiValue: this.getFilterUIValue(),
       };
 
-      const date = this.getFilterRealValue();
-      if(date !== null) {
-        condition['dateFrom'] = DateTimeLuxon.fromJSDate(date).toFormat('yyyy-MM-dd HH:mm:ss');
-        condition['dateFromMs'] = date.getTime();
-      }
-      if(this.selectedFilterOperation === 'inRange') {
-        const dateTo = this.getDateToRealValue();
-        if(dateTo !== null) {
-          condition['dateTo'] = DateTimeLuxon.fromJSDate(dateTo).toFormat('yyyy-MM-dd HH:mm:ss');
-          condition['dateToMs'] = dateTo.getTime();
+      if(this.selectedFilterOperation !== 'blank' && this.selectedFilterOperation !== 'notBlank') {
+        const date = this.getFilterRealValue();
+        if(date !== null) {
+          condition['dateFrom'] = DateTimeLuxon.fromJSDate(date).toFormat('yyyy-MM-dd HH:mm:ss');
+          condition['dateFromMs'] = date.getTime();
+        }
+        if(this.selectedFilterOperation === 'inRange') {
+          const dateTo = this.getDateToRealValue();
+          if(dateTo !== null) {
+            condition['dateTo'] = DateTimeLuxon.fromJSDate(dateTo).toFormat('yyyy-MM-dd HH:mm:ss');
+            condition['dateToMs'] = dateTo.getTime();
+          }
         }
       }
 
