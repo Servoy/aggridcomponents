@@ -664,8 +664,14 @@ export class DataGrid extends NGGridDirective {
 					case 13: // ENTER
 						// Don't trigger cellClickHandler if in edit mode or find mode
 						const currentEditCells = this.agGrid.api.getEditingCells();
-						if (currentEditCells.length === 0 && !this.isInFindMode()) {
-							this.cellClickHandler(param);
+						if (param.event.target && currentEditCells.length === 0 && !this.isInFindMode()) {
+							let clickTarget = param.event.target;
+							while(clickTarget && clickTarget !== this.agGridElementRef.nativeElement) {
+								clickTarget = clickTarget.parentNode;
+							}
+							if(clickTarget === this.agGridElementRef.nativeElement) {
+								this.cellClickHandler(param);
+							}
 						}
 						break;
 				}
