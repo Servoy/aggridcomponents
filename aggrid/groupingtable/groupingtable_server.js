@@ -97,7 +97,30 @@ $scope.getGroupedFoundsetUUID = function(
 				query.sort.add(groupColumn.asc);
 			}
 		}
-		query.result.add(query.aggregates.count(), "svycount"); 
+
+		var pkNames = servoyApi.getDatasourcePKs(parentFoundset.getDataSource());
+		if(pkNames && pkNames.length) {
+			if(pkNames.length === 1) {
+				// Single PK: count distinct on that column
+				var pkColumn = query.getColumn(pkNames[0]);
+				query.result.add(pkColumn.count.distinct, "svycount");
+			} else {
+				// Multiple PKs: concatenate them for distinct count
+				var pkColumns = [];
+				for(var i = 0; i < pkNames.length; i++) {
+					pkColumns.push(query.getColumn(pkNames[i]));
+				}
+				
+				// Create a composite key by concatenating all PK columns
+				var compositeKey = pkColumns[0];
+				for(var i = 1; i < pkColumns.length; i++) {
+					compositeKey = compositeKey.concat('|').concat(pkColumns[i]);
+				}
+				query.result.add(compositeKey.count.distinct, "svycount");
+			}
+		} else {
+			query.result.add(query.aggregates.count(), "svycount"); 
+		}
 
 		childFoundset = servoyApi.getViewFoundSet("", query);
 	} else { // is not a new group, will be a leaf !
