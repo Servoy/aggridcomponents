@@ -671,6 +671,7 @@
 			"rowGroupIndex":  {"type": "int", "default": -1, "tags": {"doc": "Set the rowGroupIndex to group on the column; the index defines the order of the group when there are multiple grouped columns"}},
 			"isEditableDataprovider": { "type": "dataprovider", "forFoundset": "myFoundset", "pushToServer" : "reject", "tags": {"doc": "Use a Servoy calculation as isEditableDataprovider to set edit state conditionally to the table cell"}},
 			"editType": {"type": "modifiable", "for": "dataprovider", "values": [{"NONE":null}, {"TEXTFIELD":"TEXTFIELD"}, {"DATEPICKER":"DATEPICKER"}, {"COMBOBOX":"COMBOBOX"}, {"TYPEAHEAD":"TYPEAHEAD"}, {"FORM":"FORM"}, {"CHECKBOX":"CHECKBOX"}], "tags": {"doc": "Type of editing used for that column. An svy-nggrid-edittype-editType (ex: svy-nggrid-edittype-textfield) class is added to the cells that can be used to customize the display of cells that are editable."}},
+			"editTypeTextFieldInput": {"type": "string", "default" : "text", "values": [{"text":"text"}, {"number":"number"}, {"color":"color"}]},
 			"editForm": {"type": "form", "tags": {"doc": "Form used as custom editor"}},
 			"editFormSize": {"type": "dimension", "default" : {"width":300, "height":200}},
 			"stopEditingOnChange" : {"type": "boolean", "default" : false},

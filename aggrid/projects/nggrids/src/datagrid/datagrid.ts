@@ -2139,6 +2139,12 @@ export class DataGrid extends NGGridDirective {
 			}
 		}
 
+		if(params.eGridCell && col && col.editType === 'TEXTFIELD' && col.editTypeTextFieldInput === 'color' && !params.node.group) {
+			params.eGridCell.style.backgroundColor = value;
+			returnValueFormatted = false;
+			value = ''; // don't print out the color code
+		}
+
 		if (styleClassProvider) {
 			const divContainer = this.doc.createElement('div');
 			// Only disable pointer events if column is editable and singleClickEdit is enabled
@@ -2156,7 +2162,6 @@ export class DataGrid extends NGGridDirective {
 					divContainer.innerHTML = value;
 				}
 			}
-
 			return divContainer;
 		} else {
 			if (checkboxEl) {
@@ -6110,6 +6115,7 @@ export class DataGridColumn extends BaseCustomObject {
 	rowGroupIndex: number;
 	isEditableDataprovider: any;
 	editType: string;
+	editTypeTextFieldInput: string;
 	editForm: any;
 	editFormSize: any;
 	filterType: string;

@@ -1871,6 +1871,10 @@ export class PowerGrid extends NGGridDirective {
                 checkboxEl.className = this.getIconCheckboxEditor(parseInt(params.value, 10));
                 return checkboxEl;
             }
+            if(params.eGridCell && column.editType === 'TEXTFIELD' && column.editTypeTextFieldInput === 'color' && !params.node.group) {
+                params.eGridCell.style.backgroundColor = params.value;
+                return '';
+            }
 
             let value = params.value != null ? params.value : '';
             const valueFormatted = params.valueFormatted != null ? params.valueFormatted : value && value.displayValue !== undefined ? value.displayValue : value;
@@ -2424,6 +2428,7 @@ export class PowerGridColumn extends BaseCustomObject {
     format: any;
     formatType: string;
     editType: string;
+    editTypeTextFieldInput: string;
     editForm: any;
     editFormSize: any;
     filterType: string;

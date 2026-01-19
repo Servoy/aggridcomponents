@@ -87,7 +87,11 @@ export class TextEditor extends EditorDirective {
 
     agInit(params: ICellEditorParams): void {
         super.agInit(params);
-        if(params.colDef['cellDataType'] === 'number') this.inputType = 'number';
+		const column = this.ngGrid.getColumn(params.column.getColId());
+		if (column && column.editTypeTextFieldInput) {
+			this.inputType = column.editTypeTextFieldInput;
+		}
+        if(params.colDef['cellDataType'] === 'number') this.inputType = 'number'; // for backward compatibility
 
         if(this.initialValue && this.initialValue.displayValue !== undefined) {
             this.initialValue = this.initialValue.displayValue;
@@ -110,20 +114,24 @@ export class TextEditor extends EditorDirective {
     // focus and select can be done after the gui is attached
     ngAfterViewInit(): void {
         setTimeout(() => {
-            this.elementRef.nativeElement.select();
+            if(this.inputType === 'color') {
+                this.elementRef.nativeElement.click();
+            } else {
+                this.elementRef.nativeElement.select();
+                if(this.format && !this.ngGrid.isInFindMode()) {
+                    const editFormat = this.format.edit ? this.format.edit : this.format.display;
+                    if(editFormat && this.format.isMask) {
+                        const settings = {};
+                        settings['placeholder'] = this.format.placeHolder ? this.format.placeHolder : ' ';
+                        if (this.format.allowedCharacters)
+                            settings['allowedCharacters'] = this.format.allowedCharacters;
 
-            if(this.format && !this.ngGrid.isInFindMode()) {
-                const editFormat = this.format.edit ? this.format.edit : this.format.display;
-                if(editFormat && this.format.isMask) {
-                    const settings = {};
-                    settings['placeholder'] = this.format.placeHolder ? this.format.placeHolder : ' ';
-                    if (this.format.allowedCharacters)
-                        settings['allowedCharacters'] = this.format.allowedCharacters;
-
-                    //TODO: jquery mask
-                    //$(this.eInput).mask(editFormat, settings);
+                        //TODO: jquery mask
+                        //$(this.eInput).mask(editFormat, settings);
+                    }
                 }
             }
+
         }, 0);
     }
 
