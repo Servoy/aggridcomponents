@@ -2114,37 +2114,35 @@ export class DataGrid extends NGGridDirective {
             oldSelectedNodes = [];
         }
 
-        const selectedNodes = new Array();
-        if (this.isTableGrouped()) {
-            const selectedRecordsPKs = new Array();
-            if(this._internalGroupRowsSelection && this._internalGroupRowsSelection.length) {
-                this._internalGroupRowsSelection.forEach(record => {
-                    const _svyRowIdSplit = record._svyRowId.split(';');
-                    selectedRecordsPKs.push(_svyRowIdSplit[0]);
-                });
-            }
+		const selectedNodes = new Array();
+		if (this.isTableGrouped()) {
+			const selectedRecordsPKs = new Array();
+			if (this._internalGroupRowsSelection && this._internalGroupRowsSelection.length) {
+				this._internalGroupRowsSelection.forEach(record => {
+					selectedRecordsPKs.push(record._svyRowId);
+				});
+			}
 
-            this.agGrid.api.forEachNode( (node: any) => {
-                if(node.data && node.data._svyRowId) {
-                    if(node.group && this._internalCheckboxGroupSelection && this._internalCheckboxGroupSelection.length) {
-                        for(const selectedGroup of this._internalCheckboxGroupSelection) {
-                            if(!node.isSelected() && selectedGroup.colId === node.rowGroupColumn.getColId() && selectedGroup.groupkey === node.data[node.field]) {
-                                node.setSelected(true);
-                                break;
-                            }
-                        }
-                    } else {
-                        const _svyRowIdSplit = node.data._svyRowId.split(';');
-                        if(selectedRecordsPKs.indexOf(_svyRowIdSplit[0]) !== -1) {
-                            selectedNodes.push(node);
-                        }
-                    }
-                }
-            });
-        } else {
-            if (!foundsetManager) {
-                foundsetManager = this.foundset;
-            }
+			this.agGrid.api.forEachNode((node: any) => {
+				if (node.data && node.data._svyRowId) {
+					if (node.group && this._internalCheckboxGroupSelection && this._internalCheckboxGroupSelection.length) {
+						for (const selectedGroup of this._internalCheckboxGroupSelection) {
+							if (!node.isSelected() && selectedGroup.colId === node.rowGroupColumn.getColId() && selectedGroup.groupkey === node.data[node.field]) {
+								node.setSelected(true);
+								break;
+							}
+						}
+					} else {
+						if (selectedRecordsPKs.indexOf(node.data._svyRowId) !== -1) {
+							selectedNodes.push(node);
+						}
+					}
+				}
+			});
+		} else {
+			if (!foundsetManager) {
+				foundsetManager = this.foundset;
+			}
 
 			if (!foundsetManager || !foundsetManager.foundset) {
 				return false;
