@@ -2189,8 +2189,7 @@ export class DataGrid extends NGGridDirective {
 			const selectedRecordsPKs = new Array();
 			if (this._internalGroupRowsSelection && this._internalGroupRowsSelection.length) {
 				this._internalGroupRowsSelection.forEach(record => {
-					const _svyRowIdSplit = record._svyRowId.split(';');
-					selectedRecordsPKs.push(_svyRowIdSplit[0]);
+					selectedRecordsPKs.push(record._svyRowId);
 				});
 			}
 
@@ -2204,8 +2203,7 @@ export class DataGrid extends NGGridDirective {
 							}
 						}
 					} else {
-						const _svyRowIdSplit = node.data._svyRowId.split(';');
-						if (selectedRecordsPKs.indexOf(_svyRowIdSplit[0]) !== -1) {
+						if (selectedRecordsPKs.indexOf(node.data._svyRowId) !== -1) {
 							selectedNodes.push(node);
 						}
 					}
