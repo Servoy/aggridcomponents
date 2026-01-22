@@ -253,7 +253,7 @@ $scope.removeGroupedFoundsetUUID = function(parentFoundset) {
 }
 
 $scope.cellClick = function(clicktype, foundsetindex, columnindex, record, event, dataTarget) {
-	if($scope.model.columns && !$scope.model.columns[columnindex].enabled) return;
+	if($scope.model.columns && $scope.model.columns[columnindex].enabled === false) return;
 
 	if(clicktype === 'click' && $scope.handlers.onCellClick) {
 		$scope.handlers.onCellClick(foundsetindex, columnindex, record, event, dataTarget);
