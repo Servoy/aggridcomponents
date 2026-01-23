@@ -1,6 +1,6 @@
 {
   "name": "@servoy/nggrids",
-  "version": "2025.12.1",
+  "version": "2026.3.0",
   "peerDependencies": {
     "@angular/animations": "^20",
     "@angular/common": "^20",
@@ -10,8 +10,8 @@
     "lodash-es": "<5"
   },
   "dependencies": {
-    "@angular/cdk": "^20",
-    "@ng-bootstrap/ng-bootstrap": "^19",
+    "@angular/cdk": "^21",
+    "@ng-bootstrap/ng-bootstrap": "^20",
     "@popperjs/core": "<3",
     "@eonasdan/tempus-dominus": "<6.11.0",
     "bootstrap": "<6",
