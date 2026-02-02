@@ -266,6 +266,8 @@ export class DataGrid extends NGGridDirective {
 
 	delayedColumnChange = null;
 
+	sideBar: any;
+
 	constructor(renderer: Renderer2, public cdRef: ChangeDetectorRef, logFactory: LoggerFactory,
 		private servoyService: ServoyPublicService, public formattingService: FormattingService, public ngbTypeaheadConfig: NgbTypeaheadConfig,
 		private sanitizer: DomSanitizer, @Inject(DOCUMENT) public doc: Document, private registrationService: RegistrationService, protected popupStateService: PopupStateService) {
@@ -317,11 +319,25 @@ export class DataGrid extends NGGridDirective {
 		const vMenuTabs = ['generalMenuTab', 'filterMenuTab'];
 		if (this.showColumnsMenuTab) vMenuTabs.push('columnsMenuTab');
 
-		let sideBar: any;
+
+
+		const columnDefs = this.getColumnDefs();
+		let maxBlocksInCache = CACHED_CHUNK_BLOCKS;
+
+		// if row autoHeight, we need to do a refresh after first time data are displayed, to allow ag grid to re-calculate the heights
+		// if there is 'autoHeight' = true in any column, infinite cache needs to be disabled (ag grid lib requirement)
+		for (const columnDef of columnDefs) {
+			if (columnDef['autoHeight']) {
+				maxBlocksInCache = -1;
+				this.isRowAutoHeight = true;
+				break;
+			}
+		}
+
 		if (toolPanelConfig && toolPanelConfig.suppressSideButtons === true) {
-			sideBar = false;
+			this.sideBar = false;
 		} else {
-			sideBar = {
+			this.sideBar = {
 				toolPanels: [
 					{
 						id: 'columns',
@@ -342,18 +358,21 @@ export class DataGrid extends NGGridDirective {
 					}
 				]
 			};
-		}
-
-		const columnDefs = this.getColumnDefs();
-		let maxBlocksInCache = CACHED_CHUNK_BLOCKS;
-
-		// if row autoHeight, we need to do a refresh after first time data are displayed, to allow ag grid to re-calculate the heights
-		// if there is 'autoHeight' = true in any column, infinite cache needs to be disabled (ag grid lib requirement)
-		for (const columnDef of columnDefs) {
-			if (columnDef['autoHeight']) {
-				maxBlocksInCache = -1;
-				this.isRowAutoHeight = true;
-				break;
+			// check if we have filters
+			for (let i = 0; i < columnDefs.length; i++) {
+				// suppress the side filter if the suppressColumnFilter is set to true
+				if (!(toolPanelConfig && toolPanelConfig.suppressColumnFilter === true)) {
+					if (columnDefs[i].filter) {
+						this.sideBar['toolPanels'].push({
+							id: 'filters',
+							labelDefault: 'Filters',
+							labelKey: 'filters',
+							iconKey: 'filter',
+							toolPanel: 'agFiltersToolPanel',
+						});
+						break;
+					}
+				}
 			}
 		}
 
@@ -436,7 +455,7 @@ export class DataGrid extends NGGridDirective {
 			autoSizePadding: 25,
 			suppressFieldDotNotation: true,
 
-			sideBar,
+			sideBar: this.enabled ? this.sideBar : false,
 			getMainMenuItems: this.getMainMenuItems,
 			rowHeight: this.rowHeight,
 
@@ -729,23 +748,6 @@ export class DataGrid extends NGGridDirective {
 			this.updateGridOptionsForGroupCheckbox(true);
 		}
 
-		// check if we have filters
-		for (let i = 0; this.agGridOptions.sideBar && this.agGridOptions.sideBar['toolPanels'] && i < columnDefs.length; i++) {
-			// suppress the side filter if the suppressColumnFilter is set to true
-			if (!(toolPanelConfig && toolPanelConfig.suppressColumnFilter === true)) {
-				if (columnDefs[i].filter) {
-					this.agGridOptions.sideBar['toolPanels'].push({
-						id: 'filters',
-						labelDefault: 'Filters',
-						labelKey: 'filters',
-						iconKey: 'filter',
-						toolPanel: 'agFiltersToolPanel',
-					});
-					break;
-				}
-			}
-		}
-
 		const gridFooterData = this.getFooterData();
 		if (gridFooterData) {
 			this.agGridOptions.pinnedBottomRowData = gridFooterData;
@@ -831,6 +833,10 @@ export class DataGrid extends NGGridDirective {
 			this.setupHeaderCheckbox(true);
 		}
 		this.setupHeaderIconStyleClass();
+	}
+
+	private getSideBar() {
+
 	}
 
 	private updateGridOptionsForGroupCheckbox(isMultiselect: boolean) {
@@ -1142,6 +1148,7 @@ export class DataGrid extends NGGridDirective {
 							this.agGridOptions.rowSelection['enableClickSelection'] = change.currentValue;
 							this.agGridOptions.rowSelection['checkboxes'] = change.currentValue && this.checkboxSelection;
 							this.agGrid.api.setGridOption('rowSelection', this.agGridOptions.rowSelection);
+							this.agGrid.api.setGridOption('sideBar', change.currentValue ? this.sideBar : false);
 							this.updateColumnDefs();
 						}
 						break;

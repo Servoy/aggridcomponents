@@ -169,6 +169,8 @@ export class PowerGrid extends NGGridDirective {
 
     lazyLoadingRemoteDatasource: RemoteDatasource;
 
+    sideBar: any;
+
     constructor(renderer: Renderer2, cdRef: ChangeDetectorRef, logFactory: LoggerFactory,
         private servoyService: ServoyPublicService, public formattingService: FormattingService, public ngbTypeaheadConfig: NgbTypeaheadConfig,
         private sanitizer: DomSanitizer, @Inject(DOCUMENT) public doc: Document, private registrationService: RegistrationService) {
@@ -206,11 +208,12 @@ export class PowerGrid extends NGGridDirective {
 
         if (this.showColumnsMenuTab) vMenuTabs.push('columnsMenuTab');
 
-        let sideBar: any;
+        const columnDefs = this.getColumnDefs();
+
         if (toolPanelConfig && toolPanelConfig.suppressSideButtons === true) {
-            sideBar = false;
+            this.sideBar = false;
         } else {
-            sideBar = {
+            this.sideBar = {
                 toolPanels: [
                     {
                         id: 'columns',
@@ -231,9 +234,20 @@ export class PowerGrid extends NGGridDirective {
                     }
                 ]
             };
+            // check if we have filters
+            for (let i = 0; i < columnDefs.length; i++) {
+                if (columnDefs[i].filter) {
+                    this.sideBar['toolPanels'].push({
+                        id: 'filters',
+                        labelDefault: 'Filters',
+                        labelKey: 'filters',
+                        iconKey: 'filter',
+                        toolPanel: 'agFiltersToolPanel',
+                    });
+                    break;
+                }
+            }
         }
-
-        const columnDefs = this.getColumnDefs();
 
         // setup grid options
         this.agGridOptions = {
@@ -424,7 +438,7 @@ export class PowerGrid extends NGGridDirective {
 
             navigateToNextCell: (params) => this.selectionChangeNavigation(params),
             tabToNextCell: (params) => this.tabSelectionChangeNavigation(params),
-            sideBar,
+            sideBar: this.enabled ? this.sideBar : false,
             enableBrowserTooltips: false,
             onToolPanelVisibleChanged: () => {
                 this.svySizeColumnsToFit(GRID_EVENT_TYPES.TOOLPANEL_VISIBLE_CHANGE);
@@ -480,21 +494,6 @@ export class PowerGrid extends NGGridDirective {
         if (this.groupWidth || this.groupWidth === 0) this.agGridOptions.autoGroupColumnDef.width = this.groupWidth;
         if (this.groupMaxWidth) this.agGridOptions.autoGroupColumnDef.maxWidth = this.groupMaxWidth;
         if (this.groupMinWidth || this.groupMinWidth === 0) this.agGridOptions.autoGroupColumnDef.minWidth = this.groupMinWidth;
-
-
-        // check if we have filters
-        for (let i = 0; this.agGridOptions.sideBar && this.agGridOptions.sideBar['toolPanels'] && i < columnDefs.length; i++) {
-            if (columnDefs[i].filter) {
-                this.agGridOptions.sideBar['toolPanels'].push({
-                    id: 'filters',
-                    labelDefault: 'Filters',
-                    labelKey: 'filters',
-                    iconKey: 'filter',
-                    toolPanel: 'agFiltersToolPanel',
-                });
-                break;
-            }
-        }
 
         if (this.useLazyLoading) {
             this.agGridOptions.rowModelType = 'serverSide';
@@ -800,6 +799,7 @@ export class PowerGrid extends NGGridDirective {
                             this.agGridOptions.rowSelection['enableClickSelection'] = change.currentValue;
                             this.agGridOptions.rowSelection['checkboxes'] = change.currentValue && (this.checkboxSelection || this.multiSelect);
                             this.agGrid.api.setGridOption('rowSelection', this.agGridOptions.rowSelection);
+                            this.agGrid.api.setGridOption('sideBar', change.currentValue ? this.sideBar : false);
                             this.updateColumnDefs();
                         }
                         break;
