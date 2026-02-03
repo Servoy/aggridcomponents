@@ -835,10 +835,6 @@ export class DataGrid extends NGGridDirective {
 		this.setupHeaderIconStyleClass();
 	}
 
-	private getSideBar() {
-
-	}
-
 	private updateGridOptionsForGroupCheckbox(isMultiselect: boolean) {
 		if (this.agGrid) {
 			this.agGrid.api.updateGridOptions({
