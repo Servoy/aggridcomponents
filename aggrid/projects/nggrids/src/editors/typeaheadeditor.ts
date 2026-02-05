@@ -1,7 +1,4 @@
-import { ViewChild } from '@angular/core';
-import { HostListener } from '@angular/core';
-import { Input } from '@angular/core';
-import { Component } from '@angular/core';
+import { HostListener, Component, input, viewChild, signal } from '@angular/core';
 import { NgbTypeahead, NgbTypeaheadConfig } from '@ng-bootstrap/ng-bootstrap';
 import { merge, Observable, of, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, switchMap } from 'rxjs/operators';
@@ -13,8 +10,8 @@ import { EditorDirective } from './editor';
     template: `
       <input class="ag-table-typeahed-editor-input"
         [svyTabFix]="this"
-        [value]="initialDisplayValue"
-        [maxLength]="maxLength"
+        [value]="_initialDisplayValue()"
+        [maxLength]="_maxLength()"
         [style.width.px]="width"
         [ngbTypeahead]="filterValues"
         [resultFormatter]="resultFormatter"
@@ -29,9 +26,12 @@ import { EditorDirective } from './editor';
 })
 export class TypeaheadEditor extends EditorDirective implements IPopupSupportComponent{
 
-  @ViewChild('instance') instance: NgbTypeahead;
-  @Input() initialDisplayValue: any;
-  @Input() maxLength = 524288;
+  readonly instance = viewChild<NgbTypeahead>('instance');
+  readonly initialDisplayValue = input<any>(undefined);
+  readonly maxLength = input(524288);
+  
+  _maxLength = signal(524288);
+  _initialDisplayValue = signal<any>(undefined);
 
   focus$ = new Subject<string>();
 
@@ -50,7 +50,8 @@ export class TypeaheadEditor extends EditorDirective implements IPopupSupportCom
   }
 
   @HostListener('keydown',['$event']) onKeyDown(e: KeyboardEvent) {
-    if(this.ngGrid.arrowsUpDownMoveWhenEditing && this.ngGrid.arrowsUpDownMoveWhenEditing !== 'NONE') {
+    const arrowsUpDownMoveWhenEditing = this.ngGrid.arrowsUpDownMoveWhenEditing();
+    if(arrowsUpDownMoveWhenEditing && arrowsUpDownMoveWhenEditing !== 'NONE') {
         const isNavigationLeftRightKey = e.keyCode === 37 || e.keyCode === 39;
         const isNavigationUpDownEntertKey = e.keyCode === 38 || e.keyCode === 40 || e.keyCode === 13;
 
@@ -65,12 +66,14 @@ export class TypeaheadEditor extends EditorDirective implements IPopupSupportCom
       const isNavigationUpDownEntertKey = e.keyCode === 38 || e.keyCode === 40 || e.keyCode === 13;
 
       if(!(isNavigationLeftRightKey || isNavigationUpDownEntertKey) && this.format) {
-        return this.ngGrid.formattingService.testForNumbersOnly(e, null, this.elementRef.nativeElement, false, true, this.format, false);
+        return this.ngGrid.formattingService.testForNumbersOnly(e, null, this.elementRef().nativeElement, false, true, this.format, false);
       } else return true;
   }
 
   agInit(params: any): void {
     super.agInit(params);
+    this._initialDisplayValue.set(this.initialDisplayValue());
+    this._maxLength.set(this.maxLength());
     this.initParams = params;
 
     if(params.column.actualWidth) {
@@ -120,10 +123,10 @@ export class TypeaheadEditor extends EditorDirective implements IPopupSupportCom
     }
 
     this.initialRealValue = this.initialValue;
-    this.initialDisplayValue = this.initialValue;
+    this._initialDisplayValue.set(this.initialValue);
     this.format = this.ngGrid.getColumnFormat(params.column.getColId());
     if(this.format && this.format.maxLength) {
-      this.maxLength = this.format.maxLength;
+      this._maxLength.set(this.format.maxLength);
     }
     
   }
@@ -160,28 +163,28 @@ export class TypeaheadEditor extends EditorDirective implements IPopupSupportCom
         //$(this.eInput).mask(editFormat, settings);
     }
     setTimeout(() => {
-      this.elementRef.nativeElement.focus();
-      this.elementRef.nativeElement.select();
+      this.elementRef().nativeElement.focus();
+      this.elementRef().nativeElement.select();
       if(this.ngGrid.isInFindMode()) {
         this.findModeListener = (e: KeyboardEvent) => {
           if(e.keyCode === 13) {
-            this.ngGrid.agGrid.api.stopEditing();
+            this.ngGrid.agGrid().api.stopEditing();
           }
         };
-        this.elementRef.nativeElement.addEventListener('keydown', this.findModeListener);
+        this.elementRef().nativeElement.addEventListener('keydown', this.findModeListener);
       }
     }, 0);
   }
 
   ngOnDestroy() {
     if(this.ngGrid.isInFindMode()) {
-      this.elementRef.nativeElement.removeEventListener('keydown', this.findModeListener);
+      this.elementRef().nativeElement.removeEventListener('keydown', this.findModeListener);
     }
   }
 
   // returns the new value after editing
   getValue(): any {
-    let displayValue = this.elementRef.nativeElement.value;
+    let displayValue = this.elementRef().nativeElement.value;
     let realValue = displayValue;
 
     if (this.valuelistValues) {
@@ -197,7 +200,7 @@ export class TypeaheadEditor extends EditorDirective implements IPopupSupportCom
           // if we still have old value do not set it to null or try to  get it from the list.
           if (this.initialValue != null) {
             // so invalid thing is typed in the list and we are in real/display values
-            displayValue = this.initialDisplayValue;
+            displayValue = this._initialDisplayValue();
             realValue = this.initialRealValue;
           } else if(this.initialValue == null) { // if the dataproviderid was null and we are in real|display then reset the value to ""
             displayValue = realValue = '';
@@ -230,7 +233,7 @@ export class TypeaheadEditor extends EditorDirective implements IPopupSupportCom
 
 
   closePopup(){
-    this.instance.dismissPopup();
+    this.instance().dismissPopup();
   }
 
   private findDisplayValue(vl: any, displayValue: any) {

@@ -1,12 +1,12 @@
 import { ICellEditorAngularComp } from 'ag-grid-angular';
 import { ICellEditorParams } from 'ag-grid-community';
-import { Directive, ElementRef, ViewChild } from '@angular/core';
+import { Directive, ElementRef, viewChild } from '@angular/core';
 import { NGGridDirective} from '../nggrid';
 
 @Directive()
 export class EditorDirective implements ICellEditorAngularComp {
 
-    @ViewChild('element') elementRef: ElementRef;
+    readonly elementRef = viewChild<ElementRef>('element');
     ngGrid: NGGridDirective;
     params: ICellEditorParams;
     initialValue: any;

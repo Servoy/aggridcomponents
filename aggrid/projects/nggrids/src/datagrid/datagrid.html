@@ -3,12 +3,12 @@
     #element
     style="height: 100%;"
     class="ag-table"
-    [ngClass]="styleClass"
-    [sabloTabseq]="tabSeq"
+    [ngClass]="styleClass()"
+    [sabloTabseq]="tabSeq()"
     [gridOptions]="agGridOptions">
   </ag-grid-angular>
   @if (isGroupView) {
-    <span class="ag-table-info" [ngClass]="dirtyCache ? 'ag-table-info-notify' : ''" [svyTooltip]="tooltipTextRefreshData">
+    <span class="ag-table-info" [ngClass]="dirtyCache ? 'ag-table-info-notify' : ''" [svyTooltip]="tooltipTextRefreshData()">
       <i [ngClass]="getIconRefreshData()" (click)="purge()"></i>
     </span>
   }

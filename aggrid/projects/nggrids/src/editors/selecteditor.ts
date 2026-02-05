@@ -101,7 +101,7 @@ export class SelectEditor extends EditorDirective {
             if (selectedValue != null && selectedValue.toString() === value.displayValue) {
                 option.selected = true;
             }
-            this.elementRef.nativeElement.appendChild(option);
+            this.elementRef().nativeElement.appendChild(option);
         });
     }
 
@@ -110,15 +110,16 @@ export class SelectEditor extends EditorDirective {
             this.valuelistValuesDefer.promise.then((r) => {
                 this.createSelectOptions(r.valuelist, r.value);
                 setTimeout(() => {
-                    this.elementRef.nativeElement.focus();
+                    this.elementRef().nativeElement.focus();
                 }, 0);
             });
         }
     }
     // returns the new value after editing
     getValue(): any {
-        let displayValue = this.elementRef.nativeElement.selectedIndex > -1 ? this.elementRef.nativeElement.options[this.elementRef.nativeElement.selectedIndex].text : '';
-        const realValue = this.elementRef.nativeElement.value === '_SERVOY_NULL' ? null : this.elementRef.nativeElement.value;
+        let displayValue = this.elementRef().nativeElement.selectedIndex > -1 ? this.elementRef().nativeElement.options[this.elementRef().nativeElement.selectedIndex].text : '';
+        const elementRef = this.elementRef();
+        const realValue = elementRef.nativeElement.value === '_SERVOY_NULL' ? null : elementRef.nativeElement.value;
         return displayValue !== realValue ? { displayValue, realValue } : realValue;
     }
 }

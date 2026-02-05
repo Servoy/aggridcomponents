@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, viewChild } from '@angular/core';
 import { NgbTypeahead } from '@ng-bootstrap/ng-bootstrap';
 import { merge, Observable, of, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, switchMap } from 'rxjs/operators';
@@ -55,8 +55,8 @@ import { NULL_VALUE } from '../datagrid/datagrid';
 })
 export class ValuelistFilter extends FilterDirective {
 
-    @ViewChild('instance') instance: NgbTypeahead;
-    @ViewChild('instance1') instance1: NgbTypeahead;
+    readonly instance = viewChild<NgbTypeahead>('instance');
+    readonly instance1 = viewChild<NgbTypeahead>('instance1');
     focus$ = new Subject<string>();
     focus1$ = new Subject<string>();
 
@@ -110,14 +110,14 @@ export class ValuelistFilter extends FilterDirective {
     };
 
     getFilterUIValue(): any {
-      return this.elementRef.nativeElement.value;
+      return this.elementRef().nativeElement.value;
     }
 
     setFilterUIValue(value) {
-      this.elementRef.nativeElement.value = value;
+      this.elementRef().nativeElement.value = value;
     }
 
     getSecondFilterUIValue(): any {
-      return this.element1Ref.nativeElement.value;
+      return this.element1Ref().nativeElement.value;
     }
 }

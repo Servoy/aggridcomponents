@@ -1,4 +1,4 @@
-import { Component, ElementRef, Inject, Renderer2, ViewChild, DOCUMENT } from "@angular/core";
+import { Component, ElementRef, Inject, Renderer2, DOCUMENT, viewChild } from "@angular/core";
 import { FilterDirective } from "./filter";
 import { Format, FormattingService, getFirstDayOfWeek, MaskFormat, ServoyPublicService } from '@servoy/public';
 import { DateTime as DateTimeLuxon} from 'luxon';
@@ -57,9 +57,9 @@ import { DateTime, Options, Namespace, TempusDominus } from '@eonasdan/tempus-do
   standalone: false
 })
 export class DateFilter extends FilterDirective {
-    @ViewChild('elementTo') elementToRef: ElementRef;
-    @ViewChild('filterdatetimepicker') filterdatetimepickerRef: ElementRef;
-    @ViewChild('filterdatetimepickerTo') filterdatetimepickerToRef: ElementRef;
+    readonly elementToRef = viewChild<ElementRef>('elementTo');
+    readonly filterdatetimepickerRef = viewChild<ElementRef>('filterdatetimepicker');
+    readonly filterdatetimepickerToRef = viewChild<ElementRef>('filterdatetimepickerTo');
     picker: TempusDominus;
     pickerTo: TempusDominus;
 
@@ -185,22 +185,22 @@ export class DateFilter extends FilterDirective {
 
     ngAfterViewInit(): void {
       this.ngGrid.loadCalendarLocale(this.config).promise.then(() => {
-        (this.elementRef.nativeElement as HTMLInputElement).value = '';
-        (this.elementToRef.nativeElement as HTMLInputElement).value = '';
+        (this.elementRef().nativeElement as HTMLInputElement).value = '';
+        (this.elementToRef().nativeElement as HTMLInputElement).value = '';
 
-        this.picker = this.createDatepicker(this.filterdatetimepickerRef.nativeElement);
-        this.pickerTo = this.createDatepicker(this.filterdatetimepickerToRef.nativeElement);
+        this.picker = this.createDatepicker(this.filterdatetimepickerRef().nativeElement);
+        this.pickerTo = this.createDatepicker(this.filterdatetimepickerToRef().nativeElement);
 
         setTimeout(() => {
             if (this.format.isMask) {
-                this.maskFormat = new MaskFormat(this.format, this._renderer, this.elementRef.nativeElement, this.formattingService, this.doc);
+                this.maskFormat = new MaskFormat(this.format, this._renderer, this.elementRef().nativeElement, this.formattingService, this.doc);
                 if(!this.isFloating) {
-                  this.elementRef.nativeElement.focus();
-                  this.elementRef.nativeElement.setSelectionRange(0, 0);
+                  this.elementRef().nativeElement.focus();
+                  this.elementRef().nativeElement.setSelectionRange(0, 0);
                 }
-                this.maskFormatTo = new MaskFormat(this.format, this._renderer, this.elementToRef.nativeElement, this.formattingService, this.doc);
+                this.maskFormatTo = new MaskFormat(this.format, this._renderer, this.elementToRef().nativeElement, this.formattingService, this.doc);
             } else if (!this.isFloating) {
-                this.elementRef.nativeElement.select();
+                this.elementRef().nativeElement.select();
             }
         }, 0);
       });
@@ -230,11 +230,11 @@ export class DateFilter extends FilterDirective {
     }
 
     getFilterUIValue(): any {
-      return this.elementRef.nativeElement.value;
+      return this.elementRef().nativeElement.value;
     }
 
     setFilterUIValue(value) {
-      this.elementRef.nativeElement.value = value;
+      this.elementRef().nativeElement.value = value;
     }
 
     getFilterRealValue(second?: boolean): any {
@@ -304,7 +304,7 @@ export class DateFilter extends FilterDirective {
     }
 
     getDateToRealValue(): any {
-      const displayValue = this.elementToRef.nativeElement.value;
+      const displayValue = this.elementToRef().nativeElement.value;
       const parsed = this.formattingService.parse(displayValue, this.format, this.format.edit && !this.format.isMask, null, true);
       if (parsed instanceof Date && !isNaN(parsed.getTime())) return parsed;
       return null;
@@ -312,7 +312,7 @@ export class DateFilter extends FilterDirective {
 
     onClearFilter() {
       super.onClearFilter();
-      this.elementToRef.nativeElement.value = '';
+      this.elementToRef().nativeElement.value = '';
     }
 
     ngOnDestroy() {

@@ -1,5 +1,5 @@
 import { GetRowIdParams, ColumnMenuTab, ColumnResizedEvent, ColDef, Column, IRowNode, IAggFunc, DisplayedColumnsChangedEvent } from 'ag-grid-community';
-import { ChangeDetectorRef, Component, EventEmitter, Inject, Input, Output, Renderer2, SecurityContext, SimpleChanges, DOCUMENT } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject, Renderer2, SecurityContext, SimpleChanges, DOCUMENT, input, output, signal } from '@angular/core';
 import { BaseCustomObject, FormattingService, ICustomArray, ServoyPublicService } from '@servoy/public';
 import { LoggerFactory } from '@servoy/public';
 import { ColumnsAutoSizingOn, DragTransferData, GRID_EVENT_TYPES, IconConfig, JSDNDEvent, MainMenuItemsConfig, NGGridDirective, ToolPanelConfig } from '../nggrid';
@@ -77,66 +77,74 @@ const COLUMN_KEYS_TO_CHECK_FOR_CHANGES = [
 })
 export class PowerGrid extends NGGridDirective {
 
-    @Input() columns: PowerGridColumn[];
-    @Input() styleClass: string;
-    @Input() tabSeq: number;
+    readonly columns = input<PowerGridColumn[]>(undefined);
+    readonly styleClass = input<string>(undefined);
+    readonly tabSeq = input<number>(undefined);
 
-    @Input() toolPanelConfig: ToolPanelConfig;
-    @Input() iconConfig: IconConfig;
-    @Input() localeText: any;
-    @Input() mainMenuItemsConfig: MainMenuItemsConfig;
-    @Input() gridOptions: any;
-    @Input() showColumnsMenuTab: any;
-    @Input() multiSelect: boolean;
-    @Input() checkboxSelection: boolean;
-    @Input() enableSorting: boolean;
-    @Input() enableColumnResize: boolean;
-    @Input() rowHeight: number;
-    @Input() headerHeight: number;
-    @Input() pivotMode: boolean;
-    @Input() useLazyLoading: boolean;
-    @Input() data: any;
-    @Output() dataChange = new EventEmitter();
-    @Input() pks: string[];
-    @Input() updateData: any;
-    @Input() lastRowIndex: number;
-    @Input() readOnly: boolean;
-    @Input() enabled: boolean;
-    @Input() rowStyleClassFunc: any;
-    @Input() isEditableFunc: any;
-    @Input() groupStyleClass: any;
-    @Input() groupWidth: number;
-    @Input() groupMinWidth: number;
-    @Input() groupMaxWidth: number;
-    @Input() groupRowRendererFunc: any;
-    @Input() columnsAutoSizing: string;
-    @Output() columnsAutoSizingChange = new EventEmitter();
-    @Input() continuousColumnsAutoSizing: boolean;
-    @Input() columnsAutoSizingOn: ColumnsAutoSizingOn;
+    readonly toolPanelConfig = input<ToolPanelConfig>(undefined);
+    readonly iconConfig = input<IconConfig>(undefined);
+    readonly localeText = input<any>(undefined);
+    readonly mainMenuItemsConfig = input<MainMenuItemsConfig>(undefined);
+    readonly gridOptions = input<any>(undefined);
+    readonly showColumnsMenuTab = input<any>(undefined);
+    readonly multiSelect = input<boolean>(undefined);
+    readonly checkboxSelection = input<boolean>(undefined);
+    readonly enableSorting = input<boolean>(undefined);
+    readonly enableColumnResize = input<boolean>(undefined);
+    readonly rowHeight = input<number>(undefined);
+    readonly headerHeight = input<number>(undefined);
+    readonly pivotMode = input<boolean>(undefined);
+    readonly useLazyLoading = input<boolean>(undefined);
+    readonly data = input<any>(undefined);
+    readonly dataChange = output<any>();
+    readonly pks = input<string[]>(undefined);
+    readonly updateData = input<any>(undefined);
+    readonly lastRowIndex = input<number>(undefined);
+    readonly readOnly = input<boolean>(undefined);
+    readonly enabled = input<boolean>(undefined);
+    readonly rowStyleClassFunc = input<any>(undefined);
+    readonly isEditableFunc = input<any>(undefined);
+    readonly groupStyleClass = input<any>(undefined);
+    readonly groupWidth = input<number>(undefined);
+    readonly groupMinWidth = input<number>(undefined);
+    readonly groupMaxWidth = input<number>(undefined);
+    readonly groupRowRendererFunc = input<any>(undefined);
+    readonly columnsAutoSizing = input<string>(undefined);
+    readonly columnsAutoSizingChange = output<string>();
+    readonly continuousColumnsAutoSizing = input<boolean>(undefined);
+    readonly columnsAutoSizingOn = input<ColumnsAutoSizingOn>(undefined);
 
-    @Input() _internalColumnState: any;
-    @Output() _internalColumnStateChange = new EventEmitter();
-    @Input() columnState: any;
-    @Output() columnStateChange = new EventEmitter();
-    @Input() _internalExpandedState: any;
-    @Output() _internalExpandedStateChange = new EventEmitter();
+    readonly _internalColumnState = input<any>(undefined);
+    readonly _internalColumnStateChange = output<any>();
+    readonly columnState = input<any>(undefined);
+    readonly columnStateChange = output<any>();
+    readonly _internalExpandedState = input<any>(undefined);
+    readonly _internalExpandedStateChange = output<any>();
 
-    @Input() _internalResetLazyLoading: any;
-    @Output() _internalResetLazyLoadingChange = new EventEmitter();
+    readonly _internalResetLazyLoading = input<any>(undefined);
+    readonly _internalResetLazyLoadingChange = output<any>();
 
-    @Input() onCellClick: any;
-    @Input() onCellDoubleClick: any;
-    @Input() onCellRightClick: any;
-    @Input() onColumnDataChange: any;
-    @Input() onColumnFormEditStarted: any;
-    @Input() onLazyLoadingGetRows: any;
-    @Input() onRowGroupOpened: any;
-    @Input() onRowSelected: any;
-    @Input() onReady: any;
-    @Input() onColumnStateChanged: any;
-    @Input() onFooterClick: any;
-    @Input() _internalAggCustomFuncs: AggFuncInfo[];
-
+    readonly onCellClick = input<any>(undefined);
+    readonly onCellDoubleClick = input<any>(undefined);
+    readonly onCellRightClick = input<any>(undefined);
+    readonly onColumnDataChange = input<any>(undefined);
+    readonly onColumnFormEditStarted = input<any>(undefined);
+    readonly onLazyLoadingGetRows = input<any>(undefined);
+    readonly onRowGroupOpened = input<any>(undefined);
+    readonly onRowSelected = input<any>(undefined);
+    readonly onReady = input<any>(undefined);
+    readonly onColumnStateChanged = input<any>(undefined);
+    readonly onFooterClick = input<any>(undefined);
+    readonly _internalAggCustomFuncs = input<AggFuncInfo[]>(undefined);
+    
+    _columnState = signal<any>(undefined);
+    __internalColumnState = signal<any>(undefined);
+    __internalResetLazyLoading = signal<any>(undefined);
+    _checkboxSelection = signal<boolean>(undefined);
+    _columnsAutoSizing = signal<string>(undefined);
+    __internalExpandedState = signal<any>(undefined);
+    _data = signal<any>(undefined);
+    _lastRowIndex = signal<number>(undefined);
 
     agMainMenuItemsConfig: any;
     agContinuousColumnsAutoSizing = false;
@@ -192,21 +200,22 @@ export class PowerGrid extends NGGridDirective {
             this.agContinuousColumnsAutoSizing = this.registrationService.powergridService.continuousColumnsAutoSizing;
         }
 
-        this.initialColumnsAutoSizing = this.columnsAutoSizing;
+        this.initialColumnsAutoSizing = this._columnsAutoSizing();
 
-        toolPanelConfig = this.mergeConfig(toolPanelConfig, this.toolPanelConfig);
-        iconConfig = this.mergeConfig(iconConfig, this.iconConfig);
-        userGridOptions = this.mergeConfig(userGridOptions, this.gridOptions);
-        localeText = this.mergeConfig(localeText, this.localeText);
-        this.agMainMenuItemsConfig = this.mergeConfig(mainMenuItemsConfig, this.mainMenuItemsConfig);
+        toolPanelConfig = this.mergeConfig(toolPanelConfig, this.toolPanelConfig());
+        iconConfig = this.mergeConfig(iconConfig, this.iconConfig());
+        userGridOptions = this.mergeConfig(userGridOptions, this.gridOptions());
+        localeText = this.mergeConfig(localeText, this.localeText());
+        this.agMainMenuItemsConfig = this.mergeConfig(mainMenuItemsConfig, this.mainMenuItemsConfig());
 
-        if (this.continuousColumnsAutoSizing) {
-            this.agContinuousColumnsAutoSizing = this.continuousColumnsAutoSizing;
+        const continuousColumnsAutoSizing = this.continuousColumnsAutoSizing();
+        if (continuousColumnsAutoSizing) {
+            this.agContinuousColumnsAutoSizing = continuousColumnsAutoSizing;
         }
         
         const vMenuTabs = ['generalMenuTab', 'filterMenuTab'] as ColumnMenuTab[];
 
-        if (this.showColumnsMenuTab) vMenuTabs.push('columnsMenuTab');
+        if (this.showColumnsMenuTab()) vMenuTabs.push('columnsMenuTab');
 
         const columnDefs = this.getColumnDefs();
 
@@ -262,8 +271,8 @@ export class PowerGrid extends NGGridDirective {
                 filter: false,
                 //                    valueFormatter: displayValueFormatter,
                 menuTabs: vMenuTabs,
-                sortable: this.enableSorting,
-                resizable: this.enableColumnResize,
+                sortable: this.enableSorting(),
+                resizable: this.enableColumnResize(),
                 tooltipComponent: CustomTooltip
             },
             excelStyles: [
@@ -275,10 +284,10 @@ export class PowerGrid extends NGGridDirective {
             columnDefs,
             getMainMenuItems: (params) => this.getMainMenuItems(params),
 
-            rowHeight: this.rowHeight,
+            rowHeight: this.rowHeight(),
             // TODO enable it ?					rowClass: $scope.model.rowStyleClass,	// add the class to each row
 
-            headerHeight: this.headerHeight, // exposed property
+            headerHeight: this.headerHeight(), // exposed property
 
             suppressContextMenu: false,
             suppressMovableColumns: false, // TODO persist column order changes
@@ -291,9 +300,9 @@ export class PowerGrid extends NGGridDirective {
             suppressAnimationFrame: false,
 
             rowSelection: {
-                mode: this.multiSelect === true ? 'multiRow' : 'singleRow',
-                enableClickSelection: this.enabled,
-                checkboxes: this.enabled && (this.checkboxSelection || this.multiSelect),
+                mode: this.multiSelect() === true ? 'multiRow' : 'singleRow',
+                enableClickSelection: this.enabled(),
+                checkboxes: this.enabled() && (this._checkboxSelection() || this.multiSelect()),
                 headerCheckbox: false 
             },
 			selectionColumnDef: {
@@ -313,7 +322,7 @@ export class PowerGrid extends NGGridDirective {
             // groupUseEntireRow: false,
             // groupMultiAutoColumn: true,
 
-            pivotMode: this.pivotMode,
+            pivotMode: this.pivotMode(),
 
             animateRows: false,
             enableCellExpressions: true,
@@ -322,21 +331,23 @@ export class PowerGrid extends NGGridDirective {
                 this.log.debug('gridReady');
                 this.isGridReady = true;
                 const emptyValue = '_empty';
-                if (this._internalColumnState !== emptyValue) {
-                    this.columnState = this._internalColumnState;
+                const _internalColumnState = this.__internalColumnState();
+                if (_internalColumnState !== emptyValue) {
+                    this._columnState.set(_internalColumnState);
                     // need to clear it, so the watch can be used, if columnState changes, and we want to apply the same _internalColumnState again
-                    this._internalColumnState = emptyValue;
+                    this.__internalColumnState.set(emptyValue);
                     this._internalColumnStateChange.emit(emptyValue);
                 }
-                if (this.columnState) {
+                if (this._columnState()) {
                     this.restoreColumnsState();
                 } else {
                     this.storeColumnsState(true);
                 }
                 this.applyExpandedState();
 
-                if (this.onReady) {
-                    this.onReady();
+                const onReady = this.onReady();
+                if (onReady) {
+                    onReady();
                 }
                 // without timeout the column don't fit automatically
                 this.setTimeout(() => {
@@ -350,12 +361,12 @@ export class PowerGrid extends NGGridDirective {
                 //cellRenderer: DatasetTableGroupCellRenderer,
                 cellRendererParams: { suppressCount: false },
                 headerName: ' ',
-                cellClass: this.groupStyleClass
+                cellClass: this.groupStyleClass()
             },
             onGridSizeChanged: () => {
                 this.setTimeout(() => {
                     // if not yet destroyed
-                    if (this.agGrid.gridOptions.onGridSizeChanged) {
+                    if (this.agGrid().gridOptions.onGridSizeChanged) {
                         this.svySizeColumnsToFit(GRID_EVENT_TYPES.GRID_SIZE_CHANGED);
                     }
                 }, 150);
@@ -376,7 +387,7 @@ export class PowerGrid extends NGGridDirective {
                         // the column def instead of the actual width to calculate the layout, so set it
                         // during the call and then reset it at the end
 
-                        let displayedColumns = this.agGrid.api.getAllDisplayedColumns();
+                        let displayedColumns = this.agGrid().api.getAllDisplayedColumns();
                         let suppressSizeToFit: boolean, colDef: ColDef;
 
                         if (e.column) {
@@ -388,7 +399,7 @@ export class PowerGrid extends NGGridDirective {
 
                         let displayedColDef: ColDef;
                         displayedColumns.forEach((displayedCol: Column) => {
-                            displayedColDef = this.agGrid.api.getColumnDef(displayedCol.getColId());
+                            displayedColDef = this.agGrid().api.getColumnDef(displayedCol.getColId());
                             displayedColDef.width = displayedCol.getActualWidth();
                             const column = this.getColumn(displayedColDef.field);
                             if(column) column.width = displayedColDef.width;                            
@@ -417,8 +428,9 @@ export class PowerGrid extends NGGridDirective {
                 if(this.isGridReady) {
                     if(e.source === 'contextMenu') {
                         let column: any;
-                        for (let i = 0; this.columns && i < this.columns.length; i++) {
-                            column = this.columns[i];
+                        const columns = this.columns();
+                        for (let i = 0; columns && i < columns.length; i++) {
+                            column = columns[i];
                             if(column.initialWidth === -1) {
                                 delete column.width;
                             } else {
@@ -438,19 +450,19 @@ export class PowerGrid extends NGGridDirective {
 
             navigateToNextCell: (params) => this.selectionChangeNavigation(params),
             tabToNextCell: (params) => this.tabSelectionChangeNavigation(params),
-            sideBar: this.enabled ? this.sideBar : false,
+            sideBar: this.enabled() ? this.sideBar : false,
             enableBrowserTooltips: false,
             onToolPanelVisibleChanged: () => {
                 this.svySizeColumnsToFit(GRID_EVENT_TYPES.TOOLPANEL_VISIBLE_CHANGE);
             },
             onCellEditingStopped: (event) => {
-                this.popupStateService.deactivatePopup(this.agGridElementRef.nativeElement.parentNode.id);
+                this.popupStateService.deactivatePopup(this.agGridElementRef().nativeElement.parentNode.id);
                 // don't allow escape if cell data is invalid
                 if (this.onColumnDataChangePromise == null) {
                     const rowIndex = event.rowIndex;
                     const colId = event.column.getColId();
                     if (this.invalidCellDataIndex.rowIndex === rowIndex && this.invalidCellDataIndex.colKey === colId) {
-                        this.agGrid.api.startEditingCell({
+                        this.agGrid().api.startEditingCell({
                             rowIndex,
                             colKey: colId
                         });
@@ -458,14 +470,14 @@ export class PowerGrid extends NGGridDirective {
                 }
             },
             onCellEditingStarted: (event) => {
-                this.popupStateService.activatePopup(this.agGridElementRef.nativeElement.parentNode.id);
+                this.popupStateService.activatePopup(this.agGridElementRef().nativeElement.parentNode.id);
                 // don't allow editing another cell if we have an invalidCellData
                 if (this.invalidCellDataIndex.rowIndex !== -1 && this.invalidCellDataIndex.colKey !== '') {
                     const rowIndex = event.rowIndex;
                     const colId = event.column.getColId();
                     if (this.invalidCellDataIndex.rowIndex !== rowIndex || this.invalidCellDataIndex.colKey !== colId) {
-                        this.agGrid.api.stopEditing();
-                        this.agGrid.api.startEditingCell({
+                        this.agGrid().api.stopEditing();
+                        this.agGrid().api.startEditingCell({
                             rowIndex: this.invalidCellDataIndex.rowIndex,
                             colKey: this.invalidCellDataIndex.colKey
                         });
@@ -474,10 +486,11 @@ export class PowerGrid extends NGGridDirective {
             },
             getRowId: (param: GetRowIdParams) => {
                 let rowNodeId = null;
-                if (this.pks && this.pks.length > 0) {
-                    rowNodeId = '' + param.data[this.pks[0]];
-                    for (let i = 1; i < this.pks.length; i++) {
-                        rowNodeId += '_' + param.data[this.pks[i]];
+                const pks = this.pks();
+                if (pks && pks.length > 0) {
+                    rowNodeId = '' + param.data[pks[0]];
+                    for (let i = 1; i < pks.length; i++) {
+                        rowNodeId += '_' + param.data[pks[i]];
                     }
                 } else {
                     rowNodeId = JSON.stringify(param.data);
@@ -491,19 +504,23 @@ export class PowerGrid extends NGGridDirective {
             }
         };
 
-        if (this.groupWidth || this.groupWidth === 0) this.agGridOptions.autoGroupColumnDef.width = this.groupWidth;
-        if (this.groupMaxWidth) this.agGridOptions.autoGroupColumnDef.maxWidth = this.groupMaxWidth;
-        if (this.groupMinWidth || this.groupMinWidth === 0) this.agGridOptions.autoGroupColumnDef.minWidth = this.groupMinWidth;
+        const groupWidth = this.groupWidth();
+        if (groupWidth || groupWidth === 0) this.agGridOptions.autoGroupColumnDef.width = groupWidth;
+        const groupMaxWidth = this.groupMaxWidth();
+        if (groupMaxWidth) this.agGridOptions.autoGroupColumnDef.maxWidth = groupMaxWidth;
+        const groupMinWidth = this.groupMinWidth();
+        if (groupMinWidth || groupMinWidth === 0) this.agGridOptions.autoGroupColumnDef.minWidth = groupMinWidth;
 
-        if (this.useLazyLoading) {
+        if (this.useLazyLoading()) {
             this.agGridOptions.rowModelType = 'serverSide';
         } else {
             this.agGridOptions.rowModelType = 'clientSide';
-            this.agGridOptions.rowData = this.data;
+            this.agGridOptions.rowData = this._data();
         }
 
-        if (this.rowStyleClassFunc) {
-            const rowStyleClassFunc = this.rowStyleClassFunc;
+        const rowStyleClassFuncValue = this.rowStyleClassFunc();
+        if (rowStyleClassFuncValue) {
+            const rowStyleClassFunc = rowStyleClassFuncValue;
             this.agGridOptions.getRowClass =
                 (params) => {
                     if (params.node.rowPinned) return '';
@@ -511,14 +528,15 @@ export class PowerGrid extends NGGridDirective {
                 };
         }
 
-        if (this.isEditableFunc) {
-            const isEditableFunc = this.isEditableFunc;
+        const isEditableFuncValue = this.isEditableFunc();
+        if (isEditableFuncValue) {
+            const isEditableFunc = isEditableFuncValue;
             this.isEditableCallback =
                 (params: any) => isEditableFunc(params.node !== undefined ? params.node.rowIndex : params.rowIndex, params.data, params.colDef.colId !== undefined ?
                     params.colDef.colId : params.colDef.field);
         }
 
-        if (this._internalAggCustomFuncs) {
+        if (this._internalAggCustomFuncs()) {
             this.agGridOptions.aggFuncs = this.getAggCustomFuncs();
         }
 
@@ -573,8 +591,9 @@ export class PowerGrid extends NGGridDirective {
 
         if (this.agGridOptions.groupDisplayType === 'groupRows') {
             let groupRowRendererFunc = this.groupRowInnerRenderer;
-            if (this.groupRowRendererFunc) {
-                groupRowRendererFunc = this.groupRowRendererFunc;
+            const groupRowRendererFuncValue = this.groupRowRendererFunc();
+            if (groupRowRendererFuncValue) {
+                groupRowRendererFunc = groupRowRendererFuncValue;
             }
             //this.agGridOptions.groupRowRenderer = DatasetTableGroupCellRenderer;
             this.agGridOptions.groupRowRendererParams = {
@@ -588,7 +607,7 @@ export class PowerGrid extends NGGridDirective {
         }
 
         // show warnings
-        if (this.styleClass === 'ag-theme-fresh') {
+        if (this.styleClass() === 'ag-theme-fresh') {
             this.log.warn('ag-theme-fresh is deprecated, see: https://www.ag-grid.com/javascript-grid/themes-v23-migration/');
         }
 
@@ -606,15 +625,16 @@ export class PowerGrid extends NGGridDirective {
     }
 
     private setupHeaderIconStyleClass(): void {
-        if(this.columns) {
-            for(let i = 0; i < this.columns.length; i++) {
-                if(this.columns[i].headerIconStyleClass) {
-                    const colId = this.columns[i].id;
+        const columns = this.columns();
+        if(columns) {
+            for(let i = 0; i < columns.length; i++) {
+                if(columns[i].headerIconStyleClass) {
+                    const colId = columns[i].id;
                     const columnEl = this.doc.querySelector('[col-id="' + colId + '"]');
                     if(columnEl) {
                         const labelEl = columnEl.querySelector('.ag-header-cell-label');
                         if(labelEl) {
-                            labelEl.setAttribute('class', labelEl.getAttribute('class') + ' ' + this.columns[i].headerIconStyleClass);
+                            labelEl.setAttribute('class', labelEl.getAttribute('class') + ' ' + columns[i].headerIconStyleClass);
                         }
                     }
                 }
@@ -623,8 +643,9 @@ export class PowerGrid extends NGGridDirective {
     }
 
     private getColumnsAutoSizingOn(): unknown {
-        if(this.columnsAutoSizingOn) {
-            return this.columnsAutoSizingOn;
+        const columnsAutoSizingOn = this.columnsAutoSizingOn();
+        if(columnsAutoSizingOn) {
+            return columnsAutoSizingOn;
         } else if(this.registrationService.powergridService.columnsAutoSizingOn) {
             return this.registrationService.powergridService.columnsAutoSizingOn
         }
@@ -633,7 +654,14 @@ export class PowerGrid extends NGGridDirective {
 
     svyOnInit() {
         super.svyOnInit();
-
+        this._columnState.set(this.columnState());
+        this.__internalColumnState.set(this._internalColumnState());
+        this.__internalResetLazyLoading.set(this._internalResetLazyLoading());
+        this._checkboxSelection.set(this.checkboxSelection());
+        this._columnsAutoSizing.set(this.columnsAutoSizing());
+        this.__internalExpandedState.set(this._internalExpandedState());
+        this._data.set(this.data());
+        this._lastRowIndex.set(this.lastRowIndex());
         // TODO:
         // init the grid. If is in designer render a mocked grid
         if (this.servoyApi.isInDesigner()) {
@@ -647,45 +675,46 @@ export class PowerGrid extends NGGridDirective {
             return;
         }
 
-        this.agGridElementRef.nativeElement.addEventListener('focus', (e: any) => {
-            if (this.agGrid.api) {
-                const allDisplayedColumns = this.agGrid.api.getAllDisplayedColumns();
+        this.agGridElementRef().nativeElement.addEventListener('focus', (e: any) => {
+            const agGrid = this.agGrid();
+            if (agGrid.api) {
+                const allDisplayedColumns = agGrid.api.getAllDisplayedColumns();
                 if (allDisplayedColumns && allDisplayedColumns.length) {
                     const focuseFromEl = e.relatedTarget;
                     if (focuseFromEl && (focuseFromEl.classList.contains('ag-cell') || focuseFromEl.classList.contains('ag-header-cell'))) { // focuse out from the grid
-                        this.agGrid.api.clearFocusedCell();
+                        agGrid.api.clearFocusedCell();
                     } else if (this.agGridOptions.groupDisplayType !== 'groupRows') {
-                        const selectedRows = this.agGrid.api.getSelectedNodes();
+                        const selectedRows = agGrid.api.getSelectedNodes();
                         let selectedRowIdx = 0;
                         if(selectedRows && selectedRows.length > 0) {
                             selectedRowIdx = selectedRows[0].rowIndex;
                         } else {
                             this.setSelectedRows([0]);
                         }
-                        this.agGrid.api.ensureColumnVisible(allDisplayedColumns[0]);
-                        this.agGrid.api.setFocusedCell(selectedRowIdx, allDisplayedColumns[0]);
+                        agGrid.api.ensureColumnVisible(allDisplayedColumns[0]);
+                        agGrid.api.setFocusedCell(selectedRowIdx, allDisplayedColumns[0]);
                     }
                 }
             }
         });
 
         // register listener for selection changed
-        this.agGrid.api.addEventListener('rowSelected', (event: any) => this.onRowSelectedHandler(event));
-        this.agGrid.api.addEventListener('cellClicked', (params: any) => this.cellClickHandler(params));
-        this.agGrid.api.addEventListener('cellDoubleClicked', (params: any) => this.onCellDoubleClicked(params));
-        this.agGrid.api.addEventListener('cellContextMenu', (params: any) => this.onCellContextMenu(params));
-        this.agGrid.api.addEventListener('displayedColumnsChanged', () => this.svySizeColumnsToFit(GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED));
+        this.agGrid().api.addEventListener('rowSelected', (event: any) => this.onRowSelectedHandler(event));
+        this.agGrid().api.addEventListener('cellClicked', (params: any) => this.cellClickHandler(params));
+        this.agGrid().api.addEventListener('cellDoubleClicked', (params: any) => this.onCellDoubleClicked(params));
+        this.agGrid().api.addEventListener('cellContextMenu', (params: any) => this.onCellContextMenu(params));
+        this.agGrid().api.addEventListener('displayedColumnsChanged', () => this.svySizeColumnsToFit(GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED));
 
         // listen to group changes
-        this.agGrid.api.addEventListener('columnRowGroupChanged', (event: any) => this.onColumnRowGroupChanged(event));
+        this.agGrid().api.addEventListener('columnRowGroupChanged', (event: any) => this.onColumnRowGroupChanged(event));
 
         // listen to group collapsed
-        this.agGrid.api.addEventListener('rowGroupOpened', (event: any) => this.onRowGroupOpenedHandler(event));
+        this.agGrid().api.addEventListener('rowGroupOpened', (event: any) => this.onRowGroupOpenedHandler(event));
 
 
-        if (!this.servoyApi.isInDesigner() && this.useLazyLoading) {
+        if (!this.servoyApi.isInDesigner() && this.useLazyLoading()) {
             this.lazyLoadingRemoteDatasource = new RemoteDatasource(this);
-            this.agGrid.api.setGridOption('serverSideDatasource', this.lazyLoadingRemoteDatasource);
+            this.agGrid().api.setGridOption('serverSideDatasource', this.lazyLoadingRemoteDatasource);
         }
     }
 
@@ -693,19 +722,22 @@ export class PowerGrid extends NGGridDirective {
         if (changes) {
             for (const property of Object.keys(changes)) {
                 const change = changes[property];
+                const agGrid = this.agGrid();
+                const agGridValue = this.agGrid();
                 switch (property) {
                     case 'responsiveHeight':
                         this.setHeight();
                         break;
                     case 'data':
-                        if (this.agGrid && !this.useLazyLoading) {
-                            this.agGrid.api.setGridOption('rowData', this.data)
+                        this._data.set(this.data());
+                        if (agGrid && !this.useLazyLoading()) {
+                            agGrid.api.setGridOption('rowData', this._data())
                             this.applyExpandedState();
                         }
                         break;
                     case 'updateData':
                         if (change.currentValue) {
-                            this.agGrid.api.applyTransaction(change.currentValue);
+                            this.agGrid().api.applyTransaction(change.currentValue);
                             this.servoyApi.callServerSideApi('clearUpdateData', []);
                         }
                         break;
@@ -715,7 +747,7 @@ export class PowerGrid extends NGGridDirective {
                                 (change.currentValue && this.previousColumns && change.currentValue.length !== this.previousColumns.length)) {
                                 this.updateColumnDefs();
                             } else {
-                                for (let i = 0; i < this.columns.length; i++) {
+                                for (let i = 0; i < this.columns().length; i++) {
                                     for (const prop of COLUMN_KEYS_TO_CHECK_FOR_CHANGES) {
                                         const oldPropertyValue = this.previousColumns &&
                                             i < this.previousColumns.length ? this.previousColumns[i][prop] : null;
@@ -739,7 +771,7 @@ export class PowerGrid extends NGGridDirective {
                                                 this.handleColumnFooterText();
                                             } else if (prop === 'visible' || prop === 'width') {
                                                 // column id is either the id of the column
-                                                const column = this.columns[i];
+                                                const column = this.columns()[i];
                                                 let colId = column.id;
                                                 if (!colId) {
                                                     colId = column.dataproviderToLowerCase();
@@ -750,11 +782,11 @@ export class PowerGrid extends NGGridDirective {
                                                 }
 
                                                 if (prop === 'visible') {
-                                                    this.agGrid.api.setColumnsVisible([colId], newPropertyValue as boolean);
+                                                    this.agGrid().api.setColumnsVisible([colId], newPropertyValue as boolean);
                                                 } else {
-                                                    const actualWidth = this.agGrid.api.getColumn(colId).getActualWidth();
+                                                    const actualWidth = this.agGrid().api.getColumn(colId).getActualWidth();
                                                     if(actualWidth !== newPropertyValue as number) {                                                    
-                                                        this.agGrid.api.setColumnWidths([{ key: colId, newWidth:newPropertyValue as number}]);
+                                                        this.agGrid().api.setColumnWidths([{ key: colId, newWidth:newPropertyValue as number}]);
                                                         this.svySizeColumnsToFit(GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED);
                                                     }
                                                 }
@@ -776,43 +808,46 @@ export class PowerGrid extends NGGridDirective {
                         }
                         break;
                     case '_internalColumnState':
+                        this.__internalColumnState.set(this._internalColumnState());
                         if (this.isGridReady && (change.currentValue !== '_empty')) {
-                            this.columnState = change.currentValue;
-                            this.columnStateChange.emit(this.columnState);
+                            this._columnState.set(change.currentValue);
+                            const columnState = this._columnState();
+                            this.columnStateChange.emit(columnState);
                             // need to clear it, so the watch can be used, if columnState changes, and we want to apply the same _internalColumnState again
-                            this._internalColumnState = '_empty';
-                            this._internalColumnStateChange.emit(this._internalColumnState);
-                            if (this.columnState) {
+                            this.__internalColumnState.set('_empty');
+                            this._internalColumnStateChange.emit(this.__internalColumnState());
+                            if (columnState) {
                                 this.restoreColumnsState();
                             } else {
-                                this.agGrid.api.resetColumnState();
+                                this.agGrid().api.resetColumnState();
                             }
                         }
                         break;
                     case '_internalAggCustomFuncs':
-                        if (this.agGrid && this._internalAggCustomFuncs) {
-                            this.agGrid.api.addAggFuncs(this.getAggCustomFuncs());
+                        if (agGridValue && this._internalAggCustomFuncs()) {
+                            agGridValue.api.addAggFuncs(this.getAggCustomFuncs());
                         }
                         break;
                     case 'enabled':
                         if (this.isGridReady) {
                             this.agGridOptions.rowSelection['enableClickSelection'] = change.currentValue;
-                            this.agGridOptions.rowSelection['checkboxes'] = change.currentValue && (this.checkboxSelection || this.multiSelect);
-                            this.agGrid.api.setGridOption('rowSelection', this.agGridOptions.rowSelection);
-                            this.agGrid.api.setGridOption('sideBar', change.currentValue ? this.sideBar : false);
+                            this.agGridOptions.rowSelection['checkboxes'] = change.currentValue && (this._checkboxSelection() || this.multiSelect());
+                            this.agGrid().api.setGridOption('rowSelection', this.agGridOptions.rowSelection);
+                            this.agGrid().api.setGridOption('sideBar', change.currentValue ? this.sideBar : false);
                             this.updateColumnDefs();
                         }
                         break;
                     case '_internalResetLazyLoading':
+                        this.__internalResetLazyLoading.set(this._internalResetLazyLoading());
                         if (this.isGridReady && change.currentValue) {
-                            this._internalResetLazyLoading = false;
-                            this._internalResetLazyLoadingChange.emit(this._internalResetLazyLoading);
-                            this.agGrid.api.setGridOption('serverSideDatasource', this.lazyLoadingRemoteDatasource);
+                            this.__internalResetLazyLoading.set(false);
+                            this._internalResetLazyLoadingChange.emit(this.__internalResetLazyLoading());
+                            this.agGrid().api.setGridOption('serverSideDatasource', this.lazyLoadingRemoteDatasource);
                         }
                         break;
 					case 'gridOptions':
 						if(!change.firstChange) {
-							this.agGrid.api.updateGridOptions(change.currentValue);
+							this.agGrid().api.updateGridOptions(change.currentValue);
 						}
 						break;
                 }
@@ -832,8 +867,9 @@ export class PowerGrid extends NGGridDirective {
         const colDefs = [];
         let colDef: any = {};
         const colGroups = {};
-        if (this.columns) {
-            for (const column of this.columns) {
+        const columns = this.columns();
+        if (columns) {
+            for (const column of columns) {
                 if(column.excluded) continue;
                 //create a column definition based on the properties defined at design time
                 colDef = {
@@ -865,10 +901,10 @@ export class PowerGrid extends NGGridDirective {
                 }
 
                 // column grouping & pivoting
-                colDef.enableRowGroup = this.enabled && column.enableRowGroup;
+                colDef.enableRowGroup = this.enabled() && column.enableRowGroup;
                 if (column.rowGroupIndex >= 0) colDef.rowGroupIndex = column.rowGroupIndex;
 
-                colDef.enablePivot = this.enabled && column.enablePivot;
+                colDef.enablePivot = this.enabled() && column.enablePivot;
                 if (column.pivotIndex >= 0) colDef.pivotIndex = column.pivotIndex;
 
                 if (column.aggFunc) colDef.aggFunc = column.aggFunc;
@@ -893,7 +929,8 @@ export class PowerGrid extends NGGridDirective {
                 if (column.enableResize === false) colDef.resizable = column.enableResize;
                 if (column.autoResize === false) colDef.suppressSizeToFit = !column.autoResize;
                 // sorting
-                if (!this.enabled || column.enableSort === false) colDef.sortable = false;
+                const enabled = this.enabled();
+                if (!enabled || column.enableSort === false) colDef.sortable = false;
                 // visibility
                 if (column.visible === false) colDef.hide = true;
                 if (column.format) {
@@ -932,7 +969,7 @@ export class PowerGrid extends NGGridDirective {
                     colDef.valueGetter = this.createColumnValueGetterCallbackFunctionFromString(column.valueGetterFunc);
                 }
 
-                if (this.enabled && column.filterType) {
+                if (enabled && column.filterType) {
                     colDef.filter = true;
                     colDef.filterParams = { buttons: ['apply', 'clear'], newRowsAction: 'keep', caseSensitive: false };
 
@@ -991,7 +1028,7 @@ export class PowerGrid extends NGGridDirective {
                     colDef.dndSourceOnRowDrag = (params) => {
                         const dragDatas = [];
 
-                        const selectedNodes = this.agGrid.api.getSelectedNodes();
+                        const selectedNodes = this.agGrid().api.getSelectedNodes();
                         const rowDatas = selectedNodes.indexOf(params.rowNode) === -1 ? [params.rowNode] : selectedNodes;
                         rowDatas.forEach(row => {
                             const rowData = row.data || Object.assign(row.groupData, row.aggData);
@@ -1000,7 +1037,8 @@ export class PowerGrid extends NGGridDirective {
 
                         this.registrationService.powergridService.setDragData(new DragTransferData(dragDatas, this.name, sourceColumnId) );
 
-                        if(this.onDragGetImageFunc) {
+                        const onDragGetImageFunc = this.onDragGetImageFunc();
+                        if(onDragGetImageFunc) {
                             const jsDragGetImageEvent = this.servoyService.createJSEvent(params.dragEvent, 'onDragGetImage') as JSDNDEvent;                
                             jsDragGetImageEvent.targetColumnId = sourceColumnId;
                             jsDragGetImageEvent.sourceGridName = this.name;
@@ -1008,7 +1046,7 @@ export class PowerGrid extends NGGridDirective {
 
                             const dragGhostEl = this.doc.createElement('div') as HTMLElement;
                             dragGhostEl.id = 'nggrids-drag-ghost';
-                            dragGhostEl.innerHTML = this.onDragGetImageFunc(dragDatas, jsDragGetImageEvent);
+                            dragGhostEl.innerHTML = onDragGetImageFunc(dragDatas, jsDragGetImageEvent);
                             dragGhostEl.style.position = 'absolute';
                             dragGhostEl.style.top = '-1000px';
                             this.doc.body.appendChild(dragGhostEl);
@@ -1040,7 +1078,7 @@ export class PowerGrid extends NGGridDirective {
 
                 if (columnOptions) {
                     if(columnOptions.hasOwnProperty('checkboxSelection')) {
-                        this.checkboxSelection = columnOptions['checkboxSelection'];
+                        this._checkboxSelection.set(columnOptions['checkboxSelection']);
                         delete columnOptions['checkboxSelection'];
                     }
                     const colDefSetByComponent = {};
@@ -1107,7 +1145,7 @@ export class PowerGrid extends NGGridDirective {
 
     getAggCustomFuncs(): { [key: string]: IAggFunc } {
         const aggFuncs = {};
-        for (const aggFuncInfo of this._internalAggCustomFuncs) {
+        for (const aggFuncInfo of this._internalAggCustomFuncs()) {
             aggFuncs[aggFuncInfo.name] = this.createAggCustomFunctionFromString(aggFuncInfo.aggFunc);
         }
         return aggFuncs;
@@ -1122,7 +1160,8 @@ export class PowerGrid extends NGGridDirective {
     }
 
     getValuelistForFilter(params: any): any {
-        return this.agGrid && this.agGrid.api ? this.getValuelist(params) : null;
+        const agGrid = this.agGrid();
+        return agGrid && agGrid.api ? this.getValuelist(params) : null;
     }
 
     isColumnEditable(args: any) {
@@ -1132,7 +1171,7 @@ export class PowerGrid extends NGGridDirective {
         if (col && col.editType === 'CHECKBOX' && (!args.event || args.event.target.tagName !== 'I')) {
             return false;
         }
-        if (this.enabled && !this.readOnly) {
+        if (this.enabled() && !this.readOnly()) {
             if (this.isEditableCallback) {
                 return this.isEditableCallback(args);
             }
@@ -1182,11 +1221,12 @@ export class PowerGrid extends NGGridDirective {
     }
 
     restoreColumnsState() {
-        if (this.columnState) {
+        const columnState = this._columnState();
+        if (columnState) {
             let columnStateJSON = null;
 
             try {
-                columnStateJSON = JSON.parse(this.columnState);
+                columnStateJSON = JSON.parse(columnState);
             } catch (e) {
                 this.log.error(e);
             }
@@ -1215,27 +1255,27 @@ export class PowerGrid extends NGGridDirective {
                 }
 
                 if (Array.isArray(columnStateJSON.columnState) && columnStateJSON.columnState.length > 0) {
-                    this.agGrid.api.applyColumnState({ state: columnStateJSON.columnState, applyOrder: true });
+                    this.agGrid().api.applyColumnState({ state: columnStateJSON.columnState, applyOrder: true });
                 }
 
                 if (Array.isArray(columnStateJSON.rowGroupColumnsState) && columnStateJSON.rowGroupColumnsState.length > 0) {
-                    this.agGrid.api.setRowGroupColumns(columnStateJSON.rowGroupColumnsState);
+                    this.agGrid().api.setRowGroupColumns(columnStateJSON.rowGroupColumnsState);
                 }
 
                 if (Array.isArray(columnStateJSON.sortModel) && columnStateJSON.sortModel.length > 0) {
                     this.applySortModel(columnStateJSON.sortModel);
                 }
 
-                this.agGrid.api.setSideBarVisible(columnStateJSON.isSideBarVisible);
+                this.agGrid().api.setSideBarVisible(columnStateJSON.isSideBarVisible);
             }
         }
     }
 
     applyExpandedState() {
-        let expandedState = this._internalExpandedState;
+        let expandedState = this.__internalExpandedState();
         const groupFields = this.state.expanded.fields;
         if (this.isTableGrouped() && groupFields && expandedState) {
-            this.agGrid.api.forEachNode((node, index) => {
+            this.agGrid().api.forEachNode((node, index) => {
                 const rowGroupInfo = this.getNodeGroupInfo(node);
                 const rowGroupKeys = rowGroupInfo.rowGroupKeys;
 
@@ -1243,7 +1283,7 @@ export class PowerGrid extends NGGridDirective {
                 let isExpanded = false;
 
                 // check if the node is expanded
-                expandedState = this._internalExpandedState;
+                expandedState = this.__internalExpandedState();
 
                 for (let j = 0; expandedState && j < rowGroupKeys.length; j++) {
                     expandedState = expandedState[rowGroupKeys[j]];
@@ -1261,7 +1301,7 @@ export class PowerGrid extends NGGridDirective {
     }
 
     isTableGrouped() {
-        const rowGroupCols = this.agGrid.api.getRowGroupColumns();
+        const rowGroupCols = this.agGrid().api.getRowGroupColumns();
         return rowGroupCols && rowGroupCols.length > 0;
     }
 
@@ -1302,7 +1342,7 @@ export class PowerGrid extends NGGridDirective {
     svySizeColumnsToFit(eventType?: string) {
 
         const agColumnsAutoSizingOn = this.getColumnsAutoSizingOn();
-        let useColumnsAutoSizing = this.columnsAutoSizing;
+        let useColumnsAutoSizing = this._columnsAutoSizing();
         if(this.initialColumnsAutoSizing !== 'NONE' && agColumnsAutoSizingOn) {
             useColumnsAutoSizing = agColumnsAutoSizingOn[eventType] === true ? this.initialColumnsAutoSizing : 'NONE';
         }
@@ -1322,43 +1362,45 @@ export class PowerGrid extends NGGridDirective {
                 break;
             case 'SIZE_COLUMNS_TO_FIT':
             default:
-                this.agGrid.api.sizeColumnsToFit();
+                this.agGrid().api.sizeColumnsToFit();
 
         }
-        if (this.columnsAutoSizing !== 'NONE' && !this.agContinuousColumnsAutoSizing && !agColumnsAutoSizingOn && eventType === GRID_EVENT_TYPES.GRID_READY) {
-            this.columnsAutoSizing = 'NONE';
+        if (this._columnsAutoSizing() !== 'NONE' && !this.agContinuousColumnsAutoSizing && !agColumnsAutoSizingOn && eventType === GRID_EVENT_TYPES.GRID_READY) {
+            this._columnsAutoSizing.set('NONE');
             this.columnsAutoSizingChange.emit('NONE');
         }
     }
 
     storeColumnsState(skipFireColumnStateChanged?: boolean) {
-        const rowGroupColumns = this.agGrid.api.getRowGroupColumns();
+        const rowGroupColumns = this.agGrid().api.getRowGroupColumns();
         const svyRowGroupColumnIds = [];
         for (const rowGroupColumn of rowGroupColumns) {
             svyRowGroupColumnIds.push(rowGroupColumn.getColId());
         }
 
         const columnState = {
-            columnState: this.agGrid.api.getColumnState(),
+            columnState: this.agGrid().api.getColumnState(),
             rowGroupColumnsState: svyRowGroupColumnIds,
-            isToolPanelShowing: this.agGrid.api.isToolPanelShowing(),
-            isSideBarVisible: this.agGrid.api.isSideBarVisible()
+            isToolPanelShowing: this.agGrid().api.isToolPanelShowing(),
+            isSideBarVisible: this.agGrid().api.isSideBarVisible()
             // filterState: gridOptions.api.getFilterModel(), TODO persist column states
         };
 
         const newColumnState = JSON.stringify(columnState);
 
-        if (newColumnState !== this.columnState) {
-            this.columnState = newColumnState;
+        const columnStateValue = this._columnState();
+        if (newColumnState !== columnStateValue) {
+            this._columnState.set(newColumnState);
             this.columnStateChange.emit(newColumnState);
-            if (skipFireColumnStateChanged !== true && this.onColumnStateChanged) {
-                this.onColumnStateChanged(this.columnState, this.createJSEvent());
+            const onColumnStateChanged = this.onColumnStateChanged();
+            if (skipFireColumnStateChanged !== true && onColumnStateChanged) {
+                onColumnStateChanged(columnStateValue, this.createJSEvent());
             }
         }
     }
 
     selectionChangeNavigation(params: any) {
-        if (!this.enabled) return;
+        if (!this.enabled()) return;
         const previousCell = params.previousCellPosition;
         const suggestedNextCell = params.nextCellPosition;
 
@@ -1372,16 +1414,16 @@ export class PowerGrid extends NGGridDirective {
         switch (params.event.keyCode) {
             case KEY_DOWN:
                 newIndex = previousCell.rowIndex + 1;
-                nextRow = this.agGrid.api.getDisplayedRowAtIndex(newIndex);
+                nextRow = this.agGrid().api.getDisplayedRowAtIndex(newIndex);
                 while (nextRow && (nextRow.group || nextRow.selected)) {
                     newIndex++;
-                    nextRow = this.agGrid.api.getDisplayedRowAtIndex(newIndex);
+                    nextRow = this.agGrid().api.getDisplayedRowAtIndex(newIndex);
                 }
 
                 // set selected cell on next non-group row cells
                 if (nextRow) {
                     if (!nextRow.id) return null; // row cannot be selected (happens when arrow key is kept pressed, and the row is not yet rendered), skip suggestion
-                    if (!this.multiSelect) {
+                    if (!this.multiSelect()) {
                         nextRow.setSelected(true, true);
                     }
                     suggestedNextCell.rowIndex = newIndex;
@@ -1389,16 +1431,16 @@ export class PowerGrid extends NGGridDirective {
                 return suggestedNextCell;
             case KEY_UP:
                 newIndex = previousCell.rowIndex - 1;
-                nextRow = this.agGrid.api.getDisplayedRowAtIndex(newIndex);
+                nextRow = this.agGrid().api.getDisplayedRowAtIndex(newIndex);
                 while (nextRow && (nextRow.group || nextRow.selected)) {
                     newIndex--;
-                    nextRow = this.agGrid.api.getDisplayedRowAtIndex(newIndex);
+                    nextRow = this.agGrid().api.getDisplayedRowAtIndex(newIndex);
                 }
 
                 // set selected cell on previous non-group row cells
                 if (nextRow) {
                     if (!nextRow.id) return null; // row cannot be selected (happens when arrow key is kept pressed, and the row is not yet rendered), skip suggestion
-                    if (!this.multiSelect) {
+                    if (!this.multiSelect()) {
                         nextRow.setSelected(true, true);
                     }
                     suggestedNextCell.rowIndex = newIndex;
@@ -1413,14 +1455,14 @@ export class PowerGrid extends NGGridDirective {
     }
 
     tabSelectionChangeNavigation(params: any) {
-        if (!this.enabled) return false;
+        if (!this.enabled()) return false;
         const suggestedNextCell = params.nextCellPosition;
         const isPinnedBottom = suggestedNextCell ? suggestedNextCell.rowPinned === 'bottom' : false;
 
         // don't change selection if row is pinned to the bottom (footer)
         if (suggestedNextCell && !isPinnedBottom) {
             let suggestedNextCellSelected = false;
-            const selectedNodes = this.agGrid.api.getSelectedNodes();
+            const selectedNodes = this.agGrid().api.getSelectedNodes();
             for (const selectedNode of selectedNodes) {
                 if (suggestedNextCell.rowIndex === selectedNode.rowIndex) {
                     suggestedNextCellSelected = true;
@@ -1430,7 +1472,7 @@ export class PowerGrid extends NGGridDirective {
 
             if (!suggestedNextCellSelected) {
                 this.selectionEvent = { type: 'key', event: params.event };
-                this.agGrid.api.forEachNode((node) => {
+                this.agGrid().api.forEachNode((node) => {
                     if (suggestedNextCell.rowIndex === node.rowIndex) {
                         node.setSelected(true, true);
                     }
@@ -1440,7 +1482,7 @@ export class PowerGrid extends NGGridDirective {
 
         if (!suggestedNextCell) {
             this.setTimeout(() => {
-                this.agGridElementRef.nativeElement.focus();
+                this.agGridElementRef().nativeElement.focus();
             }, 0);
         }
 
@@ -1452,7 +1494,7 @@ export class PowerGrid extends NGGridDirective {
     }
 
     createJSEvent() {
-        const element = this.agGridElementRef.nativeElement;
+        const element = this.agGridElementRef().nativeElement;
         const x = element.offsetLeft;
         const y = element.offsetTop;
 
@@ -1464,9 +1506,10 @@ export class PowerGrid extends NGGridDirective {
     onRowSelectedHandler(event: any) {
         const node = event.node;
 
-        if (this.onRowSelected && node && node.data) {
+        const onRowSelected = this.onRowSelected();
+        if (onRowSelected && node && node.data) {
             // var selectIndex = node.rowIndex + 1; Selected index doesn't make sense for a dataset since the grid may change the dataset internally
-            this.onRowSelected(node.data, node.selected, this.createJSEvent());
+            onRowSelected(node.data, node.selected, this.createJSEvent());
         }
     }
 
@@ -1479,19 +1522,21 @@ export class PowerGrid extends NGGridDirective {
         }
 
         const rowData = params.data || Object.assign(params.node.groupData, params.node.aggData);
-        if (this.onCellClick && rowData) {
-            this.onCellClick(rowData, params.colDef.colId !== undefined ? params.colDef.colId : params.colDef.field, params.value, params.event, this.getDataTarget(params.event));
+        const onCellClick = this.onCellClick();
+        if (onCellClick && rowData) {
+            onCellClick(rowData, params.colDef.colId !== undefined ? params.colDef.colId : params.colDef.field, params.value, params.event, this.getDataTarget(params.event));
         }
     }
 
     cellClickHandler(params: any) {
-        if (this.enabled) {
+        if (this.enabled()) {
             if (params.node.rowPinned) {
-                if (params.node.rowPinned === 'bottom' && this.onFooterClick) {
+                const onFooterClick = this.onFooterClick();
+                if (params.node.rowPinned === 'bottom' && onFooterClick) {
                     const columnIndex = this.getColumnIndex(params.column.colId);
-                    this.onFooterClick(columnIndex, params.event, this.getDataTarget(params.event));
+                    onFooterClick(columnIndex, params.event, this.getDataTarget(params.event));
                 }
-            } else if (this.onCellDoubleClick) {
+            } else if (this.onCellDoubleClick()) {
                 if (this.clickTimer) {
                     clearTimeout(this.clickTimer);
                     this.clickTimer = null;
@@ -1508,26 +1553,28 @@ export class PowerGrid extends NGGridDirective {
     }
 
     onCellDoubleClicked(params: any) {
-        if (this.enabled) {
+        if (this.enabled()) {
             // ignore dblclick handler while editing, because it is the
             // default trigger for start editing and/or can be used by the editor
             // like texteditor, for selection
-            const currentEditCells = this.agGrid.api.getEditingCells();
+            const currentEditCells = this.agGrid().api.getEditingCells();
             if (currentEditCells.length > 0) {
                 return;
             }
             const rowData = params.data || Object.assign(params.node.groupData, params.node.aggData);
-            if (this.onCellDoubleClick && rowData) {
-                this.onCellDoubleClick(rowData, params.colDef.colId !== undefined ? params.colDef.colId : params.colDef.field, params.value, params.event, this.getDataTarget(params.event));
+            const onCellDoubleClick = this.onCellDoubleClick();
+            if (onCellDoubleClick && rowData) {
+                onCellDoubleClick(rowData, params.colDef.colId !== undefined ? params.colDef.colId : params.colDef.field, params.value, params.event, this.getDataTarget(params.event));
             }
         }
     }
 
     onCellContextMenu(params: any) {
-        if (this.enabled) {
+        if (this.enabled()) {
             const rowData = params.data || Object.assign(params.node.groupData, params.node.aggData);
-            if (this.onCellRightClick && rowData) {
-                this.onCellRightClick(rowData, params.colDef.colId !== undefined ? params.colDef.colId : params.colDef.field, params.value, params.event, this.getDataTarget(params.event));
+            const onCellRightClick = this.onCellRightClick();
+            if (onCellRightClick && rowData) {
+                onCellRightClick(rowData, params.colDef.colId !== undefined ? params.colDef.colId : params.colDef.field, params.value, params.event, this.getDataTarget(params.event));
             }
         }
     }
@@ -1536,7 +1583,8 @@ export class PowerGrid extends NGGridDirective {
      * When Column Group Changes
      */
     onColumnRowGroupChanged(event: any) {
-        const rowGroupCols = this.agGrid && this.agGrid.api ? this.agGrid.api.getRowGroupColumns() : null;
+        const agGrid = this.agGrid();
+        const rowGroupCols = agGrid && agGrid.api ? agGrid.api.getRowGroupColumns() : null;
         const columns: any = rowGroupCols ? rowGroupCols : [];
         const groupFields = [];
         let levelToRemove = null;
@@ -1573,8 +1621,9 @@ export class PowerGrid extends NGGridDirective {
         if (level === null || level === undefined) {
             return;
         }
-        this.removeNodeAtLevel(this._internalExpandedState, level);
-        this._internalExpandedStateChange.emit(this._internalExpandedState);
+        const _internalExpandedState = this.__internalExpandedState();
+        this.removeNodeAtLevel(_internalExpandedState, level);
+        this._internalExpandedStateChange.emit(_internalExpandedState);
     }
 
     removeNodeAtLevel(node: any, lvl: any) {
@@ -1611,7 +1660,8 @@ export class PowerGrid extends NGGridDirective {
             this.removeRowExpandedState(groupKeys);
         }
 
-        if (this.onRowGroupOpened) {
+        const onRowGroupOpened = this.onRowGroupOpened();
+        if (onRowGroupOpened) {
 
             // return the column indexes
             const rowGroupColIdxs = [];
@@ -1619,13 +1669,14 @@ export class PowerGrid extends NGGridDirective {
                 rowGroupColIdxs.push(this.getColumnIndex(rowGroupCol));
             }
 
-            this.onRowGroupOpened(rowGroupColIdxs, groupKeys, isExpanded);
+            onRowGroupOpened(rowGroupColIdxs, groupKeys, isExpanded);
         }
     }
 
     getColumn(colId: any, columnsModel?: any): any {
-        if (this.columns) {
-            for (const column of this.columns) {
+        const columns = this.columns();
+        if (columns) {
+            for (const column of columns) {
                 if (column['id'] === colId || column.dataproviderToLowerCase() === colId) {
                     return column;
                 }
@@ -1635,9 +1686,10 @@ export class PowerGrid extends NGGridDirective {
     }
 
     getColumnIndex(colId: any): number {
-        if (this.columns) {
+        const columns = this.columns();
+        if (columns) {
             let i = 0;
-            for (const column of this.columns) {
+            for (const column of columns) {
                 if (column['id'] === colId || column.dataproviderToLowerCase() === colId) {
                     return i;
                 }
@@ -1671,11 +1723,12 @@ export class PowerGrid extends NGGridDirective {
      */
     addRowExpandedState(groupKeys: any) {
 
-        if (!this._internalExpandedState) {
-            this._internalExpandedState = new Object();
+        const _internalExpandedState = this.__internalExpandedState();
+        if (!_internalExpandedState) {
+            this.__internalExpandedState.set(new Object());
         }
 
-        let node = this._internalExpandedState;
+        let node = _internalExpandedState;
 
         // Persist the state of an expanded row
         for (const key of groupKeys) {
@@ -1685,7 +1738,7 @@ export class PowerGrid extends NGGridDirective {
 
             node = node[key];
         }
-        this._internalExpandedStateChange.emit(this._internalExpandedState);
+        this._internalExpandedStateChange.emit(_internalExpandedState);
     }
 
     /**
@@ -1697,12 +1750,13 @@ export class PowerGrid extends NGGridDirective {
      */
     removeRowExpandedState(groupKeys: any) {
 
-        if (!this._internalExpandedState || !groupKeys || !groupKeys.length) {
+        const _internalExpandedState = this.__internalExpandedState();
+        if (!_internalExpandedState || !groupKeys || !groupKeys.length) {
             return;
         }
 
         // search for the sub-group node if groupKeys with multiple levels
-        let node = this._internalExpandedState;
+        let node = _internalExpandedState;
         for (let i = 0; i < groupKeys.length - 1; i++) {
             let key = groupKeys[i];
             node = node[key];
@@ -1715,22 +1769,23 @@ export class PowerGrid extends NGGridDirective {
         // remove the node
         delete node[groupKeys[groupKeys.length - 1]];
 
-        this._internalExpandedStateChange.emit(this._internalExpandedState);
+        this._internalExpandedStateChange.emit(_internalExpandedState);
     }
 
     updateColumnDefs() {
-        if (this.agGrid) {
+        const agGrid = this.agGrid();
+        if (agGrid) {
             // need to clear/remove old columns first, else the id for
             // the new columns will have the counter at the end (ex. "myid_1")
             // and that will broke our getColumn()
-            this.agGrid.api.setGridOption('columnDefs', [])
+            agGrid.api.setGridOption('columnDefs', [])
 
             // make sure custom agg functions are added before setting the column defs, as the aggs may already
             // been referenced in the columns
-            if (this._internalAggCustomFuncs) {
-                this.agGrid.api.addAggFuncs(this.getAggCustomFuncs());
+            if (this._internalAggCustomFuncs()) {
+                agGrid.api.addAggFuncs(this.getAggCustomFuncs());
             }
-            this.agGrid.api.setGridOption('columnDefs', this.getColumnDefs())
+            agGrid.api.setGridOption('columnDefs', this.getColumnDefs())
         }
     }
 
@@ -1738,7 +1793,7 @@ export class PowerGrid extends NGGridDirective {
         this.log.debug('header column property changed');
 
         // column id is either the id of the column
-        const column = this.columns[index];
+        const column = this.columns()[index];
         let colId = column.id;
         if (!colId) {
             colId = column.dataproviderToLowerCase();
@@ -1753,7 +1808,7 @@ export class PowerGrid extends NGGridDirective {
 
     updateColumnHeader(id: any, property: any, text: any) {
         // get a reference to the column
-        const col = this.agGrid.api.getColumn(id);
+        const col = this.agGrid().api.getColumn(id);
 
         // obtain the column definition from the column
         const colDef = col.getColDef();
@@ -1762,13 +1817,13 @@ export class PowerGrid extends NGGridDirective {
         colDef[property] = text;
 
         // the column is now updated. to reflect the header change, get the grid refresh the header
-        this.agGrid.api.refreshHeader();
+        this.agGrid().api.refreshHeader();
         this.sizeHeader();
     }
 
     handleColumnFooterText() {
         this.log.debug('footer text column property changed');
-        this.agGrid.api.setGridOption('pinnedBottomRowData', this.getFooterData())
+        this.agGrid().api.setGridOption('pinnedBottomRowData', this.getFooterData())
 
     }
 
@@ -1776,8 +1831,9 @@ export class PowerGrid extends NGGridDirective {
         const result = [];
         let hasFooterData = false;
         const resultData = {};
-        for (let i = 0; this.columns && i < this.columns.length; i++) {
-            const column = this.columns[i];
+        const columns = this.columns();
+        for (let i = 0; columns && i < columns.length; i++) {
+            const column = columns[i];
             if (column.dataproviderToLowerCase()) {
             	if (column.footerText) {
                 	resultData[column.dataproviderToLowerCase()] = column.footerText;
@@ -1797,10 +1853,10 @@ export class PowerGrid extends NGGridDirective {
      * Update header height based on cells content height
      */
     sizeHeader() {
-        const headerCell = this.findChildrenNativeElements(this.agGridElementRef.nativeElement, 'ag-header-cell');
+        const headerCell = this.findChildrenNativeElements(this.agGridElementRef().nativeElement, 'ag-header-cell');
         const paddingTop = headerCell.length ? parseInt(this.getCSSProperty(headerCell[0], 'padding-top'), 10) : 0;
         const paddinBottom = headerCell.length ? parseInt(this.getCSSProperty(headerCell[0], 'padding-bottom'), 10) : 0;
-        const headerCellLabels = this.findChildrenNativeElements(this.agGridElementRef.nativeElement, 'ag-header-cell-text');
+        const headerCellLabels = this.findChildrenNativeElements(this.agGridElementRef().nativeElement, 'ag-header-cell-text');
         let minHeight = this.agGridOptions.headerHeight >= 0 ? this.agGridOptions.headerHeight : 25;
 
         if (minHeight > 0) {
@@ -1809,7 +1865,7 @@ export class PowerGrid extends NGGridDirective {
                 minHeight = Math.max(minHeight, labelScrollHeight + paddingTop + paddinBottom);
             }
         }
-        this.agGrid.api.setGridOption('headerHeight', minHeight);
+        this.agGrid().api.setGridOption('headerHeight', minHeight);
     }
 
     findChildrenNativeElements(el: any, className: any) {
@@ -1895,7 +1951,7 @@ export class PowerGrid extends NGGridDirective {
     }
 
     getIconCheckboxEditor(state: any) {
-        const checkboxEditorIconConfig = this.registrationService.powergridService.iconConfig ? this.mergeConfig(this.registrationService.powergridService.iconConfig, this.iconConfig) : this.iconConfig;
+        const checkboxEditorIconConfig = this.registrationService.powergridService.iconConfig ? this.mergeConfig(this.registrationService.powergridService.iconConfig, this.iconConfig()) : this.iconConfig();
 
         if (state) {
             return checkboxEditorIconConfig && checkboxEditorIconConfig['iconEditorChecked'] && checkboxEditorIconConfig['iconEditorChecked'] !== 'glyphicon glyphicon-check' ?
@@ -1979,15 +2035,15 @@ export class PowerGrid extends NGGridDirective {
             }
         };
         if (asCSV) {
-            this.agGrid.api.exportDataAsCsv(params);
+            this.agGrid().api.exportDataAsCsv(params);
         } else {
-            this.agGrid.api.exportDataAsExcel(params);
+            this.agGrid().api.exportDataAsExcel(params);
         }
     }
 
     internalExportToDataset(): any {
         const exportData = [];
-        const columnStates = this.agGrid.api.getColumnState();
+        const columnStates = this.agGrid().api.getColumnState();
         if (columnStates && columnStates.length) {
             const header = [];
             columnStates.forEach(columnState => {
@@ -1999,11 +2055,11 @@ export class PowerGrid extends NGGridDirective {
                 const colInfoCache = {};
                 const headerNames = [];
                 header.forEach(colId => {
-                    colInfoCache[colId] = { columnModel: this.getColumn(colId), colDef: this.agGrid.api.getColumn(colId).getColDef() };
+                    colInfoCache[colId] = { columnModel: this.getColumn(colId), colDef: this.agGrid().api.getColumn(colId).getColDef() };
                     headerNames.push(colInfoCache[colId].colDef['headerName']);
                 });
                 exportData.push(headerNames);
-                this.agGrid.api.forEachNodeAfterFilterAndSort((rowNode: IRowNode, index: number) => {
+                this.agGrid().api.forEachNodeAfterFilterAndSort((rowNode: IRowNode, index: number) => {
                     const row = [];
                     header.forEach(colId => {
                         const colInfo = colInfoCache[colId];
@@ -2026,7 +2082,7 @@ export class PowerGrid extends NGGridDirective {
      *  @param Array<Number> rowIndexes (0-based)
      */
     setSelectedRows(rowIndexes: number[]) {
-        this.agGrid.api.forEachNode((node) => {
+        this.agGrid().api.forEachNode((node) => {
             node.setSelected(rowIndexes.indexOf(node.rowIndex) !== -1);
         });
     }
@@ -2035,7 +2091,7 @@ export class PowerGrid extends NGGridDirective {
      * Gets selected rows data
      */
     getSelectedRows(): any {
-        const selectedNodes = this.agGrid.api.getSelectedNodes();
+        const selectedNodes = this.agGrid().api.getSelectedNodes();
         // TODO return the selected Nodes as JSON;
         const result = [];
         for (const node of selectedNodes) {
@@ -2057,13 +2113,13 @@ export class PowerGrid extends NGGridDirective {
             this.log.warn('editCellAt API is not supported in grouped mode');
         } else if (rowindex < 0) {
             this.log.warn('editCellAt API, invalid rowindex:' + rowindex);
-        } else if (columnindex < 0 || columnindex > this.columns.length - 1) {
+        } else if (columnindex < 0 || columnindex > this.columns().length - 1) {
             this.log.warn('editCellAt API, invalid columnindex:' + columnindex);
         } else {
-            const column = this.columns[columnindex];
+            const column = this.columns()[columnindex];
             const colId = column['id'] ? column['id'] : column.dataproviderToLowerCase();
             this.setTimeout(() => {
-                this.agGrid.api.startEditingCell({
+                this.agGrid().api.startEditingCell({
                     rowIndex: rowindex,
                     colKey: colId
                 });
@@ -2077,14 +2133,14 @@ export class PowerGrid extends NGGridDirective {
      * @param cancel 'true' to cancel the editing (ie don't accept changes)
      */
     stopCellEditing(cancel: any) {
-        this.agGrid.api.stopEditing(cancel);
+        this.agGrid().api.stopEditing(cancel);
     }
 
     /**
      * Returns pivot mode state
      */
     isPivotMode(): boolean {
-        return this.agGrid.api.isPivotMode();
+        return this.agGrid().api.isPivotMode();
     }
 
     /**
@@ -2094,7 +2150,7 @@ export class PowerGrid extends NGGridDirective {
      * @param index new position (0-based)
      */
     moveColumn(id: string, index: number) {
-        this.agGrid.api.moveColumns([id], index);
+        this.agGrid().api.moveColumns([id], index);
     }
 
     /**
@@ -2103,7 +2159,7 @@ export class PowerGrid extends NGGridDirective {
      * @param groups an object like {expandedGroupName1:{}, expandedGroupName2:{expandedSubGroupName2_1:{}, expandedSubGroupName2_2:{}}}
      */
     setExpandedGroups(groups: any) {
-        this._internalExpandedState = groups;
+        this.__internalExpandedState.set(groups);
         this._internalExpandedStateChange.emit(groups);
         if (this.isGridReady) {
             this.applyExpandedState();
@@ -2118,7 +2174,7 @@ export class PowerGrid extends NGGridDirective {
     scrollToRow(rowData: any) {
         this.setTimeout(() => {
             const matchingRows = [];
-            this.agGrid.api.forEachNode((node) => {
+            this.agGrid().api.forEachNode((node) => {
                 for (const dp in rowData) {
                     if (!node.data || rowData[dp] !== node.data[dp]) {
                         return;
@@ -2127,7 +2183,7 @@ export class PowerGrid extends NGGridDirective {
                 matchingRows.push(node.rowIndex);
             });
             if (matchingRows.length) {
-                this.agGrid.api.ensureIndexVisible(matchingRows[0], 'middle');
+                this.agGrid().api.ensureIndexVisible(matchingRows[0], 'middle');
             }
         }, 0);
     }
@@ -2143,13 +2199,13 @@ export class PowerGrid extends NGGridDirective {
 
     autoSizeColumns(skipHeader: boolean) {
         const noFlexColumns = [];
-        for (const col of this.agGrid.api.getAllDisplayedColumns()) {
+        for (const col of this.agGrid().api.getAllDisplayedColumns()) {
             const colDef = col.getColDef();
             if (colDef['flex'] === undefined) {
                 noFlexColumns.push(col);
             }
         }
-        this.agGrid.api.autoSizeColumns(noFlexColumns, skipHeader);
+        this.agGrid().api.autoSizeColumns(noFlexColumns, skipHeader);
     }
 
     /**
@@ -2157,7 +2213,7 @@ export class PowerGrid extends NGGridDirective {
      */
     sizeColumnsToFit() {
         if (this.isGridReady && this.agGridOptions) {
-            this.agGrid.api.sizeColumnsToFit();
+            this.agGrid().api.sizeColumnsToFit();
         }
     }
 
@@ -2188,15 +2244,16 @@ export class PowerGrid extends NGGridDirective {
         if (isValueChanged && newValue instanceof Date && oldValue instanceof Date) {
             isValueChanged = newValue.toISOString() !== oldValue.toISOString();
         }
-        if (isValueChanged && !this.useLazyLoading) {
-            const dataAsCustomArray = this.data as ICustomArray<any>;
+        if (isValueChanged && !this.useLazyLoading()) {
+            const dataAsCustomArray = this._data() as ICustomArray<any>;
             dataAsCustomArray.getStateHolder().markAllChanged(false);
-            this.dataChange.emit(this.data);
+            this.dataChange.emit(this._data());
         }
         if (col && col['dataprovider'] && (isValueChanged || this.invalidCellDataIndex.rowIndex !== -1)) {
-            if (this.onColumnDataChange && isValueChanged) {
-                const currentEditCells = this.agGrid.api.getEditingCells();
-                this.onColumnDataChangePromise = this.onColumnDataChange(
+            const onColumnDataChange = this.onColumnDataChange();
+            if (onColumnDataChange && isValueChanged) {
+                const currentEditCells = this.agGrid().api.getEditingCells();
+                this.onColumnDataChangePromise = onColumnDataChange(
                     rowIndex,
                     this.getColumnIndex(params.column.colId),
                     oldValue,
@@ -2207,7 +2264,7 @@ export class PowerGrid extends NGGridDirective {
                 this.onColumnDataChangePromise.then((r: any) => {
                     if (r === false) {
                         // if old value was reset, clear invalid state
-                        const currentValue = this.agGrid.api.getCellValue({colKey: colId, rowNode: params.node});
+                        const currentValue = this.agGrid().api.getCellValue({colKey: colId, rowNode: params.node});
                         if (oldValue === currentValue) {
                             this.invalidCellDataIndex.rowIndex = -1;
                             this.invalidCellDataIndex.colKey = '';
@@ -2215,15 +2272,15 @@ export class PowerGrid extends NGGridDirective {
                             this.invalidCellDataIndex.rowIndex = rowIndex;
                             this.invalidCellDataIndex.colKey = colId;
                         }
-                        const editCells = this.agGrid.api.getEditingCells();
+                        const editCells = this.agGrid().api.getEditingCells();
                         if (!editCells.length || (editCells[0].rowIndex !== rowIndex || editCells[0].column.getColId() !== colId)) {
-                            this.agGrid.api.stopEditing();
-                            this.agGrid.api.startEditingCell({
+                            this.agGrid().api.stopEditing();
+                            this.agGrid().api.startEditingCell({
                                 rowIndex,
                                 colKey: colId
                             });
                             this.setTimeout(() => {
-                                this.agGrid.api.forEachNode((node) => {
+                                this.agGrid().api.forEachNode((node) => {
                                     if (node.rowIndex === rowIndex) {
                                         node.setSelected(true, true);
                                     }
@@ -2233,9 +2290,9 @@ export class PowerGrid extends NGGridDirective {
                     } else {
                         this.invalidCellDataIndex.rowIndex = -1;
                         this.invalidCellDataIndex.colKey = '';
-                        const editCells = this.agGrid.api.getEditingCells();
+                        const editCells = this.agGrid().api.getEditingCells();
                         if (editCells.length === 0 && currentEditCells.length !== 0) {
-                            this.agGrid.api.startEditingCell({
+                            this.agGrid().api.startEditingCell({
                                 rowIndex: currentEditCells[0].rowIndex,
                                 colKey: currentEditCells[0].column.getColId()
                             });
@@ -2253,7 +2310,8 @@ export class PowerGrid extends NGGridDirective {
     }
 
     public getNativeElement(): HTMLDivElement {
-        return this.agGridElementRef ? this.agGridElementRef.nativeElement : null;
+        const agGridElementRef = this.agGridElementRef();
+        return agGridElementRef ? agGridElementRef.nativeElement : null;
     }
 
     applySortModel(sortModel) {
@@ -2267,7 +2325,7 @@ export class PowerGrid extends NGGridDirective {
                 });
             });
         }
-        this.agGrid.api.applyColumnState({ state: columnState, defaultState: { sort: null } });
+        this.agGrid().api.applyColumnState({ state: columnState, defaultState: { sort: null } });
     }
 
     gridDragOver($event) {
@@ -2275,7 +2333,8 @@ export class PowerGrid extends NGGridDirective {
         if (dragSupported) {
             this.handleDragViewportScroll($event);
             let dragOver: any = false;
-            if (this.onDragOverFunc) {
+            const onDragOverFunc = this.onDragOverFunc();
+            if (onDragOverFunc) {
                 const overRow = this.getNodeForElement($event.target);
                 let overRowData = null;
                 if (overRow) {
@@ -2288,7 +2347,7 @@ export class PowerGrid extends NGGridDirective {
                 jsDragOverEvent.targetColumnId = targetColumn ? targetColumn.getAttribute('col-id') : '';
                 jsDragOverEvent.sourceGridName = dragData.sourceGridName;
                 jsDragOverEvent.sourceColumnId = dragData.sourceColumnId;
-                dragOver = this.onDragOverFunc(dragData.records, overRowData, jsDragOverEvent);
+                dragOver = onDragOverFunc(dragData.records, overRowData, jsDragOverEvent);
             } else {
                 dragOver = true;
             }
@@ -2306,7 +2365,8 @@ export class PowerGrid extends NGGridDirective {
     gridDrop($event) {
         $event.preventDefault();
         this.cancelDragViewportScroll();
-        if (this.onDrop) {
+        const onDrop = this.onDrop();
+        if (onDrop) {
             const targetColumn = $event.target.closest('[col-id]');
             const targetNode = this.getNodeForElement($event.target);
             const jsonData = $event.dataTransfer.getData('nggrids-drag/json');
@@ -2319,13 +2379,13 @@ export class PowerGrid extends NGGridDirective {
 
             const rowDatas = dragTranferData.records;
             const overRowData = targetNode ? (targetNode.data || Object.assign(targetNode.groupData, targetNode.aggData)) : null;
-            this.onDrop(rowDatas, overRowData, jsDropEvent);
+            onDrop(rowDatas, overRowData, jsDropEvent);
         }
     }
 
     getNodeForElement(element): any {
         const row = element.closest('[row-id]');
-        return row ? this.agGrid.api.getRowNode(row.getAttribute('row-id')) : null;
+        return row ? this.agGrid().api.getRowNode(row.getAttribute('row-id')) : null;
     }
 }
 
@@ -2352,9 +2412,10 @@ class RemoteDatasource {
     }
 
     getRows(params: any) {
-        this.powerGrid.data = [];
-        this.powerGrid.lastRowIndex = null;
-        if (this.powerGrid.onLazyLoadingGetRows) {
+        this.powerGrid._data.set([]);
+        this.powerGrid._lastRowIndex.set(null);
+        const onLazyLoadingGetRows = this.powerGrid.onLazyLoadingGetRows();
+        if (onLazyLoadingGetRows) {
             const request = params.request;
             const filterModels = [];
             for (const id in request.filterModel) {
@@ -2363,7 +2424,7 @@ class RemoteDatasource {
                 }
             }
 
-            const getRowsPromise = this.powerGrid.onLazyLoadingGetRows(
+            const getRowsPromise = onLazyLoadingGetRows(
                 request.startRow,
                 request.endRow,
                 request.rowGroupCols,
@@ -2374,10 +2435,10 @@ class RemoteDatasource {
                 filterModels,
                 request.sortModel);
             getRowsPromise.then(() => {
-                params.success({ rowData: this.powerGrid.data, rowCount: this.powerGrid.lastRowIndex });
+                params.success({ rowData: this.powerGrid.data(), rowCount: this.powerGrid._lastRowIndex() });
             });
         } else {
-	    params.success({ rowData: this.powerGrid.data, rowCount: this.powerGrid.lastRowIndex });
+	    params.success({ rowData: this.powerGrid.data(), rowCount: this.powerGrid._lastRowIndex() });
         }
     }
 }

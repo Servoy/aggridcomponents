@@ -1,4 +1,4 @@
-import { Component, Inject, Input, Renderer2, DOCUMENT } from '@angular/core';
+import { Component, Inject, Renderer2, DOCUMENT, input, signal } from '@angular/core';
 import { EditorDirective } from './editor';
 import { ICellEditorParams } from 'ag-grid-community';
 
@@ -21,7 +21,9 @@ import { DateTime, Namespace, Options, TempusDominus } from '@eonasdan/tempus-do
 })
 export class DatePicker extends EditorDirective {
 
-    @Input() selectedValue: Date;
+    readonly selectedValue = input<Date>(undefined);
+    
+    _selectedValue = signal<Date>(undefined);
 
     picker: TempusDominus;
 
@@ -78,7 +80,7 @@ export class DatePicker extends EditorDirective {
 
     agInit(params: ICellEditorParams): void {
         super.agInit(params);
-        this.selectedValue = this.initialValue && this.initialValue.displayValue !== undefined ? this.initialValue.displayValue : this.initialValue;
+        this._selectedValue.set(this.initialValue && this.initialValue.displayValue !== undefined ? this.initialValue.displayValue : this.initialValue);
 
         const column = this.ngGrid.getColumn(params.column.getColId());
         if (column && column.format && typeof column.format !== 'string') {
@@ -128,39 +130,40 @@ export class DatePicker extends EditorDirective {
     ngAfterViewInit(): void {
         if(!this.ngGrid.isInFindMode()) {
             this.ngGrid.loadCalendarLocale(this.config).promise.then(() => {
-                (this.elementRef.nativeElement as HTMLInputElement).value = '';
-                this.picker = new TempusDominus(this.elementRef.nativeElement, this.config);
-                (this.elementRef.nativeElement as HTMLInputElement).value = this.ngGrid.format(this.selectedValue, this.format, this.format.edit && !this.format.isMask)
+                (this.elementRef().nativeElement as HTMLInputElement).value = '';
+                this.picker = new TempusDominus(this.elementRef().nativeElement, this.config);
+                (this.elementRef().nativeElement as HTMLInputElement).value = this.ngGrid.format(this._selectedValue(), this.format, this.format.edit && !this.format.isMask)
                 this.picker.dates.formatInput =  (date: DateTime) => this.ngGrid.format(date, this.format, this.format.edit && !this.format.isMask);
                 this.picker.dates.parseInput =  (value: string) => {
-                    const parsed = this.formattingService.parse(value?value.trim():null, this.format, this.format.edit && !this.format.isMask, this.selectedValue, true);
+                    const parsed = this.formattingService.parse(value?value.trim():null, this.format, this.format.edit && !this.format.isMask, this._selectedValue(), true);
                     if (parsed instanceof Date && !isNaN(parsed.getTime())) return  DateTime.convert(parsed, null, this.config.localization);
                     return null;
                 };
-                if (this.selectedValue) {
-                    this.picker.dates.setValue(DateTime.convert(this.selectedValue));
+                const selectedValue = this._selectedValue();
+                if (selectedValue) {
+                    this.picker.dates.setValue(DateTime.convert(selectedValue));
                 }
                 this.picker.subscribe(Namespace.events.change, (event) => this.dateChanged(event));
                 setTimeout(() => {
                     if (this.format.isMask) {
-                        this.maskFormat = new MaskFormat(this.format, this._renderer, this.elementRef.nativeElement, this.formattingService, this.doc);
-                        this.elementRef.nativeElement.focus();
-                        this.elementRef.nativeElement.setSelectionRange(0, 0);
+                        this.maskFormat = new MaskFormat(this.format, this._renderer, this.elementRef().nativeElement, this.formattingService, this.doc);
+                        this.elementRef().nativeElement.focus();
+                        this.elementRef().nativeElement.setSelectionRange(0, 0);
                     } else {
-                        this.elementRef.nativeElement.select();
+                        this.elementRef().nativeElement.select();
                     }
                     this.picker.show();
                     const dateContainer = this.doc.getElementsByClassName('tempus-dominus-widget calendarWeeks show');
                     if (dateContainer && dateContainer.length) {
                         dateContainer[0].classList.add('ag-custom-component-popup');
                     }
-                    this.elementRef.nativeElement.addEventListener('focusout', (event: Event) => event.stopPropagation());
+                    this.elementRef().nativeElement.addEventListener('focusout', (event: Event) => event.stopPropagation());
                 }, 0);
                 this.picker.subscribe(Namespace.events.hide, () => this.params.stopEditing());
             });
         } else {
             setTimeout(() => {
-                this.elementRef.nativeElement.select();
+                this.elementRef().nativeElement.select();
             }, 0);
         }
     }
@@ -177,9 +180,9 @@ export class DatePicker extends EditorDirective {
     // returns the new value after editing
     getValue(): Date {
         if(this.ngGrid.isInFindMode()) {
-            return this.elementRef.nativeElement.value;
+            return this.elementRef().nativeElement.value;
         } else {
-            const parsed = this.formattingService.parse(this.elementRef.nativeElement.value, this.format, this.format.edit && !this.format.isMask, this.selectedValue, true);
+            const parsed = this.formattingService.parse(this.elementRef().nativeElement.value, this.format, this.format.edit && !this.format.isMask, this._selectedValue(), true);
             if (parsed instanceof Date && !isNaN(parsed.getTime())) return parsed;
             return null;
         }
@@ -187,10 +190,11 @@ export class DatePicker extends EditorDirective {
 
     public dateChanged(event: any) {
         if (event.type === 'change.td') {
-            if ((event.date && this.selectedValue && event.date.getTime() === this.selectedValue.getTime()) ||
-                (!event.date && !this.selectedValue)) return;
-            this.selectedValue = event.date;
-        } else this.selectedValue = null;
+            const selectedValue = this._selectedValue();
+            if ((event.date && selectedValue && event.date.getTime() === selectedValue.getTime()) ||
+                (!event.date && !selectedValue)) return;
+            this._selectedValue.set(event.date);
+        } else this._selectedValue.set(null);
     }
 
 

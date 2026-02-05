@@ -23,10 +23,11 @@ export class FormEditor extends EditorDirective implements OnDestroy {
 
     agInit(params: ICellEditorParams): void {
         super.agInit(params);
-        this.ngGrid._internalFormEditorValue = this.params.value;
+        this.ngGrid.__internalFormEditorValue.set(this.params.value);
 
-        if(this.ngGrid.onColumnFormEditStarted) {
-            this.ngGrid.onColumnFormEditStarted(
+        const onColumnFormEditStarted = this.ngGrid.onColumnFormEditStarted();
+        if(onColumnFormEditStarted) {
+            onColumnFormEditStarted(
                 this.ngGrid.getEditingRowIndex(this.params), this.ngGrid.getColumnIndex(this.params.column.getColId()), this.params.value);
         }
 
@@ -41,7 +42,7 @@ export class FormEditor extends EditorDirective implements OnDestroy {
     }
 
     ngAfterViewInit(): void {
-        this.ngGrid.agGrid.api.setFocusedCell(this.params.node.rowIndex, this.params.column.getColId());
+        this.ngGrid.agGrid().api.setFocusedCell(this.params.node.rowIndex, this.params.column.getColId());
     }
 
     isPopup(): boolean {
@@ -49,7 +50,7 @@ export class FormEditor extends EditorDirective implements OnDestroy {
     }
 
     getValue(): any {
-        return this.ngGrid._internalFormEditorValue;
+        return this.ngGrid._internalFormEditorValue();
     }
 
     ngOnDestroy(): void {
@@ -62,6 +63,6 @@ export class FormEditor extends EditorDirective implements OnDestroy {
     }
 
     getTemplate() {
-        return this.ngGrid.templateRef;
+        return this.ngGrid.templateRef();
     }
 }

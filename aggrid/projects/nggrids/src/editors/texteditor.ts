@@ -1,12 +1,12 @@
 import { ICellEditorParams } from 'ag-grid-community';
-import { Component, HostListener, Input } from '@angular/core';
+import { Component, HostListener, input, signal } from '@angular/core';
 import { EditorDirective } from './editor';
 
 @Component({
     selector: 'aggrid-texteditor',
     template: `
     <div class="ag-input-wrapper">
-      <input class="ag-cell-edit-input" [type]="inputType" [value]="initialDisplayValue" [svyDecimalKeyConverter]="!ngGrid.isInFindMode() ? format : null" [maxLength]="maxLength" #element>
+      <input class="ag-cell-edit-input" [type]="_inputType()" [value]="_initialDisplayValue()" [svyDecimalKeyConverter]="!ngGrid.isInFindMode() ? _format() : null" [maxLength]="_maxLength()" #element>
     </div>
     `,
     host: {
@@ -16,13 +16,20 @@ import { EditorDirective } from './editor';
 })
 export class TextEditor extends EditorDirective {
 
-    @Input() initialDisplayValue: any;
-    @Input() format: any;
-    @Input() maxLength = 524288;
-    @Input() inputType: any;
+    readonly initialDisplayValue = input<any>(undefined);
+    readonly format = input<any>(undefined);
+    readonly maxLength = input(524288);
+    readonly inputType = input<any>(undefined);
+    
+    _inputType = signal<any>(undefined);
+    _format = signal<any>(undefined);
+    _maxLength = signal(524288);
+    _initialDisplayValue = signal<any>(undefined);
 
     @HostListener('keydown',['$event']) onKeyDown(e: KeyboardEvent) {
-        if((this.ngGrid.arrowsUpDownMoveWhenEditing && this.ngGrid.arrowsUpDownMoveWhenEditing !== 'NONE') || this.ngGrid.editNextCellOnEnter) {
+        const arrowsUpDownMoveWhenEditing = this.ngGrid.arrowsUpDownMoveWhenEditing();
+        const editNextCellOnEnter = this.ngGrid.editNextCellOnEnter();
+        if((arrowsUpDownMoveWhenEditing && arrowsUpDownMoveWhenEditing !== 'NONE') || editNextCellOnEnter) {
             const isNavigationLeftRightKey = e.keyCode === 37 || e.keyCode === 39;
             const isNavigationUpDownEntertKey = e.keyCode === 38 || e.keyCode === 40 || e.keyCode === 13;
 
@@ -30,15 +37,15 @@ export class TextEditor extends EditorDirective {
 
                 if(isNavigationUpDownEntertKey) {
 
-                    if(this.ngGrid.editNextCellOnEnter && e.keyCode === 13) {
-                        this.ngGrid.agGrid.api.tabToNextCell();
-                    } else if (this.ngGrid.arrowsUpDownMoveWhenEditing && this.ngGrid.arrowsUpDownMoveWhenEditing !== 'NONE') {
+                    if(editNextCellOnEnter && e.keyCode === 13) {
+                        this.ngGrid.agGrid().api.tabToNextCell();
+                    } else if (arrowsUpDownMoveWhenEditing && arrowsUpDownMoveWhenEditing !== 'NONE') {
                         let newEditingNode = null;
                         const columnToCheck = this.params.column;
-                        const mustBeEditable = this.ngGrid.arrowsUpDownMoveWhenEditing === 'NEXTEDITABLECELL';
+                        const mustBeEditable = arrowsUpDownMoveWhenEditing === 'NEXTEDITABLECELL';
                         if( e.keyCode === 38) { // UP
                             if(this.params.rowIndex > 0) {
-                                this.ngGrid.agGrid.api.forEachNode( (node) => {
+                                this.ngGrid.agGrid().api.forEachNode( (node) => {
                                     if (node.rowIndex <= (this.params.rowIndex - 1) &&
                                         (!mustBeEditable || columnToCheck.isCellEditable(node))) {
                                         newEditingNode = node;
@@ -46,8 +53,8 @@ export class TextEditor extends EditorDirective {
                                 });
                             }
                         } else if (e.keyCode === 13 || e.keyCode === 40) { // ENTER/DOWN
-                            if( this.params.rowIndex < this.ngGrid.agGrid.api.getDisplayedRowCount() - 1) {
-                                this.ngGrid.agGrid.api.forEachNode( (node) => {
+                            if( this.params.rowIndex < this.ngGrid.agGrid().api.getDisplayedRowCount() - 1) {
+                                this.ngGrid.agGrid().api.forEachNode( (node) => {
                                     if (node.rowIndex >= (this.params.rowIndex + 1) &&
                                         !newEditingNode && (!mustBeEditable || columnToCheck.isCellEditable(node))) {
                                         newEditingNode = node;
@@ -55,14 +62,14 @@ export class TextEditor extends EditorDirective {
                                 });
                             }
                         }
-                        this.ngGrid.agGrid.api.stopEditing();
+                        this.ngGrid.agGrid().api.stopEditing();
                         if (newEditingNode) {
                             this.ngGrid.selectionEvent = { type: 'key', event: e };
                             newEditingNode.setSelected(true, true);
     
-                            this.ngGrid.agGrid.api.setFocusedCell(newEditingNode.rowIndex, columnToCheck.getColId());
+                            this.ngGrid.agGrid().api.setFocusedCell(newEditingNode.rowIndex, columnToCheck.getColId());
                             if(columnToCheck.isCellEditable(newEditingNode)) {
-                                this.ngGrid.agGrid.api.startEditingCell({
+                                this.ngGrid.agGrid().api.startEditingCell({
                                     rowIndex: newEditingNode.rowIndex,
                                     colKey: columnToCheck.getColId()
                                 });
@@ -81,50 +88,56 @@ export class TextEditor extends EditorDirective {
         const isNavigationUpDownEntertKey = e.keyCode === 38 || e.keyCode === 40 || e.keyCode === 13;
 
         if(!(isNavigationLeftRightKey || isNavigationUpDownEntertKey) && !this.ngGrid.isInFindMode()) {
-            return this.ngGrid.formattingService.testForNumbersOnly(e, null, this.elementRef.nativeElement, false, true, this.format, false);
+            return this.ngGrid.formattingService.testForNumbersOnly(e, null, this.elementRef().nativeElement, false, true, this._format(), false);
         } else return true;
     }
 
     agInit(params: ICellEditorParams): void {
         super.agInit(params);
+        this._inputType.set(this.inputType());
+        this._maxLength.set(this.maxLength());
+        this._initialDisplayValue.set(this.initialDisplayValue());
+        this._format.set(this.format());
 		const column = this.ngGrid.getColumn(params.column.getColId());
 		if (column && column.editTypeTextFieldInput) {
-			this.inputType = column.editTypeTextFieldInput;
+			this._inputType.set(column.editTypeTextFieldInput);
 		}
-        if(params.colDef['cellDataType'] === 'number') this.inputType = 'number'; // for backward compatibility
+        if(params.colDef['cellDataType'] === 'number') this._inputType.set('number'); // for backward compatibility
 
         if(this.initialValue && this.initialValue.displayValue !== undefined) {
             this.initialValue = this.initialValue.displayValue;
         }
         let v = this.initialValue;
-        this.format = this.ngGrid.getColumnFormat(params.column.getColId());
-        if(this.format && !this.ngGrid.isInFindMode()) {
-            if (this.format.maxLength) {
-                this.maxLength = this.format.maxLength;
+        this._format.set(this.ngGrid.getColumnFormat(params.column.getColId()));
+        const format = this._format();
+        if(format && !this.ngGrid.isInFindMode()) {
+            if (format.maxLength) {
+                this._maxLength.set(format.maxLength);
             }
-            if(this.format.edit) {
-                v = this.ngGrid.format(v, this.format, true);
-            } else if(this.format.display) {
-                v = this.ngGrid.format(v, this.format, false);
+            if(format.edit) {
+                v = this.ngGrid.format(v, format, true);
+            } else if(format.display) {
+                v = this.ngGrid.format(v, format, false);
             }
         }
-        this.initialDisplayValue = v;
+        this._initialDisplayValue.set(v);
     }
 
     // focus and select can be done after the gui is attached
     ngAfterViewInit(): void {
         setTimeout(() => {
-            if(this.inputType === 'color') {
-                this.elementRef.nativeElement.click();
+            if(this._inputType() === 'color') {
+                this.elementRef().nativeElement.click();
             } else {
-                this.elementRef.nativeElement.select();
-                if(this.format && !this.ngGrid.isInFindMode()) {
-                    const editFormat = this.format.edit ? this.format.edit : this.format.display;
-                    if(editFormat && this.format.isMask) {
+                this.elementRef().nativeElement.select();
+                const format = this._format();
+                if(format && !this.ngGrid.isInFindMode()) {
+                    const editFormat = format.edit ? format.edit : format.display;
+                    if(editFormat && format.isMask) {
                         const settings = {};
-                        settings['placeholder'] = this.format.placeHolder ? this.format.placeHolder : ' ';
-                        if (this.format.allowedCharacters)
-                            settings['allowedCharacters'] = this.format.allowedCharacters;
+                        settings['placeholder'] = format.placeHolder ? format.placeHolder : ' ';
+                        if (format.allowedCharacters)
+                            settings['allowedCharacters'] = format.allowedCharacters;
 
                         //TODO: jquery mask
                         //$(this.eInput).mask(editFormat, settings);
@@ -137,16 +150,17 @@ export class TextEditor extends EditorDirective {
 
     // returns the new value after editing
     getValue(): any {
-        let displayValue = this.elementRef.nativeElement.value;
+        let displayValue = this.elementRef().nativeElement.value;
 
-        if(this.format && !this.ngGrid.isInFindMode()) {
-            const editFormat = this.format.edit ? this.format.edit : this.format.display;
+        const format = this._format();
+        if(format && !this.ngGrid.isInFindMode()) {
+            const editFormat = format.edit ? format.edit : format.display;
             if(editFormat) {
-                displayValue = this.ngGrid.formattingService.unformat(displayValue, editFormat, this.format.type, this.initialValue);
+                displayValue = this.ngGrid.formattingService.unformat(displayValue, editFormat, format.type, this.initialValue);
             }
-            if (this.format.type === 'TEXT' && (this.format.uppercase || this.format.lowercase)) {
-                if (this.format.uppercase) displayValue = displayValue.toUpperCase();
-                else if (this.format.lowercase) displayValue = displayValue.toLowerCase();
+            if (format.type === 'TEXT' && (format.uppercase || format.lowercase)) {
+                if (format.uppercase) displayValue = displayValue.toUpperCase();
+                else if (format.lowercase) displayValue = displayValue.toLowerCase();
             }
         }
         return displayValue;

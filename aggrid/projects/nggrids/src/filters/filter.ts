@@ -1,6 +1,6 @@
 import { AgFloatingFilterComponent } from 'ag-grid-angular';
 import { FilterChangedEvent, IFilterParams, IFloatingFilterParams, IFloatingFilterParent } from 'ag-grid-community';
-import { Directive, ElementRef, HostBinding, ViewChild } from '@angular/core';
+import { Directive, ElementRef, HostBinding, viewChild } from '@angular/core';
 import { NULL_VALUE } from '../datagrid/datagrid';
 import { Deferred } from '@servoy/public';
 import { NGGridDirective } from '../nggrid';
@@ -10,8 +10,8 @@ export class FilterDirective implements AgFloatingFilterComponent, IFloatingFilt
 
     @HostBinding('class.ag-floating-filter-input') isFloating = true;
     
-    @ViewChild('element') elementRef: ElementRef;
-    @ViewChild('element1') element1Ref: ElementRef;
+    readonly elementRef = viewChild<ElementRef>('element');
+    readonly element1Ref = viewChild<ElementRef>('element1');
     ngGrid: NGGridDirective;
     params: IFilterParams;
     floatingParams: IFloatingFilterParams;
@@ -67,9 +67,9 @@ export class FilterDirective implements AgFloatingFilterComponent, IFloatingFilt
     }
 
     onClearFilter() {
-        this.elementRef.nativeElement.value = '';
+        this.elementRef().nativeElement.value = '';
         if(!this.suppressAndOrCondition()) {
-          this.element1Ref.nativeElement.value = '';
+          this.element1Ref().nativeElement.value = '';
         }
         this.model = '';
     }
