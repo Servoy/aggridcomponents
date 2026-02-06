@@ -15,7 +15,7 @@ import { EditorDirective } from './editor';
         [style.width.px]="width"
         [ngbTypeahead]="filterValues"
         [resultFormatter]="resultFormatter"
-		    [inputFormatter]="inputFormatter"
+		[inputFormatter]="inputFormatter"
         (focus)="focus$.next('')"
         #instance="ngbTypeahead" #element>
     `,
