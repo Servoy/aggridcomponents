@@ -6,7 +6,7 @@ import { Options } from '@eonasdan/tempus-dominus';
 
 export const GRID_EVENT_TYPES = {
     GRID_READY: 'gridReady',
-    DISPLAYED_COLUMNS_CHANGED : 'displayedColumnsChange',
+    DISPLAYED_COLUMNS_CHANGED: 'displayedColumnsChange',
     GRID_COLUMNS_CHANGED: 'gridColumnsChanged',
     GRID_ROW_POST_CREATE: 'gridRowPostCreate',
     GRID_SIZE_CHANGED: 'gridSizeChange',
@@ -38,7 +38,7 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
     readonly customMainMenu = input<IJSMenu>(undefined);
 
     readonly onCustomMainMenuAction = input<(menuItemName: string, colId: string) => void>(undefined);
-    
+
     __internalFormEditorValue = signal<any>(undefined);
 
     doc: Document;
@@ -63,12 +63,12 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
     private popupParent: HTMLElement;
     private popupParentObserver: MutationObserver;
 
-	svyOnInit() {
-		super.svyOnInit();
-		if (!this.servoyApi.isInDesigner()) {
+    svyOnInit() {
+        super.svyOnInit();
+        if (!this.servoyApi.isInDesigner()) {
             this.__internalFormEditorValue.set(this._internalFormEditorValue());
             let mainWindowContainer = this.agGridElementRef().nativeElement.closest('.svy-main-window-container');
-            if(!mainWindowContainer) {
+            if (!mainWindowContainer) {
                 mainWindowContainer = this.agGridElementRef().nativeElement.closest('.svy-dialog');
             }
             this.popupParent = mainWindowContainer ? mainWindowContainer : this.agGridElementRef().nativeElement;
@@ -93,7 +93,7 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
             this.popupParentObserver.observe(this.popupParent, { childList: true, subtree: false });
             //this.popupParentObserver.observe(this.doc.body, { childList: true, subtree: false });
 
-            if(!this.enableBrowserContextMenu()) {
+            if (!this.enableBrowserContextMenu()) {
                 this.agGridElementRef().nativeElement.addEventListener('contextmenu', (e: any) => {
                     e.preventDefault();
                 });
@@ -105,14 +105,14 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
         this.cancelDragViewportScroll();
         if (this.popupParentObserver) this.popupParentObserver.disconnect();
         const agGrid = this.agGrid();
-        if(!agGrid.api.isDestroyed()) agGrid.api.destroy();
+        if (!agGrid.api.isDestroyed()) agGrid.api.destroy();
         this.destroyed = true;
     }
 
     setTimeout(func: () => void, millis: number) {
-        return setTimeout(() =>  {
+        return setTimeout(() => {
             if (!this.destroyed) func();
-        } , millis);
+        }, millis);
     }
 
     format(data: any, format: Format, useEditFormat: boolean): any {
@@ -125,17 +125,17 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
     }
 
     handleDragViewportScroll($event) {
-        if(!this.dragViewport) {
+        if (!this.dragViewport) {
             this.dragViewport = $event.currentTarget.getElementsByClassName("ag-body-viewport")[0] as HTMLElement;
             this.dragViewportHorizontalScrollViewport = $event.currentTarget.getElementsByClassName("ag-body-horizontal-scroll-viewport")[0] as HTMLElement;
-            
+
             this.dragViewportRect = this.dragViewport.getBoundingClientRect();
         }
         const clientX = $event.clientX - this.dragViewportRect.left;
         const clientY = $event.clientY - this.dragViewportRect.top;
         const containerWidth = this.dragViewportRect.width;
         const containerHeight = this.dragViewportRect.height;
-      
+
         this.dragScrollDirection = null;
         if (clientX < this.dragViewportScrollThreshold) {
             this.dragScrollDirection = 'left';
@@ -146,23 +146,23 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
         } else if (clientY > containerHeight - this.dragViewportScrollThreshold) {
             this.dragScrollDirection = 'down';
         }
-        if(this.dragScrollDirection && !this.dragViewportScrollInterval) {
+        if (this.dragScrollDirection && !this.dragViewportScrollInterval) {
             this.dragViewportScrollInterval = setInterval(() => {
-                if(this.dragScrollDirection) {
+                if (this.dragScrollDirection) {
                     switch (this.dragScrollDirection) {
                         case 'left':
                             this.dragViewportHorizontalScrollViewport.scrollBy({ left: -this.dragViewportScrollSpeed, top: 0 });
-                          break;
+                            break;
                         case 'right':
                             this.dragViewportHorizontalScrollViewport.scrollBy({ left: this.dragViewportScrollSpeed, top: 0 });
-                          break;
+                            break;
                         case 'up':
                             this.dragViewport.scrollBy({ left: 0, top: -this.dragViewportScrollSpeed });
-                          break;
+                            break;
                         case 'down':
                             this.dragViewport.scrollBy({ left: 0, top: this.dragViewportScrollSpeed });
-                          break;
-                      }
+                            break;
+                    }
                 } else {
                     clearInterval(this.dragViewportScrollInterval);
                     this.dragViewportScrollInterval = null;
@@ -172,7 +172,7 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
     }
 
     cancelDragViewportScroll() {
-        if(this.dragViewportScrollInterval) {
+        if (this.dragViewportScrollInterval) {
             clearInterval(this.dragViewportScrollInterval);
         }
         this.dragViewportScrollInterval = null;
@@ -184,7 +184,7 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
 
     gridDragEnd($event) {
         this.cancelDragViewportScroll();
-        if(this.onDragGetImageFunc()) {
+        if (this.onDragGetImageFunc()) {
             const dragGhostEl = this.doc.getElementById("nggrids-drag-ghost") as HTMLElement;
             if (dragGhostEl.parentNode) {
                 dragGhostEl.parentNode.removeChild(dragGhostEl);
@@ -194,11 +194,11 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
 
     setHeight() {
         if (!this.servoyApi.isInAbsoluteLayout()) {
-            if(this.responsiveHeight() < 0) {
+            if (this.responsiveHeight() < 0) {
                 const agGridElementRef = this.agGridElementRef();
-                if(agGridElementRef) agGridElementRef.nativeElement.style.height = '';
+                if (agGridElementRef) agGridElementRef.nativeElement.style.height = '';
                 const agGrid = this.agGrid();
-                if(agGrid) {
+                if (agGrid?.api) {
                     agGrid.api.setGridOption('domLayout', 'autoHeight');
                 } else {
                     this.agGridOptions.domLayout = 'autoHeight';
@@ -206,13 +206,13 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
             }
             else {
                 const agGrid = this.agGrid();
-                if(agGrid) {
+                if (agGrid?.api) {
                     agGrid.api.setGridOption('domLayout', 'normal');
                 } else {
                     this.agGridOptions.domLayout = 'normal';
                 }
                 const agGridElementRef = this.agGridElementRef();
-                if(agGridElementRef) {
+                if (agGridElementRef) {
                     const responsiveHeight = this.responsiveHeight();
                     if (responsiveHeight) {
                         agGridElementRef.nativeElement.style.height = responsiveHeight + 'px';
@@ -235,77 +235,77 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
 
     loadCalendarLocale(config: Options): Deferred<any> {
         const locale = config.localization.locale;
-        const localeDefer  = new Deferred();
+        const localeDefer = new Deferred();
         const index = locale.indexOf('-');
         let language = locale.toLowerCase();
         if (index > 0 && language !== 'ar-sa' && language !== 'sr-latn') {
             language = locale.substring(0, index);
         }
-        const moduleLoader =  (module: { default: { localization: { [key: string]: string | number} }}) => {
+        const moduleLoader = (module: { default: { localization: { [key: string]: string | number } } }) => {
             const copy = Object.assign({}, module.default.localization);
-            copy.startOfTheWeek =   config.localization.startOfTheWeek;
+            copy.startOfTheWeek = config.localization.startOfTheWeek;
             copy.hourCycle = config.localization.hourCycle;
             config.localization = copy;
             localeDefer.resolve(locale);
         }
         const errorHandler = () => {
-			localeDefer.resolve('');
+            localeDefer.resolve('');
         }
-        switch(language) {
-            case 'ar-sa': import('@eonasdan/tempus-dominus/dist/locales/ar-SA.js').then(moduleLoader,errorHandler); break;
-            case 'ar': import('@eonasdan/tempus-dominus/dist/locales/ar.js').then(moduleLoader,errorHandler); break;
-            case 'ca': import('@eonasdan/tempus-dominus/dist/locales/ca.js').then(moduleLoader,errorHandler); break;
-            case 'cs': import('@eonasdan/tempus-dominus/dist/locales/cs.js').then(moduleLoader,errorHandler); break;
-            case 'de': import('@eonasdan/tempus-dominus/dist/locales/de.js').then(moduleLoader,errorHandler); break;
-            case 'es': import('@eonasdan/tempus-dominus/dist/locales/es.js').then(moduleLoader,errorHandler); break;
-            case 'fi': import('@eonasdan/tempus-dominus/dist/locales/fi.js').then(moduleLoader,errorHandler); break;
-            case 'fr': import('@eonasdan/tempus-dominus/dist/locales/fr.js').then(moduleLoader,errorHandler); break;
-            case 'hr': import('@eonasdan/tempus-dominus/dist/locales/hr.js').then(moduleLoader,errorHandler); break;
-            case 'hy': import('@eonasdan/tempus-dominus/dist/locales/hy.js').then(moduleLoader,errorHandler); break;
-            case 'it': import('@eonasdan/tempus-dominus/dist/locales/it.js').then(moduleLoader,errorHandler); break;
-            case 'nl': import('@eonasdan/tempus-dominus/dist/locales/nl.js').then(moduleLoader,errorHandler); break;
-            case 'pl': import('@eonasdan/tempus-dominus/dist/locales/pl.js').then(moduleLoader,errorHandler); break;
-            case 'ro': import('@eonasdan/tempus-dominus/dist/locales/ro.js').then(moduleLoader,errorHandler); break;
-            case 'ru': import('@eonasdan/tempus-dominus/dist/locales/ru.js').then(moduleLoader,errorHandler); break;
-            case 'sl': import('@eonasdan/tempus-dominus/dist/locales/sl.js').then(moduleLoader,errorHandler); break;
-            case 'sr': import('@eonasdan/tempus-dominus/dist/locales/sr.js').then(moduleLoader,errorHandler); break;
-            case 'sr-latn': import('@eonasdan/tempus-dominus/dist/locales/sr-Latn.js').then(moduleLoader,errorHandler); break;
-            case 'tr': import('@eonasdan/tempus-dominus/dist/locales/tr.js').then(moduleLoader,errorHandler); break;
+        switch (language) {
+            case 'ar-sa': import('@eonasdan/tempus-dominus/dist/locales/ar-SA.js').then(moduleLoader, errorHandler); break;
+            case 'ar': import('@eonasdan/tempus-dominus/dist/locales/ar.js').then(moduleLoader, errorHandler); break;
+            case 'ca': import('@eonasdan/tempus-dominus/dist/locales/ca.js').then(moduleLoader, errorHandler); break;
+            case 'cs': import('@eonasdan/tempus-dominus/dist/locales/cs.js').then(moduleLoader, errorHandler); break;
+            case 'de': import('@eonasdan/tempus-dominus/dist/locales/de.js').then(moduleLoader, errorHandler); break;
+            case 'es': import('@eonasdan/tempus-dominus/dist/locales/es.js').then(moduleLoader, errorHandler); break;
+            case 'fi': import('@eonasdan/tempus-dominus/dist/locales/fi.js').then(moduleLoader, errorHandler); break;
+            case 'fr': import('@eonasdan/tempus-dominus/dist/locales/fr.js').then(moduleLoader, errorHandler); break;
+            case 'hr': import('@eonasdan/tempus-dominus/dist/locales/hr.js').then(moduleLoader, errorHandler); break;
+            case 'hy': import('@eonasdan/tempus-dominus/dist/locales/hy.js').then(moduleLoader, errorHandler); break;
+            case 'it': import('@eonasdan/tempus-dominus/dist/locales/it.js').then(moduleLoader, errorHandler); break;
+            case 'nl': import('@eonasdan/tempus-dominus/dist/locales/nl.js').then(moduleLoader, errorHandler); break;
+            case 'pl': import('@eonasdan/tempus-dominus/dist/locales/pl.js').then(moduleLoader, errorHandler); break;
+            case 'ro': import('@eonasdan/tempus-dominus/dist/locales/ro.js').then(moduleLoader, errorHandler); break;
+            case 'ru': import('@eonasdan/tempus-dominus/dist/locales/ru.js').then(moduleLoader, errorHandler); break;
+            case 'sl': import('@eonasdan/tempus-dominus/dist/locales/sl.js').then(moduleLoader, errorHandler); break;
+            case 'sr': import('@eonasdan/tempus-dominus/dist/locales/sr.js').then(moduleLoader, errorHandler); break;
+            case 'sr-latn': import('@eonasdan/tempus-dominus/dist/locales/sr-Latn.js').then(moduleLoader, errorHandler); break;
+            case 'tr': import('@eonasdan/tempus-dominus/dist/locales/tr.js').then(moduleLoader, errorHandler); break;
             default: localeDefer.resolve('');
         }
         return localeDefer;
-    }    
+    }
 
-	createCustomMainMenuItems(menuItems: any[], customMainMenu: any, column: any, colId: string): any[] {
-		customMainMenu.items.forEach((item: IJSMenuItem) => {
-			let hideForColIds: string[] = typeof item.extraProperties['NG-Grids']['hideForColIds'] === 'string' && item.extraProperties['NG-Grids']['hideForColIds'].trim().length > 0 ? item.extraProperties['NG-Grids']['hideForColIds'].split(',') : [];
-			let showForColIds: string[] = typeof item.extraProperties['NG-Grids']['showForColIds'] === 'string' && item.extraProperties['NG-Grids']['showForColIds'].trim().length > 0 ? item.extraProperties['NG-Grids']['showForColIds'].split(',') : [];
-			if ((!column.id && showForColIds.length === 0) || ((hideForColIds.length === 0 || hideForColIds.indexOf(column.id) === -1) &&
-				(showForColIds.length === 0 || showForColIds.indexOf(column.id) !== -1))) {
-				if (item.extraProperties['NG-Grids']['isSeparator']) {
-					menuItems.push('separator');
-				} else if(item.extraProperties['NG-Grids']['agGridMenuItem']) {
-					menuItems.push(item.extraProperties['NG-Grids']['agGridMenuItem']);
-				} else {
-					menuItems.push({
-						name: item.menuText,
-						icon: item.iconStyleClass ? '<span class="' + item.iconStyleClass + '"></span>' : null,
-						disabled: !item.enabled,
-						checked: item.isSelected,
-						tooltip: item.tooltipText,
-						action: () => {
-							const onCustomMainMenuAction = this.onCustomMainMenuAction();
+    createCustomMainMenuItems(menuItems: any[], customMainMenu: any, column: any, colId: string): any[] {
+        customMainMenu.items.forEach((item: IJSMenuItem) => {
+            let hideForColIds: string[] = typeof item.extraProperties['NG-Grids']['hideForColIds'] === 'string' && item.extraProperties['NG-Grids']['hideForColIds'].trim().length > 0 ? item.extraProperties['NG-Grids']['hideForColIds'].split(',') : [];
+            let showForColIds: string[] = typeof item.extraProperties['NG-Grids']['showForColIds'] === 'string' && item.extraProperties['NG-Grids']['showForColIds'].trim().length > 0 ? item.extraProperties['NG-Grids']['showForColIds'].split(',') : [];
+            if ((!column.id && showForColIds.length === 0) || ((hideForColIds.length === 0 || hideForColIds.indexOf(column.id) === -1) &&
+                (showForColIds.length === 0 || showForColIds.indexOf(column.id) !== -1))) {
+                if (item.extraProperties['NG-Grids']['isSeparator']) {
+                    menuItems.push('separator');
+                } else if (item.extraProperties['NG-Grids']['agGridMenuItem']) {
+                    menuItems.push(item.extraProperties['NG-Grids']['agGridMenuItem']);
+                } else {
+                    menuItems.push({
+                        name: item.menuText,
+                        icon: item.iconStyleClass ? '<span class="' + item.iconStyleClass + '"></span>' : null,
+                        disabled: !item.enabled,
+                        checked: item.isSelected,
+                        tooltip: item.tooltipText,
+                        action: () => {
+                            const onCustomMainMenuAction = this.onCustomMainMenuAction();
                             if (onCustomMainMenuAction) {
-								onCustomMainMenuAction(item.itemID, colId);
-							}
-						},
-						subMenu: item.items ? this.createCustomMainMenuItems([], item, column, colId) : null
-					});
-				}
-			}
-		});
-		return menuItems;
-	}
+                                onCustomMainMenuAction(item.itemID, colId);
+                            }
+                        },
+                        subMenu: item.items ? this.createCustomMainMenuItems([], item, column, colId) : null
+                    });
+                }
+            }
+        });
+        return menuItems;
+    }
 
     abstract getColumn(field: any, columnsModel?: any): any;
 
@@ -333,7 +333,7 @@ export class ToolPanelConfig extends BaseCustomObject {
 export class MainMenuItemsConfig extends BaseCustomObject {
 }
 
-export class ColumnsAutoSizingOn extends BaseCustomObject {   
+export class ColumnsAutoSizingOn extends BaseCustomObject {
 }
 
 export class DragTransferData {
@@ -341,7 +341,7 @@ export class DragTransferData {
     }
 }
 
-export class JSDNDEvent extends JSEvent{
+export class JSDNDEvent extends JSEvent {
     targetColumnId: string;
     sourceColumnId: string;
     sourceGridName: string;

@@ -451,8 +451,7 @@ export class DataGrid extends NGGridDirective {
 						this.__internalColumnState.set(emptyValue);
 						this._internalColumnStateChange.emit(emptyValue);
 					}
-					const columnState = this._columnState();
-					if (!columnState) {
+					if (!this._columnState()) {
 						this.storeColumnsState(true);
 					}
 					const restoreStates = this._restoreStates();
@@ -464,7 +463,7 @@ export class DataGrid extends NGGridDirective {
 					}
 					const _internalInitialColumnState = this.__internalInitialColumnState();
 					if (!_internalInitialColumnState) {
-						this.__internalInitialColumnState.set(columnState);
+						this.__internalInitialColumnState.set(this._columnState());
 						this._internalInitialColumnStateChange.emit(_internalInitialColumnState);
 					}
 				}
@@ -1102,6 +1101,20 @@ export class DataGrid extends NGGridDirective {
 
 	svyOnChanges(changes: SimpleChanges) {
 		if (changes) {
+			// Sync internal signals
+			if (changes['columnState']) this._columnState.set(this.columnState());
+			if (changes['_internalColumnState']) this.__internalColumnState.set(this._internalColumnState());
+			if (changes['restoreStates']) this._restoreStates.set(this.restoreStates());
+			if (changes['_internalInitialColumnState']) this.__internalInitialColumnState.set(this._internalInitialColumnState());
+			if (changes['_internalCheckboxGroupSelection']) this.__internalCheckboxGroupSelection.set(this._internalCheckboxGroupSelection());
+			if (changes['_internalAutoSizeState']) this.__internalAutoSizeState.set(this._internalAutoSizeState());
+			if (changes['_internalSizeColumnsToFitState']) this.__internalSizeColumnsToFitState.set(this._internalSizeColumnsToFitState());
+			if (changes['_internalFilterModel']) this.__internalFilterModel.set(this._internalFilterModel());
+			if (changes['columnsAutoSizing']) this._columnsAutoSizing.set(this.columnsAutoSizing());
+			if (changes['checkboxSelection']) this._checkboxSelection.set(this.checkboxSelection());
+			if (changes['_internalGroupRowsSelection']) this.__internalGroupRowsSelection.set(this._internalGroupRowsSelection());
+			if (changes['_internalExpandedState']) this.__internalExpandedState.set(this._internalExpandedState());
+
 			for (const property of Object.keys(changes)) {
 				const change = changes[property];
 				const myFoundset = this.myFoundset();
@@ -1195,7 +1208,12 @@ export class DataGrid extends NGGridDirective {
 							if (columnState) {
 								this.restoreColumnsState(this._restoreStates());
 							} else {
-								this.agGrid().api.resetColumnState();
+								// Restore to initial state
+								const initialState = this.__internalInitialColumnState();
+								if (initialState) {
+									this._columnState.set(initialState);
+								}
+								this.restoreColumnsState();
 							}
 						}
 						break;
@@ -5063,6 +5081,11 @@ class FoundsetServer {
 		}
 
 		// Sort on the foundset Group
+		if (!this.dataGrid.groupManager) {
+			callback([], 0);
+			return;
+		}
+
 		if (sortRootGroup) { // no sort need to be applied
 			// Should change the foundset with a different sort order
 			allPromises.push(this.dataGrid.groupManager.createOrReplaceFoundsetRef(rowGroupCols, groupKeys, sortModel[0].sort));
