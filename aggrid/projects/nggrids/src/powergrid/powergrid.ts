@@ -1205,7 +1205,7 @@ export class PowerGrid extends NGGridDirective {
         }
 
         const menuItems: any = [];
-		const customMainMenu = powerGrid.customMainMenu ? powerGrid.customMainMenu : powerGrid.registrationService.powergridService.customMainMenu;
+		const customMainMenu = powerGrid.customMainMenu() ? powerGrid.customMainMenu() : powerGrid.registrationService.powergridService.customMainMenu;
 		if (customMainMenu) {
 			const column = powerGrid.getColumn(params.column.getColDef().field);
 			if (column) {
