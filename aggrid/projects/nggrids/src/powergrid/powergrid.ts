@@ -1,6 +1,6 @@
 import { GetRowIdParams, ColumnMenuTab, ColumnResizedEvent, ColDef, Column, IRowNode, IAggFunc, DisplayedColumnsChangedEvent } from 'ag-grid-community';
 import { ChangeDetectorRef, Component, Inject, Renderer2, SecurityContext, SimpleChanges, DOCUMENT, input, output, signal } from '@angular/core';
-import { BaseCustomObject, FormattingService, ICustomArray, ServoyPublicService } from '@servoy/public';
+import { BaseCustomObject, FormattingService, ICustomArray, ServoyPublicService, PopupStateService } from '@servoy/public';
 import { LoggerFactory } from '@servoy/public';
 import { ColumnsAutoSizingOn, DragTransferData, GRID_EVENT_TYPES, IconConfig, JSDNDEvent, MainMenuItemsConfig, NGGridDirective, ToolPanelConfig } from '../nggrid';
 import { DatePicker } from '../editors/datepicker';
@@ -181,7 +181,7 @@ export class PowerGrid extends NGGridDirective {
 
     constructor(renderer: Renderer2, cdRef: ChangeDetectorRef, logFactory: LoggerFactory,
         private servoyService: ServoyPublicService, public formattingService: FormattingService, public ngbTypeaheadConfig: NgbTypeaheadConfig,
-        private sanitizer: DomSanitizer, @Inject(DOCUMENT) public doc: Document, private registrationService: RegistrationService) {
+        private sanitizer: DomSanitizer, @Inject(DOCUMENT) public doc: Document, private registrationService: RegistrationService, protected popupStateService: PopupStateService) {
         super(renderer, cdRef);
         this.ngbTypeaheadConfig.container = 'body';
         this.log = logFactory.getLogger('PowerGrid');
