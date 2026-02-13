@@ -87,8 +87,9 @@ export class TextEditor extends EditorDirective {
         const isNavigationLeftRightKey = e.keyCode === 37 || e.keyCode === 39;
         const isNavigationUpDownEntertKey = e.keyCode === 38 || e.keyCode === 40 || e.keyCode === 13;
 
-        if(!(isNavigationLeftRightKey || isNavigationUpDownEntertKey) && !this.ngGrid.isInFindMode()) {
-            return this.ngGrid.formattingService.testForNumbersOnly(e, null, this.elementRef().nativeElement, false, true, this._format(), false);
+        const format = this._format();
+        if(!(isNavigationLeftRightKey || isNavigationUpDownEntertKey) && !this.ngGrid.isInFindMode() && format) {
+            return this.ngGrid.formattingService.testForNumbersOnly(e, null, this.elementRef().nativeElement, false, true, format, false);
         } else return true;
     }
 
