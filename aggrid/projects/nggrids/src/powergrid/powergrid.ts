@@ -459,16 +459,7 @@ export class PowerGrid extends NGGridDirective {
                 }
             },
             getRowId: (param: GetRowIdParams) => {
-                let rowNodeId = null;
-                if (this.pks && this.pks.length > 0) {
-                    rowNodeId = '' + param.data[this.pks[0]];
-                    for (let i = 1; i < this.pks.length; i++) {
-                        rowNodeId += '_' + param.data[this.pks[i]];
-                    }
-                } else {
-                    rowNodeId = JSON.stringify(param.data);
-                }
-                return rowNodeId;
+                return this.generateRowId(param.data);
             },
             resetRowDataOnUpdate: true,
             components: {
@@ -632,6 +623,20 @@ export class PowerGrid extends NGGridDirective {
         return null;
     }
 
+    private generateRowId(rowData: any): string {
+        let rowNodeId = null;
+        const pks = this.pks();
+        if (pks && pks.length > 0) {
+            rowNodeId = '' + rowData[pks[0]];
+            for (let i = 1; i < pks.length; i++) {
+                rowNodeId += '_' + rowData[pks[i]];
+            }
+        } else {
+            rowNodeId = JSON.stringify(rowData);
+        }
+        return rowNodeId;
+    }
+
     svyOnInit() {
         super.svyOnInit();
 
@@ -706,7 +711,20 @@ export class PowerGrid extends NGGridDirective {
                         break;
                     case 'updateData':
                         if (change.currentValue) {
-                            this.agGrid.api.applyTransaction(change.currentValue);
+                            this.agGrid().api.applyTransaction(change.currentValue);
+                            if(change.currentValue.update) {
+                                const rowNodes = [];
+                                for (const rowData of change.currentValue.update) {
+                                    const rowId = this.generateRowId(rowData);
+                                    const rowNode = this.agGrid().api.getRowNode(rowId);
+                                    if (rowNode) {
+                                        rowNodes.push(rowNode);
+                                    }
+                                }
+                                if (rowNodes.length > 0) {
+                                    this.agGrid().api.refreshCells({force: true, rowNodes: rowNodes});
+                                }
+                            }
                             this.servoyApi.callServerSideApi('clearUpdateData', []);
                         }
                         break;
