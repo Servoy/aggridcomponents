@@ -463,8 +463,9 @@ export class DataGrid extends NGGridDirective {
 					}
 					const _internalInitialColumnState = this.__internalInitialColumnState();
 					if (!_internalInitialColumnState) {
-						this.__internalInitialColumnState.set(this._columnState());
-						this._internalInitialColumnStateChange.emit(_internalInitialColumnState);
+						const currentColumnState = this._columnState();
+						this.__internalInitialColumnState.set(currentColumnState);
+						this._internalInitialColumnStateChange.emit(currentColumnState);
 					}
 				}
 				if (this.delayedColumnChange) {

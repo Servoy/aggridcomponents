@@ -814,6 +814,19 @@ $scope.api.removeAllColumns = function() {
 }
 
 /**
+ * Set new columns
+ *
+ * @example
+ * %%prefix%%%%elementName%%.setColumns(columns)
+ *
+ */
+$scope.api.setColumns = function(columns) {
+	$scope.model.columnState = null;
+	$scope.model._internalInitialColumnState = null;
+	$scope.model.columns = columns;
+}
+
+/**
  * Returns the grid's view columns.
  *
  * @example

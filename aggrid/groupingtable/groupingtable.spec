@@ -443,6 +443,12 @@
 	    "removeAllColumns": {
 	        "returns": "boolean"
 	    },
+	    "setColumns": {
+		    "parameters": [{
+				"name": "columns",
+				"type": "column[]"
+			}]
+	    },
 	    "getViewColumns": {
 	        "returns": "viewColumn[]"
 	    },

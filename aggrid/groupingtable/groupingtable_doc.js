@@ -484,6 +484,16 @@ function removeAllColumns() {
 }
 
 /**
+ * Set new columns
+ *
+ * @example
+ *     %%prefix%%elements.%%elementName%%.setColumn(columns)
+ *
+ */
+function setColumns() {
+}
+
+/**
  * Returns an array of view columns currently visible in the grid.
  *
  * @return {Array<CustomType<aggrid-groupingtable.viewColumn>>} An array of view column objects representing the columns currently displayed.
