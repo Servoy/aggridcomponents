@@ -119,7 +119,13 @@ export class RadioFilter extends FilterDirective {
     }
 
     useCheckboxForFloatingFilter(): boolean {
-      return this.isFloating && this.params.colDef.context && this.params.colDef.context['floatingFilterRadioAsCheckbox'] === true;
+      if(this.isFloating) {
+        if(this.params.colDef.context && this.params.colDef.context['floatingFilterRadioAsCheckbox'] === false) {
+          return false;
+        }
+        return true;
+      }
+      return false;
     }
 
     onCheckboxClick() {
