@@ -203,6 +203,7 @@ export class DataGrid extends NGGridDirective {
 	__internalFilterModel = signal<unknown>(undefined);
 	_columnsAutoSizing = signal<string>(undefined);
 	_checkboxSelection = signal<boolean>(undefined);
+	_headerCheckboxColumnParams = signal<any>(undefined);
 	__internalGroupRowsSelection = signal<Array<{
 		_svyRowId: string;
 	}>>(undefined);
@@ -533,7 +534,8 @@ export class DataGrid extends NGGridDirective {
 				sortable: false,
 				resizable: false,
 				suppressHeaderMenuButton: true,
-				suppressSizeToFit: true
+				suppressSizeToFit: true,
+				...(this._headerCheckboxColumnParams() ? { headerComponentParams: this._headerCheckboxColumnParams() } : {})
 			},
 			//suppressCellFocus: !this.enabled,
 			cellSelection: false,
@@ -988,8 +990,12 @@ export class DataGrid extends NGGridDirective {
 	}
 
 	private onHeaderCheckClick(colId: any, event: Event): void {
-		const _internalCheckboxGroupSelection = this.__internalCheckboxGroupSelection();
-		if (!_internalCheckboxGroupSelection) this.__internalCheckboxGroupSelection.set([]); else _internalCheckboxGroupSelection.length = 0;
+		let _internalCheckboxGroupSelection = this.__internalCheckboxGroupSelection();
+		if (!_internalCheckboxGroupSelection) {
+			this.__internalCheckboxGroupSelection.set([]);
+			_internalCheckboxGroupSelection = this.__internalCheckboxGroupSelection();
+		}
+		else _internalCheckboxGroupSelection.length = 0;
 		if (event.target['checked'] === true) {
 			_internalCheckboxGroupSelection.push({ colId: colId });
 		} else {
@@ -1590,6 +1596,9 @@ export class DataGrid extends NGGridDirective {
 		// remove registered footerText change listeners
 		this.removeFooterTextListeners();
 
+		// reset headerCheckbox column params for checkbox selection column
+		this._headerCheckboxColumnParams.set(undefined);
+
 		//create the column definitions from the specified columns in designer
 		const colDefs = [];
 		let colDef: any = {};
@@ -1806,7 +1815,8 @@ export class DataGrid extends NGGridDirective {
 			}
 
 			if (column.headerCheckbox) {
-				colDef.headerComponentParams = {
+				// Store headerCheckbox template to be applied to selection column
+				this._headerCheckboxColumnParams.set({
 					template:
 						'<div class="ag-cell-label-container" role="presentation">' +
 						'   <span data-ref="eMenu" class="ag-header-icon ag-header-cell-menu-button" aria-hidden="true"></span>' +
@@ -1820,7 +1830,7 @@ export class DataGrid extends NGGridDirective {
 						'       <ag-sort-indicator data-ref="eSortIndicator"></ag-sort-indicator>' +
 						'   </div>' +
 						'</div>'
-				}
+				});
 			}
 
 			if (column.footerText) {
