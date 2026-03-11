@@ -4902,8 +4902,15 @@ class FoundsetManager {
 				const header = columns[i];
 				const field = header.id === 'svycount' ? header.id : this.dataGrid.getColumnID(header, i);
 
-				const value = header.dataprovider ? header.dataprovider[index] : null;
-				r[field] = value;
+				if(header.dataprovider) {
+					if(header.dataproviderUnresolved && (header.dataprovider[index] !== header.dataproviderUnresolved[index])) {
+						r[field] = {displayValue: header.dataprovider[index], realValue: header.dataproviderUnresolved[index]};
+					} else {
+						r[field] = header.dataprovider[index];
+					}
+				} else {
+					r[field] = null;
+				}
 			}
 			return r;
 
@@ -5283,19 +5290,23 @@ class FoundsetDatasource implements IServerSideDatasource {
 				groupKeys[i] = null;	// reset to real null, so we use the right value for grouping
 			}
 			if (groupKeys[i] !== null) {
-				const vl = this.dataGrid.getValuelistEx(params.parentNode.data, rowGroupCols[i]['id']);
-				if (vl) {
-					const filterDeferred = new Deferred();
-					filterPromises.push(filterDeferred.promise);
-					const idx = i;
-					vl.filterList(groupKeys[i]).subscribe((valuelistValues: any) => {
-						this.handleFilterCallback(groupKeys, idx, valuelistValues);
-						if (_this.dataGrid.removeAllFoundsetRef) {
-							_this.dataGrid.groupManager.removeFoundsetRefAtLevel(0);
-						}
-						filterDeferred.resolve(true);
-					});
-					removeAllFoundsetRefPostponed = true;
+				if(groupKeys[i].realValue !== undefined) {
+					groupKeys[i] = groupKeys[i].realValue;
+				} else {
+					const vl = this.dataGrid.getValuelistEx(params.parentNode.data, rowGroupCols[i]['id']);
+					if (vl) {
+							const filterDeferred = new Deferred();
+							filterPromises.push(filterDeferred.promise);
+							const idx = i;
+							vl.filterList(groupKeys[i]).subscribe((valuelistValues: any) => {
+								this.handleFilterCallback(groupKeys, idx, valuelistValues);
+								if (_this.dataGrid.removeAllFoundsetRef) {
+									_this.dataGrid.groupManager.removeFoundsetRefAtLevel(0);
+								}
+								filterDeferred.resolve(true);
+							});
+							removeAllFoundsetRefPostponed = true;
+					}
 				}
 			}
 		}
