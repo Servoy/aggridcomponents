@@ -535,6 +535,7 @@
 		},
 		"groupedColumn" : {
             "dataprovider": { "type": "dataprovider", "forFoundset": "foundset", "resolveValuelist": true, "pushToServer" : "allow"},
+			"dataproviderUnresolved": { "type": "dataprovider", "forFoundset": "foundset"},
             "format" : { "type": "format",  "for": [ "valuelist", "dataprovider" ]},
 			"valuelist": { "type": "valuelist", "for": "dataprovider", "forFoundset": "foundset" },
 			"id": {"type" : "string"},
