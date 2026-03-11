@@ -4667,10 +4667,16 @@ class FoundsetManager {
                 const header = columns[i];
                 const field = header.id === 'svycount' ? header.id : this.dataGrid.getColumnID(header, i);
 
-                const value = header.dataprovider ? header.dataprovider[index] : null;
-                r[field] = value;
-            }
-            return r;
+				if(header.dataprovider) {
+                    r[field] = header.dataprovider[index];
+					if(header.dataproviderUnresolved && (header.dataprovider[index] !== header.dataproviderUnresolved[index])) {
+						r["_unresolved_" + field] = header.dataproviderUnresolved[index];
+				    }
+                } else {
+					r[field] = null;
+				}
+			}
+			return r;
 
         } catch (e) {
             this.dataGrid.log.error(e);
@@ -5035,29 +5041,33 @@ class FoundsetDatasource implements IServerSideDatasource {
         // resolve valuelist display values to real values
         const filterPromises = [];
 
-        let removeAllFoundsetRefPostponed = false;
-        const _this = this;
-        for (let i = 0; i < groupKeys.length; i++) {
-            if (groupKeys[i] == NULL_VALUE) {
-                groupKeys[i] = null;	// reset to real null, so we use the right value for grouping
-            }
-            if (groupKeys[i] !== null) {
-                const vl = this.dataGrid.getValuelistEx(params.parentNode.data, rowGroupCols[i]['id']);
-                if(vl) {
-                    const filterDeferred = new Deferred();
-                    filterPromises.push(filterDeferred.promise);
-                    const idx = i;
-                    vl.filterList(groupKeys[i]).subscribe((valuelistValues: any) => {
-                        this.handleFilterCallback(groupKeys, idx, valuelistValues);
-                        if(_this.dataGrid.removeAllFoundsetRef) {
-                            _this.dataGrid.groupManager.removeFoundsetRefAtLevel(0);
-                        }
-                        filterDeferred.resolve(true);
-                    });
-                    removeAllFoundsetRefPostponed = true;
-                }
-            }
-        }
+		let removeAllFoundsetRefPostponed = false;
+		const _this = this;
+		for (let i = 0; i < groupKeys.length; i++) {
+			if (groupKeys[i] == NULL_VALUE) {
+				groupKeys[i] = null;	// reset to real null, so we use the right value for grouping
+			}
+			if (groupKeys[i] !== null) {
+				if(params?.parentNode?.data['_unresolved_' + rowGroupCols[i]['field']] !== undefined) {
+					groupKeys[i] = params?.parentNode?.data['_unresolved_' + rowGroupCols[i]['field']];
+				} else {
+					const vl = this.dataGrid.getValuelistEx(params.parentNode.data, rowGroupCols[i]['id']);
+					if (vl) {
+							const filterDeferred = new Deferred();
+							filterPromises.push(filterDeferred.promise);
+							const idx = i;
+							vl.filterList(groupKeys[i]).subscribe((valuelistValues: any) => {
+								this.handleFilterCallback(groupKeys, idx, valuelistValues);
+								if (_this.dataGrid.removeAllFoundsetRef) {
+									_this.dataGrid.groupManager.removeFoundsetRefAtLevel(0);
+								}
+								filterDeferred.resolve(true);
+							});
+							removeAllFoundsetRefPostponed = true;
+					}
+				}
+			}
+		}
 
         if(this.dataGrid.removeAllFoundsetRef && !removeAllFoundsetRefPostponed) {
             this.dataGrid.groupManager.removeFoundsetRefAtLevel(0);
