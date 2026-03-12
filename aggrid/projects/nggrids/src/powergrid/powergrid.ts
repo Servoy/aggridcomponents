@@ -1953,7 +1953,9 @@ export class PowerGrid extends NGGridDirective {
             const valueFormatted = params.valueFormatted != null ? params.valueFormatted : value && value.displayValue !== undefined ? value.displayValue : value;
 
             let returnValueFormatted = false;
-            if (column != null && column.showAs === 'html') {
+            if (value instanceof Date) {
+                returnValueFormatted = true;
+            } else if (column != null && column.showAs === 'html') {
                 value = value && value.displayValue !== undefined ? value.displayValue : value;
             } else if (column != null && column.showAs === 'sanitizedHtml') {
                 value = this.sanitizer.sanitize(SecurityContext.HTML, value && value.displayValue !== undefined ? value.displayValue : value);
