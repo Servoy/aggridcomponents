@@ -4903,10 +4903,9 @@ class FoundsetManager {
 				const field = header.id === 'svycount' ? header.id : this.dataGrid.getColumnID(header, i);
 
 				if(header.dataprovider) {
+					r[field] = header.dataprovider[index];
 					if(header.dataproviderUnresolved && (header.dataprovider[index] !== header.dataproviderUnresolved[index])) {
-						r[field] = {displayValue: header.dataprovider[index], realValue: header.dataproviderUnresolved[index]};
-					} else {
-						r[field] = header.dataprovider[index];
+						r["_unresolved_" + field] = header.dataproviderUnresolved[index];
 					}
 				} else {
 					r[field] = null;
@@ -5290,8 +5289,8 @@ class FoundsetDatasource implements IServerSideDatasource {
 				groupKeys[i] = null;	// reset to real null, so we use the right value for grouping
 			}
 			if (groupKeys[i] !== null) {
-				if(groupKeys[i].realValue !== undefined) {
-					groupKeys[i] = groupKeys[i].realValue;
+				if(params?.parentNode?.data['_unresolved_' + rowGroupCols[i]['field']] !== undefined) {
+					groupKeys[i] = params?.parentNode?.data['_unresolved_' + rowGroupCols[i]['field']];
 				} else {
 					const vl = this.dataGrid.getValuelistEx(params.parentNode.data, rowGroupCols[i]['id']);
 					if (vl) {
