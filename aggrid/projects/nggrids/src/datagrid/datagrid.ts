@@ -622,7 +622,7 @@ export class DataGrid extends NGGridDirective {
 				this.storeColumnsState();
 			},
 			onSortChanged: (event: SortChangedEvent) => {
-				if (event.source === 'uiColumnSorted') {
+				if (event.source === 'uiColumnSorted' || event.source === 'columnMenu') {
 					this.isSortModelApplied = true;
 				}
 				this.storeColumnsState();
