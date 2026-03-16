@@ -23,7 +23,10 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     TOOLPANEL_VISIBLE_CHANGE: 'toolPanelVisibleChange'						
                 }
 
-                var mainWindowContainer = $('.svy-main-window-container')[0];
+                var mainWindowContainer = $element.closest('.svy-dialog')[0];
+                if(!mainWindowContainer) {
+                    mainWindowContainer = $element.closest('.svy-main-window-container')[0];
+                }
                 var gridDiv = $element.find('.ag-table')[0];
                 var hasAutoHeightColumn = false;
                 var columnDefs = getColumnDefs();

@@ -413,7 +413,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					// the group manager
 					var groupManager = new GroupManager();
 
-					var mainWindowContainer = $('.svy-main-window-container')[0];
+					var mainWindowContainer = $element.closest('.svy-dialog')[0];
+					if(!mainWindowContainer) {
+            			mainWindowContainer = $element.closest('.svy-main-window-container')[0];
+        			}
 					var gridDiv = $element.find('.ag-table')[0];
 					gridDiv.addEventListener("click", function(e) {
 						if(e.target.parentNode && e.target.parentNode.classList &&
