@@ -2271,11 +2271,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 									if (isNavigationLeftRightKey || isNavigationUpDownEntertKey) {
 
-										if(isNavigationUpDownEntertKey && (thisEditor.editType == 'TEXTFIELD')) {
+										if(isNavigationUpDownEntertKey) {
 
 											if(editNextCellOnEnter && event.keyCode === 13) {
 												gridOptions.api.tabToNextCell();
-											} else if(arrowsUpDownMoveWhenEditing && arrowsUpDownMoveWhenEditing != 'NONE') {
+											} else if(arrowsUpDownMoveWhenEditing && arrowsUpDownMoveWhenEditing != 'NONE' && thisEditor.editType == 'TEXTFIELD') {
 												var newEditingNode = null;
 												var columnToCheck = thisEditor.params.column;
 												var mustBeEditable = arrowsUpDownMoveWhenEditing == 'NEXTEDITABLECELL'
@@ -2345,6 +2345,23 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						// focus and select can be done after the gui is attached
 						TextEditor.prototype.afterGuiAttached = function() {
 							this.eInput.value = this.initialDisplayValue;
+
+							// For TYPEAHEAD, set the ng-model and trigger filtering
+							if(editNextCellOnEnter && this.editType == 'TYPEAHEAD') {
+								$scope.typeaheadEditorValue = this.initialDisplayValue;
+								
+								// Use a small timeout to ensure the directive processes the value
+								var thisEditor = this;
+								setTimeout(function() {
+									// Trigger the typeahead to filter and show matches by simulating input
+									var event = new Event('input', { bubbles: true });
+									thisEditor.eInput.dispatchEvent(event);
+									
+									// Apply scope changes
+									$scope.$apply();
+								}, 0);
+							}
+
 							this.eInput.focus();
 							if(this.editType == 'TEXTFIELD') {
 								this.eInput.select();
@@ -2673,8 +2690,12 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							}
 
 							this.keyListener = function (event) {
-								var isNavigationKey = event.keyCode === 38 || event.keyCode === 40;
+								var isNavigationKey = event.keyCode === 38 || event.keyCode === 40 || event.keyCode === 13;
 								if (isNavigationKey) {
+									if(editNextCellOnEnter && event.keyCode === 13) {
+										gridOptions.api.tabToNextCell();
+										event.preventDefault();
+									}
 									event.stopPropagation();
 								}
 							};
