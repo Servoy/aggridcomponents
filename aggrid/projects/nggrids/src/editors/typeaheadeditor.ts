@@ -20,6 +20,7 @@ import { EditorDirective } from './editor';
         [resultFormatter]="resultFormatter"
 		    [inputFormatter]="inputFormatter"
         (focus)="focus$.next('')"
+        (keydown)="onTypeaheadKeyDown($event)"
         #instance="ngbTypeahead" #element>
     `,
     host: {
@@ -50,13 +51,25 @@ export class TypeaheadEditor extends EditorDirective implements IPopupSupportCom
   }
 
   @HostListener('keydown',['$event']) onKeyDown(e: KeyboardEvent) {
-    if(this.ngGrid.arrowsUpDownMoveWhenEditing && this.ngGrid.arrowsUpDownMoveWhenEditing !== 'NONE') {
+    if((this.ngGrid.arrowsUpDownMoveWhenEditing && this.ngGrid.arrowsUpDownMoveWhenEditing !== 'NONE') || this.ngGrid.editNextCellOnEnter) {
         const isNavigationLeftRightKey = e.keyCode === 37 || e.keyCode === 39;
         const isNavigationUpDownEntertKey = e.keyCode === 38 || e.keyCode === 40 || e.keyCode === 13;
 
         if (isNavigationLeftRightKey || isNavigationUpDownEntertKey) {
             e.stopPropagation();
         }
+    }
+  }
+
+  onTypeaheadKeyDown(e: KeyboardEvent) {
+    // Handle Enter key when typeahead popup is open
+    if(e.keyCode === 13 && this.ngGrid.editNextCellOnEnter) {
+      // Close the typeahead popup
+      this.instance.dismissPopup();
+      // Tab to the next cell
+      this.ngGrid.agGrid.api.tabToNextCell();
+      e.preventDefault();
+      e.stopPropagation();
     }
   }
 
@@ -161,6 +174,10 @@ export class TypeaheadEditor extends EditorDirective implements IPopupSupportCom
     }
     setTimeout(() => {
       this.elementRef.nativeElement.focus();
+      // Trigger typeahead dropdown to show filtered results with initial value
+      if(this.ngGrid.editNextCellOnEnter) {
+        this.focus$.next(this.initialDisplayValue);
+      }
       if(this.ngGrid.isInFindMode()) {
         this.findModeListener = (e: KeyboardEvent) => {
           if(e.keyCode === 13) {
