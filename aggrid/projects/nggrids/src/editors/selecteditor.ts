@@ -28,7 +28,7 @@ export class SelectEditor extends EditorDirective {
         const isNavigationKey = e.keyCode === 38 || e.keyCode === 40 || e.keyCode === 13;
         if (isNavigationKey) {
             if(this.ngGrid.editNextCellOnEnter && e.keyCode === 13) {
-                this.ngGrid.agGrid.api.tabToNextCell();
+                this.ngGrid.agGrid().api.tabToNextCell();
                 e.preventDefault();
             }
             e.stopPropagation();
