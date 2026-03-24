@@ -64,7 +64,7 @@ export class TypeaheadEditor extends EditorDirective implements IPopupSupportCom
 
   onTypeaheadKeyDown(e: KeyboardEvent) {
     // Handle Enter key when typeahead popup is open
-    if(e.keyCode === 13 && this.ngGrid.editNextCellOnEnter) {
+    if(e.keyCode === 13 && this.ngGrid.editNextCellOnEnter()) {
       // Close the typeahead popup
       this.instance().dismissPopup();
       // Tab to the next cell
@@ -179,8 +179,8 @@ export class TypeaheadEditor extends EditorDirective implements IPopupSupportCom
       this.elementRef().nativeElement.focus();
       this.elementRef().nativeElement.select();
       // Trigger typeahead dropdown to show filtered results with initial value
-      if(this.ngGrid.editNextCellOnEnter) {
-        this.focus$.next(this.initialDisplayValue());
+      if(this.ngGrid.editNextCellOnEnter()) {
+        this.focus$.next(this._initialDisplayValue());
       }
       if(this.ngGrid.isInFindMode()) {
         this.findModeListener = (e: KeyboardEvent) => {
