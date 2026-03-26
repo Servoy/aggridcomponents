@@ -144,22 +144,27 @@ export class DatePicker extends EditorDirective {
                     this.picker.dates.setValue(DateTime.convert(selectedValue));
                 }
                 this.picker.subscribe(Namespace.events.change, (event) => this.dateChanged(event));
+                this.picker.subscribe(Namespace.events.hide, () => {
+                    // Defer stopEditing to allow TempusDominus to complete cleanup
+                    setTimeout(() => this.params.stopEditing(), 0);
+                });
                 setTimeout(() => {
                     if (this.format.isMask) {
                         this.maskFormat = new MaskFormat(this.format, this._renderer, this.elementRef().nativeElement, this.formattingService, this.doc);
-                        this.elementRef().nativeElement.focus();
-                        this.elementRef().nativeElement.setSelectionRange(0, 0);
-                    } else {
-                        this.elementRef().nativeElement.select();
                     }
                     this.picker.show();
+                    setTimeout(() => {
+                        this.elementRef().nativeElement.focus();
+                        setTimeout(() => {
+                            this.elementRef().nativeElement.select();
+                        }, 0);
+                    }, 100);
                     const dateContainer = this.doc.getElementsByClassName('tempus-dominus-widget calendarWeeks show');
                     if (dateContainer && dateContainer.length) {
                         dateContainer[0].classList.add('ag-custom-component-popup');
                     }
                     this.elementRef().nativeElement.addEventListener('focusout', (event: Event) => event.stopPropagation());
                 }, 0);
-                this.picker.subscribe(Namespace.events.hide, () => this.params.stopEditing());
             });
         } else {
             setTimeout(() => {
@@ -170,7 +175,10 @@ export class DatePicker extends EditorDirective {
 
     ngOnDestroy() {
         if(this.maskFormat) this.maskFormat.destroy();
-        if (this.picker) this.picker.dispose();
+        if (this.picker) {
+            this.picker.dispose();
+            this.picker = null;
+        }
     }
 
     isPopup(): boolean {
