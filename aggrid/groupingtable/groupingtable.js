@@ -2791,7 +2791,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					}
 
 					function isInFindMode() {
-						return this.foundset?.foundset?.findMode ?? false;
+						return foundset?.foundset?.findMode ?? false;
 					}
 
 					function getCheckboxEditorToggleValue(value) {
