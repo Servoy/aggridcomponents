@@ -2351,31 +2351,42 @@ export class PowerGrid extends NGGridDirective {
         const dragSupported = $event.dataTransfer.types.length && $event.dataTransfer.types[0] === 'nggrids-drag/json';
         if (dragSupported) {
             this.handleDragViewportScroll($event);
-            let dragOver: any = false;
             const onDragOverFunc = this.onDragOverFunc();
             if (onDragOverFunc) {
-                const overRow = this.getNodeForElement($event.target);
-                let overRowData = null;
-                if (overRow) {
-                    overRowData = overRow.data || Object.assign(overRow.groupData, overRow.aggData);
-                }
                 const targetColumn = $event.target.closest('[col-id]');
-                const dragData = this.registrationService.datagridService.getDragData();
+                const validTargetColumn = (targetColumn && targetColumn.classList.contains('ag-cell')) ? targetColumn : null;
+                if (validTargetColumn !== this.dragOverTargetColumn) {
+                    this.restoreDragOverTargetColumn();
+                    this.dragOverTargetColumn = validTargetColumn;
+                    this.dragOverTargetColumnClassName = validTargetColumn ? validTargetColumn.className : null;
+                    if (validTargetColumn) {
+                        const overRow = this.getNodeForElement($event.target);
+                        let overRowData = null;
+                        if (overRow) {
+                            overRowData = overRow.data || Object.assign(overRow.groupData, overRow.aggData);
+                        }
+                        const dragData = this.registrationService.datagridService.getDragData();
 
-                const jsDragOverEvent = this.servoyService.createJSEvent($event, 'onDragOver') as JSDNDEvent;                
-                jsDragOverEvent.targetColumnId = targetColumn ? targetColumn.getAttribute('col-id') : '';
-                jsDragOverEvent.sourceGridName = dragData.sourceGridName;
-                jsDragOverEvent.sourceColumnId = dragData.sourceColumnId;
-                dragOver = onDragOverFunc(dragData.records, overRowData, jsDragOverEvent);
-            } else {
-                dragOver = true;
-            }
-            if (dragOver) {
-                if(typeof dragOver === 'string') {
-                    $event.dataTransfer.dropEffect = dragOver;
-                } else {
-                    $event.dataTransfer.dropEffect = 'copy';
+                        const jsDragOverEvent = this.servoyService.createJSEvent($event, 'onDragOver') as JSDNDEvent;
+                        jsDragOverEvent.targetColumnId = validTargetColumn.getAttribute('col-id');
+                        jsDragOverEvent.sourceGridName = dragData.sourceGridName;
+                        jsDragOverEvent.sourceColumnId = dragData.sourceColumnId;
+                        this.lastDragOverResult = onDragOverFunc(dragData.records, overRowData, jsDragOverEvent);
+                    } else {
+                        this.lastDragOverResult = false;
+                    }
                 }
+                const dragOver = this.lastDragOverResult;
+                if (dragOver) {
+                    if(typeof dragOver === 'string') {
+                        $event.dataTransfer.dropEffect = dragOver;
+                    } else {
+                        $event.dataTransfer.dropEffect = 'copy';
+                    }
+                    $event.preventDefault();
+                }
+            } else {
+                $event.dataTransfer.dropEffect = 'copy';
                 $event.preventDefault();
             }
         }
@@ -2384,6 +2395,7 @@ export class PowerGrid extends NGGridDirective {
     gridDrop($event) {
         $event.preventDefault();
         this.cancelDragViewportScroll();
+        this.restoreDragOverTargetColumn();
         const onDrop = this.onDrop();
         if (onDrop) {
             const targetColumn = $event.target.closest('[col-id]');

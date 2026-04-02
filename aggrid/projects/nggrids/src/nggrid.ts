@@ -57,6 +57,10 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
     dragViewportScrollInterval: any;
     dragScrollDirection: string;
 
+    dragOverTargetColumn: Element | null = null;
+    dragOverTargetColumnClassName: string | null = null;
+    lastDragOverResult: any = false;
+
     private destroyed = false;
 
     protected popupStateService: PopupStateService
@@ -182,8 +186,18 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
         this.dragScrollDirection = null;
     }
 
+    restoreDragOverTargetColumn() {
+        if (this.dragOverTargetColumn && this.dragOverTargetColumnClassName !== null) {
+            this.dragOverTargetColumn.className = this.dragOverTargetColumnClassName;
+        }
+        this.dragOverTargetColumn = null;
+        this.dragOverTargetColumnClassName = null;
+        this.lastDragOverResult = false;
+    }
+
     gridDragEnd($event) {
         this.cancelDragViewportScroll();
+        this.restoreDragOverTargetColumn();
         if (this.onDragGetImageFunc()) {
             const dragGhostEl = this.doc.getElementById("nggrids-drag-ghost") as HTMLElement;
             if (dragGhostEl.parentNode) {
