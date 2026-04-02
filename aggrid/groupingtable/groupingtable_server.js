@@ -179,7 +179,7 @@ $scope.getGroupedFoundsetUUID = function(
 	if(isGroupQuery) {
 		for (var idx = 0; idx < $scope.model.columns.length; idx++) {
 			if(allGroupDataproviders.indexOf($scope.model.columns[idx].dataprovider) != -1) {
-				const dp = getDataproviderNameForGroupingView($scope.model.columns[idx].dataprovider);
+				var dp = getDataproviderNameForGroupingView($scope.model.columns[idx].dataprovider);
 				columns.push({
 					dataprovider: dp,
 					dataproviderUnresolved: dp,
