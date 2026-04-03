@@ -169,7 +169,7 @@ var continuousColumnsAutoSizing;
 var columnsAutoSizingOn;
 
 /**
- * Callback when dragging over a row - returns one of the strings: 'copy', 'move', 'none' depending on the allowed drag operation.
+ * Callback when dragging over a row - returns one of the strings: 'copy', 'move', 'none' depending on the allowed drag operation. Ex. (function (src, dest, e, targetCell) { return dest.id == 'myId' ? 'copy' : 'none';}). targetCell is the cell dom element that can be customized with CSS to highlight the drop target.
  */
 var onDragOverFunc;
 

@@ -61,7 +61,7 @@
 		"editNextCellOnEnter":  { "type": "boolean", "default": false },
 		"moveToNextEditableCellOnTab":  { "type": "boolean", "default": true, "tags": {"doc": "When tab is pressed during cell editing, move to the next editable cell."} },
 		"tabSeq": { "type": "tabseq", "tags": { "scope": "design" } },
-		"onDragOverFunc": {"type": "clientfunction", "tags": {"doc": "Callback when dragging over a row - returns one of the strings: 'copy', 'move', 'none' depending on the allowed drag operation."}},
+		"onDragOverFunc": {"type": "clientfunction", "tags": {"doc": "Callback when dragging over a row - returns one of the strings: 'copy', 'move', 'none' depending on the allowed drag operation. Ex. (function (src, dest, e, targetCell) { return dest.id == 'myId' ? 'copy' : 'none';}). targetCell is the cell dom element that can be customized with CSS to highlight the drop target."}},
 		"onDragGetImageFunc": {"type": "clientfunction", "tags": {"doc": "Called when row(s) drag-n-drop is started, to get the drag image as an html code."}},
 		"_internalFilterModel": { "type": "object", "tags": {"scope" : "private", "allowaccess": "enabled"}, "pushToServer": "allow" },
 		"_internalGroupRowsSelection": { "type": "record[]", "tags": {"scope" : "private"}, "pushToServer": "allow"},
