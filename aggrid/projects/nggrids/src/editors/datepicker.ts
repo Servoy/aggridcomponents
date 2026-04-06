@@ -26,6 +26,7 @@ export class DatePicker extends EditorDirective {
     _selectedValue = signal<Date>(undefined);
 
     picker: TempusDominus;
+    private isDestroyed = false;
 
     readonly config: Options = {
         allowInputToggle: true,
@@ -130,8 +131,17 @@ export class DatePicker extends EditorDirective {
     ngAfterViewInit(): void {
         if(!this.ngGrid.isInFindMode()) {
             this.ngGrid.loadCalendarLocale(this.config).promise.then(() => {
+                if (this.isDestroyed) return;
                 (this.elementRef().nativeElement as HTMLInputElement).value = '';
                 this.picker = new TempusDominus(this.elementRef().nativeElement, this.config);
+                // Guard against 'Cannot read properties of undefined (reading querySelector)' when
+                // Popper.js async callbacks (_handleFocus → _handleFocusClock / findViewDateElement)
+                // fire after the widget has already been disposed (e.g. fast Tab key).
+                const display = (this.picker as any).display;
+                if (display && typeof display._handleFocus === 'function') {
+                    const origHandleFocus = display._handleFocus.bind(display);
+                    display._handleFocus = () => { if (display._widget) origHandleFocus(); };
+                }
                 (this.elementRef().nativeElement as HTMLInputElement).value = this.ngGrid.format(this._selectedValue(), this.format, this.format.edit && !this.format.isMask)
                 this.picker.dates.formatInput =  (date: DateTime) => this.ngGrid.format(date, this.format, this.format.edit && !this.format.isMask);
                 this.picker.dates.parseInput =  (value: string) => {
@@ -145,25 +155,30 @@ export class DatePicker extends EditorDirective {
                 }
                 this.picker.subscribe(Namespace.events.change, (event) => this.dateChanged(event));
                 this.picker.subscribe(Namespace.events.hide, () => {
-                    // Defer stopEditing to allow TempusDominus to complete cleanup
-                    setTimeout(() => this.params.stopEditing(), 0);
+                    // Only stop editing when the picker was closed by the user (e.g. Close button,
+                    // click-outside). Skip when isDestroyed is already true, which means AG Grid
+                    // itself triggered the teardown (Tab, Enter, etc.) and already called stopEditing —
+                    // calling it again here would close the next cell's editor.
+                    setTimeout(() => { if (!this.isDestroyed) this.params.stopEditing(); }, 0);
                 });
                 setTimeout(() => {
-                    if (this.format.isMask) {
-                        this.maskFormat = new MaskFormat(this.format, this._renderer, this.elementRef().nativeElement, this.formattingService, this.doc);
-                    }
-                    this.picker.show();
-                    setTimeout(() => {
-                        this.elementRef().nativeElement.focus();
+                    if (!this.isDestroyed) {
+                        if (this.format.isMask) {
+                            this.maskFormat = new MaskFormat(this.format, this._renderer, this.elementRef().nativeElement, this.formattingService, this.doc);
+                        }
+                        this.picker.show();
                         setTimeout(() => {
-                            this.elementRef().nativeElement.select();
-                        }, 0);
-                    }, 100);
-                    const dateContainer = this.doc.getElementsByClassName('tempus-dominus-widget calendarWeeks show');
-                    if (dateContainer && dateContainer.length) {
-                        dateContainer[0].classList.add('ag-custom-component-popup');
+                            this.elementRef().nativeElement.focus();
+                            setTimeout(() => {
+                                this.elementRef().nativeElement.select();
+                            }, 0);
+                        }, 100);
+                        const dateContainer = this.doc.getElementsByClassName('tempus-dominus-widget calendarWeeks show');
+                        if (dateContainer && dateContainer.length) {
+                            dateContainer[0].classList.add('ag-custom-component-popup');
+                        }
+                        this.elementRef().nativeElement.addEventListener('focusout', (event: Event) => event.stopPropagation());
                     }
-                    this.elementRef().nativeElement.addEventListener('focusout', (event: Event) => event.stopPropagation());
                 }, 0);
             });
         } else {
@@ -174,8 +189,10 @@ export class DatePicker extends EditorDirective {
     }
 
     ngOnDestroy() {
+        this.isDestroyed = true;
         if(this.maskFormat) this.maskFormat.destroy();
         if (this.picker) {
+            try { this.picker.hide(); } catch (_) {}
             this.picker.dispose();
             this.picker = null;
         }
