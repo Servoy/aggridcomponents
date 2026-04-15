@@ -851,7 +851,7 @@ export class DataGrid extends NGGridDirective {
 		if (userGridOptions) {
 			const gridOptionsSetByComponent = {};
 			for (const p in TABLE_PROPERTIES_DEFAULTS) {
-				if (TABLE_PROPERTIES_DEFAULTS[p]['default'] !== this[p]) {
+				if (TABLE_PROPERTIES_DEFAULTS[p]['default'] !== this[p]()) {
 					gridOptionsSetByComponent[TABLE_PROPERTIES_DEFAULTS[p]['gridOptionsProperty']] = true;
 				}
 			}
