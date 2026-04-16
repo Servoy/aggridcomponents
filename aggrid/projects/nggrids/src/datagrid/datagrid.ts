@@ -2362,6 +2362,11 @@ export class DataGrid extends NGGridDirective {
 		}
 
 
+		// Preserve selectionEvent across node selection changes so that a pending
+		// user click (waiting in the 250ms debounce) is not lost when a data-load
+		// callback triggers this method concurrently.
+		const savedSelectionEvent = this.selectionEvent;
+
 		for (const oldSelectedNode of oldSelectedNodes) {
 			if (!oldSelectedNode.group && selectedNodes.indexOf(oldSelectedNode) === -1) {
 				this.selectionEvent = null;
@@ -2376,6 +2381,13 @@ export class DataGrid extends NGGridDirective {
 				selectedNode.setSelected(true);
 				isSelectedRowIndexesChanged = true;
 			}
+		}
+
+		// Restore the pending user selection event if there was one.
+		// Without this, the race between data-load callbacks and the 250ms
+		// onSelectionChanged debounce causes user clicks to be silently dropped.
+		if (savedSelectionEvent) {
+			this.selectionEvent = savedSelectionEvent;
 		}
 
 		return isSelectedRowIndexesChanged;
@@ -3784,8 +3796,15 @@ export class DataGrid extends NGGridDirective {
 				this.requestSelectionPromises.push(requestSelectionPromise);
 				requestSelectionPromise.then(
 					() => {
-						if (this.requestSelectionPromises.shift() !== requestSelectionPromise) {
-							this.log.error('requestSelectionPromises out of sync');
+						// Remove this specific promise instead of blindly shifting the first one.
+						// Promises can resolve out of order under load (e.g. during paging),
+						// and shift() would remove the wrong entry, leaving orphaned promises
+						// that permanently block server-initiated selection changes.
+						const promiseIdx = this.requestSelectionPromises.indexOf(requestSelectionPromise);
+						if (promiseIdx !== -1) {
+							this.requestSelectionPromises.splice(promiseIdx, 1);
+						} else {
+							this.log.error('requestSelectionPromises: resolved promise not found in queue');
 						}
 						if (this.scrollToSelectionWhenSelectionReady) {
 							this.scrollToSelection();
@@ -3801,8 +3820,11 @@ export class DataGrid extends NGGridDirective {
 						//success
 					},
 					(serverRows) => {
-						if (this.requestSelectionPromises.shift() !== requestSelectionPromise) {
-							this.log.error('requestSelectionPromises out of sync');
+						const promiseIdx = this.requestSelectionPromises.indexOf(requestSelectionPromise);
+						if (promiseIdx !== -1) {
+							this.requestSelectionPromises.splice(promiseIdx, 1);
+						} else {
+							this.log.error('requestSelectionPromises: rejected promise not found in queue');
 						}
 						//canceled
 						if (typeof serverRows === 'string') {
