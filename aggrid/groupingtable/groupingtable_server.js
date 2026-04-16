@@ -594,17 +594,21 @@ function getFilterWhereClauseForDataprovider(query, filter, dp, columnFormat) {
 				op = "lt";
 				break;
 			case "inRange":
-				op = "between";
-				var dateFromSplit = value.split("-");
-				var dateFromD = new Date(dateFromSplit[0], dateFromSplit[1] - 1, dateFromSplit[2]);
-				var dateToSplit = getConvertedDate(filter["dateTo"].split(" ")[0], filter["dateToMs"], columnFormat).split("-");
-				var dateToD = new Date(dateToSplit[0], dateToSplit[1] - 1, dateToSplit[2]);
-				dateToD.setDate(dateToD.getDate() + 1);
-				dateToD.setTime(dateToD.getTime() - 1);
-				var valueA = new Array();
-				valueA.push(dateFromD);
-				valueA.push(dateToD);
-				value = valueA;
+				if(filter["dateTo"]) {
+					op = "between";
+					var dateFromSplit = value.split("-");
+					var dateFromD = new Date(dateFromSplit[0], dateFromSplit[1] - 1, dateFromSplit[2]);
+					var dateToSplit = getConvertedDate(filter["dateTo"].split(" ")[0], filter["dateToMs"], columnFormat).split("-");
+					var dateToD = new Date(dateToSplit[0], dateToSplit[1] - 1, dateToSplit[2]);
+					dateToD.setDate(dateToD.getDate() + 1);
+					dateToD.setTime(dateToD.getTime() - 1);
+					var valueA = new Array();
+					valueA.push(dateFromD);
+					valueA.push(dateToD);
+					value = valueA;
+				} else {
+					value = null;
+				}
 				break;
 			case "notBlank":
 				useNot = true;
