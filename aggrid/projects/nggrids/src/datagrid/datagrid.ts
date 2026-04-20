@@ -2079,7 +2079,10 @@ export class DataGrid extends NGGridDirective {
 
 		if (styleClassProvider) {
 			const divContainer = this.doc.createElement('div');
-			divContainer.style.pointerEvents = 'none';
+			// Only disable pointer events if column is editable and singleClickEdit is enabled
+			if (col && col.editType && this.isSingleClickEdit) {
+				divContainer.style.pointerEvents = 'none';
+			}
 			divContainer.className = styleClassProvider;
 			if (checkboxEl) {
 				divContainer.appendChild(checkboxEl);
