@@ -8,7 +8,7 @@ var appliedFilter = null;
  *
  * */
 $scope.getGroupedFoundsetUUID = function(
-	groupColumns, groupKeys, idForFoundsets, sort, sFilterModel, hasRowStyleClassDataprovider, sortColumn, sortColumnDirection) {
+	groupColumns, groupKeys, idForFoundsets, sort, sFilterModel, hasRowStyleClassDataprovider, sortColumns) {
 	log('START SERVER SIDE ------------------------------------------ ', LOG_LEVEL.WARN);
 
 	// root is the parent
@@ -57,19 +57,6 @@ $scope.getGroupedFoundsetUUID = function(
 				query.where.add(groupColumn.eq(groupKey));	
 			}
 		}
-
-		if(sortColumn != undefined && sortColumn > -1) {
-			var sortDataprovider = $scope.model.columns[sortColumn].dataprovider;
-			var sortColumn = getQBColumnForDataprovider(query, sortDataprovider);
-
-			query.sort.clear();
-			if(sortColumnDirection === 'desc') {
-				query.sort.add(sortColumn.desc);
-			}
-			else {
-				query.sort.add(sortColumn.asc);
-			}
-		}
 	}
 
 	var isGroupQuery = groupColumns.length > groupKeys.length;
@@ -77,11 +64,20 @@ $scope.getGroupedFoundsetUUID = function(
 	if (isGroupQuery) {
 		query.result.clear();
 		query.sort.clear();
+		var groupSortDirection = 'asc';
+		if(sortColumns) {
+			for(var s = 0; s < sortColumns.length; s++) {
+				if(sortColumns[s].colIdx === groupColumnIndex) {
+					groupSortDirection = sortColumns[s].direction;
+					break;
+				}
+			}
+		}
 		if(groupColumnType == 'DATETIME') {
 			query.result.add(groupColumn.cast('date'), getDataproviderNameForGroupingView(groupDataprovider));
 			query.groupBy.add(groupColumn.cast('date'));
 
-			if (sort === 'desc') {
+			if (groupSortDirection === 'desc') {
 				query.sort.add(groupColumn.cast('date').desc);
 			} else {
 				query.sort.add(groupColumn.cast('date').asc);
@@ -91,7 +87,7 @@ $scope.getGroupedFoundsetUUID = function(
 			query.result.add(groupColumn, getDataproviderNameForGroupingView(groupDataprovider));
 			query.groupBy.add(groupColumn);	
 
-			if (sort === 'desc') {
+			if (groupSortDirection === 'desc') {
 				query.sort.add(groupColumn.desc);
 			} else {
 				query.sort.add(groupColumn.asc);
@@ -124,6 +120,21 @@ $scope.getGroupedFoundsetUUID = function(
 
 		childFoundset = servoyApi.getViewFoundSet("", query);
 	} else { // is not a new group, will be a leaf !
+
+		if(sortColumns && sortColumns.length > 0) {
+			query.sort.clear();
+			for(var s = 0; s < sortColumns.length; s++) {
+				var sc = sortColumns[s];
+				var sortDataprovider = $scope.model.columns[sc.colIdx].dataprovider;
+				var qbSortColumn = getQBColumnForDataprovider(query, sortDataprovider);
+				if(sc.direction === 'desc') {
+					query.sort.add(qbSortColumn.desc);
+				} else {
+					query.sort.add(qbSortColumn.asc);
+				}
+			}
+		}
+
 		childFoundset = parentFoundset.duplicateFoundSet();
 		// remove foundset filters, those are already in the query!
 		var foundsetFilters = childFoundset.getFoundSetFilterParams();

@@ -5682,19 +5682,19 @@ class GroupManager {
 
 		const hasRowStyleClassDataprovider = this.dataGrid.rowStyleClassDataprovider() ? true : false;
 
-		let sortColumn: any;
-		let sortColumnDirection: any;
+		const sortColumns: any[] = [];
 		const sortModel = this.dataGrid.getAgGridSortModel();
-		if (sortModel && sortModel[0]) {
-			const sortColumnIdx = this.dataGrid.getColumnIndex(sortModel[0].colId);
-			if (sortColumnIdx > -1 && this.dataGrid.columns()[sortColumnIdx].dataprovider !== undefined) {
-				sortColumn = sortColumnIdx;
-				sortColumnDirection = sortModel[0].sort;
+		if (sortModel) {
+			for (const sm of sortModel) {
+				const sortColumnIdx = this.dataGrid.getColumnIndex(sm.colId);
+				if (sortColumnIdx > -1 && this.dataGrid.columns()[sortColumnIdx].dataprovider !== undefined) {
+					sortColumns.push({ colIdx: sortColumnIdx, direction: sm.sort });
+				}
 			}
 		}
 
 		const childFoundsetPromise = this.dataGrid.servoyApi.callServerSideApi('getGroupedFoundsetUUID',
-			[groupColumns, groupKeys, idForFoundsets, sort, this.dataGrid.filterModel, hasRowStyleClassDataprovider, sortColumn, sortColumnDirection]);
+			[groupColumns, groupKeys, idForFoundsets, sort, this.dataGrid.filterModel, hasRowStyleClassDataprovider, sortColumns]);
 
 		childFoundsetPromise.then((childFoundsetUUID) => {
 			this.dataGrid.log.debug(childFoundsetUUID);
