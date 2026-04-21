@@ -4945,19 +4945,19 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 							var hasRowStyleClassDataprovider = $scope.model.rowStyleClassDataprovider ? true : false;
 
-							var sortColumn;
-							var sortColumnDirection;
-							var sortModel = gridOptions.api.getSortModel();
-							if(sortModel && sortModel[0]) {
-								var sortColumnIdx = getColumnIndex(sortModel[0].colId);
+var sortColumns = [];
+						var sortModel = gridOptions.api.getSortModel();
+						if(sortModel) {
+							for(var si = 0; si < sortModel.length; si++) {
+								var sortColumnIdx = getColumnIndex(sortModel[si].colId);
 								if(sortColumnIdx > -1 && $scope.model.columns[sortColumnIdx].dataprovider !== undefined) {
-									sortColumn = sortColumnIdx;
-									sortColumnDirection = sortModel[0].sort;
+									sortColumns.push({ colIdx: sortColumnIdx, direction: sortModel[si].sort });
 								}
 							}
+						}
 
-							childFoundsetPromise = $scope.svyServoyapi.callServerSideApi("getGroupedFoundsetUUID",
-								[groupColumns, groupKeys, idForFoundsets, sort, $scope.filterModel, hasRowStyleClassDataprovider, sortColumn, sortColumnDirection]);
+						childFoundsetPromise = $scope.svyServoyapi.callServerSideApi("getGroupedFoundsetUUID",
+							[groupColumns, groupKeys, idForFoundsets, sort, $scope.filterModel, hasRowStyleClassDataprovider, sortColumns]);
 
 							childFoundsetPromise.then(function(childFoundsetUUID) {
 									$log.debug(childFoundsetUUID);
