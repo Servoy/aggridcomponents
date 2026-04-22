@@ -3189,6 +3189,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						};
 
 						HtmlTooltip.prototype.unescape = function(s) {
+							s = String(s);
 							var re = /&(?:amp|#38|lt|#60|gt|#62|apos|#39|quot|#34);/g;
 							var unescaped = {
 							  '&amp;': '&',
