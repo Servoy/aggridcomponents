@@ -4863,9 +4863,6 @@ class FoundsetDatasource implements IServerSideDatasource {
 		let removeAllFoundsetRefPostponed = false;
 		const _this = this;
 		for (let i = 0; i < groupKeys.length; i++) {
-			if (groupKeys[i] == NULL_VALUE) {
-				groupKeys[i] = null;	// reset to real null, so we use the right value for grouping
-			}
 			if (groupKeys[i] !== null) {
 				if(params?.parentNode?.data['_unresolved_' + rowGroupCols[i]['field']] !== undefined) {
 					groupKeys[i] = params?.parentNode?.data['_unresolved_' + rowGroupCols[i]['field']];
