@@ -3266,10 +3266,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							if (groupKeys[i] == NULL_VALUE) {
 								groupKeys[i] = null;	// reset to real null, so we use the right value for grouping
 							}
-							else {
-								var vl = getValuelistEx(params.parentNode.data, rowGroupCols[i]['id'], false);
-								if(vl) {
-									filterPromisesFction(vl, i);
+							if (groupKeys[i] !== null) {
+								if(params?.parentNode?.data['_unresolved_' + rowGroupCols[i]['field']] !== undefined) {
+									groupKeys[i] = params?.parentNode?.data['_unresolved_' + rowGroupCols[i]['field']];
+								} else {
+									var vl = getValuelistEx(params.parentNode.data, rowGroupCols[i]['id'], false);
+									if(vl) {
+										filterPromisesFction(vl, i);
+									}
 								}
 							}
 						}
@@ -4039,8 +4043,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 									var header = columns[i];
 									var field = header.id == 'svycount' ? header.id : getColumnID(header, i);
 
-									var value = header.dataprovider ? header.dataprovider[index] : null;
-									r[field] = value;
+									if(header.dataprovider) {
+										r[field] = header.dataprovider[index];
+										if(header.dataproviderUnresolved && (header.dataprovider[index] !== header.dataproviderUnresolved[index])) {
+											r["_unresolved_" + field] = header.dataproviderUnresolved[index];
+										}
+									} else {
+										r[field] = null;
+									}
 								}
 
 								return r;
