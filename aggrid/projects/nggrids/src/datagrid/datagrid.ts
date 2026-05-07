@@ -172,6 +172,7 @@ export class DataGrid extends NGGridDirective {
 	readonly _internalFunctionCalls = input<Array<FunctionCall>>(undefined);
 	readonly _internalHasDoubleClickHandler = input<boolean>(undefined);
 
+	readonly onCellFocusGained = input<(foundsetindex: number,columnindex: number,record: unknown,event: Event) => void>(undefined);
 	readonly onColumnDataChange = input<(foundsetindex: number, columnindex: number, oldvalue: unknown, newvalue: unknown, event: Event, record: unknown) => void>(undefined);
 	readonly onCellEditingStarted = input<(foundsetindex: number, columnindex: number, value: unknown, event: Event, record: unknown) => void>(undefined);
 	readonly onCellEditingStopped = input<(foundsetindex: number, columnindex: number, oldvalue: unknown, newvalue: unknown, event: Event, record: unknown) => void>(undefined);
@@ -1091,6 +1092,9 @@ export class DataGrid extends NGGridDirective {
 		this.agGrid().api.addEventListener('cellContextMenu', (params: any) => {
 			this.onCellContextMenu(params);
 		});
+        this.agGrid().api.addEventListener('cellFocused', (params: any) => {
+         this.onCellFocusedHandler(params);
+        });
 
 		// // listen to group changes
 		this.agGrid().api.addEventListener('columnRowGroupChanged', (params: any) => {
@@ -3889,6 +3893,17 @@ export class DataGrid extends NGGridDirective {
 			}
 		}
 	}
+
+    onCellFocusedHandler(params: any) {
+		const onCellFocusGained = this.onCellFocusGained();
+        if (onCellFocusGained && params && params.rowIndex !== null && params.rowIndex !== undefined && params.column) {
+            const foundsetIndex = this.isTableGrouped() ? -1 : params.rowIndex + 1;
+            const columnIndex = this.getColumnIndex(params.column.colId);
+            const rowNode = this.agGrid().api.getDisplayedRowAtIndex(params.rowIndex);
+            const record = rowNode ? this.getRecord(rowNode) : null;
+            onCellFocusGained(foundsetIndex, columnIndex, record, params.event || this.createJSEvent());
+        }
+    }
 
 	onCellClicked(params: any, jsEvent: JSEvent, timeout?: number) {
 		this.log.debug(params);
