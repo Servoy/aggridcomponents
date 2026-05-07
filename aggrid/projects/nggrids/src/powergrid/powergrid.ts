@@ -125,6 +125,7 @@ export class PowerGrid extends NGGridDirective {
     @Input() onCellClick: any;
     @Input() onCellDoubleClick: any;
     @Input() onCellRightClick: any;
+    @Input() onCellFocusGained: any;
     @Input() onColumnDataChange: any;
     @Input() onColumnFormEditStarted: any;
     @Input() onLazyLoadingGetRows: any;
@@ -662,6 +663,7 @@ export class PowerGrid extends NGGridDirective {
         this.agGrid.api.addEventListener('cellClicked', (params: any) => this.cellClickHandler(params));
         this.agGrid.api.addEventListener('cellDoubleClicked', (params: any) => this.onCellDoubleClicked(params));
         this.agGrid.api.addEventListener('cellContextMenu', (params: any) => this.onCellContextMenu(params));
+        this.agGrid.api.addEventListener('cellFocused', (params: any) => this.onCellFocusedHandler(params));
         this.agGrid.api.addEventListener('displayedColumnsChanged', () => this.svySizeColumnsToFit(GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED));
 
         // listen to group changes
@@ -1428,6 +1430,17 @@ export class PowerGrid extends NGGridDirective {
         if (this.onRowSelected && node && node.data) {
             // var selectIndex = node.rowIndex + 1; Selected index doesn't make sense for a dataset since the grid may change the dataset internally
             this.onRowSelected(node.data, node.selected, this.createJSEvent());
+        }
+    }
+
+    onCellFocusedHandler(params: any) {
+        if (this.onCellFocusGained && params && params.rowIndex !== null && params.rowIndex !== undefined && params.column) {
+            const rowNode = this.agGrid.api.getDisplayedRowAtIndex(params.rowIndex);
+            const rowData = rowNode && (rowNode.data || (rowNode.groupData && Object.assign(rowNode.groupData, rowNode.aggData)));
+            if (rowData) {
+                const colId = params.column?.colDef?.colId !== undefined ? params.column.colDef.colId : params.column?.colDef?.field;
+                this.onCellFocusGained(rowData, colId, params.value, params.event || this.createJSEvent());
+            }
         }
     }
 

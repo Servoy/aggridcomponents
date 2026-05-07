@@ -134,6 +134,25 @@
 				"optional": true
 			}]
 		},
+		"onCellFocusGained": {
+			"doc": "Called when a cell gains focus",
+			"parameters": [{
+				"name": "rowData",
+				"type": "object"
+			}, {
+				"name": "columnId",
+				"type": "string",
+				"optional": true
+			}, {
+				"name": "cellData",
+				"type": "object",
+				"optional": true
+			}, {
+				"name": "event",
+				"type": "JSEvent",
+				"optional": true
+			}]
+		},
 		"onColumnStateChanged": {
 			"doc": "Called when the columns state is changed",
 			"parameters": [
