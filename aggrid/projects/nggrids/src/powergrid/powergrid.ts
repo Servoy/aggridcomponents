@@ -124,6 +124,7 @@ export class PowerGrid extends NGGridDirective {
     readonly _internalResetLazyLoading = input<any>(undefined);
     readonly _internalResetLazyLoadingChange = output<any>();
 
+    readonly onCellFocusGained = input<any>(undefined);
     readonly onCellClick = input<any>(undefined);
     readonly onCellDoubleClick = input<any>(undefined);
     readonly onCellRightClick = input<any>(undefined);
@@ -707,6 +708,7 @@ export class PowerGrid extends NGGridDirective {
         this.agGrid().api.addEventListener('cellClicked', (params: any) => this.cellClickHandler(params));
         this.agGrid().api.addEventListener('cellDoubleClicked', (params: any) => this.onCellDoubleClicked(params));
         this.agGrid().api.addEventListener('cellContextMenu', (params: any) => this.onCellContextMenu(params));
+        this.agGrid().api.addEventListener('cellFocused', (params: any) => this.onCellFocusedHandler(params));
         this.agGrid().api.addEventListener('displayedColumnsChanged', () => this.svySizeColumnsToFit(GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED));
 
         // listen to group changes
@@ -1527,6 +1529,18 @@ export class PowerGrid extends NGGridDirective {
         if (onRowSelected && node && node.data) {
             // var selectIndex = node.rowIndex + 1; Selected index doesn't make sense for a dataset since the grid may change the dataset internally
             onRowSelected(node.data, node.selected, this.createJSEvent());
+        }
+    }
+
+    onCellFocusedHandler(params: any) {
+        const onCellFocusGained = this.onCellFocusGained();
+        if (onCellFocusGained && params && params.rowIndex !== null && params.rowIndex !== undefined && params.column) {
+            const rowNode = this.agGrid().api.getDisplayedRowAtIndex(params.rowIndex);
+            const rowData = rowNode && (rowNode.data || (rowNode.groupData && Object.assign(rowNode.groupData, rowNode.aggData)));
+            if (rowData) {
+                const colId = params.column?.colDef?.colId !== undefined ? params.column.colDef.colId : params.column?.colDef?.field;
+                onCellFocusGained(rowData, colId, params.value, params.event || this.createJSEvent());
+            }
         }
     }
 

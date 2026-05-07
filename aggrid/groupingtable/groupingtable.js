@@ -1010,6 +1010,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					gridOptions.api.addEventListener('cellClicked', cellClickHandler);
 					gridOptions.api.addEventListener('cellDoubleClicked', onCellDoubleClicked);
 					gridOptions.api.addEventListener('cellContextMenu', onCellContextMenu);
+					gridOptions.api.addEventListener('cellFocused', onCellFocused);
 
 					// listen to group changes
 					gridOptions.api.addEventListener('columnRowGroupChanged', onColumnRowGroupChanged);
@@ -1225,6 +1226,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					 *
 					 * @private
 					 * */
+					function onCellFocused(params) {
+						if ($scope.handlers.onCellFocusGained && params && params.rowIndex !== null && params.rowIndex !== undefined && params.column) {
+							var rowNode = gridOptions.api.getDisplayedRowAtIndex(params.rowIndex);
+							var foundsetIndex = isTableGrouped() ? -1 : params.rowIndex + 1;
+							$scope.handlers.onCellFocusGained(foundsetIndex, getColumnIndex(params.column.colId), getRecord(rowNode), params.event || createJSEvent());
+						}
+					}
+
 					function onCellClicked(params) {
 						$log.debug(params);
 						var col = params.colDef.field ? getColumn(params.colDef.field) : null;
