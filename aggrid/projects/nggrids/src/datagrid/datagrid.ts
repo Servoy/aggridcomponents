@@ -156,6 +156,7 @@ export class DataGrid extends NGGridDirective {
     @Input() _internalHasDoubleClickHandler: boolean;
 
 
+    @Input() onCellFocusGained: (foundsetindex: number,columnindex: number,record: unknown,event: Event) => void;
     @Input() onColumnDataChange: (foundsetindex: number,columnindex: number,oldvalue: unknown,newvalue: unknown,event: Event,record: unknown,) => void;
     @Input() onColumnStateChanged: (columnState: string, event: Event) => void;
     @Input() onFooterClick: (columnindex: number, event: Event, dataTarget: string) => void;
@@ -961,6 +962,9 @@ export class DataGrid extends NGGridDirective {
         });
         this.agGrid.api.addEventListener('cellContextMenu', (params: any) => {
          this.onCellContextMenu(params);
+        });
+        this.agGrid.api.addEventListener('cellFocused', (params: any) => {
+         this.onCellFocusedHandler(params);
         });
 
         // // listen to group changes
@@ -3654,6 +3658,16 @@ export class DataGrid extends NGGridDirective {
                     this.onCellClicked(params, jsEvent, 350);
                 }
             }
+        }
+    }
+
+    onCellFocusedHandler(params: any) {
+        if (this.onCellFocusGained && params && params.rowIndex !== null && params.rowIndex !== undefined && params.column) {
+            const foundsetIndex = this.isTableGrouped() ? -1 : params.rowIndex + 1;
+            const columnIndex = this.getColumnIndex(params.column.colId);
+            const rowNode = this.agGrid.api.getDisplayedRowAtIndex(params.rowIndex);
+            const record = rowNode ? this.getRecord(rowNode) : null;
+            this.onCellFocusGained(foundsetIndex, columnIndex, record, params.event || this.createJSEvent());
         }
     }
 

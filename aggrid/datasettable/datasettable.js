@@ -538,6 +538,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 gridOptions.api.addEventListener('cellClicked', cellClickHandler);
                 gridOptions.api.addEventListener('cellDoubleClicked', onCellDoubleClicked);
                 gridOptions.api.addEventListener('cellContextMenu', onCellContextMenu);
+                gridOptions.api.addEventListener('cellFocused', onCellFocused);
                 gridOptions.api.addEventListener('displayedColumnsChanged', onDisplayedColumnsChanged);
 
                 // listen to group changes
@@ -1397,6 +1398,17 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     // TODO i don't think i need that
                     return;
                 }
+
+                    function onCellFocused(params) {
+                        if ($scope.handlers.onCellFocusGained && params && params.rowIndex !== null && params.rowIndex !== undefined && params.column) {
+                            var rowNode = gridOptions.api.getDisplayedRowAtIndex(params.rowIndex);
+                            var rowData = rowNode && (rowNode.data || (rowNode.groupData && Object.assign(rowNode.groupData, rowNode.aggData)));
+                            if (rowData) {
+                                var colId = params.column.colDef.colId !== undefined ? params.column.colDef.colId : params.column.colDef.field;
+                                $scope.handlers.onCellFocusGained(rowData, colId, params.value, params.event || createJSEvent());
+                            }
+                        }
+                    }
 
                     function onCellClicked(params) {
                         var col = params.colDef.field ? getColumn(params.colDef.field) : null;

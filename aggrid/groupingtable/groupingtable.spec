@@ -163,6 +163,25 @@
 			}],
 			"private": true
 		},
+		"onCellFocusGained": {
+			"doc": "Called when a cell gains focus (foundset and column indexes are given)\nthe foundsetindex is always -1 when there are grouped rows",
+			"parameters": [{
+				"name": "foundsetindex",
+				"type": "int"
+			}, {
+				"name": "columnindex",
+				"type": "int",
+				"optional": true
+			}, {
+				"name": "record",
+				"type": "record",
+				"optional": true
+			}, {
+				"name": "event",
+				"type": "JSEvent",
+				"optional": true
+			}]
+		},
 		"onFooterClick": {
 			"doc": "Called when the mouse is clicked on a footer cell",
 			"parameters": [{
