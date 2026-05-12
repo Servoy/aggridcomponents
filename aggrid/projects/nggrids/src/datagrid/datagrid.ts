@@ -1361,6 +1361,9 @@ export class DataGrid extends NGGridDirective {
     initRootFoundset() {
 
         this.foundset = new FoundsetManager(this, this.myFoundset, 'root', true);
+		if (this.onSort()) {
+			this.applySortModel(this.getSortModel());
+		}
         const foundsetServer = new FoundsetServer(this, []);
         const datasource = new FoundsetDatasource(this, foundsetServer);
         if(this.myFoundset) {
