@@ -1,14 +1,16 @@
 import { AgFloatingFilterComponent } from 'ag-grid-angular';
 import { FilterChangedEvent, IFilterParams, IFloatingFilterParams, IFloatingFilterParent } from 'ag-grid-community';
-import { Directive, ElementRef, HostBinding, viewChild } from '@angular/core';
+import { Directive, ElementRef, viewChild } from '@angular/core';
 import { NULL_VALUE } from '../datagrid/datagrid';
 import { Deferred } from '@servoy/public';
 import { NGGridDirective } from '../nggrid';
 
-@Directive()
+@Directive({
+    host: { '[class.ag-floating-filter-input]': 'isFloating' }
+})
 export class FilterDirective implements AgFloatingFilterComponent, IFloatingFilterParent {
 
-    @HostBinding('class.ag-floating-filter-input') isFloating = true;
+    isFloating = true;
     
     readonly elementRef = viewChild<ElementRef>('element');
     readonly element1Ref = viewChild<ElementRef>('element1');

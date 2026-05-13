@@ -1,4 +1,4 @@
-import { HostListener, Component, input, viewChild, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, viewChild, signal } from '@angular/core';
 import { NgbTypeahead, NgbTypeaheadConfig } from '@ng-bootstrap/ng-bootstrap';
 import { merge, Observable, of, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, switchMap } from 'rxjs/operators';
@@ -21,8 +21,11 @@ import { EditorDirective } from './editor';
         #instance="ngbTypeahead" #element>
     `,
     host: {
-      'style': 'width: 100%; height: 100%;'
+      'style': 'width: 100%; height: 100%;',
+      '(keydown)': 'onKeyDown($event)',
+      '(keypress)': 'onKeyPress($event)'
     },
+    changeDetection: ChangeDetectionStrategy.OnPush,
     standalone: false
 })
 export class TypeaheadEditor extends EditorDirective implements IPopupSupportComponent{
@@ -50,7 +53,7 @@ export class TypeaheadEditor extends EditorDirective implements IPopupSupportCom
     config.container = 'body';
   }
 
-  @HostListener('keydown',['$event']) onKeyDown(e: KeyboardEvent) {
+  onKeyDown(e: KeyboardEvent) {
     const arrowsUpDownMoveWhenEditing = this.ngGrid.arrowsUpDownMoveWhenEditing();
     if(arrowsUpDownMoveWhenEditing && arrowsUpDownMoveWhenEditing !== 'NONE') {
         const isNavigationLeftRightKey = e.keyCode === 37 || e.keyCode === 39;
@@ -74,7 +77,7 @@ export class TypeaheadEditor extends EditorDirective implements IPopupSupportCom
     }
   }
 
-  @HostListener('keypress',['$event']) onKeyPress(e: KeyboardEvent) {
+  onKeyPress(e: KeyboardEvent) {
       const isNavigationLeftRightKey = e.keyCode === 37 || e.keyCode === 39;
       const isNavigationUpDownEntertKey = e.keyCode === 38 || e.keyCode === 40 || e.keyCode === 13;
 

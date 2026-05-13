@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { FilterDirective } from './filter';
 
 @Component({
@@ -41,7 +41,8 @@ import { FilterDirective } from './filter';
         </div>
       }
       `,
-    standalone: false
+    standalone: false,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class RadioFilter extends FilterDirective {
 

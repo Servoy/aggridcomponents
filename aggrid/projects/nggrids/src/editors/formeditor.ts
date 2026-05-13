@@ -1,5 +1,5 @@
 import { ICellEditorParams } from 'ag-grid-community';
-import { ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
 import { EditorDirective } from './editor';
 
 @Component({
@@ -9,7 +9,8 @@ import { EditorDirective } from './editor';
         <ng-template [ngTemplateOutlet]="getTemplate()" [ngTemplateOutletContext]="{name:getForm()}"></ng-template>
       </div>
     `,
-    standalone: false
+    standalone: false,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class FormEditor extends EditorDirective implements OnDestroy {
 

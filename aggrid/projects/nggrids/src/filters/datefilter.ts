@@ -1,4 +1,4 @@
-import { Component, ElementRef, Inject, Renderer2, DOCUMENT, viewChild } from "@angular/core";
+import { ChangeDetectionStrategy, Component, ElementRef, Inject, Renderer2, DOCUMENT, viewChild } from "@angular/core";
 import { FilterDirective } from "./filter";
 import { Format, FormattingService, getFirstDayOfWeek, MaskFormat, ServoyPublicService } from '@servoy/public';
 import { DateTime as DateTimeLuxon} from 'luxon';
@@ -54,7 +54,8 @@ import { DateTime, Options, Namespace, TempusDominus } from '@eonasdan/tempus-do
       </div>
     }</div>
     `,
-  standalone: false
+  standalone: false,
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DateFilter extends FilterDirective {
     readonly elementToRef = viewChild<ElementRef>('elementTo');

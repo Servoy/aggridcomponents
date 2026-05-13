@@ -1,5 +1,5 @@
 import { GetRowIdParams, ColumnMenuTab, ColumnResizedEvent, ColDef, Column, IRowNode, IAggFunc, DisplayedColumnsChangedEvent } from 'ag-grid-community';
-import { ChangeDetectorRef, Component, Inject, Renderer2, SecurityContext, SimpleChanges, DOCUMENT, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Renderer2, SecurityContext, SimpleChanges, DOCUMENT, input, output, signal } from '@angular/core';
 import { BaseCustomObject, FormattingService, ICustomArray, ServoyPublicService, PopupStateService } from '@servoy/public';
 import { LoggerFactory } from '@servoy/public';
 import { ColumnsAutoSizingOn, DragTransferData, GRID_EVENT_TYPES, IconConfig, JSDNDEvent, MainMenuItemsConfig, NGGridDirective, ToolPanelConfig } from '../nggrid';
@@ -73,6 +73,7 @@ const COLUMN_KEYS_TO_CHECK_FOR_CHANGES = [
 @Component({
     selector: 'aggrid-datasettable',
     templateUrl: './powergrid.html',
+    changeDetection: ChangeDetectionStrategy.OnPush,
     standalone: false
 })
 export class PowerGrid extends NGGridDirective {
@@ -190,6 +191,16 @@ export class PowerGrid extends NGGridDirective {
 
     ngOnInit() {
         super.ngOnInit();
+        // Initialize signals from inputs early so they are available during ngOnInit
+        this._columnState.set(this.columnState());
+        this.__internalColumnState.set(this._internalColumnState());
+        this.__internalResetLazyLoading.set(this._internalResetLazyLoading());
+        this._checkboxSelection.set(this.checkboxSelection());
+        this._columnsAutoSizing.set(this.columnsAutoSizing());
+        this.__internalExpandedState.set(this._internalExpandedState());
+        this._data.set(this.data());
+        this._lastRowIndex.set(this.lastRowIndex());
+
         // if nggrids service is present read its defaults
         let toolPanelConfig = this.registrationService.powergridService.toolPanelConfig ? this.registrationService.powergridService.toolPanelConfig : null;
         let iconConfig = this.registrationService.powergridService.iconConfig ? this.registrationService.powergridService.iconConfig : null;
@@ -659,14 +670,6 @@ export class PowerGrid extends NGGridDirective {
 
     svyOnInit() {
         super.svyOnInit();
-        this._columnState.set(this.columnState());
-        this.__internalColumnState.set(this._internalColumnState());
-        this.__internalResetLazyLoading.set(this._internalResetLazyLoading());
-        this._checkboxSelection.set(this.checkboxSelection());
-        this._columnsAutoSizing.set(this.columnsAutoSizing());
-        this.__internalExpandedState.set(this._internalExpandedState());
-        this._data.set(this.data());
-        this._lastRowIndex.set(this.lastRowIndex());
         // TODO:
         // init the grid. If is in designer render a mocked grid
         if (this.servoyApi.isInDesigner()) {
@@ -726,6 +729,13 @@ export class PowerGrid extends NGGridDirective {
 
     svyOnChanges(changes: SimpleChanges) {
         if (changes) {
+            // Sync internal signals from inputs
+            if (changes['columnState']) this._columnState.set(this.columnState());
+            if (changes['columnsAutoSizing']) this._columnsAutoSizing.set(this.columnsAutoSizing());
+            if (changes['checkboxSelection']) this._checkboxSelection.set(this.checkboxSelection());
+            if (changes['_internalExpandedState']) this.__internalExpandedState.set(this._internalExpandedState());
+            if (changes['lastRowIndex']) this._lastRowIndex.set(this.lastRowIndex());
+
             for (const property of Object.keys(changes)) {
                 const change = changes[property];
                 const agGrid = this.agGrid();

@@ -1,4 +1,4 @@
-import { Component, HostListener, Inject, DOCUMENT } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, DOCUMENT } from '@angular/core';
 import { EditorDirective } from './editor';
 import { ICellEditorParams } from 'ag-grid-community';
 
@@ -12,8 +12,11 @@ import { Deferred } from '@servoy/public';
         </div>
     `,
     host: {
-        'style': 'width: 100%; height: 100%;'
+        'style': 'width: 100%; height: 100%;',
+        '(keydown)': 'onKeyDown($event)',
+        '(mousedown)': 'onMouseDown($event)'
     },
+    changeDetection: ChangeDetectionStrategy.OnPush,
     standalone: false
 })
 export class SelectEditor extends EditorDirective {
@@ -24,7 +27,7 @@ export class SelectEditor extends EditorDirective {
         super();
     }
 
-    @HostListener('keydown', ['$event']) onKeyDown(e: KeyboardEvent) {
+    onKeyDown(e: KeyboardEvent) {
         const isNavigationKey = e.keyCode === 38 || e.keyCode === 40 || e.keyCode === 13;
         if (isNavigationKey) {
             if(this.ngGrid.editNextCellOnEnter() && e.keyCode === 13) {
@@ -35,7 +38,7 @@ export class SelectEditor extends EditorDirective {
         }
     }
 
-    @HostListener('mousedown', ['$event']) onMouseDown(e: MouseEvent) {
+    onMouseDown(e: MouseEvent) {
         e.stopPropagation();
     }
 

@@ -1,4 +1,4 @@
-import { Component, Inject, Renderer2, DOCUMENT, input, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, Inject, Renderer2, DOCUMENT, input, signal } from '@angular/core';
 import { EditorDirective } from './editor';
 import { ICellEditorParams } from 'ag-grid-community';
 
@@ -16,7 +16,8 @@ import { DateTime, Namespace, Options, TempusDominus } from '@eonasdan/tempus-do
     providers: [],
     host: {
         'style': 'width: 100%; height: 100%;'
-    },    
+    },
+    changeDetection: ChangeDetectionStrategy.OnPush,
     standalone: false
 })
 export class DatePicker extends EditorDirective {

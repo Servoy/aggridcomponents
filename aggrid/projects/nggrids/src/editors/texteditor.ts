@@ -1,5 +1,5 @@
 import { ICellEditorParams } from 'ag-grid-community';
-import { Component, HostListener, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, signal } from '@angular/core';
 import { EditorDirective } from './editor';
 
 @Component({
@@ -10,8 +10,11 @@ import { EditorDirective } from './editor';
     </div>
     `,
     host: {
-        'style': 'width: 100%; height: 100%;'
+        'style': 'width: 100%; height: 100%;',
+        '(keydown)': 'onKeyDown($event)',
+        '(keypress)': 'onKeyPress($event)'
     },
+    changeDetection: ChangeDetectionStrategy.OnPush,
     standalone: false
 })
 export class TextEditor extends EditorDirective {
@@ -26,7 +29,7 @@ export class TextEditor extends EditorDirective {
     _maxLength = signal(524288);
     _initialDisplayValue = signal<any>(undefined);
 
-    @HostListener('keydown',['$event']) onKeyDown(e: KeyboardEvent) {
+    onKeyDown(e: KeyboardEvent) {
         const arrowsUpDownMoveWhenEditing = this.ngGrid.arrowsUpDownMoveWhenEditing();
         const editNextCellOnEnter = this.ngGrid.editNextCellOnEnter();
         if((arrowsUpDownMoveWhenEditing && arrowsUpDownMoveWhenEditing !== 'NONE') || editNextCellOnEnter) {
@@ -83,7 +86,7 @@ export class TextEditor extends EditorDirective {
         }
     }
 
-    @HostListener('keypress',['$event']) onKeyPress(e: KeyboardEvent) {
+    onKeyPress(e: KeyboardEvent) {
         const isNavigationLeftRightKey = e.keyCode === 37 || e.keyCode === 39;
         const isNavigationUpDownEntertKey = e.keyCode === 38 || e.keyCode === 40 || e.keyCode === 13;
 
