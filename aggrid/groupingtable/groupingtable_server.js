@@ -50,11 +50,20 @@ $scope.getGroupedFoundsetUUID = function(
 		if (i < groupKeys.length) {
 			var groupKey = groupKeys[i];
 			log('The node is a sub-group of groupKey ' + groupKey, LOG_LEVEL.WARN);
-			if(groupColumnType == 'DATETIME') {
+			if (groupColumnType == 'DATETIME') {
 				query.where.add(groupColumn.cast('date').eq(groupKey));
-			}
-			else {
-				query.where.add(groupColumn.eq(groupKey));	
+			} else if (groupColumnType == 'TEXT') {
+				// groupKey may arrive as a JS number (e.g. Double 1.0 from Rhino) for VARCHAR columns;
+				// String() coerces 1.0 -> "1", avoiding Servoy's Double.toString() producing "1.0"
+				query.where.add(groupColumn.eq(String(groupKey)));
+			} else if (groupColumnType == 'INTEGER') {
+				// groupKey may arrive as a string from the client; parseInt is a no-op when already an integer
+				query.where.add(groupColumn.eq(parseInt(groupKey, 10)));
+			} else if (groupColumnType == 'NUMBER') {
+				// groupKey may arrive as a string from the client
+				query.where.add(groupColumn.eq(parseFloat(groupKey)));
+			} else {
+				query.where.add(groupColumn.eq(groupKey));
 			}
 		}
 	}
