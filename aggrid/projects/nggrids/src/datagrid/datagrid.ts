@@ -160,6 +160,7 @@ export class DataGrid extends NGGridDirective {
     @Input() onColumnDataChange: (foundsetindex: number,columnindex: number,oldvalue: unknown,newvalue: unknown,event: Event,record: unknown,) => void;
     @Input() onColumnStateChanged: (columnState: string, event: Event) => void;
     @Input() onFooterClick: (columnindex: number, event: Event, dataTarget: string) => void;
+    @Input() onHeaderClick: (columnindex: number, event: Event) => void;
     @Input() onReady: () => void;
     @Input() onElementDataChange: () => void;
     @Input() onRowGroupOpened: (groupcolumnindexes: number[],groupkeys: unknown[],isopened: boolean) => void;
@@ -979,6 +980,14 @@ export class DataGrid extends NGGridDirective {
         this.agGrid.api.addEventListener('rowGroupOpened', (params: any) => {
          this.onRowGroupOpenedHandler(params);
         });
+
+		// listen to header clicks on non-sortable columns
+		this.agGrid.api.addEventListener('columnHeaderClicked', (params: any) => {
+			if (this.onHeaderClick && params.column && !params.column.isSortable()) {
+				const columnIndex = this.getColumnIndex(params.column.getId());
+				this.onHeaderClick(columnIndex, this.createJSEvent());
+			}
+		});
     }
 
     svyOnChanges(changes: SimpleChanges) {

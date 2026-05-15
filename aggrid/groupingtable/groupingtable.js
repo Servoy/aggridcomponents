@@ -1018,6 +1018,23 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					// listen to group collapsed
 					gridOptions.api.addEventListener('rowGroupOpened', onRowGroupOpened);
 
+					// listen to header clicks on non-sortable columns
+					gridDiv.addEventListener('click', function(e) {
+						if ($scope.handlers.onHeaderClick) {
+							var headerCell = e.target.closest('.ag-header-cell');
+							if (headerCell) {
+								var colId = headerCell.getAttribute('col-id');
+								if (colId) {
+									var col = gridOptions.columnApi.getColumn(colId);
+									if (col && col.getColDef().sortable === false) {
+										var columnIndex = getColumnIndex(colId);
+										$scope.handlers.onHeaderClick(columnIndex, createJSEvent());
+									}
+								}
+							}
+						}
+					});
+
 					/**
 					 * Grid Event
 					 * @private

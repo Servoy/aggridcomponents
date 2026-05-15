@@ -136,6 +136,7 @@ export class PowerGrid extends NGGridDirective {
     @Input() onReady: any;
     @Input() onColumnStateChanged: any;
     @Input() onFooterClick: any;
+    @Input() onHeaderClick: any;
     @Input() _internalAggCustomFuncs: AggFuncInfo[];
 
 
@@ -681,6 +682,14 @@ export class PowerGrid extends NGGridDirective {
 
         // listen to group collapsed
         this.agGrid.api.addEventListener('rowGroupOpened', (event: any) => this.onRowGroupOpenedHandler(event));
+
+        // listen to header clicks on non-sortable columns
+        this.agGrid.api.addEventListener('columnHeaderClicked', (params: any) => {
+            if (this.onHeaderClick && params.column && !params.column.isSortable()) {
+                const columnIndex = this.getColumnIndex(params.column.getId());
+                this.onHeaderClick(columnIndex, this.createJSEvent());
+            }
+        });
 
 
         if (!this.servoyApi.isInDesigner() && this.useLazyLoading) {
