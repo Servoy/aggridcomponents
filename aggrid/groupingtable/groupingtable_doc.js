@@ -248,6 +248,14 @@ var handlers = {
     onFooterClick: function() {},
 
     /**
+     * Called when the mouse is clicked on a column header that is not sortable
+     *
+     * @param {Number} [columnindex] The index of the clicked column header (0-based).
+     * @param {JSEvent} [event] The event object associated with the click.
+     */
+    onHeaderClick: function() {},
+
+    /**
      * Called when the columns state is changed
      *
      * @param {String} columnState The new serialized state of the columns (e.g., widths, order, visibility).

@@ -178,6 +178,7 @@ export class DataGrid extends NGGridDirective {
 	readonly onCellEditingStopped = input<(foundsetindex: number, columnindex: number, oldvalue: unknown, newvalue: unknown, event: Event, record: unknown) => void>(undefined);
 	readonly onColumnStateChanged = input<(columnState: string, event: Event) => void>(undefined);
 	readonly onFooterClick = input<(columnindex: number, event: Event, dataTarget: string) => void>(undefined);
+	readonly onHeaderClick = input<(columnindex: number, event: Event) => void>(undefined);
 	readonly onReady = input<() => void>(undefined);
 	readonly onElementDataChange = input<() => void>(undefined);
 	readonly onRowGroupOpened = input<(groupcolumnindexes: number[], groupkeys: unknown[], isopened: boolean) => void>(undefined);
@@ -1107,6 +1108,15 @@ export class DataGrid extends NGGridDirective {
 		// listen to group collapsed
 		this.agGrid().api.addEventListener('rowGroupOpened', (params: any) => {
 			this.onRowGroupOpenedHandler(params);
+		});
+
+		// listen to header clicks on non-sortable columns
+		this.agGrid().api.addEventListener('columnHeaderClicked', (params: any) => {
+			const onHeaderClick = this.onHeaderClick();
+			if (onHeaderClick && params.column && !params.column.isSortable()) {
+				const columnIndex = this.getColumnIndex(params.column.getId());
+				onHeaderClick(columnIndex, this.createJSEvent());
+			}
 		});
 	}
 

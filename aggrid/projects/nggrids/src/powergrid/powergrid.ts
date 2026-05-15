@@ -137,6 +137,7 @@ export class PowerGrid extends NGGridDirective {
     readonly onReady = input<any>(undefined);
     readonly onColumnStateChanged = input<any>(undefined);
     readonly onFooterClick = input<any>(undefined);
+    readonly onHeaderClick = input<(columnindex: number, event: Event) => void>(undefined);
     readonly _internalAggCustomFuncs = input<AggFuncInfo[]>(undefined);
     
     _columnState = signal<any>(undefined);
@@ -720,6 +721,14 @@ export class PowerGrid extends NGGridDirective {
         // listen to group collapsed
         this.agGrid().api.addEventListener('rowGroupOpened', (event: any) => this.onRowGroupOpenedHandler(event));
 
+        // listen to header clicks on non-sortable columns
+        this.agGrid().api.addEventListener('columnHeaderClicked', (params: any) => {
+            const onHeaderClick = this.onHeaderClick();
+            if (onHeaderClick && params.column && !params.column.isSortable()) {
+                const columnIndex = this.getColumnIndex(params.column.getId());
+                onHeaderClick(columnIndex, this.createJSEvent());
+            }
+        });
 
         if (!this.servoyApi.isInDesigner() && this.useLazyLoading()) {
             this.lazyLoadingRemoteDatasource = new RemoteDatasource(this);
