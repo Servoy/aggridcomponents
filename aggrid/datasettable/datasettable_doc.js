@@ -303,7 +303,15 @@ var handlers = {
      * @param {JSEvent} [event] The event object associated with the click.
      * @param {String} [dataTarget] Optional target identifier for the click.
      */
-    onFooterClick: function() {}
+    onFooterClick: function() {},
+
+    /**
+     * Called when the mouse is clicked on a column header that is not sortable
+     *
+     * @param {Number} [columnindex] The index of the clicked column header (0-based).
+     * @param {JSEvent} [event] The event object associated with the click.
+     */
+    onHeaderClick: function() {}
 };
 
 

@@ -547,6 +547,22 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                 // listen to group collapsed
                 gridOptions.api.addEventListener('rowGroupOpened', onRowGroupOpened);
 
+                // listen to header clicks on non-sortable columns
+                gridDiv.addEventListener('click', function(e) {
+                    if ($scope.handlers.onHeaderClick) {
+                        var headerCell = e.target.closest('.ag-header-cell');
+                        if (headerCell) {
+                            var colId = headerCell.getAttribute('col-id');
+                            if (colId) {
+                                var col = gridOptions.columnApi.getColumn(colId);
+                                if (col && col.getColDef().sortable === false) {
+                                    var columnIndex = getColumnIndex(colId);
+                                    $scope.handlers.onHeaderClick(columnIndex, createJSEvent());
+                                }
+                            }
+                        }
+                    }
+                });
 
                 gridDiv.addEventListener("focus", function(e) {
                     if(gridOptions.api && gridOptions.columnApi) {
