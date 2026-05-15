@@ -175,6 +175,18 @@
 				"type": "JSEvent",
 				"optional": true
 			}]
+		},
+		"onHeaderClick": {
+			"doc": "Called when the mouse is clicked on a column header that is not sortable",
+			"parameters": [{
+				"name": "columnindex",
+				"type": "int",
+				"optional": true
+			}, {
+				"name": "event",
+				"type": "JSEvent",
+				"optional": true
+			}]
 		},		
 		"onColumnStateChanged": {
 			"doc": "Called when the columns state is changed",
