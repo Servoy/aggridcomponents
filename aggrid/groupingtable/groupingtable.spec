@@ -161,8 +161,7 @@
 				"name": "event",
 				"type": "JSEvent",
 				"optional": true
-			}],
-			"private": true
+			}]
 		},
 		"onFooterClick": {
 			"doc": "Called when the mouse is clicked on a footer cell",
