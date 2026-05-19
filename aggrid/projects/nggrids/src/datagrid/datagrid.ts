@@ -397,6 +397,9 @@ export class DataGrid extends NGGridDirective {
                     this.setTimeout(() =>{
                         this.sizeHeaderAndColumnsToFit(GRID_EVENT_TYPES.GRID_READY);
                         this.scrollToSelectionEx();
+                        if(!this.isTableGrouped()) {
+                            this.setupHeaderCheckbox(true);
+                        }
                         if(this.onReady) {
                             this.onReady();
                         }
@@ -600,6 +603,9 @@ export class DataGrid extends NGGridDirective {
                     }
                     this.sizeHeaderAndColumnsToFit(GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED);
                     this.storeColumnsState(e.source === 'api');
+                    if(!this.isTableGrouped()) {
+                        this.setupHeaderCheckbox(true);
+                    }
                 }
             },
             getContextMenuItems: () => this.contextMenuItems,
@@ -769,9 +775,6 @@ export class DataGrid extends NGGridDirective {
 
     ngAfterViewInit() {
         super.ngAfterViewInit();
-        if(!this.isTableGrouped()) {
-            this.setupHeaderCheckbox(true);
-        }
         this.setupHeaderIconStyleClass();
     }
 
