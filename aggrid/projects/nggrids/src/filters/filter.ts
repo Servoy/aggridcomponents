@@ -1,6 +1,6 @@
 import { AgFloatingFilterComponent } from 'ag-grid-angular';
 import { FilterChangedEvent, IFilterParams, IFloatingFilterParams, IFloatingFilterParent } from 'ag-grid-community';
-import { Directive, ElementRef, viewChild } from '@angular/core';
+import { ChangeDetectorRef, Directive, ElementRef, inject, viewChild } from '@angular/core';
 import { NULL_VALUE } from '../datagrid/datagrid';
 import { Deferred } from '@servoy/public';
 import { NGGridDirective } from '../nggrid';
@@ -14,6 +14,7 @@ export class FilterDirective implements AgFloatingFilterComponent, IFloatingFilt
     
     readonly elementRef = viewChild<ElementRef>('element');
     readonly element1Ref = viewChild<ElementRef>('element1');
+    readonly cdRef = inject(ChangeDetectorRef);
     ngGrid: NGGridDirective;
     params: IFilterParams;
     floatingParams: IFloatingFilterParams;
@@ -59,6 +60,7 @@ export class FilterDirective implements AgFloatingFilterComponent, IFloatingFilt
             if(!this.hasApplyButton()) {
               this.valuelistValues.splice(0, 0, NULL_VALUE);
             }
+            this.cdRef.markForCheck();
             this.ngGrid.cdRef.detectChanges();
             this.valuelistValuesDefer.resolve(this.valuelistValues);
           });

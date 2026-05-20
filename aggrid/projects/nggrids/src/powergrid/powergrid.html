@@ -2,8 +2,7 @@
     <ag-grid-angular
     #element
     style="height: 100%;"
-    class="ag-table"
-    [class]="styleClass()"
+    [class]="'ag-table ' + (styleClass() ?? '')"
     [sabloTabseq]="tabSeq()"
     [gridOptions]="agGridOptions">
     </ag-grid-angular>
