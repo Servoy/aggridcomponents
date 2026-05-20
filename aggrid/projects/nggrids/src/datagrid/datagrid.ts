@@ -4082,6 +4082,8 @@ export class DataGrid extends NGGridDirective {
 		// persist grouped columns state
 		this.setStateGroupedColumns(rowGroupCols);
 
+		this.detectChanges();
+
 		// resize the columns
 		this.setTimeout(() => {
 			this.sizeHeaderAndColumnsToFit(GRID_EVENT_TYPES.COLUMN_ROW_GROUP_CHANGED);
@@ -4506,6 +4508,7 @@ export class DataGrid extends NGGridDirective {
 	 * */
 	notifyDataChange() {
 		this.dirtyCache = true;
+		this.detectChanges();
 	}
 
 	/**
@@ -5159,6 +5162,7 @@ class FoundsetServer {
 			}
 			// is in group view first time the form is shown ?
 			this.dataGrid.isGroupView = rowGroupCols.length > 0;
+			this.dataGrid.detectChanges();
 		}
 
 		// Sort on the foundset Group
