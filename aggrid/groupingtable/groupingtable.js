@@ -1266,36 +1266,8 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								params.node.setDataValue(params.column.colId, getCheckboxEditorToggleValue(checkValue));
 							}
 						}
-						if ($scope.handlers.onCellClick) {
-							//						var row = params.data;
-							//						var foundsetManager = getFoundsetManagerByFoundsetUUID(row._svyFoundsetUUID);
-							//						if (!foundsetManager) foundsetManager = foundset;
-							//						var foundsetRef = foundsetManager.foundset;
-							//
-							//						var foundsetIndex;
-							//						if (isTableGrouped()) {
-							//							// TODO search for grouped record in grouped foundset (may not work because of caching issues);
-							//							$log.warn('select grouped record not supported yet');
-							//							foundsetIndex = foundsetManager.getRowIndex(row);
-							//						} else {
-							//							foundsetIndex = params.node.rowIndex;
-							//						}
-							//
-							//						var columnIndex = getColumnIndex(params.colDef.field);
-							//						var record;
-							//						if (foundsetIndex > -1) {
-							//							// FIXME cannot resolve the record when grouped, how can i rebuild the record ?
-							//							// Can i pass in the array ok pks ? do i know the pks ?
-							//							// Can i get the hasmap of columns to get the proper dataProviderID name ?
-							//							record = foundsetRef.viewPort.rows[foundsetIndex - foundsetRef.viewPort.startIndex];
-							//						}
-							//						// no foundset index if record is grouped
-							//						if (foundsetManager.isRoot === false) {
-							//							foundsetIndex = -1;
-							//						}
-
-							$scope.handlers.onCellClick(getFoundsetIndexFromEvent(params), getColumnIndex(params.column.colId), getRecord(params), params.event);
-						}
+					$scope.svyServoyapi.callServerSideApi('cellClick',
+						['click', getFoundsetIndexFromEvent(params), getColumnIndex(params.column.colId), getRecord(params), params.event, null]);
 					}
 
 					/**
@@ -1461,40 +1433,13 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							}, 250);
 						}
 					}
-					function onCellDoubleClickedEx(params) {
-						$log.debug(params);
-						if ($scope.handlers.onCellDoubleClick && !params.node.rowPinned) {
-							//						var row = params.data;
-							//						var foundsetManager = getFoundsetManagerByFoundsetUUID(row._svyFoundsetUUID);
-							//						if (!foundsetManager) foundsetManager = foundset;
-							//						var foundsetRef = foundsetManager.foundset;
-							//						var foundsetIndex;
-							//						if (isTableGrouped()) {
-							//							// TODO search for grouped record in grouped foundset (may not work because of caching issues);
-							//							$log.warn('select grouped record not supported yet');
-							//							foundsetIndex = foundsetManager.getRowIndex(row);
-							//						} else {
-							//							foundsetIndex = params.node.rowIndex;
-							//						}
-							//
-							//						var columnIndex = getColumnIndex(params.colDef.field);
-							//						var record;
-							//						if (foundsetIndex > -1) {
-							//							// FIXME cannot resolve the record when grouped, how can i rebuild the record ?
-							//							// Can i pass in the array ok pks ? do i know the pks ?
-							//							// Can i get the hasmap of columns to get the proper dataProviderID name ?
-							//							record = foundsetRef.viewPort.rows[foundsetIndex - foundsetRef.viewPort.startIndex];
-							//						}
-							//
-							//						// no foundset index if record is grouped
-							//						if (foundsetManager.isRoot === false) {
-							//							foundsetIndex = -1;
-							//						}
-							//						$scope.handlers.onCellDoubleClick(foundsetIndex, columnIndex, record, params.event);
-
-							$scope.handlers.onCellDoubleClick(getFoundsetIndexFromEvent(params), getColumnIndex(params.column.colId), getRecord(params), params.event);
-						}
+				function onCellDoubleClickedEx(params) {
+					$log.debug(params);
+					if (!params.node.rowPinned) {
+						$scope.svyServoyapi.callServerSideApi('cellClick',
+							['doubleClick', getFoundsetIndexFromEvent(params), getColumnIndex(params.column.colId), getRecord(params), params.event, null]);
 					}
+				}
 
 					/**
 					 * On Right Click event
@@ -1508,12 +1453,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								selectionEvent = { type: 'click', event: params.event, rowIndex: params.node.rowIndex };
 								params.node.setSelected(true, true);
 							}
-							if ($scope.handlers.onCellRightClick) {	
-								// Added setTimeOut to enable onColumnDataChangeEvent to go first; must be over 250, so selection is sent first
-								setTimeout(function() {
-									$scope.handlers.onCellRightClick(getFoundsetIndexFromEvent(params), getColumnIndex(params.column.colId), getRecord(params), params.event);
-								}, 350);
-							}
+						// Added setTimeOut to enable onColumnDataChangeEvent to go first; must be over 250, so selection is sent first
+						setTimeout(function() {
+							$scope.svyServoyapi.callServerSideApi('cellClick',
+								['rightClick', getFoundsetIndexFromEvent(params), getColumnIndex(params.column.colId), getRecord(params), params.event, null]);
+						}, 350);
 						}
 					}
 					
