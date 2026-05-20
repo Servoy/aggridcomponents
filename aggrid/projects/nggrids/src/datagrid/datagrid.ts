@@ -961,11 +961,12 @@ export class DataGrid extends NGGridDirective {
 							}
 						}
 						ch['checked'] = isChecked;
-						if (addClickListener) {
+						if (addClickListener && !ch['_svyHeaderCheckWired']) {
 							ch.addEventListener('click', (event: Event) => {
 								this.onHeaderCheckClick(colId, event);
 								event.stopPropagation();
 							});
+							ch['_svyHeaderCheckWired'] = true;
 						}
 					};
 				}
@@ -1835,8 +1836,7 @@ export class DataGrid extends NGGridDirective {
 			}
 
 			if (column.headerCheckbox) {
-				// Store headerCheckbox template to be applied to selection column
-				this._headerCheckboxColumnParams.set({
+				const headerCheckboxTemplate = {
 					template:
 						'<div class="ag-cell-label-container" role="presentation">' +
 						'   <span data-ref="eMenu" class="ag-header-icon ag-header-cell-menu-button" aria-hidden="true"></span>' +
@@ -1850,7 +1850,15 @@ export class DataGrid extends NGGridDirective {
 						'       <ag-sort-indicator data-ref="eSortIndicator"></ag-sort-indicator>' +
 						'   </div>' +
 						'</div>'
-				});
+				};
+				if (this._checkboxSelection()) {
+					// Row checkbox selection column is rendered: route the template
+					// to the selection column so the header checkbox aligns with it.
+					this._headerCheckboxColumnParams.set(headerCheckboxTemplate);
+				} else {
+					// No selection column: render the checkbox directly in this column's header.
+					colDef.headerComponentParams = headerCheckboxTemplate;
+				}
 			}
 
 			if (column.footerText) {
