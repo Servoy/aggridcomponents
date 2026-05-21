@@ -386,7 +386,7 @@ export class PowerGrid extends NGGridDirective {
             },
             //                onColumnEverythingChanged: storeColumnsState,	// do we need that ?, when is it actually triggered ?
             onSortChanged: () => this.storeColumnsState(),
-            //                onFilterChanged: storeColumnsState,			 disable filter sets for now
+            onFilterChanged: () => this.storeColumnsState(),
             //                onColumnVisible: storeColumnsState,			 covered by onDisplayedColumnsChanged
             //                onColumnPinned: storeColumnsState,			 covered by onDisplayedColumnsChanged
             onColumnResized: (e: ColumnResizedEvent) => {   // NOT covered by onDisplayedColumnsChanged
@@ -1304,9 +1304,19 @@ export class PowerGrid extends NGGridDirective {
                     this.applySortModel(columnStateJSON.sortModel);
                 }
 
+                if (this.isPlainObject(columnStateJSON.filterModel)) {
+                    this.agGrid().api.setFilterModel(columnStateJSON.filterModel);
+                }
+
                 this.agGrid().api.setSideBarVisible(columnStateJSON.isSideBarVisible);
             }
         }
+    }
+
+    isPlainObject(input: any) {
+        return null !== input &&
+            typeof input === 'object' &&
+            Object.getPrototypeOf(input).isPrototypeOf(Object);
     }
 
     applyExpandedState() {
@@ -1420,8 +1430,8 @@ export class PowerGrid extends NGGridDirective {
             columnState: this.agGrid().api.getColumnState(),
             rowGroupColumnsState: svyRowGroupColumnIds,
             isToolPanelShowing: this.agGrid().api.isToolPanelShowing(),
-            isSideBarVisible: this.agGrid().api.isSideBarVisible()
-            // filterState: gridOptions.api.getFilterModel(), TODO persist column states
+            isSideBarVisible: this.agGrid().api.isSideBarVisible(),
+            filterModel: this.agGrid().api.getFilterModel()
         };
 
         const newColumnState = JSON.stringify(columnState);
