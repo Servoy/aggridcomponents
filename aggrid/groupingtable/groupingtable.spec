@@ -203,6 +203,22 @@
 				"optional": true				
 			}]
 		},
+		"onHeaderTextClick": {
+			"doc": "Called when the mouse is clicked on a header text cell (pinned top row)",
+			"parameters": [{
+				"name": "columnindex",
+				"type": "int",
+				"optional": true
+			}, {
+				"name": "event",
+				"type": "JSEvent",
+				"optional": true
+			},{
+				"name":"dataTarget",
+				"type":"string",
+				"optional": true				
+			}]
+		},
 		"onHeaderClick": {
 			"doc": "Called when the mouse is clicked on a column header that is not sortable",
 			"parameters": [{
@@ -676,6 +692,9 @@
 	},
 	"types" : {
 		"column" : {
+			"headerText" : {"type" : "tagstring", "forFoundset": "myFoundset"},
+			"headerTextShowAs": { "type": "string", "values": [{"text":null}, {"html":"html"}, {"sanitizedHtml":"sanitizedHtml"}] },
+			"headerTextStyleClass" : {"type" : "styleclass"},
 			"footerText" : {"type" : "tagstring", "forFoundset": "myFoundset"},
 			"footerTextShowAs": { "type": "string", "values": [{"text":null}, {"html":"html"}, {"sanitizedHtml":"sanitizedHtml"}] },
 			"headerTitle": {"type" : "titlestring", "for": "dataprovider", "tags": { "wizard": "4","basic": true, "useAsCaptionInDeveloper" : true, "captionPriority" : 1, "showInOutlineView": true, "doc": "If the column has a database linked dataprovider, the default value of the headerTitle is the title text of the database column or if that is not set, the database column name." }},

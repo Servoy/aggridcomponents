@@ -54,6 +54,7 @@ const COLUMN_KEYS_TO_CHECK_FOR_CHANGES = [
     'headerStyleClass',
     'headerTooltip',
     'footerText',
+    'headerText',
     'styleClass',
     'visible',
     'excluded',
@@ -137,6 +138,7 @@ export class PowerGrid extends NGGridDirective {
     readonly onReady = input<any>(undefined);
     readonly onColumnStateChanged = input<any>(undefined);
     readonly onFooterClick = input<any>(undefined);
+    readonly onHeaderTextClick = input<any>(undefined);
     readonly onHeaderClick = input<(columnindex: number, event: Event) => void>(undefined);
     readonly _internalAggCustomFuncs = input<AggFuncInfo[]>(undefined);
     
@@ -548,6 +550,11 @@ export class PowerGrid extends NGGridDirective {
             this.agGridOptions.pinnedBottomRowData = gridFooterData;
         }
 
+        const gridHeaderData = this.getHeaderData();
+        if (gridHeaderData) {
+            this.agGridOptions.pinnedTopRowData = gridHeaderData;
+        }
+
         // set the icons
         if (iconConfig) {
             type FunctionType = () => string;
@@ -793,7 +800,7 @@ export class PowerGrid extends NGGridDirective {
                                         if (newPropertyValue !== oldPropertyValue) {
                                             this.log.debug('column property changed');
                                             if (this.isGridReady) {
-                                                if (prop !== "headerTooltip" && prop !== 'footerText' && prop !== 'headerTitle' && prop !== 'visible' && prop !== 'width') {
+                                                if (prop !== "headerTooltip" && prop !== 'footerText' && prop !== 'headerText' && prop !== 'headerTitle' && prop !== 'visible' && prop !== 'width') {
                                                     this.updateColumnDefs();
                                                     if (prop !== 'enableToolPanel' && prop !== 'excluded') {
                                                         this.restoreColumnsState();
@@ -807,6 +814,8 @@ export class PowerGrid extends NGGridDirective {
                                                 this.handleColumnHeader(i, prop, newPropertyValue);
                                             } else if (prop === 'footerText') {
                                                 this.handleColumnFooterText();
+                                            } else if (prop === 'headerText') {
+                                                this.handleColumnHeaderText();
                                             } else if (prop === 'visible' || prop === 'width') {
                                                 // column id is either the id of the column
                                                 const column = this.columns()[i];
@@ -987,10 +996,15 @@ export class PowerGrid extends NGGridDirective {
 
                 if (column.cellStyleClassFunc) {
                     colDef.cellClass = this.createColumnCallbackFunctionFromString(column.cellStyleClassFunc);
-                } else if (column.footerStyleClass) {
+                } else if (column.footerStyleClass || column.headerTextStyleClass) {
                     const defaultCellClass = colDef.cellClass;
-                    const footerCellClass = defaultCellClass.concat(column.footerStyleClass.split(' '));
-                    colDef.cellClass = (params: any) => params.node && params.node.rowPinned === 'bottom' ? footerCellClass : defaultCellClass;
+                    const footerCellClass = column.footerStyleClass ? defaultCellClass.concat(column.footerStyleClass.split(' ')) : defaultCellClass;
+                    const headerTextCellClass = column.headerTextStyleClass ? defaultCellClass.concat(column.headerTextStyleClass.split(' ')) : defaultCellClass;
+                    colDef.cellClass = (params: any) => {
+                        if (params.node && params.node.rowPinned === 'bottom') return footerCellClass;
+                        if (params.node && params.node.rowPinned === 'top') return headerTextCellClass;
+                        return defaultCellClass;
+                    };
                 }
 
                 if (column.cellRendererFunc) {
@@ -1596,6 +1610,11 @@ export class PowerGrid extends NGGridDirective {
                     const columnIndex = this.getColumnIndex(params.column.colId);
                     onFooterClick(columnIndex, params.event, this.getDataTarget(params.event));
                 }
+                const onHeaderTextClick = this.onHeaderTextClick();
+                if (params.node.rowPinned === 'top' && onHeaderTextClick) {
+                    const columnIndex = this.getColumnIndex(params.column.colId);
+                    onHeaderTextClick(columnIndex, params.event, this.getDataTarget(params.event));
+                }
             } else if (this.onCellDoubleClick()) {
                 if (this.clickTimer) {
                     clearTimeout(this.clickTimer);
@@ -1887,6 +1906,11 @@ export class PowerGrid extends NGGridDirective {
 
     }
 
+    handleColumnHeaderText() {
+        this.log.debug('header text column property changed');
+        this.agGrid().api.setGridOption('pinnedTopRowData', this.getHeaderData())
+    }
+
     getFooterData() {
         const result = [];
         let hasFooterData = false;
@@ -1904,6 +1928,28 @@ export class PowerGrid extends NGGridDirective {
 			}
         }
         if (hasFooterData) {
+            result.push(resultData);
+        }
+        return result;
+    }
+
+    getHeaderData() {
+        const result = [];
+        let hasHeaderData = false;
+        const resultData = {};
+        const columns = this.columns();
+        for (let i = 0; columns && i < columns.length; i++) {
+            const column = columns[i];
+            if (column.dataproviderToLowerCase()) {
+            	if (column.headerText) {
+                	resultData[column.dataproviderToLowerCase()] = column.headerText;
+                	hasHeaderData = true;
+            	} else {
+					resultData[column.dataproviderToLowerCase()] = '';
+				}
+			}
+        }
+        if (hasHeaderData) {
             result.push(resultData);
         }
         return result;
@@ -2537,6 +2583,8 @@ export class PowerGridColumn extends BaseCustomObject {
     headerStyleClass: string;
     headerIconStyleClass: string;
     headerTooltip: string;
+    headerText: string;
+    headerTextStyleClass: string;
     footerText: string;
     footerStyleClass: string;
     dataprovider: string;

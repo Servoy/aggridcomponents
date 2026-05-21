@@ -248,6 +248,15 @@ var handlers = {
     onFooterClick: function() {},
 
     /**
+     * Called when the mouse is clicked on a header text cell (pinned top row)
+     *
+     * @param {Number} [columnindex] The index of the header text column that was clicked.
+     * @param {JSEvent} [event] The event object associated with the click.
+     * @param {String} [dataTarget] Optional identifier indicating the target data context of the click.
+     */
+    onHeaderTextClick: function() {},
+
+    /**
      * Called when the mouse is clicked on a column header that is not sortable
      *
      * @param {Number} [columnindex] The index of the clicked column header (0-based).
@@ -803,6 +812,21 @@ var svy_types = {
      * Type definition for a grid column.
      */
     column: {
+
+        /**
+         * Header text to display in the pinned top row.
+         */
+        headerText: null,
+
+        /**
+         * Defines how the header text is rendered (text, html, or sanitizedHtml).
+         */
+        headerTextShowAs: null,
+
+        /**
+         * CSS class for the header text row cell.
+         */
+        headerTextStyleClass: null,
 
         /**
          * Footer text to display in the column.

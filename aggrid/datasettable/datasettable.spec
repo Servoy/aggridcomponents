@@ -318,6 +318,22 @@
 				"optional": true				
 			}]
 		},
+		"onHeaderTextClick": {
+			"doc": "Called when the mouse is clicked on a header text cell (pinned top row)",
+			"parameters": [{
+				"name": "columnindex",
+				"type": "int",
+				"optional": true
+			}, {
+				"name": "event",
+				"type": "JSEvent",
+				"optional": true
+			},{
+				"name":"dataTarget",
+				"type":"string",
+				"optional": true				
+			}]
+		},
 		"onHeaderClick": {
 			"doc": "Called when the mouse is clicked on a column header that is not sortable",
 			"parameters": [{
@@ -493,6 +509,8 @@
     },	
 	"types" : {
 		"column" : {
+			"headerText" : {"type" : "tagstring"},
+			"headerTextStyleClass" : {"type" : "styleclass"},
 			"footerText" : {"type" : "tagstring"},
 			"footerStyleClass" : {"type" : "styleclass"},
 			"headerGroup": {"type" : "tagstring", "tags": {"doc": "Header group, that this column will be part of"}},

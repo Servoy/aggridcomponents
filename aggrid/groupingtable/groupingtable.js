@@ -888,6 +888,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 						gridOptions.pinnedBottomRowData = gridFooterData;
 					}
 
+					var gridHeaderData = getHeaderData();
+					if (gridHeaderData) {
+						gridOptions.pinnedTopRowData = gridHeaderData;
+					}
+
 					// TODO check if test enabled
 					//gridOptions.ensureDomOrder = true;
 
@@ -983,6 +988,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								if (params.node.rowPinned == "bottom" && $scope.handlers.onFooterClick) {
 									var columnIndex = getColumnIndex(params.column.colId);
 									$scope.handlers.onFooterClick(columnIndex, params.event);
+								}
+								if (params.node.rowPinned == "top" && $scope.handlers.onHeaderTextClick) {
+									var columnIndex = getColumnIndex(params.column.colId);
+									$scope.handlers.onHeaderTextClick(columnIndex, params.event);
 								}
 							}
 							else {
@@ -3738,6 +3747,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								"headerStyleClass",
 								"headerTooltip",
 								"footerText",
+								"headerText",
 								"styleClass",
 								"visible",
 								"width",
@@ -3774,7 +3784,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							if(newValue != oldValue) {
 								$log.debug('column property changed');
 
-								if(property != "headerTooltip" && property != "footerText" && property != "headerTitle" && property != "visible" && property != "width") {
+								if(property != "headerTooltip" && property != "footerText" && property != "headerText" && property != "headerTitle" && property != "visible" && property != "width") {
 									if(isGridReady) {
 										updateColumnDefs();
 										if(property != "enableToolPanel") {
@@ -3793,6 +3803,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								}
 								else if (property == "footerText") {
 									handleColumnFooterText(newValue, oldValue);
+								}
+								else if (property == "headerText") {
+									handleColumnHeaderText(newValue, oldValue);
 								}
 								else if(property == "visible" || property == "width") {
 									// column id is either the id of the column
@@ -3814,7 +3827,7 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 									}
 								}
 							}
-						}, property === 'footerText');
+						}, property === 'footerText' || property === 'headerText');
 						return columnWatch;
 					}
 
@@ -3841,6 +3854,11 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 					function handleColumnFooterText(newValue, oldValue) {
 						$log.debug('footer text column property changed');
 						gridOptions.api.setPinnedBottomRowData(getFooterData());
+					}
+
+					function handleColumnHeaderText(newValue, oldValue) {
+						$log.debug('header text column property changed');
+						gridOptions.api.setPinnedTopRowData(getHeaderData());
 					}
 					
 					function isSameColumns(columnsArray1, collumnsArray2) {
@@ -5737,6 +5755,27 @@ var sortColumns = [];
 						return result;
 					}
 
+					function getHeaderData() {
+						var result = [];
+						var hasHeaderData = false;
+						var resultData = {}
+						for (var i = 0; $scope.model.columns && i < $scope.model.columns.length; i++) {
+							var column = $scope.model.columns[i];
+							if (column.headerText && column.headerText.length) {
+								var	colId = getColumnID(column, i);
+								if (colId) {
+									resultData[colId] = column.headerText[0];
+									hasHeaderData = true;
+								}
+								
+							}
+						}
+						if (hasHeaderData) {
+							result.push(resultData)
+						}
+						return result;
+					}
+
 					function getBlankLoadingCellRenderer() {
 						function BlankLoadingCellRenderer() {}
 					
@@ -5782,7 +5821,7 @@ var sortColumns = [];
 								checkboxEl.className = getIconCheckboxEditor(isInFindMode() && value === '' ? null : getCheckboxEditorBooleanValue(value));
 							}
 							else {
-								var showAs = params.node.rowPinned === 'bottom' ? col.footerTextShowAs : col.showAs;
+								var showAs = params.node.rowPinned === 'bottom' ? col.footerTextShowAs : params.node.rowPinned === 'top' ? col.headerTextShowAs : col.showAs;
 								if(col != null && showAs == 'html') {
 									value =  value && value.displayValue != undefined ? value.displayValue : value;
 								} else if(col != null && showAs == 'sanitizedHtml') {
@@ -5817,6 +5856,8 @@ var sortColumns = [];
 									}
 								} else if(col.footerStyleClass && params.node.rowPinned == "bottom") { // footer
 									styleClassProvider = col.footerStyleClass;
+								} else if(col.headerTextStyleClass && params.node.rowPinned == "top") { // header text
+									styleClassProvider = col.headerTextStyleClass;
 								}
 							}
 							

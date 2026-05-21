@@ -472,6 +472,11 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     gridOptions.pinnedBottomRowData = gridFooterData;
                 }
 
+                var gridHeaderData = getHeaderData();
+                if (gridHeaderData) {
+                    gridOptions.pinnedTopRowData = gridHeaderData;
+                }
+
                 initializeIconConfig(iconConfig);
 
                 setHeight();
@@ -663,6 +668,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                             "headerStyleClass",
                             "headerTooltip",
                             "footerText",
+                            "headerText",
                             "styleClass",
                             "visible",
                             "width",
@@ -697,7 +703,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                         if(newValue != oldValue) {
                             $log.debug('column property changed');
                             if(isGridReady) {
-                                if(property != "headerTooltip" && property != "footerText" && property != "headerTitle" && property != "visible" && property != "width") {
+                                if(property != "headerTooltip" && property != "footerText" && property != "headerText" && property != "headerTitle" && property != "visible" && property != "width") {
                                     updateColumnDefs();
                                     if(property != "enableToolPanel") {
                                         restoreColumnsState();
@@ -713,6 +719,9 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                             }                            
                             else if (property == "footerText") {
                                 handleColumnFooterText(newValue, oldValue);
+                            }
+                            else if (property == "headerText") {
+                                handleColumnHeaderText(newValue, oldValue);
                             }
 							else if(property == "visible" || property == "width") {
                                 // column id is either the id of the column
@@ -791,6 +800,11 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                     $log.debug('footer text column property changed');
                     gridOptions.api.setPinnedBottomRowData(getFooterData());
                 }
+
+                function handleColumnHeaderText(newValue, oldValue) {
+                    $log.debug('header text column property changed');
+                    gridOptions.api.setPinnedTopRowData(getHeaderData());
+                }
                 
                 function getFooterData() {
                     var result = [];
@@ -804,6 +818,23 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                         }
                     }
                     if (hasFooterData) {
+                        result.push(resultData)
+                    }
+                    return result;
+                }
+
+                function getHeaderData() {
+                    var result = [];
+                    var hasHeaderData = false;
+                    var resultData = {}
+                    for (var i = 0; $scope.model.columns && i < $scope.model.columns.length; i++) {
+                        var column = $scope.model.columns[i];
+                        if (column.headerText && column.dataprovider) {
+                            resultData[column.dataprovider] = column.headerText;
+                            hasHeaderData = true;
+                        }
+                    }
+                    if (hasHeaderData) {
                         result.push(resultData)
                     }
                     return result;
@@ -1055,11 +1086,14 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
 
                         if(column.cellStyleClassFunc) {
                             colDef.cellClass = createColumnCallbackFunctionFromString(column.cellStyleClassFunc);
-                        } else if(column.footerStyleClass) {
+                        } else if(column.footerStyleClass || column.headerTextStyleClass) {
                             var defaultCellClass = colDef.cellClass;
-                            var footerCellClass = defaultCellClass.concat(column.footerStyleClass.split(' '));
+                            var footerCellClass = column.footerStyleClass ? defaultCellClass.concat(column.footerStyleClass.split(' ')) : defaultCellClass;
+                            var headerTextCellClass = column.headerTextStyleClass ? defaultCellClass.concat(column.headerTextStyleClass.split(' ')) : defaultCellClass;
                             colDef.cellClass = function(params) {
-                                return params.node && params.node.rowPinned == 'bottom' ? footerCellClass : defaultCellClass;
+                                if (params.node && params.node.rowPinned == 'bottom') return footerCellClass;
+                                if (params.node && params.node.rowPinned == 'top') return headerTextCellClass;
+                                return defaultCellClass;
                             }
                         }
 
@@ -1448,6 +1482,10 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
 								if (params.node.rowPinned == "bottom" && $scope.handlers.onFooterClick) {
 									var columnIndex = getColumnIndex(params.column.colId);
 									$scope.handlers.onFooterClick(columnIndex, params.event);
+								}
+								if (params.node.rowPinned == "top" && $scope.handlers.onHeaderTextClick) {
+									var columnIndex = getColumnIndex(params.column.colId);
+									$scope.handlers.onHeaderTextClick(columnIndex, params.event);
 								}
 							} else {
                                 if ($scope.handlers.onCellDoubleClick) {
