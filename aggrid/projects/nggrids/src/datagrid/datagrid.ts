@@ -380,6 +380,15 @@ export class DataGrid extends NGGridDirective {
 		const columnDefs = this.getColumnDefs();
 		let maxBlocksInCache = CACHED_CHUNK_BLOCKS;
 
+		// If any column declares `headerCheckbox: true`, force-disable column
+		// virtualisation. The header checkbox is rendered through ag-Grid's
+		// custom header template; if the column is virtualised out of the
+		// horizontal viewport the input element is never created in the DOM
+		// and `setupHeaderCheckbox` cannot find it. Disabling virtualisation
+		// only when a header checkbox is configured keeps the perf impact
+		// scoped to grids that actually need it.
+		const hasHeaderCheckboxColumn = this.hasHeaderCheckboxColumn();
+
 		// if row autoHeight, we need to do a refresh after first time data are displayed, to allow ag grid to re-calculate the heights
 		// if there is 'autoHeight' = true in any column, infinite cache needs to be disabled (ag grid lib requirement)
 		for (const columnDef of columnDefs) {
@@ -550,7 +559,7 @@ export class DataGrid extends NGGridDirective {
 			groupDisplayType: this.groupUseEntireRow() ? 'groupRows' : 'multipleColumns',
 			suppressAggFuncInHeader: true, // TODO support aggregations
 
-			suppressColumnVirtualisation: false,
+			suppressColumnVirtualisation: hasHeaderCheckboxColumn,
 			suppressScrollOnNewData: true,
 
 			pivotMode: false,
@@ -937,6 +946,21 @@ export class DataGrid extends NGGridDirective {
 			return this.registrationService.datagridService.columnsAutoSizingOn
 		}
 		return null;
+	}
+
+	/**
+	 * Returns true if any configured column has `headerCheckbox: true`.
+	 * Used to decide whether to disable column virtualisation so the
+	 * checkbox input is always materialised in the DOM, regardless of
+	 * horizontal scroll position.
+	 */
+	private hasHeaderCheckboxColumn(): boolean {
+		const columns = this.columns();
+		if (!columns) return false;
+		for (let i = 0; i < columns.length; i++) {
+			if (columns[i].headerCheckbox) return true;
+		}
+		return false;
 	}
 
 	private setupHeaderCheckbox(addClickListener?: boolean): void {
