@@ -829,11 +829,12 @@ export class DataGrid extends NGGridDirective {
                             }
                         }
                         ch['checked'] = isChecked;
-                        if(addClickListener) {
+                        if(addClickListener && !ch['_svyHeaderCheckWired']) {
                             ch.addEventListener('click', (event: Event) => {
                                 this.onHeaderCheckClick(colId, event);
                                 event.stopPropagation();
                             });
+                            ch['_svyHeaderCheckWired'] = true;
                         }
                     };
                 }
