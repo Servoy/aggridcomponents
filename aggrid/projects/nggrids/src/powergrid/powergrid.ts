@@ -771,7 +771,12 @@ export class PowerGrid extends NGGridDirective {
                         break;
                     case 'columns':
                         if (!this.isColumnsFirstChange) {
-                            if (!isEqualWith(change.currentValue, change.previousValue) ||
+                            if (!isEqualWith(change.currentValue, change.previousValue, (objValue: any, othValue: any, key: any) => {
+                                if (key === 'visible' || key === 'width') {
+                                    return true;
+                                }
+                                return undefined;
+                            }) ||
                                 (change.currentValue && this.previousColumns && change.currentValue.length !== this.previousColumns.length)) {
                                 this.updateColumnDefs();
                             } else {
