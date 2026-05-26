@@ -79,14 +79,16 @@ const COLUMN_KEYS_TO_CHECK_FOR_CHANGES = [
 ];
 
 const COLUMN_KEYS_TO_SKIP_IN_CHANGES = [
-	'dataprovider',
-	'valuelist',
-	'styleClassDataprovider',
-	'isEditableDataprovider',
-	'tooltip',
-	'state',
-	'rowDragDataprovider',
-	'rowDragText'
+    'dataprovider',
+    'valuelist',
+    'styleClassDataprovider',
+    'isEditableDataprovider',
+    'tooltip',
+    'state',
+    'rowDragDataprovider',
+    'rowDragText',
+    'visible',
+    'width'
 ];
 
 @Component({
