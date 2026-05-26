@@ -79,7 +79,9 @@ const COLUMN_KEYS_TO_SKIP_IN_CHANGES = [
     'tooltip',
     'state',
     'rowDragDataprovider',
-    'rowDragText'
+    'rowDragText',
+    'visible',
+    'width'
 ];
 
 @Component({
