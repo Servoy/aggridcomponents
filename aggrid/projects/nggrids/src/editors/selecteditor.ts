@@ -115,6 +115,10 @@ export class SelectEditor extends EditorDirective {
                 this.createSelectOptions(r.valuelist, r.value);
                 setTimeout(() => {
                     this.elementRef().nativeElement.focus();
+                    try {
+                        this.elementRef().nativeElement.showPicker();
+                    } catch(e) {
+                    }
                 }, 0);
             });
         }
