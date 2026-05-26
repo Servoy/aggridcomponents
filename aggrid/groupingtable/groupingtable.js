@@ -3852,27 +3852,31 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							var n = [];
 							if(columnsArray1) {
 								for(var i = 0; i < columnsArray1.length; i++) {
-									var ob = Object.assign({}, columnsArray1[i]);
-									// skip entries with data
-									delete ob['dataprovider']; 
-									delete ob['valuelist'];
-									delete ob['styleClassDataprovider'];
-									delete ob['isEditableDataprovider'];
-									delete ob['tooltip'];
-									n.push(ob);
+								var ob = Object.assign({}, columnsArray1[i]);
+								// skip entries with data
+								delete ob['dataprovider']; 
+								delete ob['valuelist'];
+								delete ob['styleClassDataprovider'];
+								delete ob['isEditableDataprovider'];
+								delete ob['tooltip'];
+								delete ob['visible'];
+								delete ob['width'];
+								n.push(ob);
 								}
 							}
 							var o = [];
 							if(collumnsArray2) {
 								for(var i = 0; i < collumnsArray2.length; i++) {
-									var ob = Object.assign({}, collumnsArray2[i]);
-									// skip entries with data
-									delete ob['dataprovider']; 
-									delete ob['valuelist'];
-									delete ob['styleClassDataprovider'];
-									delete ob['isEditableDataprovider'];
-									delete ob['tooltip'];
-									o.push(ob);
+								var ob = Object.assign({}, collumnsArray2[i]);
+								// skip entries with data
+								delete ob['dataprovider']; 
+								delete ob['valuelist'];
+								delete ob['styleClassDataprovider'];
+								delete ob['isEditableDataprovider'];
+								delete ob['tooltip'];
+								delete ob['visible'];
+								delete ob['width'];
+								o.push(ob);
 								}
 							}
 							var nS = JSON.stringify(n);
