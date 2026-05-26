@@ -2696,6 +2696,10 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 
 						SelectEditor.prototype.afterGuiAttached = function () {
 							this.eSelect.focus();
+							try {
+								this.eSelect.showPicker();
+							} catch(e) {
+							}
 						};
 
 						SelectEditor.prototype.getValue = function () {
