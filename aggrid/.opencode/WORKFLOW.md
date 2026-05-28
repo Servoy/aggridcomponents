@@ -48,6 +48,22 @@ Use `/grid-restore` to bring back an archived plan for re-implementation or refe
 
 ## Setup
 
+### AG Grid License Key (required for `/grid-test`)
+
+Cypress component tests require an ag-grid enterprise license key. Create `cypress.env.json` in the project root (this file is gitignored):
+
+```json
+{
+  "AG_GRID_LICENSE": "your-actual-license-key"
+}
+```
+
+Alternatively, pass it via CLI:
+
+```bash
+npm run cy:run -- --env AG_GRID_LICENSE="your-actual-license-key"
+```
+
 ### Context7 MCP Server
 
 The `context7` MCP server in `opencode.json` requires an API key. Set the environment variable before running opencode:
