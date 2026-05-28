@@ -1,0 +1,43 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "command": {
+    "grid-plan": {
+      "description": "Analyse a bug or feature for a Servoy ag-grid component and write a plan. Usage: /grid-plan <component>: <description>. Components: powergrid | datagrid | datasettable | groupingtable",
+      "template": "You are invoking the servoy-grids analyst agent.\n\nThe user's request:\n$ARGUMENTS\n\nRun the `servoy-grids` agent with this exact request. The agent will:\n1. Identify the component and intent (bug fix or new feature) from the request\n2. Read the relevant source files deeply\n3. Write a precise, self-contained implementation plan to `.opencode/plans/plan.md`\n4. Display the full plan in the conversation\n\nAfter the plan is displayed, tell the user: Run `/grid-implement` to implement the plan."
+    },
+    "grid-implement": {
+      "description": "Implement the plan or fix review issues. Run after /grid or after /grid-review.",
+      "template": "You are invoking the servoy-grids-implementer agent.\n\nRun the `servoy-grids-implementer` agent. The agent will:\n1. Read `.opencode/plans/plan.md` in full\n2. Check if `.opencode/plans/review.md` exists with a NEEDS CHANGES verdict\n   - If yes: enter fix mode — apply only the critical issues from the review, then delete review.md\n   - If no: fresh implementation — implement exactly what the plan specifies\n3. For Angular components (powergrid, datagrid): run `npm run build` in `/home/gabi/github/aggridcomponents/aggrid/` and fix any compile errors\n4. Report mode (fresh/fix), which files were changed, and the build result\n\nAfter the implementation is complete, tell the user: Run `/grid-review` to review the implementation."
+    },
+    "grid-revise": {
+      "description": "Revise the current plan. Usage: /grid-revise <feedback>. Without feedback, displays the current plan. Run after /grid.",
+      "template": "You are invoking the servoy-grids-reviser agent.\n\nThe user's revision feedback:\n$ARGUMENTS\n\nIf $ARGUMENTS is empty or contains only whitespace, display the current plan verbatim and stop.\nOtherwise, run the `servoy-grids-reviser` agent with this feedback. The agent will:\n1. Read `.opencode/plans/plan.md`, apply the requested changes, rewrite the plan, and display it in full\n\nAfter the plan is displayed, tell the user: Run `/grid-revise <feedback>` to alter further, or `/grid-implement` when ready to implement."
+    },
+    "grid-review": {
+      "description": "Review the implementation against .opencode/plans/plan.md. Run after /grid-implement.",
+      "template": "You are invoking the servoy-grids-reviewer agent.\n\nRun the `servoy-grids-reviewer` agent. The agent will:\n1. Read `.opencode/plans/plan.md`\n2. Run `git diff` to see the actual implementation\n3. Write a structured review to `.opencode/plans/review.md`\n4. Output the full review to the conversation verbatim\n\nThe review verdict will be one of: APPROVED | NEEDS CHANGES | REJECTED.\n\nIf the verdict is NEEDS CHANGES, tell the user: Run `/grid-implement` to apply the fixes, then `/grid-review` again."
+    },
+    "grid-restore": {
+      "description": "Restore an archived plan. Usage: /grid-restore [filename]. Without argument, lists available archives.",
+      "template": "You are handling a /grid-restore request.\n\nThe user's argument:\n$ARGUMENTS\n\nWorkflow:\n\n1. If $ARGUMENTS is empty or contains only whitespace:\n   - List all `.md` files in `.opencode/plans/archive/` (excluding `-review.md` files)\n   - Display them as a numbered list with their filenames\n   - Ask the user which one to restore\n   - Stop here and wait for the user's response\n\n2. If $ARGUMENTS contains a filename or number:\n   - Find the matching archive file in `.opencode/plans/archive/`\n   - If the current `.opencode/plans/plan.md` exists, archive it first (same logic as /grid: read title, derive slug, move to archive with today's date)\n   - Copy the selected archive file to `.opencode/plans/plan.md`\n   - If a corresponding `-review.md` file exists in the archive (same prefix), copy it to `.opencode/plans/review.md`\n   - Delete any existing `.opencode/plans/review.md` that does not belong to the restored plan\n   - Display the restored plan content\n   - Tell the user: Plan restored. Run `/grid-revise <feedback>` to alter it, or `/grid-implement` to implement it."
+    }
+  },
+  "mcp": {
+    "angular-cli": {
+      "type": "local",
+      "command": ["ng", "mcp"],
+      "enabled": true
+    },
+    "context7": {
+      "type": "remote",
+      "url": "https://mcp.context7.com/mcp",
+      "headers": {
+        "Authorization": "Bearer {env:CONTEXT7_API_KEY}"
+      }
+    },
+    "servoy-docs": {
+      "type": "remote",
+      "url": "https://docs.servoy.com/~gitbook/mcp"
+    }
+  }
+}
