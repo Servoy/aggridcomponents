@@ -44,6 +44,30 @@
           }
         }
       }
+    },
+    "dummy": {
+      "projectType": "application",
+      "root": "projects/dummy",
+      "sourceRoot": "projects/dummy/src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "outputPath": "dist/dummy",
+            "index": "projects/dummy/src/index.html",
+            "browser": "projects/dummy/src/main.ts",
+            "polyfills": [
+              "zone.js"
+            ],
+            "tsConfig": "projects/dummy/tsconfig.app.json",
+            "styles": [
+              "projects/dummy/src/styles.css"
+            ],
+            "scripts": []
+          }
+        }
+      }
     }
   },
   "schematics": {

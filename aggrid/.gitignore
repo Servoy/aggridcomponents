@@ -12,3 +12,6 @@
 /.opencode/bun.lock
 /.opencode/index/
 /.opencode/plans/
+/cypress/videos/
+/cypress/screenshots/
+cypress.env.json
