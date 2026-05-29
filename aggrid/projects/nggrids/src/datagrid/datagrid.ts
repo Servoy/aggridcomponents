@@ -880,6 +880,13 @@ export class DataGrid extends NGGridDirective {
 					this.agGridOptions[property] = userGridOptions[property];
 				}
 			}
+
+			// Honor user-provided gridOptions.sideBar override so that subsequent
+			// setGridOption('sideBar', this.sideBar) calls (e.g. on `enabled` change
+			// after a form re-show) do not revert to the default sideBar.
+			if (Object.prototype.hasOwnProperty.call(userGridOptions, 'sideBar')) {
+				this.sideBar = userGridOptions.sideBar;
+			}
 		}
 
 		if (this.agGridOptions.singleClickEdit) {
@@ -1318,6 +1325,9 @@ export class DataGrid extends NGGridDirective {
 					case 'gridOptions':
 						if (!change.firstChange) {
 							this.agGrid().api.updateGridOptions(change.currentValue);
+							if (change.currentValue && Object.prototype.hasOwnProperty.call(change.currentValue, 'sideBar')) {
+								this.sideBar = change.currentValue.sideBar;
+							}
 						}
 						break;
 				}
