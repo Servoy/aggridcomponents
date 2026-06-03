@@ -7,3 +7,4 @@ svyGroupingGridDemo_e2e/node_modules/*
 svyGroupingGridDemo_e2e/reports
 svyGroupingGridDemo_e2e/reports/*
 /.project
+aggrid/cypress.env.json
