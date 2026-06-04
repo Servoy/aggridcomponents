@@ -50,7 +50,9 @@ $scope.getGroupedFoundsetUUID = function(
 		if (i < groupKeys.length) {
 			var groupKey = groupKeys[i];
 			log('The node is a sub-group of groupKey ' + groupKey, LOG_LEVEL.WARN);
-			if (groupColumnType == 'DATETIME') {
+			if (groupKey == null) {
+				query.where.add(groupColumn.isNull);
+			} else if (groupColumnType == 'DATETIME') {
 				query.where.add(groupColumn.cast('date').eq(groupKey));
 			} else if (groupColumnType == 'TEXT') {
 				// groupKey may arrive as a JS number (e.g. Double 1.0 from Rhino) for VARCHAR columns;
@@ -188,7 +190,7 @@ $scope.getGroupedFoundsetUUID = function(
 	if(isGroupQuery) {
 		for (var idx = 0; idx < $scope.model.columns.length; idx++) {
 			if(allGroupDataproviders.indexOf($scope.model.columns[idx].dataprovider) != -1) {
-				const dp = getDataproviderNameForGroupingView($scope.model.columns[idx].dataprovider);
+				var dp = getDataproviderNameForGroupingView($scope.model.columns[idx].dataprovider);
 				columns.push({
 					dataprovider: dp,
 					dataproviderUnresolved: dp,
