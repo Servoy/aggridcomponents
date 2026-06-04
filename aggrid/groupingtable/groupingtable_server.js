@@ -50,7 +50,9 @@ $scope.getGroupedFoundsetUUID = function(
 		if (i < groupKeys.length) {
 			var groupKey = groupKeys[i];
 			log('The node is a sub-group of groupKey ' + groupKey, LOG_LEVEL.WARN);
-			if (groupColumnType == 'DATETIME') {
+			if (groupKey == null) {
+				query.where.add(groupColumn.isNull);
+			} else if (groupColumnType == 'DATETIME') {
 				query.where.add(groupColumn.cast('date').eq(groupKey));
 			} else if (groupColumnType == 'TEXT') {
 				// groupKey may arrive as a JS number (e.g. Double 1.0 from Rhino) for VARCHAR columns;

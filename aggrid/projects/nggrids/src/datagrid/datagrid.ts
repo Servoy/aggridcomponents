@@ -5381,15 +5381,22 @@ class FoundsetDatasource implements IServerSideDatasource {
 
 		let removeAllFoundsetRefPostponed = false;
 		const _this = this;
+		const groupNodes: any[] = new Array(groupKeys.length);
+		let currentNode = params.parentNode;
+		for (let j = groupKeys.length - 1; j >= 0; j--) {
+			groupNodes[j] = currentNode;
+			currentNode = currentNode?.parent;
+		}
 		for (let i = 0; i < groupKeys.length; i++) {
 			if (groupKeys[i] == NULL_VALUE) {
 				groupKeys[i] = null;	// reset to real null, so we use the right value for grouping
 			}
 			if (groupKeys[i] !== null) {
-				if(params?.parentNode?.data['_unresolved_' + rowGroupCols[i]['field']] !== undefined) {
-					groupKeys[i] = params?.parentNode?.data['_unresolved_' + rowGroupCols[i]['field']];
+				const nodeData = groupNodes[i]?.data;
+				if(nodeData?.['_unresolved_' + rowGroupCols[i]['field']] !== undefined) {
+					groupKeys[i] = nodeData['_unresolved_' + rowGroupCols[i]['field']];
 				} else {
-					const vl = this.dataGrid.getValuelistEx(params.parentNode.data, rowGroupCols[i]['id']);
+					const vl = nodeData ? this.dataGrid.getValuelistEx(nodeData, rowGroupCols[i]['id']) : null;
 					if (vl) {
 							const filterDeferred = new Deferred();
 							filterPromises.push(filterDeferred.promise);
