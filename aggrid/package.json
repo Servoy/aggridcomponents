@@ -4,9 +4,9 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build --configuration production",
-    "build_debug": "ng build --watch",
-    "make_release": "ng build --configuration production && node scripts/build.js",
+    "build": "ng build @servoy/nggrids --configuration production",
+    "build_debug": "ng build @servoy/nggrids --watch",
+    "make_release": "ng build @servoy/nggrids --configuration production && node scripts/build.js",
     "test": "ng test --watch --browsers Chrome",
     "test_edge": "ng test --watch --browsers Edge",
     "test_edge_nowatch": "ng test --watch=false --browsers Edge",
