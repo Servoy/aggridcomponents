@@ -3249,15 +3249,22 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							removeAllFoundsetRefPostponed = true;
 						}
 						var removeAllFoundsetRefPostponed = false;
+						var groupNodes = new Array(groupKeys.length);
+						var currentNode = params.parentNode;
+						for (var j = groupKeys.length - 1; j >= 0; j--) {
+							groupNodes[j] = currentNode;
+							currentNode = currentNode ? currentNode.parent : null;
+						}
 						for (var i = 0; i < groupKeys.length; i++) {
 							if (groupKeys[i] == NULL_VALUE) {
 								groupKeys[i] = null;	// reset to real null, so we use the right value for grouping
 							}
 							if (groupKeys[i] !== null) {
-								if(params?.parentNode?.data['_unresolved_' + rowGroupCols[i]['field']] !== undefined) {
-									groupKeys[i] = params?.parentNode?.data['_unresolved_' + rowGroupCols[i]['field']];
+								var nodeData = groupNodes[i] ? groupNodes[i].data : undefined;
+								if(nodeData && nodeData['_unresolved_' + rowGroupCols[i]['field']] !== undefined) {
+									groupKeys[i] = nodeData['_unresolved_' + rowGroupCols[i]['field']];
 								} else {
-									var vl = getValuelistEx(params.parentNode.data, rowGroupCols[i]['id'], false);
+									var vl = nodeData ? getValuelistEx(nodeData, rowGroupCols[i]['id'], false) : null;
 									if(vl) {
 										filterPromisesFction(vl, i);
 									}
