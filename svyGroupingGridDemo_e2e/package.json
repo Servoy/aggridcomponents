@@ -11,7 +11,7 @@
     "expect": "*",
     "protractor": "*",
     "restler": "*",
-    "selenium-webdriver": "*",
+    "selenium-webdriver": "4.15.0",
     "universal-analytics": "*",
     "webdriver-manager": "*",
     "cucumber-html-reporter": "*",
