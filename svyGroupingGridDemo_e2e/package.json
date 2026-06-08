@@ -17,7 +17,7 @@
     "cucumber-html-reporter": "*",
     "find": "^0.3.0",
     "fs-extra": "^10.0.1",
-    "js-base64": "^3.7.2",
+    "js-base64": "^3.7.5",
     "chai": "^4.3.6",
     "jsonfile": "^6.1.0",
     "lodash": "^4.17.21",
