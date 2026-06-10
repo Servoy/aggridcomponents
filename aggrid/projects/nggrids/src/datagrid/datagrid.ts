@@ -1451,7 +1451,11 @@ export class DataGrid extends NGGridDirective {
 		if (field && params.data) {
 			displayValue = params.data[field];
 			if (displayValue == null) {
-				displayValue = NULL_VALUE; // need to use an object for null, else grouping won't work in ag grid
+				if (params.node.rowPinned) {
+					displayValue = null;
+				} else {
+					displayValue = NULL_VALUE; // need to use an object for null, else grouping won't work in ag grid
+				}
 			} else {
 				const dataGrid = params.context.componentParent;
 				const column = dataGrid.getColumn(params.column.colId);
@@ -3563,7 +3567,7 @@ export class DataGrid extends NGGridDirective {
 					resultData[colId] = column.footerText[0];
 					hasFooterData = true;
 				} else {
-					resultData[colId] = '';
+					resultData[colId] = null;
 				}
 			}
 		}
@@ -3586,7 +3590,7 @@ export class DataGrid extends NGGridDirective {
 					resultData[colId] = column.headerText[0];
 					hasHeaderData = true;
 				} else {
-					resultData[colId] = '';
+					resultData[colId] = null;
 				}
 			}
 		}

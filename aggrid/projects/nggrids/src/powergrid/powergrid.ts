@@ -1938,7 +1938,7 @@ export class PowerGrid extends NGGridDirective {
                 	resultData[column.dataproviderToLowerCase()] = column.footerText;
                 	hasFooterData = true;
             	} else {
-					resultData[column.dataproviderToLowerCase()] = '';
+					resultData[column.dataproviderToLowerCase()] = null;
 				}
 			}
         }
@@ -1960,7 +1960,7 @@ export class PowerGrid extends NGGridDirective {
                 	resultData[column.dataproviderToLowerCase()] = column.headerText;
                 	hasHeaderData = true;
             	} else {
-					resultData[column.dataproviderToLowerCase()] = '';
+					resultData[column.dataproviderToLowerCase()] = null;
 				}
 			}
         }
