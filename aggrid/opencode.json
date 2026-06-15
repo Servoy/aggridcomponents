@@ -2,7 +2,7 @@
   "$schema": "https://opencode.ai/config.json",
   "command": {
     "grid-plan": {
-      "description": "Analyse a bug or feature for a Servoy ag-grid component and write a plan. Usage: /grid-plan <component>: <description>. Components: powergrid | datagrid | datasettable | groupingtable",
+      "description": "Analyse a bug or feature for a Servoy ag-grid component and write a plan. Usage: /grid-plan <JIRA-KEY> [component] OR /grid-plan <component>: <description>. Components: powergrid | datagrid | datasettable | groupingtable",
       "template": "You are invoking the servoy-grids analyst agent.\n\nThe user's request:\n$ARGUMENTS\n\nRun the `servoy-grids` agent with this exact request. The agent will:\n1. Identify the component and intent (bug fix or new feature) from the request\n2. Read the relevant source files deeply\n3. Write a precise, self-contained implementation plan to `.opencode/plans/plan.md`\n4. Display the full plan in the conversation\n\nAfter the plan is displayed, tell the user: Run `/grid-implement` to implement the plan."
     },
     "grid-implement": {
@@ -24,6 +24,10 @@
     "grid-restore": {
       "description": "Restore an archived plan. Usage: /grid-restore [filename]. Without argument, lists available archives.",
       "template": "You are handling a /grid-restore request.\n\nThe user's argument:\n$ARGUMENTS\n\nWorkflow:\n\n1. If $ARGUMENTS is empty or contains only whitespace:\n   - List all `.md` files in `.opencode/plans/archive/` (excluding `-review.md` files)\n   - Display them as a numbered list with their filenames\n   - Ask the user which one to restore\n   - Stop here and wait for the user's response\n\n2. If $ARGUMENTS contains a filename or number:\n   - Find the matching archive file in `.opencode/plans/archive/`\n   - If the current `.opencode/plans/plan.md` exists, archive it first (same logic as /grid: read title, derive slug, move to archive with today's date)\n   - Copy the selected archive file to `.opencode/plans/plan.md`\n   - If a corresponding `-review.md` file exists in the archive (same prefix), copy it to `.opencode/plans/review.md`\n   - Delete any existing `.opencode/plans/review.md` that does not belong to the restored plan\n   - Display the restored plan content\n   - Tell the user: Plan restored. Run `/grid-revise <feedback>` to alter it, or `/grid-implement` to implement it."
+    },
+    "grid-commit": {
+      "description": "Commit the current grid changes with a descriptive message. Usage: /grid-commit [extra context]",
+      "template": "You are committing the current grid implementation changes.\n\n1. Read `.opencode/plans/plan.md` to get the task title, Jira key (if present), and component.\n2. Run `git status` in `/home/gabi/github/aggridcomponents/aggrid/` to see changed files.\n3. Separate changes into two groups:\n   - **Source changes**: files under `projects/`, `groupingtable/`, `datasettable/`, `powergrid/` (the actual bug fix / feature)\n   - **Tooling changes**: files under `.opencode/`, `opencode.json` (workflow config — commit separately or skip)\n4. Stage only the source changes with `git add`.\n5. Compose a commit message in this format:\n   ```\n   <JIRA_KEY if present> <short description from plan title> [ai]\n\n   - bullet points summarising the key changes made\n\n   Co-Authored-By: opencode <noreply@opencode.ai>\n   ```\n   If no Jira key, omit it. Keep the subject line under 72 chars.\n   The `[ai]` tag at the end of the subject line is mandatory.\n   If the user provided extra context via $ARGUMENTS, incorporate it.\n6. Show the user the proposed commit message and staged files. Ask for confirmation before committing.\n7. On confirmation, run `git commit` with the message.\n8. Report the commit hash and message.\n\nDo NOT push. Do NOT commit `.opencode/` or `opencode.json` unless the user explicitly asks."
     }
   },
   "mcp": {

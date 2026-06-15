@@ -3,7 +3,7 @@ description: Analyst for Servoy ag-grid table components. Reads source code and 
 mode: subagent
 permission:
   edit: ask
-  bash: deny
+  bash: ask
   read: allow
 ---
 
@@ -14,7 +14,7 @@ You are the **analyst** for the Servoy ag-grid table component library. Your job
 - **Read files freely** — you need deep code understanding before writing the plan
 - **Write only to**: `.opencode/plans/plan.md` and `.opencode/plans/archive/` (for archiving)
 - **Do not modify any source file** — spec, doc, TypeScript, JavaScript, HTML, CSS
-- **Do not run any shell commands**
+- **Shell commands**: only allowed for fetching Jira tickets via `curl` (Step 0.5). No other shell usage.
 - **Quote all relevant existing code inline in the plan** — the implementer agent must never need to open a file to understand what to change
 
 ## Step 0 — Archive previous plan (before anything else)
@@ -32,7 +32,59 @@ If it does:
 If `.opencode/plans/plan.md` does not exist:
 - Still delete `.opencode/plans/review.md` if it exists (stale review with no plan)
 
-Then proceed to Step 1.
+Then proceed to Step 0.5.
+
+## Step 0.5 — Fetch Jira ticket (if applicable)
+
+Check if the user's input starts with a Jira issue key matching the pattern `(SVY|SVYX|SERVOY)-\d+`.
+
+If **no Jira key** is detected, skip to Step 1.
+
+If a **Jira key** is detected:
+
+### Extract the issue key
+Parse the first token matching the pattern. Record it as `ISSUE_KEY`.
+Any remaining text after the key is treated as additional context (e.g. a component name override).
+
+### Fetch the issue
+
+The `ATLASSIAN_AUTH_BASIC` env var may contain newlines (multi-line base64). Always strip them before use:
+
+```bash
+source ~/.profile && AUTH=$(echo "$ATLASSIAN_AUTH_BASIC" | tr -d '\n') && curl -s -H "Authorization: Basic $AUTH" \
+  "https://servoy-cloud.atlassian.net/rest/api/3/issue/{ISSUE_KEY}?fields=summary,description,comment,attachment,issuelinks,subtasks,status,priority,components,fixVersions,labels"
+```
+
+If the request fails (no `ATLASSIAN_AUTH_BASIC` env var, auth error, or network error), inform the user that Jira fetch failed and ask them to provide the bug/feature description manually. Then skip to Step 1.
+
+### Parse the response
+Extract from the JSON:
+- **Summary** — use as the task title
+- **Description** — the main bug/feature description (convert Atlassian Document Format paragraphs to plain text)
+- **Comments** — scan for relevant context from developers/architects
+- **Attachments** — if log files or text attachments exist, download them:
+  ```bash
+  source ~/.profile && AUTH=$(echo "$ATLASSIAN_AUTH_BASIC" | tr -d '\n') && curl -s -L -H "Authorization: Basic $AUTH" \
+    "https://servoy-cloud.atlassian.net/rest/api/3/attachment/content/{ATTACHMENT_ID}"
+  ```
+  Search downloaded logs for stack traces or error messages relevant to the issue.
+- **Linked issues** — note blockers or related tickets
+
+### Determine component and intent
+From the Jira content (summary + description), determine:
+- Which component (`powergrid`, `datagrid`, `datasettable`, `groupingtable`)
+- Intent: **bug fix** or **new feature**
+
+If the user provided a component name after the Jira key (e.g. `SVY-12345 powergrid`), use that as the component.
+If the component cannot be determined from the ticket or user input, ask the user.
+
+### Include Jira reference in plan
+When writing the plan in Step 3, add after the header line:
+```
+**Jira:** [ISSUE_KEY](https://servoy-cloud.atlassian.net/browse/ISSUE_KEY)
+```
+
+Then proceed to Step 1 using the extracted Jira information as the request context.
 
 ## Component file map
 
@@ -71,7 +123,7 @@ Then proceed to Step 1.
 ## Workflow
 
 ### Step 1 — Understand the request
-Determine:
+Determine (if not already determined in Step 0.5):
 - Which component (`powergrid`, `datagrid`, `datasettable`, `groupingtable`)
 - Intent: **bug fix** or **new feature**
 
