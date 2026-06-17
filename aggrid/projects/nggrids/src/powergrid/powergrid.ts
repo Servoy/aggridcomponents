@@ -1524,9 +1524,21 @@ export class PowerGrid extends NGGridDirective {
         }
 
         if (!suggestedNextCell) {
-            this.setTimeout(() => {
-                this.agGridElementRef().nativeElement.focus();
-            }, 0);
+            const backwards = params.backwards;
+            const sabloDirective = this.sabloTabseqDirective();
+            if (sabloDirective && sabloDirective.runtimeIndex) {
+                const nextIndex = backwards
+                    ? sabloDirective.runtimeIndex.startIndex - 1
+                    : sabloDirective.runtimeIndex.nextAvailableIndex;
+                if (nextIndex > 0) {
+                    const nextElement = this.doc.querySelector('[tabindex="' + nextIndex + '"]') as HTMLElement;
+                    if (nextElement) {
+                        this.setTimeout(() => {
+                            nextElement.focus();
+                        }, 0);
+                    }
+                }
+            }
         }
 
         return suggestedNextCell ? suggestedNextCell : false;
