@@ -1,7 +1,7 @@
 import { AgGridAngular } from 'ag-grid-angular';
 import { GridOptions } from 'ag-grid-community';
 import { ChangeDetectorRef, Directive, ElementRef, TemplateRef, input, contentChild, viewChild, signal } from '@angular/core';
-import { Deferred, BaseCustomObject, Format, FormattingService, LoggerService, ServoyBaseComponent, JSEvent, IJSMenu, IJSMenuItem, PopupStateService } from '@servoy/public';
+import { Deferred, BaseCustomObject, Format, FormattingService, LoggerService, ServoyBaseComponent, JSEvent, IJSMenu, IJSMenuItem, PopupStateService, SabloTabseq } from '@servoy/public';
 import { Options } from '@eonasdan/tempus-dominus';
 
 export const GRID_EVENT_TYPES = {
@@ -22,6 +22,7 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
 
     readonly agGrid = viewChild<AgGridAngular>('element');
     readonly agGridElementRef = viewChild('element', { read: ElementRef });
+    readonly sabloTabseqDirective = viewChild('element', { read: SabloTabseq });
 
     readonly enableBrowserContextMenu = input<boolean>(undefined);
     readonly arrowsUpDownMoveWhenEditing = input<any>(undefined);
