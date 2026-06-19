@@ -52,7 +52,7 @@ The `ATLASSIAN_AUTH_BASIC` env var may contain newlines (multi-line base64). Alw
 
 ```bash
 source ~/.profile && AUTH=$(echo "$ATLASSIAN_AUTH_BASIC" | tr -d '\n') && curl -s -H "Authorization: Basic $AUTH" \
-  "https://servoy-cloud.atlassian.net/rest/api/3/issue/{ISSUE_KEY}?fields=summary,description,comment,attachment,issuelinks,subtasks,status,priority,components,fixVersions,labels"
+  "https://api.atlassian.com/ex/jira/7c2b3b79-12a3-4f2c-81e2-0d61b19464b3/rest/api/3/issue/{ISSUE_KEY}?fields=summary,description,comment,attachment,issuelinks,subtasks,status,priority,components,fixVersions,labels"
 ```
 
 If the request fails (no `ATLASSIAN_AUTH_BASIC` env var, auth error, or network error), inform the user that Jira fetch failed and ask them to provide the bug/feature description manually. Then skip to Step 1.
@@ -65,7 +65,7 @@ Extract from the JSON:
 - **Attachments** — if log files or text attachments exist, download them:
   ```bash
   source ~/.profile && AUTH=$(echo "$ATLASSIAN_AUTH_BASIC" | tr -d '\n') && curl -s -L -H "Authorization: Basic $AUTH" \
-    "https://servoy-cloud.atlassian.net/rest/api/3/attachment/content/{ATTACHMENT_ID}"
+    "https://api.atlassian.com/ex/jira/7c2b3b79-12a3-4f2c-81e2-0d61b19464b3/rest/api/3/attachment/content/{ATTACHMENT_ID}"
   ```
   Search downloaded logs for stack traces or error messages relevant to the issue.
 - **Linked issues** — note blockers or related tickets
