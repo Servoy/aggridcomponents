@@ -13,6 +13,7 @@ import { ValuelistFilter } from './filters/valuelistfilter';
 import { RadioFilter } from './filters/radiofilter';
 import { AggFuncInfo, PowerGrid, PowerGridColumn } from './powergrid/powergrid';
 import { BlankLoadingCellRendrer } from './datagrid/renderers/blankloadingcellrenderer';
+import { DetailFormRenderer } from './datagrid/detailformrenderer';
 import { FormsModule } from '@angular/forms';
 import { IconConfig, MainMenuItemsConfig, ToolPanelConfig } from './nggrid';
 import { DateFilter } from './filters/datefilter';
@@ -29,6 +30,7 @@ import { DateFilter } from './filters/datefilter';
         RadioFilter,
         DateFilter,
         BlankLoadingCellRendrer,
+        DetailFormRenderer,
         PowerGrid
     ],
     imports: [

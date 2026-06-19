@@ -6,7 +6,7 @@ import {
 	GetMainMenuItemsParams,
 	ProcessRowParams
 } from 'ag-grid-community';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Renderer2, SecurityContext, SimpleChanges, DOCUMENT, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Renderer2, SecurityContext, SimpleChanges, TemplateRef, DOCUMENT, input, output, signal } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { LoggerFactory, ChangeType, IFoundset, FoundsetChangeEvent, Deferred, FormattingService, ServoyPublicService, BaseCustomObject, JSEvent, PopupStateService } from '@servoy/public';
 import { DatePicker } from '../editors/datepicker';
@@ -19,6 +19,7 @@ import { ValuelistFilter } from '../filters/valuelistfilter';
 import { ColumnsAutoSizingOn, DragTransferData, GRID_EVENT_TYPES, IconConfig, JSDNDEvent, MainMenuItemsConfig, NGGridDirective, ToolPanelConfig } from '../nggrid';
 
 import { BlankLoadingCellRendrer } from './renderers/blankloadingcellrenderer';
+import { DetailFormRenderer } from './detailformrenderer';
 import { NgbTypeaheadConfig } from '@ng-bootstrap/ng-bootstrap';
 import { CustomTooltip } from './commons/tooltip';
 import { isEqualWith } from 'lodash-es';
@@ -189,6 +190,10 @@ export class DataGrid extends NGGridDirective {
 	readonly onSelectedRowsChanged = input<(isgroupselection?: boolean, groupcolumnid?: string, groupkey?: unknown, groupselection?: boolean, event?: Event) => void>(undefined);
 	readonly onSort = input<(columnindexes: number[], sorts: string[]) => Promise<unknown>>(undefined);
 	readonly tooltipTextRefreshData = input<string>(undefined);
+	readonly masterDetail = input<boolean>(undefined);
+	readonly detailForm = input<any>(undefined);
+	readonly detailRowHeight = input<number>(undefined);
+	readonly onDetailFormSetup = input<(foundsetindex: number, record: unknown) => any>(undefined);
 	// used in HTML template to toggle sync button
 	isGroupView = false;
 
@@ -219,6 +224,8 @@ export class DataGrid extends NGGridDirective {
 
 	foundset: FoundsetManager;
 	groupManager: GroupManager;
+
+
 
 	// when the grid is not ready yet set the value to the foundset/column index for which has been edit cell called
 	editCellAtTimeout = null;
@@ -324,6 +331,7 @@ export class DataGrid extends NGGridDirective {
 
 	ngOnInit() {
 		super.ngOnInit();
+
 		this._columnState.set(this.columnState());
 		this.__internalColumnState.set(this._internalColumnState());
 		this._restoreStates.set(this.restoreStates());
@@ -585,6 +593,14 @@ export class DataGrid extends NGGridDirective {
 			purgeClosedRowNodes: true,
 			enableBrowserTooltips: false,
 			getRowId: (param: GetRowIdParams) => param.data._svyFoundsetUUID + '_' + param.data._svyFoundsetIndex,
+			masterDetail: !!this.masterDetail(),
+			...(this.masterDetail() ? {
+				detailCellRenderer: DetailFormRenderer,
+				detailRowHeight: this.detailRowHeight() || 200,
+				detailRowAutoHeight: false,
+				isRowMaster: () => !!this.detailForm() || !!this.onDetailFormSetup(),
+				keepDetailRows: false,
+			} : {}),
 			onGridSizeChanged: () => {
 				this.setTimeout(() => {
 					// if not yet destroyed
@@ -1955,6 +1971,16 @@ export class DataGrid extends NGGridDirective {
 				colGroups[column.headerGroup]['children'].push(colDef);
 			} else {
 				colDefs.push(colDef);
+			}
+		}
+
+		if (this.masterDetail()) {
+			for (const def of colDefs) {
+				const cd = def['children'] ? def['children'][0] : def;
+				if (cd && cd.hide !== true && cd.field !== '_svyRowId' && cd.field !== '_svyFoundsetUUID') {
+					cd.cellRenderer = 'agGroupCellRenderer';
+					break;
+				}
 			}
 		}
 
@@ -4292,6 +4318,18 @@ export class DataGrid extends NGGridDirective {
 			return foundset?.getRecordRefByRowID(params.data['_svyRowId']);
 		}
 		return null;
+	}
+
+	getDetailItemTemplate(item: any): TemplateRef<any> {
+		return (this.servoyService as any).getTemplateForFormComponentChild(this.servoyApi.getFormName(), item);
+	}
+
+	getDetailItemState(item: any, rowIndex: number): any {
+		if (!item) return item;
+		if (item.modelViewport && item.modelViewport[rowIndex]) {
+			return Object.assign({}, item, { model: item.modelViewport[rowIndex] });
+		}
+		return item;
 	}
 
 	/**

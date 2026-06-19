@@ -70,7 +70,10 @@
 		"_internalHasDoubleClickHandler": { "type": "boolean", "default": false, "tags": {"scope" : "private"}},
 		"_internalVisible": { "type": "boolean", "tags": {"scope" : "private"}},
 		"customMainMenu": {"type": "JSMenu", "extraPropertiesCategory" : "NG-Grids", "extraProperties": { "isSeparator": "boolean", "hideForColIds": "string", "showForColIds": "string", "agGridMenuItem": {"type": "string", "values": ["", "sortAscending", "sortDescending", "sortUnSort", "columnFilter", "columnChooser", "pinSubMenu", "valueAggSubMenu", "autoSizeThis", "autoSizeAll", "rowGroup", "rowUnGroup", "resetColumns", "expandAll", "contractAll"] } }, "tags": {"doc": "Menu items to append to the columns menu, beside the default aggrid menus."}},
-		"keepAppliedFilterOnHide":  { "type": "boolean", "default": false, "tags": {"doc": "When the component is hidden, if a filter is applied, keep it applied on the foundset."} }
+		"keepAppliedFilterOnHide":  { "type": "boolean", "default": false, "tags": {"doc": "When the component is hidden, if a filter is applied, keep it applied on the foundset."} },
+		"masterDetail": {"type": "boolean", "default": false, "tags": {"doc": "When true, enables master/detail mode. Rows can be expanded to show a detail form."}},
+		"detailForm": {"type": "formcomponent", "forFoundset": "myFoundset", "tags": {"skipRendering": true, "doc": "The form to display in the detail panel when a row is expanded in master/detail mode. Fields in this form can use related dataproviders to show related data."}},
+		"detailRowHeight": {"type": "int", "default": 200, "tags": {"doc": "The height in pixels of the detail panel when a row is expanded in master/detail mode."}}
 	},
 	"handlers" : {
     	"onSelectedRowsChanged": {
@@ -391,6 +394,19 @@
 				"name": "event",
 				"type": "JSDNDEvent"
 			}]			
+		},
+		"onDetailFormSetup": {
+			"doc": "Called when a master row is about to be expanded. Return an object with {form, relation, height} to dynamically configure the detail panel for this row. If nothing is returned, the model-level detailForm/detailRelation/detailRowHeight are used.",
+			"parameters": [{
+				"name": "foundsetindex",
+				"type": "int"
+			}, {
+				"name": "record",
+				"type": "record",
+				"optional": true
+			}],
+			"returns": {"type": "object"},
+			"allowaccess": "enabled"
 		},
 		"onCustomMainMenuAction" : {
 			"doc": "Called when a custom main menu item is chosen",

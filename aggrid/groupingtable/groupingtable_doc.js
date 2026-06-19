@@ -164,6 +164,26 @@ var moveToNextEditableCellOnTab;
 var keepAppliedFilterOnHide
 
 /**
+ * When true, enables master/detail mode. Rows can be expanded to show a detail form.
+ */
+var masterDetail;
+
+/**
+ * The form to display in the detail panel when a row is expanded in master/detail mode.
+ */
+var detailForm;
+
+/**
+ * The relation name to use when showing the detail form, so it displays related records of the expanded row.
+ */
+var detailRelation;
+
+/**
+ * The height in pixels of the detail panel when a row is expanded in master/detail mode.
+ */
+var detailRowHeight;
+
+/**
  * Tab sequence index used for keyboard navigation in the grid.
  */
 var tabSeq;
@@ -325,6 +345,16 @@ var handlers = {
      * @param {CustomType<aggrid-groupingtable.JSDNDEvent>} event The event object associated with the drop action.
      */
     onDrop: function() {},
+
+    /**
+     * Called when a master row is about to be expanded. Return an object with {form, relation, height} to dynamically configure the detail panel for this row.
+     * If nothing is returned, the model-level detailForm/detailRelation/detailRowHeight are used.
+     *
+     * @param {Number} foundsetindex The index of the row being expanded.
+     * @param {JSRecord} [record] The record of the row being expanded.
+     * @return {Object} An object with optional properties: form (String), relation (String), height (Number).
+     */
+    onDetailFormSetup: function() {},
 
     /**
      * Called when a custom main menu item is chosen.
