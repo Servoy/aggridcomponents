@@ -1,7 +1,4 @@
-import { ViewChild } from '@angular/core';
-import { HostListener } from '@angular/core';
-import { Input } from '@angular/core';
-import { Component } from '@angular/core';
+import { HostListener, ChangeDetectionStrategy, Component, Inject, input, viewChild, signal, DOCUMENT } from '@angular/core';
 import { NgbTypeahead, NgbTypeaheadConfig } from '@ng-bootstrap/ng-bootstrap';
 import { merge, Observable, of, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, switchMap } from 'rxjs/operators';
@@ -21,6 +18,7 @@ import { EditorDirective } from './editor';
 		    [inputFormatter]="inputFormatter"
         (focus)="focus$.next('')"
         (keydown)="onTypeaheadKeyDown($event)"
+        (keyup.arrowDown)="scroll()" (keyup.arrowUp)="scroll()"
         #instance="ngbTypeahead" #element>
     `,
     host: {
@@ -44,8 +42,9 @@ export class TypeaheadEditor extends EditorDirective implements IPopupSupportCom
   initialRealValue: any;
 
   findModeListener: any;
+  private popupObserver: MutationObserver;
 
-  constructor(private formatService: FormattingService, config: NgbTypeaheadConfig) {
+  constructor(private formatService: FormattingService, config: NgbTypeaheadConfig, @Inject(DOCUMENT) private doc: Document) {
     super();
     config.container = 'body';
   }
@@ -71,6 +70,38 @@ export class TypeaheadEditor extends EditorDirective implements IPopupSupportCom
       e.preventDefault();
       e.stopPropagation();
     }
+  }
+
+  scroll() {
+    if (!this.instance().isPopupOpen()) {
+      return;
+    }
+    setTimeout(() => {
+      const popup = this.doc.getElementById(this.instance().popupId);
+      if (popup) {
+        popup.style.width = this.elementRef().nativeElement.offsetWidth + 'px';
+        const activeElements = popup.getElementsByClassName('active');
+        if (activeElements.length === 1) {
+          const elem = activeElements[0] as HTMLElement;
+          elem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+    });
+  }
+
+  private observePopupOpen() {
+    if (this.popupObserver) {
+      this.popupObserver.disconnect();
+    }
+    this.popupObserver = new MutationObserver(() => {
+      const popup = this.doc.getElementById(this.instance().popupId);
+      if (popup) {
+        popup.style.width = this.elementRef().nativeElement.offsetWidth + 'px';
+        this.popupObserver.disconnect();
+        this.popupObserver = null;
+      }
+    });
+    this.popupObserver.observe(this.doc.body, { childList: true, subtree: true });
   }
 
   @HostListener('keypress',['$event']) onKeyPress(e: KeyboardEvent) {
@@ -179,6 +210,7 @@ export class TypeaheadEditor extends EditorDirective implements IPopupSupportCom
       if(this.ngGrid.editNextCellOnEnter) {
         this.focus$.next(this.initialDisplayValue);
       }
+      this.observePopupOpen();
       if(this.ngGrid.isInFindMode()) {
         this.findModeListener = (e: KeyboardEvent) => {
           if(e.keyCode === 13) {
@@ -191,6 +223,10 @@ export class TypeaheadEditor extends EditorDirective implements IPopupSupportCom
   }
 
   ngOnDestroy() {
+    if (this.popupObserver) {
+      this.popupObserver.disconnect();
+      this.popupObserver = null;
+    }
     if(this.ngGrid.isInFindMode()) {
       this.elementRef.nativeElement.removeEventListener('keydown', this.findModeListener);
     }
