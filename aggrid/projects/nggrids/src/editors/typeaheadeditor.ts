@@ -1,7 +1,8 @@
-import { HostListener, ChangeDetectionStrategy, Component, Inject, input, viewChild, signal, DOCUMENT } from '@angular/core';
+import { HostListener, Component, Inject, Input, ViewChild} from '@angular/core';
+import { DOCUMENT } from '@angular/common';
 import { NgbTypeahead, NgbTypeaheadConfig } from '@ng-bootstrap/ng-bootstrap';
 import { merge, Observable, of, Subject } from 'rxjs';
-import { debounceTime, distinctUntilChanged, filter, switchMap } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { FormattingService, IPopupSupportComponent } from '@servoy/public';
 import { EditorDirective } from './editor';
 
@@ -73,13 +74,13 @@ export class TypeaheadEditor extends EditorDirective implements IPopupSupportCom
   }
 
   scroll() {
-    if (!this.instance().isPopupOpen()) {
+    if (!this.instance.isPopupOpen()) {
       return;
     }
     setTimeout(() => {
-      const popup = this.doc.getElementById(this.instance().popupId);
+      const popup = this.doc.getElementById(this.instance.popupId);
       if (popup) {
-        popup.style.width = this.elementRef().nativeElement.offsetWidth + 'px';
+        popup.style.width = this.elementRef.nativeElement.offsetWidth + 'px';
         const activeElements = popup.getElementsByClassName('active');
         if (activeElements.length === 1) {
           const elem = activeElements[0] as HTMLElement;
@@ -94,9 +95,9 @@ export class TypeaheadEditor extends EditorDirective implements IPopupSupportCom
       this.popupObserver.disconnect();
     }
     this.popupObserver = new MutationObserver(() => {
-      const popup = this.doc.getElementById(this.instance().popupId);
+      const popup = this.doc.getElementById(this.instance.popupId);
       if (popup) {
-        popup.style.width = this.elementRef().nativeElement.offsetWidth + 'px';
+        popup.style.width = this.elementRef.nativeElement.offsetWidth + 'px';
         this.popupObserver.disconnect();
         this.popupObserver = null;
       }
