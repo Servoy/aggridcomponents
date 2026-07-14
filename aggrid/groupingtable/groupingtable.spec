@@ -767,7 +767,8 @@
 			"displayedColumnsChange" : { "type": "boolean", "default": true, "tags": {"scope": "design", "doc": "Apply 'columnsAutoSizing' when columns are added/removed"} },
 			"gridReady" : { "type": "boolean", "default": true, "tags": {"scope": "design", "doc": "Apply 'columnsAutoSizing' when grid is ready to be shown"} },
 			"gridSizeChange" : { "type": "boolean", "default": true, "tags": {"scope": "design", "doc": "Apply 'columnsAutoSizing' when grid size changes"} },
-			"toolPanelVisibleChange" : { "type": "boolean", "default": true, "tags": {"scope": "design", "doc": "Apply 'columnsAutoSizing' when the toolpanel visibility is changed"} }
+			"toolPanelVisibleChange" : { "type": "boolean", "default": true, "tags": {"scope": "design", "doc": "Apply 'columnsAutoSizing' when the toolpanel visibility is changed"} },
+			"gridRowPostCreate" : { "type": "boolean", "default": false, "tags": {"scope": "design", "doc": "Apply 'columnsAutoSizing' when rows are re-rendered"} }
 		},
 		"columnStateColumn" : {
 			"colId" : { "type" : "string" },
