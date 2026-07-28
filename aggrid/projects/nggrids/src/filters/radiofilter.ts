@@ -93,7 +93,7 @@ export class RadioFilter extends FilterDirective {
       return filterUIValue;
     }
 
-    setFilterUIValue(value) {
+    setFilterUIValue(value: any) {
       if(this.useCheckboxForFloatingFilter()) {
         this.checkboxState = value;
         this.updateCheckboxUI();

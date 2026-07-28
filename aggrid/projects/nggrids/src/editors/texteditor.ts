@@ -43,7 +43,7 @@ export class TextEditor extends EditorDirective {
                     if(editNextCellOnEnter && e.keyCode === 13) {
                         this.ngGrid.agGrid().api.tabToNextCell();
                     } else if (arrowsUpDownMoveWhenEditing && arrowsUpDownMoveWhenEditing !== 'NONE') {
-                        let newEditingNode = null;
+                        let newEditingNode: any = null;
                         const columnToCheck = this.params.column;
                         const mustBeEditable = arrowsUpDownMoveWhenEditing === 'NEXTEDITABLECELL';
                         if( e.keyCode === 38) { // UP
@@ -138,7 +138,7 @@ export class TextEditor extends EditorDirective {
                 if(format && !this.ngGrid.isInFindMode()) {
                     const editFormat = format.edit ? format.edit : format.display;
                     if(editFormat && format.isMask) {
-                        const settings = {};
+                        const settings: Record<string, any> = {};
                         settings['placeholder'] = format.placeHolder ? format.placeHolder : ' ';
                         if (format.allowedCharacters)
                             settings['allowedCharacters'] = format.allowedCharacters;

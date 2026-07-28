@@ -52,7 +52,7 @@ export class FilterDirective implements AgFloatingFilterComponent, IFloatingFilt
         const valuelist = this.ngGrid.getValuelistForFilter(this.params);
         if (valuelist) {
           this.hasValuelistSet = true;
-          valuelist.filterList('').subscribe((valuelistValues) => {
+          valuelist.filterList('').subscribe((valuelistValues: any) => {
             if(valuelistValues.isRealValueUUID) {
               this.isRealValueUUID = valuelistValues.isRealValueUUID();
             }
@@ -80,7 +80,7 @@ export class FilterDirective implements AgFloatingFilterComponent, IFloatingFilt
 
     onApplyFilter() {
       if(this.isFloating) {
-        this.floatingParams.parentFilterInstance((instance: FilterDirective) => {
+        this.floatingParams.parentFilterInstance((instance: any) => {
           instance.valuelistValuesDefer.promise.then(() => {
             instance.onFloatingFilterChanged('equals', this.getFilterUIValue());
           });
@@ -133,7 +133,7 @@ export class FilterDirective implements AgFloatingFilterComponent, IFloatingFilt
         return null;
     }
 
-    setFilterUIValue(value) {
+    setFilterUIValue(value: any) {
     }
 
     getSecondFilterUIValue(): any {
@@ -188,7 +188,7 @@ export class FilterDirective implements AgFloatingFilterComponent, IFloatingFilt
     }
 
     hasApplyButton(): boolean {
-      return !this.isFloating && this.params['buttons'] instanceof Array && this.params['buttons'].indexOf('apply') !== -1;
+      return !this.isFloating && (this.params as any)['buttons'] instanceof Array && (this.params as any)['buttons'].indexOf('apply') !== -1;
     }
 
     valueChanged() {
@@ -200,10 +200,10 @@ export class FilterDirective implements AgFloatingFilterComponent, IFloatingFilt
     }
 
     suppressAndOrCondition(): boolean {
-      return this.params['suppressAndOrCondition'] === true;
+      return (this.params as any)['suppressAndOrCondition'] === true;
     }
 
-    getCondition(realValue): any {
+    getCondition(realValue: any): any {
       return {
         filterType: this.isRealValueUUID ? 'uuid' : isNaN(realValue) ? 'text' : 'number',
         type: 'equals',
@@ -212,7 +212,7 @@ export class FilterDirective implements AgFloatingFilterComponent, IFloatingFilt
       };
     }
 
-    getCondition2(realValue): any {
+    getCondition2(realValue: any): any {
       return {
         filterType: this.isRealValueUUID ? 'uuid' : isNaN(realValue) ? 'text' : 'number',
         type: 'equals',

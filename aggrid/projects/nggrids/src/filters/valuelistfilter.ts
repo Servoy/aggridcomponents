@@ -83,7 +83,7 @@ export class ValuelistFilter extends FilterDirective {
               valuelistObs = of([]);
             }
           } else {
-            valuelistObs = of(this.valuelistValues.filter(str => {
+            valuelistObs = of(this.valuelistValues.filter((str: any) => {
               return str.displayValue.toLowerCase().indexOf((term as string).toLowerCase()) != -1;
             }));
           }
@@ -114,7 +114,7 @@ export class ValuelistFilter extends FilterDirective {
       return this.elementRef().nativeElement.value;
     }
 
-    setFilterUIValue(value) {
+    setFilterUIValue(value: any) {
       this.elementRef().nativeElement.value = value;
     }
 

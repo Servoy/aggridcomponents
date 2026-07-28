@@ -17,13 +17,13 @@ import { RadioFilter } from '../filters/radiofilter';
 import { NgbTypeaheadConfig } from '@ng-bootstrap/ng-bootstrap';
 import { RegistrationService } from '../datagrid/commons/registration.service';
 
-const TABLE_PROPERTIES_DEFAULTS = {
+const TABLE_PROPERTIES_DEFAULTS: Record<string, {gridOptionsProperty: string, default: any}> = {
     rowHeight: { gridOptionsProperty: 'rowHeight', default: 25 },
     headerHeight: { gridOptionsProperty: 'headerHeight', default: 33 },
     multiSelect: { gridOptionsProperty: 'rowSelection', default: false }
 };
 
-const COLUMN_PROPERTIES_DEFAULTS = {
+const COLUMN_PROPERTIES_DEFAULTS: Record<string, {colDefProperty: string, default: any}> = {
     id: { colDefProperty: 'colId', default: null },
     headerTitle: { colDefProperty: 'headerName', default: null },
     headerTooltip: { colDefProperty: 'headerTooltip', default: null },
@@ -172,7 +172,7 @@ export class PowerGrid extends NGGridDirective {
 
     clickTimer: any = null;
 
-    sizeColumnsToFitTimeout = null;
+    sizeColumnsToFitTimeout: any = null;
 
 
     isColumnsFirstChange = true;
@@ -585,16 +585,16 @@ export class PowerGrid extends NGGridDirective {
 
         // fill user grid options properties
         if (userGridOptions) {
-            const gridOptionsSetByComponent = {};
+            const gridOptionsSetByComponent: Record<string, any> = {};
             for (const p in TABLE_PROPERTIES_DEFAULTS) {
-                if (TABLE_PROPERTIES_DEFAULTS[p]['default'] !== this[p]()) {
+                if (TABLE_PROPERTIES_DEFAULTS[p]['default'] !== (this as any)[p]()) {
                     gridOptionsSetByComponent[TABLE_PROPERTIES_DEFAULTS[p]['gridOptionsProperty']] = true;
                 }
             }
 
             for (const property in userGridOptions) {
                 if (userGridOptions.hasOwnProperty(property) && !gridOptionsSetByComponent.hasOwnProperty(property)) {
-                    this.agGridOptions[property] = userGridOptions[property];
+                    (this.agGridOptions as any)[property] = userGridOptions[property];
                 }
             }
 
@@ -889,8 +889,8 @@ export class PowerGrid extends NGGridDirective {
                         break;
                     case 'enabled':
                         if (this.isGridReady) {
-                            this.agGridOptions.rowSelection['enableClickSelection'] = change.currentValue;
-                            this.agGridOptions.rowSelection['checkboxes'] = change.currentValue && (this._checkboxSelection() || this.multiSelect());
+                        (this.agGridOptions.rowSelection as any)['enableClickSelection'] = change.currentValue;
+                        (this.agGridOptions.rowSelection as any)['checkboxes'] = change.currentValue && (this._checkboxSelection() || this.multiSelect());
                             this.agGrid().api.setGridOption('rowSelection', this.agGridOptions.rowSelection);
                             this.agGrid().api.setGridOption('sideBar', change.currentValue ? this.sideBar : false);
                             this.updateColumnDefs();
@@ -926,9 +926,9 @@ export class PowerGrid extends NGGridDirective {
 
     getColumnDefs() {
         //create the column definitions from the specified columns in designer
-        const colDefs = [];
+        const colDefs: any[] = [];
         let colDef: any = {};
-        const colGroups = {};
+        const colGroups: Record<string, any> = {};
         const columns = this.columns();
         if (columns) {
             for (const column of columns) {
@@ -1092,8 +1092,8 @@ export class PowerGrid extends NGGridDirective {
 
                 if (colDef.dndSource) {
                     const sourceColumnId = colDef.colId;
-                    colDef.dndSourceOnRowDrag = (params) => {
-                        const dragDatas = [];
+                    colDef.dndSourceOnRowDrag = (params: any) => {
+                        const dragDatas: any[] = [];
 
                         const selectedNodes = this.agGrid().api.getSelectedNodes();
                         const rowDatas = selectedNodes.indexOf(params.rowNode) === -1 ? [params.rowNode] : selectedNodes;
@@ -1148,9 +1148,9 @@ export class PowerGrid extends NGGridDirective {
                         this._checkboxSelection.set(columnOptions['checkboxSelection']);
                         delete columnOptions['checkboxSelection'];
                     }
-                    const colDefSetByComponent = {};
+                    const colDefSetByComponent: Record<string, any> = {};
                     for (const p in COLUMN_PROPERTIES_DEFAULTS) {
-                        if (COLUMN_PROPERTIES_DEFAULTS[p]['default'] !== column[p]) {
+                        if (COLUMN_PROPERTIES_DEFAULTS[p]['default'] !== (column as any)[p]) {
                             colDefSetByComponent[COLUMN_PROPERTIES_DEFAULTS[p]['colDefProperty']] = true;
                         }
                     }
@@ -1191,7 +1191,7 @@ export class PowerGrid extends NGGridDirective {
         let property: any;
 
         // clone target to avoid side effects
-        let mergeConfig = {};
+        let mergeConfig: Record<string, any> = {};
         if (target) {
             for (property in target) {
                 if (target.hasOwnProperty(property)) {
@@ -1211,7 +1211,7 @@ export class PowerGrid extends NGGridDirective {
     }
 
     getAggCustomFuncs(): { [key: string]: IAggFunc } {
-        const aggFuncs = {};
+        const aggFuncs: Record<string, any> = {};
         for (const aggFuncInfo of this._internalAggCustomFuncs()) {
             aggFuncs[aggFuncInfo.name] = this.createAggCustomFunctionFromString(aggFuncInfo.aggFunc);
         }
@@ -1421,7 +1421,7 @@ export class PowerGrid extends NGGridDirective {
         const agColumnsAutoSizingOn = this.getColumnsAutoSizingOn();
         let useColumnsAutoSizing = this._columnsAutoSizing();
         if(this.initialColumnsAutoSizing !== 'NONE' && agColumnsAutoSizingOn) {
-            useColumnsAutoSizing = agColumnsAutoSizingOn[eventType] === true ? this.initialColumnsAutoSizing : 'NONE';
+            useColumnsAutoSizing = (agColumnsAutoSizingOn as any)[eventType] === true ? this.initialColumnsAutoSizing : 'NONE';
         }
 
         switch (useColumnsAutoSizing) {
@@ -1920,7 +1920,7 @@ export class PowerGrid extends NGGridDirective {
         const colDef = col.getColDef();
 
         // update the header
-        colDef[property] = text;
+        (colDef as any)[property] = text;
 
         // the column is now updated. to reflect the header change, get the grid refresh the header
         this.agGrid().api.refreshHeader();
@@ -1941,7 +1941,7 @@ export class PowerGrid extends NGGridDirective {
     getFooterData() {
         const result = [];
         let hasFooterData = false;
-        const resultData = {};
+        const resultData: Record<string, any> = {};
         const columns = this.columns();
         for (let i = 0; columns && i < columns.length; i++) {
             const column = columns[i];
@@ -1963,7 +1963,7 @@ export class PowerGrid extends NGGridDirective {
     getHeaderData() {
         const result = [];
         let hasHeaderData = false;
-        const resultData = {};
+        const resultData: Record<string, any> = {};
         const columns = this.columns();
         for (let i = 0; columns && i < columns.length; i++) {
             const column = columns[i];
@@ -2086,7 +2086,7 @@ export class PowerGrid extends NGGridDirective {
     }
 
     getIconCheckboxEditor(state: any) {
-        const checkboxEditorIconConfig = this.registrationService.powergridService.iconConfig ? this.mergeConfig(this.registrationService.powergridService.iconConfig, this.iconConfig()) : this.iconConfig();
+        const checkboxEditorIconConfig: any = this.registrationService.powergridService.iconConfig ? this.mergeConfig(this.registrationService.powergridService.iconConfig, this.iconConfig()) : this.iconConfig();
 
         if (state) {
             return checkboxEditorIconConfig && checkboxEditorIconConfig['iconEditorChecked'] && checkboxEditorIconConfig['iconEditorChecked'] !== 'glyphicon glyphicon-check' ?
@@ -2180,22 +2180,22 @@ export class PowerGrid extends NGGridDirective {
         const exportData = [];
         const columnStates = this.agGrid().api.getColumnState();
         if (columnStates && columnStates.length) {
-            const header = [];
+            const header: any[] = [];
             columnStates.forEach(columnState => {
                 if (!columnState.hide) {
                     header.push(columnState.colId);
                 }
             });
             if (header.length) {
-                const colInfoCache = {};
-                const headerNames = [];
+                const colInfoCache: Record<string, any> = {};
+                const headerNames: any[] = [];
                 header.forEach(colId => {
                     colInfoCache[colId] = { columnModel: this.getColumn(colId), colDef: this.agGrid().api.getColumn(colId).getColDef() };
                     headerNames.push(colInfoCache[colId].colDef['headerName']);
                 });
                 exportData.push(headerNames);
                 this.agGrid().api.forEachNodeAfterFilterAndSort((rowNode: IRowNode, index: number) => {
-                    const row = [];
+                    const row: any[] = [];
                     header.forEach(colId => {
                         const colInfo = colInfoCache[colId];
                         let value = rowNode.group ? rowNode.groupData[colInfo['colDef'].field] : rowNode.data[colInfo['colDef'].field];
@@ -2308,7 +2308,7 @@ export class PowerGrid extends NGGridDirective {
      */
     scrollToRow(rowData: any) {
         this.setTimeout(() => {
-            const matchingRows = [];
+            const matchingRows: any[] = [];
             this.agGrid().api.forEachNode((node) => {
                 for (const dp in rowData) {
                     if (!node.data || rowData[dp] !== node.data[dp]) {
@@ -2449,10 +2449,10 @@ export class PowerGrid extends NGGridDirective {
         return agGridElementRef ? agGridElementRef.nativeElement : null;
     }
 
-    applySortModel(sortModel) {
-        const columnState = [];
+    applySortModel(sortModel: any) {
+        const columnState: any[] = [];
         if (sortModel) {
-            sortModel.forEach((item, index) => {
+            sortModel.forEach((item: any, index: any) => {
                 columnState.push({
                     colId: item.colId,
                     sort: item.sort,
@@ -2463,7 +2463,7 @@ export class PowerGrid extends NGGridDirective {
         this.agGrid().api.applyColumnState({ state: columnState, defaultState: { sort: null } });
     }
 
-    gridDragOver($event) {
+    gridDragOver($event: any) {
         const dragSupported = $event.dataTransfer.types.length && $event.dataTransfer.types[0] === 'nggrids-drag/json';
         if (dragSupported) {
             this.handleDragViewportScroll($event);
@@ -2508,7 +2508,7 @@ export class PowerGrid extends NGGridDirective {
         }
     }
 
-    gridDrop($event) {
+    gridDrop($event: any) {
         $event.preventDefault();
         this.cancelDragViewportScroll();
         this.restoreDragOverTargetColumn();
@@ -2530,7 +2530,7 @@ export class PowerGrid extends NGGridDirective {
         }
     }
 
-    getNodeForElement(element): any {
+    getNodeForElement(element: any): any {
         const row = element.closest('[row-id]');
         return row ? this.agGrid().api.getRowNode(row.getAttribute('row-id')) : null;
     }

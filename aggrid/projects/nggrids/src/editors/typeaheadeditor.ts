@@ -204,7 +204,7 @@ export class TypeaheadEditor extends EditorDirective implements IPopupSupportCom
   ngAfterViewInit(): void {
     const editFormat = this.format?.edit ? this.format.edit : this.format?.display;
     if (this.format && editFormat && this.format.isMask) {
-        const settings = {};
+        const settings: Record<string, any> = {};
         settings['placeholder'] = this.format.placeHolder ? this.format.placeHolder : ' ';
         if (this.format.allowedCharacters)
             settings['allowedCharacters'] = this.format.allowedCharacters;

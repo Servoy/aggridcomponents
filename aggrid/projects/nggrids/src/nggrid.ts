@@ -129,7 +129,7 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
         }
     }
 
-    handleDragViewportScroll($event) {
+    handleDragViewportScroll($event: any) {
         if (!this.dragViewport) {
             this.dragViewport = $event.currentTarget.getElementsByClassName("ag-body-viewport")[0] as HTMLElement;
             this.dragViewportHorizontalScrollViewport = $event.currentTarget.getElementsByClassName("ag-body-horizontal-scroll-viewport")[0] as HTMLElement;
@@ -196,7 +196,7 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
         this.lastDragOverResult = false;
     }
 
-    gridDragEnd($event) {
+    gridDragEnd($event: any) {
         this.cancelDragViewportScroll();
         this.restoreDragOverTargetColumn();
         if (this.onDragGetImageFunc()) {
@@ -240,7 +240,7 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
         }
     }
 
-    getDataTarget(event): any {
+    getDataTarget(event: any): any {
         const dataTarget = event.target.closest('[data-target]');
         if (dataTarget) {
             return dataTarget.getAttribute('data-target');
@@ -293,14 +293,14 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
 
     createCustomMainMenuItems(menuItems: any[], customMainMenu: any, column: any, colId: string): any[] {
         customMainMenu.items.forEach((item: IJSMenuItem) => {
-            let hideForColIds: string[] = typeof item.extraProperties['NG-Grids']['hideForColIds'] === 'string' && item.extraProperties['NG-Grids']['hideForColIds'].trim().length > 0 ? item.extraProperties['NG-Grids']['hideForColIds'].split(',') : [];
-            let showForColIds: string[] = typeof item.extraProperties['NG-Grids']['showForColIds'] === 'string' && item.extraProperties['NG-Grids']['showForColIds'].trim().length > 0 ? item.extraProperties['NG-Grids']['showForColIds'].split(',') : [];
+            let hideForColIds: string[] = typeof (item.extraProperties as any)['NG-Grids']['hideForColIds'] === 'string' && (item.extraProperties as any)['NG-Grids']['hideForColIds'].trim().length > 0 ? (item.extraProperties as any)['NG-Grids']['hideForColIds'].split(',') : [];
+            let showForColIds: string[] = typeof (item.extraProperties as any)['NG-Grids']['showForColIds'] === 'string' && (item.extraProperties as any)['NG-Grids']['showForColIds'].trim().length > 0 ? (item.extraProperties as any)['NG-Grids']['showForColIds'].split(',') : [];
             if ((!column.id && showForColIds.length === 0) || ((hideForColIds.length === 0 || hideForColIds.indexOf(column.id) === -1) &&
                 (showForColIds.length === 0 || showForColIds.indexOf(column.id) !== -1))) {
-                if (item.extraProperties['NG-Grids']['isSeparator']) {
+                if ((item.extraProperties as any)['NG-Grids']['isSeparator']) {
                     menuItems.push('separator');
-                } else if (item.extraProperties['NG-Grids']['agGridMenuItem']) {
-                    menuItems.push(item.extraProperties['NG-Grids']['agGridMenuItem']);
+                } else if ((item.extraProperties as any)['NG-Grids']['agGridMenuItem']) {
+                    menuItems.push((item.extraProperties as any)['NG-Grids']['agGridMenuItem']);
                 } else {
                     menuItems.push({
                         name: item.menuText,

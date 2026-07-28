@@ -234,7 +234,7 @@ export class DateFilter extends FilterDirective {
       return this.elementRef().nativeElement.value;
     }
 
-    setFilterUIValue(value) {
+    setFilterUIValue(value: any) {
       this.elementRef().nativeElement.value = value;
     }
 
@@ -257,8 +257,8 @@ export class DateFilter extends FilterDirective {
       }
     }
 
-    getCondition(realValue): any {
-      const condition = {
+    getCondition(realValue: any): any {
+      const condition: Record<string, any> = {
         filterType: 'date',
         type: this.selectedFilterOperation,
         uiValue: this.getFilterUIValue(),
@@ -282,8 +282,8 @@ export class DateFilter extends FilterDirective {
       return condition;
     }
 
-    getCondition2(realValue): any {
-      const condition2 = {
+    getCondition2(realValue: any): any {
+      const condition2: Record<string, any> = {
         filterType: 'date',
         type: this.selectedFilterOperation
       };

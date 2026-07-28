@@ -32,7 +32,7 @@ const TABLE_PROPERTIES_DEFAULTS = {
 	enableColumnMove: { gridOptionsProperty: 'suppressMovableColumns', default: true }
 };
 
-const COLUMN_PROPERTIES_DEFAULTS = {
+const COLUMN_PROPERTIES_DEFAULTS: Record<string, {colDefProperty: string, default: any}> = {
 	headerTitle: { colDefProperty: 'headerName', default: null },
 	headerTooltip: { colDefProperty: 'headerTooltip', default: null },
 	id: { colDefProperty: 'colId', default: null },
@@ -53,7 +53,7 @@ const COLUMN_PROPERTIES_DEFAULTS = {
 const CHUNK_SIZE = 50;
 const CACHED_CHUNK_BLOCKS = 2;
 
-export const NULL_VALUE = { displayValue: '', realValue: null };
+export const NULL_VALUE: { displayValue: string, realValue: any } = { displayValue: '', realValue: null };
 NULL_VALUE.toString = () => '';
 
 const COLUMN_KEYS_TO_CHECK_FOR_CHANGES = [
@@ -228,7 +228,7 @@ export class DataGrid extends NGGridDirective {
 
 
 	// when the grid is not ready yet set the value to the foundset/column index for which has been edit cell called
-	editCellAtTimeout = null;
+	editCellAtTimeout: any = null;
 	startEditFoundsetIndex = -1;
 	startEditColumnIndex = -1;
 
@@ -298,7 +298,7 @@ export class DataGrid extends NGGridDirective {
 
 	clickTimer: any;
 
-	sizeHeaderAndColumnsToFitTimeout = null;
+	sizeHeaderAndColumnsToFitTimeout: any = null;
 
 	// root foundset change listener remover
 	removeChangeListenerFunction: any = null;
@@ -310,14 +310,14 @@ export class DataGrid extends NGGridDirective {
 	previousColumns: any[];
 
 	// currently set aggrid-filter
-	filterModel = null;
+	filterModel: any = null;
 
 	isSingleClickEdit = false;
 
 	footerTextChangeListeners: any[] = [];
 	headerTextChangeListeners: any[] = [];
 
-	delayedColumnChange = null;
+	delayedColumnChange: any = null;
 
 	sideBar: any;
 
@@ -865,7 +865,7 @@ export class DataGrid extends NGGridDirective {
 			};
 		}
 
-		if (this.groupCheckbox() && this.agGridOptions.rowSelection['mode'] == 'multiRow') {
+		if (this.groupCheckbox() && (this.agGridOptions.rowSelection as any)['mode'] == 'multiRow') {
 			this.updateGridOptionsForGroupCheckbox(true);
 		}
 
@@ -909,16 +909,16 @@ export class DataGrid extends NGGridDirective {
 
 		// fill user grid options properties
 		if (userGridOptions) {
-			const gridOptionsSetByComponent = {};
+			const gridOptionsSetByComponent: Record<string, any> = {};
 			for (const p in TABLE_PROPERTIES_DEFAULTS) {
-				if (TABLE_PROPERTIES_DEFAULTS[p]['default'] !== this[p]()) {
-					gridOptionsSetByComponent[TABLE_PROPERTIES_DEFAULTS[p]['gridOptionsProperty']] = true;
+				if ((TABLE_PROPERTIES_DEFAULTS as any)[p]['default'] !== (this as any)[p]()) {
+					gridOptionsSetByComponent[(TABLE_PROPERTIES_DEFAULTS as any)[p]['gridOptionsProperty']] = true;
 				}
 			}
 
 			for (const property in userGridOptions) {
 				if (userGridOptions.hasOwnProperty(property) && !gridOptionsSetByComponent.hasOwnProperty(property)) {
-					this.agGridOptions[property] = userGridOptions[property];
+					(this.agGridOptions as any)[property] = userGridOptions[property];
 				}
 			}
 
@@ -1034,13 +1034,13 @@ export class DataGrid extends NGGridDirective {
 								}
 							}
 						}
-						ch['checked'] = isChecked;
-						if (addClickListener && !ch['_svyHeaderCheckWired']) {
+						(ch as any)['checked'] = isChecked;
+						if (addClickListener && !(ch as any)['_svyHeaderCheckWired']) {
 							ch.addEventListener('click', (event: Event) => {
 								this.onHeaderCheckClick(colId, event);
 								event.stopPropagation();
 							});
-							ch['_svyHeaderCheckWired'] = true;
+							(ch as any)['_svyHeaderCheckWired'] = true;
 						}
 					};
 				}
@@ -1076,7 +1076,7 @@ export class DataGrid extends NGGridDirective {
 			_internalCheckboxGroupSelection = this.__internalCheckboxGroupSelection();
 		}
 		else _internalCheckboxGroupSelection.length = 0;
-		if (event.target['checked'] === true) {
+		if ((event.target as any)['checked'] === true) {
 			_internalCheckboxGroupSelection.push({ colId: colId });
 		} else {
 			for (let i = 0; i < _internalCheckboxGroupSelection.length; i++) {
@@ -1089,7 +1089,7 @@ export class DataGrid extends NGGridDirective {
 		this._internalCheckboxGroupSelectionChange.emit(_internalCheckboxGroupSelection);
 		const onSelectedRowsChanged = this.onSelectedRowsChanged();
 		if (onSelectedRowsChanged) {
-			onSelectedRowsChanged(true, colId, null, event.target['checked'] === true, this.createJSEvent());
+			onSelectedRowsChanged(true, colId, null, (event.target as any)['checked'] === true, this.createJSEvent());
 		}
 	}
 
@@ -1149,7 +1149,7 @@ export class DataGrid extends NGGridDirective {
 		});
 
 		// default sort order
-		if (this.agGridOptions['enableServerSideSorting']) {
+		if ((this.agGridOptions as any)['enableServerSideSorting']) {
 			this.applySortModel(this.getSortModel());
 		}
 
@@ -1336,8 +1336,8 @@ export class DataGrid extends NGGridDirective {
 						break;
 					case 'enabled':
 						if (this.isGridReady && change.currentValue !== change.previousValue) {
-							this.agGridOptions.rowSelection['enableClickSelection'] = change.currentValue;
-							this.agGridOptions.rowSelection['checkboxes'] = change.currentValue && this._checkboxSelection();
+							(this.agGridOptions.rowSelection as any)['enableClickSelection'] = change.currentValue;
+							(this.agGridOptions.rowSelection as any)['checkboxes'] = change.currentValue && this._checkboxSelection();
 							this.agGrid().api.setGridOption('rowSelection', this.agGridOptions.rowSelection);
 							this.agGrid().api.setGridOption('sideBar', change.currentValue ? this.sideBar : false);
 							this.updateColumnDefs();
@@ -1377,7 +1377,7 @@ export class DataGrid extends NGGridDirective {
 		super.svyOnChanges(changes);
 	}
 
-	applyColumnChange(change) {
+	applyColumnChange(change: any) {
 		if (!isEqualWith(change.currentValue, change.previousValue, (objValue: any, othValue: any, key: any) => {
 			if (key && COLUMN_KEYS_TO_SKIP_IN_CHANGES.indexOf(key) !== -1) {
 				return true;
@@ -1550,7 +1550,7 @@ export class DataGrid extends NGGridDirective {
 			const agColumnsAutoSizingOn = this.getColumnsAutoSizingOn();
 			let useColumnsAutoSizing = this._columnsAutoSizing();
 			if (this.initialColumnsAutoSizing !== 'NONE' && agColumnsAutoSizingOn) {
-				useColumnsAutoSizing = agColumnsAutoSizingOn[eventType] === true ? this.initialColumnsAutoSizing : 'NONE';
+				useColumnsAutoSizing = (agColumnsAutoSizingOn as any)[eventType] === true ? this.initialColumnsAutoSizing : 'NONE';
 			}
 
 			switch (useColumnsAutoSizing) {
@@ -1710,7 +1710,7 @@ export class DataGrid extends NGGridDirective {
 		//create the column definitions from the specified columns in designer
 		const colDefs = [];
 		let colDef: any = {};
-		const colGroups = {};
+		const colGroups: Record<string, any> = {};
 		let column: any;
 		const columns = this.columns();
 		for (let i = 0; columns && i < columns.length; i++) {
@@ -1850,20 +1850,20 @@ export class DataGrid extends NGGridDirective {
 
 			if (colDef.dndSource) {
 				const sourceColumnId = colDef.colId;
-				colDef.dndSourceOnRowDrag = (params) => {
-					const dragDatas = [];
-					const records = [];
+				colDef.dndSourceOnRowDrag = (params: any) => {
+					const dragDatas: any[] = [];
+					const records: any[] = [];
 
 					const selectedNodes = this.agGrid().api.getSelectedNodes();
 					const rowDatas = selectedNodes.indexOf(params.rowNode) === -1 ? [params.rowNode] : selectedNodes;
 					rowDatas.forEach(row => {
 						const rowData = row.data || Object.assign(row.groupData, row.aggData);
-						const dragData = {};
-						for (const p in rowData) {
-							if (rowData.hasOwnProperty(p)) {
-								const col = this.getColumn(p);
-								if (col) {
-									dragData[col.id ? col.id : p] = rowData[p];
+					const dragData: Record<string, any> = {};
+					for (const p in rowData) {
+						if (rowData.hasOwnProperty(p)) {
+							const col = this.getColumn(p);
+							if (col) {
+								dragData[col.id ? col.id : p] = rowData[p];
 								}
 							}
 						}
@@ -1901,15 +1901,15 @@ export class DataGrid extends NGGridDirective {
 					this._checkboxSelection.set(columnOptions['checkboxSelection']);
 					delete columnOptions['checkboxSelection'];
 				}
-				const colDefSetByComponent = {};
-				for (const p in COLUMN_PROPERTIES_DEFAULTS) {
-					if (COLUMN_PROPERTIES_DEFAULTS[p]['default'] !== column[p]) {
-						colDefSetByComponent[COLUMN_PROPERTIES_DEFAULTS[p]['colDefProperty']] = true;
+			const colDefSetByComponent: Record<string, any> = {};
+			for (const p in COLUMN_PROPERTIES_DEFAULTS) {
+				if (COLUMN_PROPERTIES_DEFAULTS[p]['default'] !== column[p]) {
+					colDefSetByComponent[COLUMN_PROPERTIES_DEFAULTS[p]['colDefProperty']] = true;
 					}
 				}
-				for (const property in columnOptions) {
-					if (columnOptions.hasOwnProperty(property) && !colDefSetByComponent.hasOwnProperty(property)) {
-						colDef[property] = columnOptions[property];
+			for (const property in columnOptions) {
+				if (columnOptions.hasOwnProperty(property) && !colDefSetByComponent.hasOwnProperty(property)) {
+					(colDef as any)[property] = columnOptions[property];
 					}
 				}
 			}
@@ -2251,7 +2251,7 @@ export class DataGrid extends NGGridDirective {
 		let property: any;
 
 		// clone target to avoid side effects
-		let mergeConfig = {};
+		let mergeConfig: Record<string, any> = {};
 		if (target) {
 			for (property in target) {
 				if (target.hasOwnProperty(property)) {
@@ -2817,13 +2817,13 @@ export class DataGrid extends NGGridDirective {
 		}
 
 		// remove the hashedFoundsets
-		this.servoyApi.callServerSideApi('removeGroupedFoundsetUUID', [foundsetHash]).then((removed) => {
+		(this.servoyApi.callServerSideApi('removeGroupedFoundsetUUID', [foundsetHash]) as any).then((removed: any) => {
 			if (removed) {
-				delete this.state.foundsetManagers[foundsetHash];
+				delete (this.state.foundsetManagers as any)[foundsetHash];
 			} else {
 				this.log.warn('could not delete hashed foundset ' + foundsetHash);
 			}
-		}).catch((e) => {
+		}).catch((e: any) => {
 			this.log.error(e);
 		});
 		return true;
@@ -2859,17 +2859,17 @@ export class DataGrid extends NGGridDirective {
 
 		if (foundsetHash === 'root') return this.foundset;
 
-		if (this.state.foundsetManagers[foundsetHash]) {
+		if ((this.state.foundsetManagers as any)[foundsetHash]) {
 			// double check if foundset hashmap still exists
 			if (!this.getFoundSetByFoundsetUUID(foundsetHash)) {
 				this.log.error('This should not happen: could not verify foundset exists in foundsetHashmap ' + foundsetHash);
 				return null;
 			}
-			return this.state.foundsetManagers[foundsetHash];
+			return (this.state.foundsetManagers as any)[foundsetHash];
 		} else {
 			const foundsetRef = this.getFoundSetByFoundsetUUID(foundsetHash);
 			const foundsetManager = new FoundsetManager(this, foundsetRef, foundsetHash, false);
-			this.state.foundsetManagers[foundsetHash] = foundsetManager;
+			(this.state.foundsetManagers as any)[foundsetHash] = foundsetManager;
 			return foundsetManager;
 		}
 	}
@@ -2963,11 +2963,11 @@ export class DataGrid extends NGGridDirective {
 		return sortModel;
 	}
 
-	applySortModel(sortModel) {
+	applySortModel(sortModel: any) {
 		this.isSortModelApplied = true;
-		const columnState = [];
+		const columnState: any[] = [];
 		if (sortModel) {
-			sortModel.forEach((item, index) => {
+			sortModel.forEach((item: any, index: any) => {
 				columnState.push({
 					colId: item.colId,
 					sort: item.sort,
@@ -3276,7 +3276,7 @@ export class DataGrid extends NGGridDirective {
 		}
 	}
 
-	getMissingColumnIdsFromModel(savedColumns: string[], columnStateJSON): string[] {
+	getMissingColumnIdsFromModel(savedColumns: string[], columnStateJSON: any): string[] {
 		const missingColumnIdsFromModel: string[] = [];
 
 		for (const fieldToCompare of savedColumns) {
@@ -3316,7 +3316,7 @@ export class DataGrid extends NGGridDirective {
 		return missingColumnIdsFromModel;
 	}
 
-	getMissingColumnIdsFromState(savedColumns: string[], columnStateJSON): string[] {
+	getMissingColumnIdsFromState(savedColumns: string[], columnStateJSON: any): string[] {
 		const missingColumnIdsFromState: string[] = [];
 
 		for (let j = 0; j < this.columns().length; j++) {
@@ -3576,9 +3576,9 @@ export class DataGrid extends NGGridDirective {
 				let isRowLoadedInCache = false;
 				const cache = this.agGrid().api.getCacheBlockState();
 				for (const value of Object.values(cache)) {
-					if (value['startRow'] !== undefined && value['endRow'] !== undefined) {
-						if (foundsetManager.foundset.selectedRowIndexes[0] >= value['startRow'] &&
-							foundsetManager.foundset.selectedRowIndexes[0] <= value['endRow']
+					if ((value as any)['startRow'] !== undefined && (value as any)['endRow'] !== undefined) {
+						if (foundsetManager.foundset.selectedRowIndexes[0] >= (value as any)['startRow'] &&
+							foundsetManager.foundset.selectedRowIndexes[0] <= (value as any)['endRow']
 						) {
 							isRowLoadedInCache = true;
 							break;
@@ -3612,7 +3612,7 @@ export class DataGrid extends NGGridDirective {
 	getFooterData() {
 		const result = [];
 		let hasFooterData = false;
-		const resultData = {};
+		const resultData: Record<string, any> = {};
 		const columns = this.columns();
 		for (let i = 0; columns && i < columns.length; i++) {
 			const column = columns[i];
@@ -3635,7 +3635,7 @@ export class DataGrid extends NGGridDirective {
 	getHeaderData() {
 		const result = [];
 		let hasHeaderData = false;
-		const resultData = {};
+		const resultData: Record<string, any> = {};
 		const columns = this.columns();
 		for (let i = 0; columns && i < columns.length; i++) {
 			const column = columns[i];
@@ -3721,8 +3721,8 @@ export class DataGrid extends NGGridDirective {
 						rowElement.classList.remove(cssClass);
 					}
 				});
-				if (styleClassProvider) {
-					styleClassProvider.forEach(cssClass => {
+			if (styleClassProvider) {
+				styleClassProvider.forEach((cssClass: any) => {
 						if (!rowElement.classList.contains(cssClass)) {
 							rowElement.classList.add(cssClass);
 						}
@@ -3740,21 +3740,21 @@ export class DataGrid extends NGGridDirective {
 
 	getIconRefreshData() {
 		const refreshEditorIconConfig = this.registrationService.datagridService.iconConfig ? this.mergeConfig(this.registrationService.datagridService.iconConfig, this.iconConfig()) : this.iconConfig();
-		return refreshEditorIconConfig && refreshEditorIconConfig['iconRefreshData'] && refreshEditorIconConfig['iconRefreshData'] !== 'glyphicon glyphicon-refresh' ?
-			this.iconConfig()['iconRefreshData'] : 'fa fa-sync';
+		return refreshEditorIconConfig && (refreshEditorIconConfig as any)['iconRefreshData'] && (refreshEditorIconConfig as any)['iconRefreshData'] !== 'glyphicon glyphicon-refresh' ?
+			(this.iconConfig() as any)['iconRefreshData'] : 'fa fa-sync';
 	}
 
 	getIconCheckboxEditor(state: any) {
 		const checkboxEditorIconConfig = this.registrationService.datagridService.iconConfig ? this.mergeConfig(this.registrationService.datagridService.iconConfig, this.iconConfig()) : this.iconConfig();
 
 		if (state) {
-			return checkboxEditorIconConfig && checkboxEditorIconConfig['iconEditorChecked'] && checkboxEditorIconConfig['iconEditorChecked'] !== 'glyphicon glyphicon-check' ?
-				checkboxEditorIconConfig['iconEditorChecked'] : 'far fa-check-square';
+			return checkboxEditorIconConfig && (checkboxEditorIconConfig as any)['iconEditorChecked'] && (checkboxEditorIconConfig as any)['iconEditorChecked'] !== 'glyphicon glyphicon-check' ?
+				(checkboxEditorIconConfig as any)['iconEditorChecked'] : 'far fa-check-square';
 		} else if (state == null) {
-			return checkboxEditorIconConfig && checkboxEditorIconConfig['iconEditorIndeterminate'] ? checkboxEditorIconConfig['iconEditorIndeterminate'] : 'far fa-square-minus';
+			return checkboxEditorIconConfig && (checkboxEditorIconConfig as any)['iconEditorIndeterminate'] ? (checkboxEditorIconConfig as any)['iconEditorIndeterminate'] : 'far fa-square-minus';
 		} else {
-			return checkboxEditorIconConfig && checkboxEditorIconConfig['iconEditorUnchecked'] && checkboxEditorIconConfig['iconEditorUnchecked'] !== 'glyphicon glyphicon-unchecked' ?
-				checkboxEditorIconConfig['iconEditorUnchecked'] : 'far fa-square';
+			return checkboxEditorIconConfig && (checkboxEditorIconConfig as any)['iconEditorUnchecked'] && (checkboxEditorIconConfig as any)['iconEditorUnchecked'] !== 'glyphicon glyphicon-unchecked' ?
+				(checkboxEditorIconConfig as any)['iconEditorUnchecked'] : 'far fa-square';
 		}
 	}
 
@@ -3812,7 +3812,7 @@ export class DataGrid extends NGGridDirective {
 			const colDef = col.getColDef();
 
 			// update the header name
-			colDef[property] = text;
+			(colDef as any)[property] = text;
 
 			// the column is now updated. to reflect the header change, get the grid refresh the header
 			this.agGrid().api.refreshHeader();
@@ -3826,7 +3826,7 @@ export class DataGrid extends NGGridDirective {
 			// double click event, ignore it, the selection is already set by the first click
 			return;
 		}
-		if (this.agGridOptions.rowSelection['mode'] === 'multiRow') {
+		if ((this.agGridOptions.rowSelection as any)['mode'] === 'multiRow') {
 			this.multipleSelectionEvents.push(this.selectionEvent);
 			this.onMultipleSelectionChangedEx(e);
 		} else {
@@ -3996,7 +3996,7 @@ export class DataGrid extends NGGridDirective {
 						if (onSelectedRowsChanged) {
 							onSelectedRowsChanged(false, null, null, null, this.createJSEvent());
 						}
-						if (this.agGridOptions.rowSelection['mode'] === 'multiRow') {
+						if ((this.agGridOptions.rowSelection as any)['mode'] === 'multiRow') {
 							this.onMultipleSelectionChangedEx();
 						}
 						//success
@@ -4019,7 +4019,7 @@ export class DataGrid extends NGGridDirective {
 						if (this.scrollToSelectionWhenSelectionReady) {
 							this.scrollToSelection();
 						}
-						if (this.agGridOptions.rowSelection['mode'] === 'multiRow') {
+						if ((this.agGridOptions.rowSelection as any)['mode'] === 'multiRow') {
 							this.onMultipleSelectionChangedEx();
 						}
 					}
@@ -4486,7 +4486,7 @@ export class DataGrid extends NGGridDirective {
 		}
 
 		if (changeEvent.multiSelectChanged) {
-			this.agGridOptions.rowSelection['mode'] = changeEvent.multiSelectChanged.newValue ? 'multiRow' : 'singleRow';
+			(this.agGridOptions.rowSelection as any)['mode'] = changeEvent.multiSelectChanged.newValue ? 'multiRow' : 'singleRow';
 			this.agGrid().api.setGridOption('rowSelection', this.agGridOptions.rowSelection);
 			if (this.groupCheckbox()) {
 				this.updateGridOptionsForGroupCheckbox(changeEvent.multiSelectChanged.newValue);
@@ -4896,7 +4896,7 @@ export class DataGrid extends NGGridDirective {
 		return this.agGridElementRef().nativeElement;
 	}
 
-	gridDragOver($event) {
+	gridDragOver($event: any) {
 		const dragSupported = $event.dataTransfer.types.length && $event.dataTransfer.types[0] === 'nggrids-drag/json';
 		if (dragSupported) {
 			this.handleDragViewportScroll($event);
@@ -4910,7 +4910,7 @@ export class DataGrid extends NGGridDirective {
 					this.dragOverTargetColumnClassName = validTargetColumn ? validTargetColumn.className : null;
 					if (validTargetColumn) {
 						const overRow = this.getNodeForElement($event.target);
-						let overDragData = null;
+						let overDragData: Record<string, any> = null;
 						if (overRow) {
 							const overRowData = overRow.data || Object.assign(overRow.groupData, overRow.aggData);
 							overDragData = {};
@@ -4949,7 +4949,7 @@ export class DataGrid extends NGGridDirective {
 		}
 	}
 
-	gridDrop($event) {
+	gridDrop($event: any) {
 		$event.preventDefault();
 		this.cancelDragViewportScroll();
 		this.restoreDragOverTargetColumn();
@@ -4969,7 +4969,7 @@ export class DataGrid extends NGGridDirective {
 		}
 	}
 
-	getNodeForElement(element): any {
+	getNodeForElement(element: any): any {
 		const row = element.closest('[row-id]');
 		return row ? this.agGrid().api.getRowNode(row.getAttribute('row-id')) : null;
 	}
@@ -4996,8 +4996,8 @@ export class DataGrid extends NGGridDirective {
 
 class State {
 	/** column mapping by field name e.g. state.columns[field] */
-	columns = {};
-	foundsetManagers = {};
+	columns: Record<string, any> = {};
+	foundsetManagers: Record<string, any> = {};
 	/** valuelists stored per field */
 	valuelists = {};
 	expanded: ExpandedInfo = new ExpandedInfo();
@@ -5265,7 +5265,7 @@ class FoundsetServer {
 
 		const filterModel = request.filterModel;
 		// create filter model with column indexes that we can send to the server
-		const updatedFilterModel = {};
+		const updatedFilterModel: Record<string | number, any> = {};
 		for (const c in filterModel) {
 			if (filterModel.hasOwnProperty(c)) {
 				const columnIndex = this.dataGrid.getColumnIndex(c);
@@ -5312,7 +5312,7 @@ class FoundsetServer {
 			}
 
 			const filterPromise = this.dataGrid.servoyApi.callServerSideApi('filterMyFoundset', filterMyFoundsetArg);
-			filterPromise['requestInfo'] = this.dataGrid.getRequestInfoWithId('filterMyFoundset');
+			(filterPromise as any)['requestInfo'] = this.dataGrid.getRequestInfoWithId('filterMyFoundset');
 			allPromises.push(filterPromise);
 		}
 
@@ -5323,7 +5323,7 @@ class FoundsetServer {
 		if (rowGroupCols.length > 0 && sortModel[0] &&
 			(sortModel[0].colId === ('ag-Grid-AutoColumn-' + rowGroupCols[0].id) || sortModel[0].colId === rowGroupCols[0].id)) {
 			// replace colFd with the id of the grouped column
-			sortModel = [{ colId: rowGroupCols[0].field, sort: sortModel[0].sort }];
+			sortModel = [{ colId: rowGroupCols[0].field, sort: sortModel[0].sort, sortIndex: 0 }];
 			if (!this.dataGrid.state.rootGroupSort || this.dataGrid.state.rootGroupSort.colId !== sortModel[0].colId || this.dataGrid.state.rootGroupSort.sort !== sortModel[0].sort) {
 				sortRootGroup = true;
 			}
@@ -5708,7 +5708,7 @@ class GroupManager {
 	groupedColumns: any = [];
 	groupedValues = new Object();
 
-	foundsetRefGetterQueue = [];
+	foundsetRefGetterQueue: any[] = [];
 	foundsetRefGetterPendingPromise = false;
 
 	constructor(public dataGrid: DataGrid) {
@@ -5928,7 +5928,7 @@ class GroupManager {
 		const childFoundsetPromise = this.dataGrid.servoyApi.callServerSideApi('getGroupedFoundsetUUID',
 			[groupColumns, groupKeys, idForFoundsets, sort, this.dataGrid.filterModel, hasRowStyleClassDataprovider, sortColumns]);
 
-		childFoundsetPromise.then((childFoundsetUUID) => {
+		(childFoundsetPromise as any).then((childFoundsetUUID: any) => {
 			this.dataGrid.log.debug(childFoundsetUUID);
 			if (!childFoundsetUUID) {
 				this.dataGrid.log.error('why i don\'t have a childFoundset ?');
@@ -5938,7 +5938,7 @@ class GroupManager {
 			// FIXME add listener somewhere else
 			//childFoundset.addChangeListener(childChangeListener);
 			resultDeferred.resolve(childFoundsetUUID);
-		}, (e) => {
+		}, (e: any) => {
 			// propagate the error
 			resultDeferred.reject(e);
 		});
@@ -6433,7 +6433,7 @@ class GroupHashCache {
 
 class GroupNode {
 
-	nodes = new Object();
+	nodes: Record<string, any> = new Object() as any;
 	foundsetUUID: any = undefined;
 
 	constructor(public dataGrid: DataGrid, public id: string) {
