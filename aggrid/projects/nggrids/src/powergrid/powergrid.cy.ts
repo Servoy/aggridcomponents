@@ -1,5 +1,5 @@
 import { MountConfig } from 'cypress/angular';
-import { Component, ViewChild, signal } from '@angular/core';
+import { Component, ViewChild, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ServoyApi, ServoyApiTesting, ServoyPublicTestingModule } from '@servoy/public';
 import { PowerGrid, PowerGridColumn } from './powergrid';
 import { NGGridsModule } from '../nggrids.module';
@@ -30,6 +30,7 @@ import { createPowerGridColumns, createPowerGridData } from '../testing/mock-dat
             </aggrid-datasettable>
         </div>
     `,
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 class WrapperComponent {

@@ -1,11 +1,12 @@
 import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
-import { NgModule } from '@angular/core';
+import { NgModule, ChangeDetectionStrategy } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { Component } from '@angular/core';
 
 @Component({
     selector: 'app-root',
     template: '<div></div>',
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 class AppComponent {}

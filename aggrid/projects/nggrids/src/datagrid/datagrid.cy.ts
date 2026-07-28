@@ -1,5 +1,5 @@
 import { MountConfig } from 'cypress/angular';
-import { Component, ViewChild, signal } from '@angular/core';
+import { Component, ViewChild, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ServoyApi, ServoyApiTesting, ServoyPublicTestingModule, IFoundset } from '@servoy/public';
 import { DataGrid, DataGridColumn } from './datagrid';
 import { NGGridsModule } from '../nggrids.module';
@@ -26,6 +26,7 @@ import { createMockFoundset } from '../testing/mock-foundset';
             </aggrid-groupingtable>
         </div>
     `,
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 class WrapperComponent {
