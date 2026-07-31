@@ -5,8 +5,8 @@ import { GridService } from './commons/grid.service';
   providedIn: 'root'
 })
 export class DatagridService extends GridService {
-    public arrowsUpDownMoveWhenEditing: string;
-    public editNextCellOnEnter: boolean;
-    public moveToNextEditableCellOnTab: boolean;
+    public arrowsUpDownMoveWhenEditing!: string;
+    public editNextCellOnEnter!: boolean;
+    public moveToNextEditableCellOnTab!: boolean;
     
 }

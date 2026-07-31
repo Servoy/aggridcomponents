@@ -7,8 +7,8 @@ import { NGGridDirective} from '../nggrid';
 export class EditorDirective implements ICellEditorAngularComp {
 
     readonly elementRef = viewChild<ElementRef>('element');
-    ngGrid: NGGridDirective;
-    params: ICellEditorParams;
+    ngGrid!: NGGridDirective;
+    params!: ICellEditorParams;
     initialValue: any;
     instance: any;
 

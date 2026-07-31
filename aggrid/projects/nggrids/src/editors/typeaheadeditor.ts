@@ -40,15 +40,15 @@ export class TypeaheadEditor extends EditorDirective implements IPopupSupportCom
 
   focus$ = new Subject<string>();
 
-  width: number;
-  hasRealValues: boolean;
+  width!: number;
+  hasRealValues!: boolean;
   format: any;
   initParams: any;
   valuelistValues: any;
   initialRealValue: any;
 
   findModeListener: any;
-  private popupObserver: MutationObserver;
+  private popupObserver!: MutationObserver;
 
   constructor(private formatService: FormattingService, config: NgbTypeaheadConfig, @Inject(DOCUMENT) private doc: Document) {
     super();
@@ -68,25 +68,22 @@ export class TypeaheadEditor extends EditorDirective implements IPopupSupportCom
   }
 
   onTypeaheadKeyDown(e: KeyboardEvent) {
-    // Handle Enter key when typeahead popup is open
     if(e.keyCode === 13 && this.ngGrid.editNextCellOnEnter()) {
-      // Close the typeahead popup
-      this.instance().dismissPopup();
-      // Tab to the next cell
-      this.ngGrid.agGrid().api.tabToNextCell();
+      this.instance()!.dismissPopup();
+      this.ngGrid.agGrid()!.api.tabToNextCell();
       e.preventDefault();
       e.stopPropagation();
     }
   }
 
   scroll() {
-    if (!this.instance().isPopupOpen()) {
+    if (!this.instance()!.isPopupOpen()) {
       return;
     }
     setTimeout(() => {
-      const popup = this.doc.getElementById(this.instance().popupId);
+      const popup = this.doc.getElementById(this.instance()!.popupId);
       if (popup) {
-        popup.style.width = this.elementRef().nativeElement.offsetWidth + 'px';
+        popup.style.width = this.elementRef()!.nativeElement.offsetWidth + 'px';
         const activeElements = popup.getElementsByClassName('active');
         if (activeElements.length === 1) {
           const elem = activeElements[0] as HTMLElement;
@@ -101,11 +98,11 @@ export class TypeaheadEditor extends EditorDirective implements IPopupSupportCom
       this.popupObserver.disconnect();
     }
     this.popupObserver = new MutationObserver(() => {
-      const popup = this.doc.getElementById(this.instance().popupId);
+      const popup = this.doc.getElementById(this.instance()!.popupId);
       if (popup) {
-        popup.style.width = this.elementRef().nativeElement.offsetWidth + 'px';
+        popup.style.width = this.elementRef()!.nativeElement.offsetWidth + 'px';
         this.popupObserver.disconnect();
-        this.popupObserver = null;
+        this.popupObserver = null!;
       }
     });
     this.popupObserver.observe(this.doc.body, { childList: true, subtree: true });
@@ -116,7 +113,7 @@ export class TypeaheadEditor extends EditorDirective implements IPopupSupportCom
       const isNavigationUpDownEntertKey = e.keyCode === 38 || e.keyCode === 40 || e.keyCode === 13;
 
       if(!(isNavigationLeftRightKey || isNavigationUpDownEntertKey) && this.format) {
-        return this.ngGrid.formattingService.testForNumbersOnly(e, null, this.elementRef().nativeElement, false, true, this.format, false);
+        return this.ngGrid.formattingService.testForNumbersOnly(e, null, this.elementRef()!.nativeElement, false, true, this.format, false);
       } else return true;
   }
 
@@ -134,9 +131,7 @@ export class TypeaheadEditor extends EditorDirective implements IPopupSupportCom
     if (valuelist && this.ngGrid.hasValuelistResolvedDisplayData()) {
       valuelist.filterList('').subscribe((valuelistValues: any) => {
         this.valuelistValues = valuelistValues;
-        this.hasRealValues = valuelist.hasRealValues();
-        // make sure initial value has the "realValue" set, so when oncolumndatachange is called
-        // the previous value has the "realValue"
+        this.hasRealValues = valuelist!.hasRealValues();
         if(this.hasRealValues && params.value && (params.value['realValue'] === undefined)) {
           let rv = this.initialValue;
           let rvFound = false;
@@ -147,11 +142,9 @@ export class TypeaheadEditor extends EditorDirective implements IPopupSupportCom
               break;
             }
           }
-          // it could be the valuelist does not have all the entries on the client
-          // try to get the entry using a filter call to the server
           if(!rvFound) {
             valuelist = this.ngGrid.getValuelist(params);
-            valuelist.filterList(params.value).subscribe((valuelistWithInitialValue: any) => {
+            valuelist!.filterList(params.value).subscribe((valuelistWithInitialValue: any) => {
               for (const item of valuelistWithInitialValue) {
                 if (item.displayValue === this.initialValue) {
                   rv = item.realValue;
@@ -200,7 +193,6 @@ export class TypeaheadEditor extends EditorDirective implements IPopupSupportCom
     }));
   };
 
-  // focus and select can be done after the gui is attached
   ngAfterViewInit(): void {
     const editFormat = this.format?.edit ? this.format.edit : this.format?.display;
     if (this.format && editFormat && this.format.isMask) {
@@ -213,9 +205,8 @@ export class TypeaheadEditor extends EditorDirective implements IPopupSupportCom
         //$(this.eInput).mask(editFormat, settings);
     }
     setTimeout(() => {
-      this.elementRef().nativeElement.focus();
-      this.elementRef().nativeElement.select();
-      // Trigger typeahead dropdown to show filtered results with initial value
+      this.elementRef()!.nativeElement.focus();
+      this.elementRef()!.nativeElement.select();
       if(this.ngGrid.editNextCellOnEnter()) {
         this.focus$.next(this._initialDisplayValue());
       }
@@ -223,10 +214,10 @@ export class TypeaheadEditor extends EditorDirective implements IPopupSupportCom
       if(this.ngGrid.isInFindMode()) {
         this.findModeListener = (e: KeyboardEvent) => {
           if(e.keyCode === 13) {
-            this.ngGrid.agGrid().api.stopEditing();
+            this.ngGrid.agGrid()!.api.stopEditing();
           }
         };
-        this.elementRef().nativeElement.addEventListener('keydown', this.findModeListener);
+        this.elementRef()!.nativeElement.addEventListener('keydown', this.findModeListener);
       }
     }, 0);
   }
@@ -234,16 +225,15 @@ export class TypeaheadEditor extends EditorDirective implements IPopupSupportCom
   ngOnDestroy() {
     if (this.popupObserver) {
       this.popupObserver.disconnect();
-      this.popupObserver = null;
+      this.popupObserver = null!;
     }
     if(this.ngGrid.isInFindMode()) {
-      this.elementRef().nativeElement.removeEventListener('keydown', this.findModeListener);
+      this.elementRef()!.nativeElement.removeEventListener('keydown', this.findModeListener);
     }
   }
 
-  // returns the new value after editing
   getValue(): any {
-    let displayValue = this.elementRef().nativeElement.value;
+    let displayValue = this.elementRef()!.nativeElement.value;
     let realValue = displayValue;
 
     if (this.valuelistValues) {
@@ -256,12 +246,10 @@ export class TypeaheadEditor extends EditorDirective implements IPopupSupportCom
 
       if (!hasMatchingDisplayValue) {
         if (this.hasRealValues) {
-          // if we still have old value do not set it to null or try to  get it from the list.
           if (this.initialValue != null) {
-            // so invalid thing is typed in the list and we are in real/display values
             displayValue = this._initialDisplayValue();
             realValue = this.initialRealValue;
-          } else if(this.initialValue == null) { // if the dataproviderid was null and we are in real|display then reset the value to ""
+          } else if(this.initialValue == null) {
             displayValue = realValue = '';
           }
         }
@@ -280,7 +268,6 @@ export class TypeaheadEditor extends EditorDirective implements IPopupSupportCom
     if (result === null) return '';
     if (result.displayValue !== undefined) result = result.displayValue;
     else if (this.valuelistValues.hasRealValues()) {
-      // on purpose test with == so that "2" equals to 2
       // eslint-disable-next-line eqeqeq
       const value = this.valuelistValues.find((item: any) => item.realValue == result);
       if (value) {
@@ -292,13 +279,12 @@ export class TypeaheadEditor extends EditorDirective implements IPopupSupportCom
 
 
   closePopup(){
-    this.instance().dismissPopup();
+    this.instance()!.dismissPopup();
   }
 
   private findDisplayValue(vl: any, displayValue: any) {
     if(vl) {
       for (const vvalue of vl) {
-        //TODO: compare trimmed values, typeahead will trim the selected value
         if (displayValue === vvalue.displayValue) {
           return { hasMatchingDisplayValue: true, realValue: vvalue.realValue };
         }

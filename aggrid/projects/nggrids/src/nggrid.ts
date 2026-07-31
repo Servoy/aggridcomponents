@@ -1,3 +1,4 @@
+/// <reference path="./typings.d.ts" />
 import { AgGridAngular } from 'ag-grid-angular';
 import { GridOptions } from 'ag-grid-community';
 import { ChangeDetectorRef, Directive, ElementRef, TemplateRef, input, contentChild, viewChild, signal } from '@angular/core';
@@ -24,10 +25,10 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
     readonly agGridElementRef = viewChild('element', { read: ElementRef });
     readonly sabloTabseqDirective = viewChild('element', { read: SabloTabseq });
 
-    readonly enableBrowserContextMenu = input<boolean>(undefined);
+    readonly enableBrowserContextMenu = input<boolean>(undefined!);
     readonly arrowsUpDownMoveWhenEditing = input<any>(undefined);
-    readonly editNextCellOnEnter = input<boolean>(undefined);
-    readonly moveToNextEditableCellOnTab = input<boolean>(undefined);
+    readonly editNextCellOnEnter = input<boolean>(undefined!);
+    readonly moveToNextEditableCellOnTab = input<boolean>(undefined!);
     readonly _internalFormEditorValue = input<any>(undefined);
     readonly onDragOverFunc = input<any>(undefined);
     readonly onDragGetImageFunc = input<any>(undefined);
@@ -35,28 +36,28 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
     readonly onDrop = input<any>(undefined);
     readonly onColumnFormEditStarted = input<any>(undefined);
 
-    readonly responsiveHeight = input<number>(undefined);
-    readonly customMainMenu = input<IJSMenu>(undefined);
+    readonly responsiveHeight = input<number>(undefined!);
+    readonly customMainMenu = input<IJSMenu>(undefined!);
 
-    readonly onCustomMainMenuAction = input<(menuItemName: string, colId: string) => void>(undefined);
+    readonly onCustomMainMenuAction = input<(menuItemName: string, colId: string) => void>(undefined!);
 
     __internalFormEditorValue = signal<any>(undefined);
 
-    doc: Document;
+    doc!: Document;
 
-    agGridOptions: GridOptions;
-    cdRef: ChangeDetectorRef;
-    formattingService: FormattingService;
+    agGridOptions!: GridOptions;
+    cdRef!: ChangeDetectorRef;
+    formattingService!: FormattingService;
     selectionEvent: any;
-    log: LoggerService;
+    log!: LoggerService;
 
-    dragViewport: HTMLElement
-    dragViewportRect: DOMRect;
-    dragViewportHorizontalScrollViewport: HTMLElement;
+    dragViewport!: HTMLElement
+    dragViewportRect!: DOMRect;
+    dragViewportHorizontalScrollViewport!: HTMLElement;
     dragViewportScrollThreshold = 20;
     dragViewportScrollSpeed = 10;
     dragViewportScrollInterval: any;
-    dragScrollDirection: string;
+    dragScrollDirection!: string;
 
     dragOverTargetColumn: Element | null = null;
     dragOverTargetColumnClassName: string | null = null;
@@ -64,32 +65,32 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
 
     private destroyed = false;
 
-    protected popupStateService: PopupStateService
-    private popupParent: HTMLElement;
-    private popupParentObserver: MutationObserver;
+    protected popupStateService!: PopupStateService
+    private popupParent!: HTMLElement;
+    private popupParentObserver!: MutationObserver;
 
     svyOnInit() {
         super.svyOnInit();
         if (!this.servoyApi.isInDesigner()) {
             this.__internalFormEditorValue.set(this._internalFormEditorValue());
-            let mainWindowContainer = this.agGridElementRef().nativeElement.closest('.svy-main-window-container');
+            let mainWindowContainer = this.agGridElementRef()!.nativeElement.closest('.svy-main-window-container');
             if (!mainWindowContainer) {
-                mainWindowContainer = this.agGridElementRef().nativeElement.closest('.svy-dialog');
+                mainWindowContainer = this.agGridElementRef()!.nativeElement.closest('.svy-dialog');
             }
-            this.popupParent = mainWindowContainer ? mainWindowContainer : this.agGridElementRef().nativeElement;
-            this.agGrid().api.setGridOption('popupParent', this.popupParent);
+            this.popupParent = mainWindowContainer ? mainWindowContainer : this.agGridElementRef()!.nativeElement;
+            this.agGrid()!.api.setGridOption('popupParent', this.popupParent);
             this.popupParentObserver = new MutationObserver((mutations) => {
                 mutations.forEach(mutation => {
                     // Added nodes
                     mutation.addedNodes.forEach(node => {
                         if (node instanceof HTMLElement && (node.classList.contains('ag-popup') /*|| node.classList.contains('ag-custom-component-popup')*/)) {
-                            this.popupStateService.activatePopup(this.agGridElementRef().nativeElement.parentNode.id);
+                            this.popupStateService.activatePopup(this.agGridElementRef()!.nativeElement.parentNode!.id);
                         }
                     });
                     // Removed nodes
                     mutation.removedNodes.forEach(node => {
                         if (node instanceof HTMLElement && (node.classList.contains('ag-popup') /*|| node.classList.contains('ag-custom-component-popup')*/)) {
-                            this.popupStateService.deactivatePopup(this.agGridElementRef().nativeElement.parentNode.id);
+                            this.popupStateService.deactivatePopup(this.agGridElementRef()!.nativeElement.parentNode!.id);
                         }
                     });
                 });
@@ -99,7 +100,7 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
             //this.popupParentObserver.observe(this.doc.body, { childList: true, subtree: false });
 
             if (!this.enableBrowserContextMenu()) {
-                this.agGridElementRef().nativeElement.addEventListener('contextmenu', (e: any) => {
+                this.agGridElementRef()!.nativeElement.addEventListener('contextmenu', (e: any) => {
                     e.preventDefault();
                 });
             }
@@ -110,7 +111,7 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
         this.cancelDragViewportScroll();
         if (this.popupParentObserver) this.popupParentObserver.disconnect();
         const agGrid = this.agGrid();
-        if (!agGrid.api.isDestroyed()) agGrid.api.destroy();
+        if (agGrid && !agGrid.api.isDestroyed()) agGrid.api.destroy();
         this.destroyed = true;
     }
 
@@ -141,7 +142,7 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
         const containerWidth = this.dragViewportRect.width;
         const containerHeight = this.dragViewportRect.height;
 
-        this.dragScrollDirection = null;
+        this.dragScrollDirection = null!;
         if (clientX < this.dragViewportScrollThreshold) {
             this.dragScrollDirection = 'left';
         } else if (clientX > containerWidth - this.dragViewportScrollThreshold) {
@@ -181,10 +182,10 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
             clearInterval(this.dragViewportScrollInterval);
         }
         this.dragViewportScrollInterval = null;
-        this.dragViewport = null;
-        this.dragViewportRect = null;
-        this.dragViewportHorizontalScrollViewport = null;
-        this.dragScrollDirection = null;
+        this.dragViewport = null!;
+        this.dragViewportRect = null!;
+        this.dragViewportHorizontalScrollViewport = null!;
+        this.dragScrollDirection = null!;
     }
 
     restoreDragOverTargetColumn() {
@@ -209,7 +210,7 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
 
     setHeight() {
         if (!this.servoyApi.isInAbsoluteLayout()) {
-            if (this.responsiveHeight() < 0) {
+            if (this.responsiveHeight()! < 0) {
                 const agGridElementRef = this.agGridElementRef();
                 if (agGridElementRef) agGridElementRef.nativeElement.style.height = '';
                 const agGrid = this.agGrid();
@@ -249,7 +250,7 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
     }
 
     loadCalendarLocale(config: Options): Deferred<any> {
-        const locale = config.localization.locale;
+        const locale = config.localization!.locale!;
         const localeDefer = new Deferred();
         const index = locale.indexOf('-');
         let language = locale.toLowerCase();
@@ -258,9 +259,9 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
         }
         const moduleLoader = (module: { default: { localization: { [key: string]: string | number } } }) => {
             const copy = Object.assign({}, module.default.localization);
-            copy.startOfTheWeek = config.localization.startOfTheWeek;
-            copy.hourCycle = config.localization.hourCycle;
-            config.localization = copy;
+            copy.startOfTheWeek = config.localization!.startOfTheWeek as any;
+            copy.hourCycle = config.localization!.hourCycle as any;
+            config.localization = copy as any;
             localeDefer.resolve(locale);
         }
         const errorHandler = () => {
@@ -357,7 +358,7 @@ export class DragTransferData {
 }
 
 export class JSDNDEvent extends JSEvent {
-    targetColumnId: string;
-    sourceColumnId: string;
-    sourceGridName: string;
+    targetColumnId!: string;
+    sourceColumnId!: string;
+    sourceGridName!: string;
 }

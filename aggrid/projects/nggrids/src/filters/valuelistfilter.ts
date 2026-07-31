@@ -111,14 +111,14 @@ export class ValuelistFilter extends FilterDirective {
     };
 
     getFilterUIValue(): any {
-      return this.elementRef().nativeElement.value;
+      return this.elementRef()!.nativeElement.value;
     }
 
     setFilterUIValue(value: any) {
-      this.elementRef().nativeElement.value = value;
+      this.elementRef()!.nativeElement.value = value;
     }
 
     getSecondFilterUIValue(): any {
-      return this.element1Ref().nativeElement.value;
+      return this.element1Ref()!.nativeElement.value;
     }
 }

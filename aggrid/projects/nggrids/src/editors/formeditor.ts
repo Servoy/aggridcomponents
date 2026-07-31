@@ -43,7 +43,7 @@ export class FormEditor extends EditorDirective implements OnDestroy {
     }
 
     ngAfterViewInit(): void {
-        this.ngGrid.agGrid().api.setFocusedCell(this.params.node.rowIndex, this.params.column.getColId());
+        this.ngGrid.agGrid()!.api.setFocusedCell(this.params.node!.rowIndex!, this.params.column!.getColId());
     }
 
     isPopup(): boolean {

@@ -2,7 +2,7 @@ import { ITooltipComp, ITooltipParams } from 'ag-grid-community';
 
 export class CustomTooltip implements ITooltipComp {
 
-    eGui: HTMLElement;
+    eGui!: HTMLElement;
 
     init(params: ITooltipParams) {
         this.eGui = document.createElement('div');

@@ -15,19 +15,19 @@ export class FilterDirective implements AgFloatingFilterComponent, IFloatingFilt
     readonly elementRef = viewChild<ElementRef>('element');
     readonly element1Ref = viewChild<ElementRef>('element1');
     readonly cdRef = inject(ChangeDetectorRef);
-    ngGrid: NGGridDirective;
-    params: IFilterParams;
-    floatingParams: IFloatingFilterParams;
+    ngGrid!: NGGridDirective;
+    params!: IFilterParams;
+    floatingParams!: IFloatingFilterParams;
     model: any;
     instance: any;
     valuelistValues: any;
     hasValuelistSet: boolean = false;
     format: any;
-    txtClearFilter: string;
-    txtApplyFilter: string;
+    txtClearFilter!: string;
+    txtApplyFilter!: string;
     isRealValueUUID: boolean = false;
 
-    valuelistValuesDefer: Deferred<any>;
+    valuelistValuesDefer!: Deferred<any>;
 
     constructor() {
         this.instance = this;
@@ -71,9 +71,9 @@ export class FilterDirective implements AgFloatingFilterComponent, IFloatingFilt
     }
 
     onClearFilter() {
-        this.elementRef().nativeElement.value = '';
+        this.elementRef()!.nativeElement.value = '';
         if(!this.suppressAndOrCondition()) {
-          this.element1Ref().nativeElement.value = '';
+          this.element1Ref()!.nativeElement.value = '';
         }
         this.model = '';
     }
@@ -170,7 +170,7 @@ export class FilterDirective implements AgFloatingFilterComponent, IFloatingFilt
 
     doesFilterPass(params: any): boolean {
       if(this.model && !this.ngGrid.hasValuelistResolvedDisplayData()) {
-        return this.model.filter == params.data[this.params.colDef.field];
+        return this.model.filter == params.data[this.params.colDef.field!];
       } 
       return true;
     }

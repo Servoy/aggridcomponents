@@ -21,7 +21,7 @@ import { Deferred } from '@servoy/public';
 })
 export class SelectEditor extends EditorDirective {
 
-    valuelistValuesDefer: Deferred<any>;
+    valuelistValuesDefer!: Deferred<any>;
 
     constructor(@Inject(DOCUMENT) private doc: Document) {
         super();
@@ -31,7 +31,7 @@ export class SelectEditor extends EditorDirective {
         const isNavigationKey = e.keyCode === 38 || e.keyCode === 40 || e.keyCode === 13;
         if (isNavigationKey) {
             if(this.ngGrid.editNextCellOnEnter() && e.keyCode === 13) {
-                this.ngGrid.agGrid().api.tabToNextCell();
+                this.ngGrid.agGrid()!.api.tabToNextCell();
                 e.preventDefault();
             }
             e.stopPropagation();
@@ -58,8 +58,6 @@ export class SelectEditor extends EditorDirective {
                         }
                     }
 
-                    // make sure initial value has the "realValue" set, so when oncolumndatachange is called
-                    // the previous value has the "realValue"
                     if(hasRealValues && params.value && (params.value['realValue'] === undefined)) {
                         let rv = this.initialValue;
                         let rvFound = false;
@@ -70,24 +68,22 @@ export class SelectEditor extends EditorDirective {
                                 break;
                             }
                         }
-                        // it could be the valuelist does not have all the entries on the client
-                        // try to get the entry using a filter call to the server
                         if(!rvFound) {
                             vl = this.ngGrid.getValuelist(params);
-                            vl.filterList(params.value).subscribe((valuelistWithInitialValue: any) => {
+                            vl!.filterList(params.value).subscribe((valuelistWithInitialValue: any) => {
                                 for (const item of valuelistWithInitialValue) {
                                     if (item.displayValue === this.initialValue) {
                                         rv = item.realValue;
                                         break;
                                     }
                                 }
-                                params.node['data'][params.column.getColDef()['field']] = {realValue: rv, displayValue: this.initialValue};
+                                params.node!['data'][params.column!.getColDef()['field']!] = {realValue: rv, displayValue: this.initialValue};
                                 let newValuelistValues = valuelistValues.slice();
                                 newValuelistValues.push({realValue: rv, displayValue: this.initialValue});
                                 this.valuelistValuesDefer.resolve({valuelist: newValuelistValues, value: this.initialValue});
                             });
                         } else {
-                            params.node['data'][params.column.getColDef()['field']] = {realValue: rv, displayValue: this.initialValue};
+                            params.node!['data'][params.column!.getColDef()['field']!] = {realValue: rv, displayValue: this.initialValue};
                             this.valuelistValuesDefer.resolve({valuelist: valuelistValues, value: this.initialValue});
                         }
                     } else {
@@ -108,7 +104,7 @@ export class SelectEditor extends EditorDirective {
             if (selectedValue != null && selectedValue.toString() === value.displayValue) {
                 option.selected = true;
             }
-            this.elementRef().nativeElement.appendChild(option);
+            this.elementRef()!.nativeElement.appendChild(option);
         });
     }
 
@@ -117,19 +113,18 @@ export class SelectEditor extends EditorDirective {
             this.valuelistValuesDefer.promise.then((r) => {
                 this.createSelectOptions(r.valuelist, r.value);
                 setTimeout(() => {
-                    this.elementRef().nativeElement.focus();
+                    this.elementRef()!.nativeElement.focus();
                     try {
-                        this.elementRef().nativeElement.showPicker();
+                        this.elementRef()!.nativeElement.showPicker();
                     } catch(e) {
                     }
                 }, 0);
             });
         }
     }
-    // returns the new value after editing
     getValue(): any {
-        let displayValue = this.elementRef().nativeElement.selectedIndex > -1 ? this.elementRef().nativeElement.options[this.elementRef().nativeElement.selectedIndex].text : '';
-        const elementRef = this.elementRef();
+        let displayValue = this.elementRef()!.nativeElement.selectedIndex > -1 ? this.elementRef()!.nativeElement.options[this.elementRef()!.nativeElement.selectedIndex].text : '';
+        const elementRef = this.elementRef()!;
         const realValue = elementRef.nativeElement.value === '_SERVOY_NULL' ? null : elementRef.nativeElement.value;
         return displayValue !== realValue ? { displayValue, realValue } : realValue;
     }

@@ -35,9 +35,9 @@ import { DataGrid } from './datagrid';
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DetailFormRenderer implements ICellRendererAngularComp {
-    private dataGrid: DataGrid;
-    private params: ICellRendererParams;
-    private rowIndex: number;
+    private dataGrid!: DataGrid;
+    private params!: ICellRendererParams;
+    private rowIndex!: number;
 
     formComponentCache: any;
     height = 200;
@@ -52,7 +52,7 @@ export class DetailFormRenderer implements ICellRendererAngularComp {
         let detailHeight = this.dataGrid.detailRowHeight() || 200;
         const onDetailFormSetup = this.dataGrid.onDetailFormSetup();
         if (onDetailFormSetup && params.data) {
-            const foundsetIndex = params.node.rowIndex + 1;
+            const foundsetIndex = params.node.rowIndex! + 1;
             const record = this.dataGrid.getRecord(params);
             const result = onDetailFormSetup(foundsetIndex, record);
             if (result) {

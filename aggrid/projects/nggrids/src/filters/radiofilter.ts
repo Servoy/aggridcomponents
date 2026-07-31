@@ -65,11 +65,11 @@ export class RadioFilter extends FilterDirective {
         this.checkboxState = '';
         this.updateCheckboxUI();
       } else {
-        for(const nativeRadio of this.elementRef().nativeElement.children) {
+        for(const nativeRadio of this.elementRef()!.nativeElement.children) {
           nativeRadio.children[0].checked = false;
         }
         if(!this.suppressAndOrCondition()) {
-          for(const nativeRadio of this.element1Ref().nativeElement.children) {
+          for(const nativeRadio of this.element1Ref()!.nativeElement.children) {
             nativeRadio.children[0].checked = false;
           }
         }
@@ -82,7 +82,7 @@ export class RadioFilter extends FilterDirective {
       if(this.useCheckboxForFloatingFilter()) {
         filterUIValue = this.checkboxState;
       } else {
-        for(const nativeRadio of this.elementRef().nativeElement.children) {
+        for(const nativeRadio of this.elementRef()!.nativeElement.children) {
           if(nativeRadio.children[0].checked) {
             filterUIValue = nativeRadio.children[0].value;
             break;
@@ -98,7 +98,7 @@ export class RadioFilter extends FilterDirective {
         this.checkboxState = value;
         this.updateCheckboxUI();
       } else {
-        for(const nativeRadio of this.elementRef().nativeElement.children) {
+        for(const nativeRadio of this.elementRef()!.nativeElement.children) {
           nativeRadio.children[0].checked = nativeRadio.children[0].value === value;
         }
       }
@@ -106,7 +106,7 @@ export class RadioFilter extends FilterDirective {
 
     getSecondFilterUIValue(): any {
       let filterUIValue = null;
-      for(const nativeRadio of this.element1Ref().nativeElement.children) {
+      for(const nativeRadio of this.element1Ref()!.nativeElement.children) {
         if(nativeRadio.children[0].checked) {
           filterUIValue = nativeRadio.children[0].value;
           break;
@@ -137,7 +137,7 @@ export class RadioFilter extends FilterDirective {
     }
 
     updateCheckboxUI() {
-        const elementRef = this.elementRef();
+        const elementRef = this.elementRef()!;
       if (this.checkboxState === this.checkboxStateValues[0]) {
         elementRef.nativeElement.indeterminate = false;
         elementRef.nativeElement.checked = false;

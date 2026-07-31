@@ -61,8 +61,8 @@ export class DateFilter extends FilterDirective {
     readonly elementToRef = viewChild<ElementRef>('elementTo');
     readonly filterdatetimepickerRef = viewChild<ElementRef>('filterdatetimepicker');
     readonly filterdatetimepickerToRef = viewChild<ElementRef>('filterdatetimepickerTo');
-    picker: TempusDominus;
-    pickerTo: TempusDominus;
+    picker!: TempusDominus;
+    pickerTo!: TempusDominus;
 
     readonly config: Options = {
         allowInputToggle: false,
@@ -93,32 +93,32 @@ export class DateFilter extends FilterDirective {
             startOfTheWeek: 1,
             locale: 'en'
         }
-    };
+    } as any;
 
-    equals: string;
-    notEqual: string;
-    lessThan: string;
-    greaterThan: string;
-    inRange: string;
-    blank: string;
-    notBlank: string;
+    equals!: string;
+    notEqual!: string;
+    lessThan!: string;
+    greaterThan!: string;
+    inRange!: string;
+    blank!: string;
+    notBlank!: string;
 
-    maskFormat : MaskFormat;
-    maskFormatTo : MaskFormat;
+    maskFormat!: MaskFormat;
+    maskFormatTo!: MaskFormat;
     selectedFilterOperation: string = 'equals';
 
     constructor(private _renderer: Renderer2, servoyService: ServoyPublicService, private formattingService: FormattingService, @Inject(DOCUMENT) private doc: Document,) {
         super();
-        this.config.localization.startOfTheWeek = getFirstDayOfWeek(servoyService.getLocaleObject() ? servoyService.getLocaleObject().full : servoyService.getLocale());
+        this.config.localization!.startOfTheWeek = getFirstDayOfWeek(servoyService.getLocaleObject() ? servoyService.getLocaleObject().full : servoyService.getLocale());
         const lts = DateTimeLuxon.now().setLocale(servoyService.getLocale()).toLocaleString(DateTimeLuxon.DATETIME_FULL).toUpperCase();
         if (lts.indexOf('a') >= 0 || lts.indexOf('A') >= 0 || lts.indexOf('am') >= 0 || lts.indexOf('AM') >= 0) {
-            this.config.localization.hourCycle = 'h12';
+            this.config.localization!.hourCycle = 'h12';
         } else if (lts.indexOf('H') >= 0) {
-            this.config.localization.hourCycle = 'h23';
+            this.config.localization!.hourCycle = 'h23';
         } else if (lts.indexOf('h') >= 0) {
-            this.config.localization.hourCycle = 'h12';
+            this.config.localization!.hourCycle = 'h12';
         }
-        this.config.localization.locale = servoyService.getLocale();
+        this.config.localization!.locale = servoyService.getLocale();
     }
 
     agInit(params: any): void {
@@ -164,44 +164,44 @@ export class DateFilter extends FilterDirective {
         const showCalendar = format.indexOf('y') >= 0 || format.indexOf('M') >= 0;
         const showTime = format.indexOf('h') >= 0 || format.indexOf('H') >= 0 || format.indexOf('m') >= 0;
         if(!showCalendar && showTime) {
-            this.config.display.viewMode = 'clock';    
+            this.config.display!.viewMode = 'clock' as any;    
         }
         const showSecondsTimer = format.indexOf('s') >= 0;
-        this.config.display.components.decades = showCalendar;
-        this.config.display.components.year = showCalendar;
-        this.config.display.components.month = showCalendar;
-        this.config.display.components.date = showCalendar;
-        this.config.display.components.hours = showTime;
-        this.config.display.components.minutes = showTime;
-        this.config.display.components.seconds = showTime;
-        this.config.display.components.seconds = showSecondsTimer;
+        this.config.display!.components!.decades = showCalendar;
+        this.config.display!.components!.year = showCalendar;
+        this.config.display!.components!.month = showCalendar;
+        this.config.display!.components!.date = showCalendar;
+        this.config.display!.components!.hours = showTime;
+        this.config.display!.components!.minutes = showTime;
+        this.config.display!.components!.seconds = showTime;
+        this.config.display!.components!.seconds = showSecondsTimer;
         if (format.indexOf('a') >= 0 || format.indexOf('A') >= 0 || format.indexOf('am') >= 0 || format.indexOf('AM') >= 0) {
-          this.config.localization.hourCycle = 'h12';
+          this.config.localization!.hourCycle = 'h12';
         } else if (format.indexOf('H') >= 0) {
-          this.config.localization.hourCycle = 'h23';
+          this.config.localization!.hourCycle = 'h23';
         } else if (format.indexOf('h') >= 0) {
-          this.config.localization.hourCycle = 'h12';
+          this.config.localization!.hourCycle = 'h12';
         }
     }
 
     ngAfterViewInit(): void {
       this.ngGrid.loadCalendarLocale(this.config).promise.then(() => {
-        (this.elementRef().nativeElement as HTMLInputElement).value = '';
-        (this.elementToRef().nativeElement as HTMLInputElement).value = '';
+        (this.elementRef()!.nativeElement as HTMLInputElement).value = '';
+        (this.elementToRef()!.nativeElement as HTMLInputElement).value = '';
 
-        this.picker = this.createDatepicker(this.filterdatetimepickerRef().nativeElement);
-        this.pickerTo = this.createDatepicker(this.filterdatetimepickerToRef().nativeElement);
+        this.picker = this.createDatepicker(this.filterdatetimepickerRef()!.nativeElement);
+        this.pickerTo = this.createDatepicker(this.filterdatetimepickerToRef()!.nativeElement);
 
         setTimeout(() => {
             if (this.format.isMask) {
-                this.maskFormat = new MaskFormat(this.format, this._renderer, this.elementRef().nativeElement, this.formattingService, this.doc);
+                this.maskFormat = new MaskFormat(this.format, this._renderer, this.elementRef()!.nativeElement, this.formattingService, this.doc);
                 if(!this.isFloating) {
-                  this.elementRef().nativeElement.focus();
-                  this.elementRef().nativeElement.setSelectionRange(0, 0);
+                  this.elementRef()!.nativeElement.focus();
+                  this.elementRef()!.nativeElement.setSelectionRange(0, 0);
                 }
-                this.maskFormatTo = new MaskFormat(this.format, this._renderer, this.elementToRef().nativeElement, this.formattingService, this.doc);
+                this.maskFormatTo = new MaskFormat(this.format, this._renderer, this.elementToRef()!.nativeElement, this.formattingService, this.doc);
             } else if (!this.isFloating) {
-                this.elementRef().nativeElement.select();
+                this.elementRef()!.nativeElement.select();
             }
         }, 0);
       });
@@ -210,11 +210,11 @@ export class DateFilter extends FilterDirective {
     createDatepicker(element: HTMLInputElement): TempusDominus {
       const thePicker = new TempusDominus(element, this.config);
       thePicker.dates.formatInput =  (date: DateTime) => this.ngGrid.format(date, this.format, this.format.edit && !this.format.isMask);
-      thePicker.dates.parseInput =  (value: string) => {
+      thePicker.dates.parseInput =  ((value: string) => {
           const parsed = this.formattingService.parse(value?value.trim():null, this.format, this.format.edit && !this.format.isMask, null, true);
-          if (parsed instanceof Date && !isNaN(parsed.getTime())) return  DateTime.convert(parsed, null, this.config.localization);
+          if (parsed instanceof Date && !isNaN(parsed.getTime())) return  DateTime.convert(parsed, null as any, this.config.localization);
           return null;
-      };
+      }) as any;
       thePicker.subscribe(Namespace.events.change, (event) => {
         if (thePicker) {
           thePicker.hide(); // Close the date picker
@@ -231,11 +231,11 @@ export class DateFilter extends FilterDirective {
     }
 
     getFilterUIValue(): any {
-      return this.elementRef().nativeElement.value;
+      return this.elementRef()!.nativeElement.value;
     }
 
     setFilterUIValue(value: any) {
-      this.elementRef().nativeElement.value = value;
+      this.elementRef()!.nativeElement.value = value;
     }
 
     getFilterRealValue(second?: boolean): any {
@@ -305,7 +305,7 @@ export class DateFilter extends FilterDirective {
     }
 
     getDateToRealValue(): any {
-      const displayValue = this.elementToRef().nativeElement.value;
+      const displayValue = this.elementToRef()!.nativeElement.value;
       const parsed = this.formattingService.parse(displayValue, this.format, this.format.edit && !this.format.isMask, null, true);
       if (parsed instanceof Date && !isNaN(parsed.getTime())) return parsed;
       return null;
@@ -313,7 +313,7 @@ export class DateFilter extends FilterDirective {
 
     onClearFilter() {
       super.onClearFilter();
-      this.elementToRef().nativeElement.value = '';
+      this.elementToRef()!.nativeElement.value = '';
     }
 
     ngOnDestroy() {
