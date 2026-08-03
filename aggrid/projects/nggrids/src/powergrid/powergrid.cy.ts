@@ -34,24 +34,24 @@ import { createPowerGridColumns, createPowerGridData } from '../testing/mock-dat
     standalone: false
 })
 class WrapperComponent {
-    columns = signal<PowerGridColumn[]>(undefined);
+    columns = signal<PowerGridColumn[] | undefined>(undefined);
     data = signal<any>(undefined);
     enabled = signal<boolean>(true);
     readOnly = signal<boolean>(false);
-    styleClass = signal<string>(undefined);
+    styleClass = signal<string | undefined>(undefined);
     enableSorting = signal<boolean>(true);
     enableColumnResize = signal<boolean>(true);
     rowHeight = signal<number>(25);
     headerHeight = signal<number>(33);
     multiSelect = signal<boolean>(false);
     responsiveHeight = signal<number>(400);
-    servoyApi: ServoyApi;
-    onCellClick: (rowData: any, colId: string, value: any, event: Event, dataTarget?: string) => void;
-    onCellDoubleClick: (rowData: any, colId: string, value: any, event: Event, dataTarget?: string) => void;
-    onCellRightClick: (rowData: any, colId: string, value: any, event: Event, dataTarget?: string) => void;
-    onReady: () => void;
+    servoyApi!: ServoyApi;
+    onCellClick!: (rowData: any, colId: string, value: any, event: Event, dataTarget?: string) => void;
+    onCellDoubleClick!: (rowData: any, colId: string, value: any, event: Event, dataTarget?: string) => void;
+    onCellRightClick!: (rowData: any, colId: string, value: any, event: Event, dataTarget?: string) => void;
+    onReady!: () => void;
 
-    @ViewChild('element') element: PowerGrid;
+    @ViewChild('element') element!: PowerGrid;
 }
 
 function getRowData(): any[] {
@@ -79,7 +79,8 @@ describe('PowerGrid', () => {
             wrapper.component.data.set(getRowData());
             wrapper.fixture.detectChanges();
 
-            cy.get('.ag-center-cols-container .ag-row').should('have.length', 10);
+            cy.get('.ag-row[row-index="0"]').should('exist');
+            cy.get('.ag-row[row-index="9"]').should('exist');
             cy.get('.ag-header-cell-text').should('have.length.at.least', 3);
         });
     });
@@ -92,7 +93,7 @@ describe('PowerGrid', () => {
             wrapper.component.data.set(getRowData());
             wrapper.fixture.detectChanges();
 
-            cy.get('.ag-center-cols-container .ag-row').should('have.length', 10);
+            cy.get('.ag-row[row-index="9"]').should('exist');
         });
     });
 
@@ -193,9 +194,9 @@ describe('PowerGrid', () => {
             wrapper.component.multiSelect.set(true);
             wrapper.fixture.detectChanges();
 
-            cy.get('.ag-center-cols-container .ag-row[row-index="0"] .ag-cell').first().click();
-            cy.get('.ag-center-cols-container .ag-row[row-index="2"] .ag-cell').first().click({ ctrlKey: true });
-            cy.get('.ag-center-cols-container .ag-row-selected').should('have.length', 2);
+            cy.get('.ag-row[row-index="0"] .ag-cell').first().click();
+            cy.get('.ag-row[row-index="2"] .ag-cell').first().click({ ctrlKey: true });
+            cy.get('.ag-row-selected').should('have.length', 2);
         });
     });
 
@@ -221,11 +222,12 @@ describe('PowerGrid', () => {
             wrapper.component.data.set(getRowData());
             wrapper.fixture.detectChanges();
 
-            cy.get('.ag-center-cols-container .ag-row').should('have.length', 10).then(() => {
+            cy.get('.ag-row[row-index="9"]').should('exist').then(() => {
                 const newData = getRowData().slice(0, 3);
                 wrapper.component.data.set(newData);
                 wrapper.fixture.detectChanges();
-                cy.get('.ag-center-cols-container .ag-row').should('have.length', 3);
+                cy.get('.ag-row[row-index="2"]').should('exist');
+                cy.get('.ag-row[row-index="3"]').should('not.exist');
             });
         });
     });

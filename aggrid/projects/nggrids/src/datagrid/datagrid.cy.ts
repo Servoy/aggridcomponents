@@ -30,20 +30,20 @@ import { createMockFoundset } from '../testing/mock-foundset';
     standalone: false
 })
 class WrapperComponent {
-    columns = signal<DataGridColumn[]>(undefined);
-    myFoundset = signal<IFoundset>(undefined);
+    columns = signal<DataGridColumn[] | undefined>(undefined);
+    myFoundset = signal<IFoundset | undefined>(undefined);
     enabled = signal<boolean>(true);
     readOnly = signal<boolean>(false);
-    styleClass = signal<string>(undefined);
+    styleClass = signal<string | undefined>(undefined);
     enableSorting = signal<boolean>(true);
     enableColumnResize = signal<boolean>(true);
     rowHeight = signal<number>(25);
     responsiveHeight = signal<number>(400);
-    servoyApi: ServoyApi;
-    onReady: () => void;
-    onSelectedRowsChanged: (isgroupselection?: boolean, groupcolumnid?: string, groupkey?: unknown, groupselection?: boolean, event?: Event) => void;
+    servoyApi!: ServoyApi;
+    onReady!: () => void;
+    onSelectedRowsChanged!: (isgroupselection?: boolean, groupcolumnid?: string, groupkey?: unknown, groupselection?: boolean, event?: Event) => void;
 
-    @ViewChild('element') element: DataGrid;
+    @ViewChild('element') element!: DataGrid;
 }
 
 function createDataGridColumns(): DataGridColumn[] {
@@ -121,7 +121,7 @@ describe('DataGrid', () => {
             wrapper.component.myFoundset.set(createFoundsetWithData());
             wrapper.fixture.detectChanges();
 
-            cy.get('.ag-center-cols-container .ag-row').should('have.length.at.least', 1);
+            cy.get('[role="row"][row-index]').should('have.length.at.least', 1);
         });
     });
 
@@ -133,7 +133,7 @@ describe('DataGrid', () => {
             wrapper.component.myFoundset.set(createFoundsetWithData());
             wrapper.fixture.detectChanges();
 
-            cy.get('.ag-center-cols-container .ag-row').first().find('.ag-cell').first()
+            cy.get('.ag-row[row-index="0"]').find('.ag-cell').first()
                 .should('not.have.text', '');
         });
     });
@@ -159,8 +159,8 @@ describe('DataGrid', () => {
             wrapper.component.myFoundset.set(createFoundsetWithData());
             wrapper.fixture.detectChanges();
 
-            cy.get('.ag-center-cols-container .ag-row').eq(2).find('.ag-cell').first().click();
-            cy.get('.ag-center-cols-container .ag-row').eq(2).should('have.class', 'ag-row-selected');
+            cy.get('.ag-row[row-index="2"]').find('.ag-cell').first().click();
+            cy.get('.ag-row[row-index="2"]').should('have.class', 'ag-row-selected');
         });
     });
 
@@ -186,7 +186,7 @@ describe('DataGrid', () => {
             wrapper.component.myFoundset.set(createFoundsetWithData());
             wrapper.fixture.detectChanges();
 
-            cy.get('.ag-center-cols-container .ag-row').first().should('have.class', 'ag-row-selected');
+            cy.get('.ag-row[row-index="0"]').should('have.class', 'ag-row-selected');
         });
     });
 
@@ -198,7 +198,7 @@ describe('DataGrid', () => {
             wrapper.component.myFoundset.set(createFoundsetWithData());
             wrapper.fixture.detectChanges();
 
-            cy.get('.ag-center-cols-container .ag-row').should('have.length', 10);
+            cy.get('[role="row"][row-index]').should('have.length', 10);
         });
     });
 });
