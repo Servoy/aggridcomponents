@@ -25,6 +25,22 @@ npm run test_headless
 
 Runs Karma + Jasmine in headless Chrome (no watch).
 
+### Critical: Global Mocking Rules
+
+- **NEVER** use `vi.stubGlobal('document', ...)` or `vi.stubGlobal('window', ...)` — this replaces the entire jsdom DOM and breaks ALL subsequent tests in the same fork/thread. The error manifests as `this.doc.querySelector is not a function` in Angular's renderer.
+- Instead, mock individual methods and restore them:
+  ```typescript
+  let originalMethod: typeof document.elementFromPoint;
+  beforeEach(() => {
+    originalMethod = document.elementFromPoint;
+    document.elementFromPoint = vi.fn() as any;
+  });
+  afterEach(() => {
+    document.elementFromPoint = originalMethod;
+  });
+  ```
+- Similarly, never replace `window.location`, `window.navigator` etc. via `stubGlobal` — use `vi.spyOn` or direct property assignment with restore.
+
 ## Project Structure
 
 ```
