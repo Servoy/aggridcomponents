@@ -17,7 +17,7 @@ and deployed as a Servoy web package (`.zip`).
 | Angular | 22.0.8 |
 | TypeScript | 6.0.3 |
 | Build system | Angular CLI + ng-packagr 22.0.2 |
-| Test framework | Karma + Jasmine (headless Chrome) |
+| Test framework | Vitest 4.x (via `@angular/build:unit-test`, jsdom) |
 | Linting | ESLint 10.x (@angular-eslint + @typescript-eslint) |
 | Node package manager | npm |
 | Servoy framework | @servoy/public ^2026.3.0 |
@@ -52,13 +52,38 @@ A successful build confirms type correctness.
 
 ## Testing
 
+**Framework:** Vitest 4.x (via `@angular/build:unit-test`, jsdom environment)
+
 | Command | Purpose |
 |---------|---------|
-| `npm run test_headless` | Run all Karma/Jasmine tests (headless Chrome, no watch) |
-| `npm run test` | Run tests in watch mode (Chrome) |
-| `npm run test_edge` | Run tests in Edge (watch) |
+| `npm run test` | Run all Vitest tests (single run) |
+| `npm run test:watch` | Run tests in watch mode |
+| `npm run test:ui` | Open Vitest UI for interactive test execution |
+| `npm run test_headless` | Run all tests (single run, alias) |
 | `npm run cy:open` | Open Cypress interactive runner |
 | `npm run cy:run` | Run Cypress component tests headless |
+
+### Test conventions
+- Framework: Vitest via `@angular/build:unit-test` builder
+- Pattern: `**/*.spec.ts`
+- Import test functions explicitly: `import { describe, it, expect, beforeEach, vi } from 'vitest';`
+- Use `TestBed.createComponent()` pattern
+- Use `fixture.componentRef.setInput('name', value)` for signal inputs
+- Use `NO_ERRORS_SCHEMA` to suppress unknown directive warnings
+- Import `ServoyPublicTestingModule` from `@servoy/public`
+- DO NOT import `NGGridsModule` in tests
+
+### Critical: Global Mocking Rules
+
+- **NEVER** use `vi.stubGlobal('document', ...)` or `vi.stubGlobal('window', ...)` — this replaces the entire jsdom DOM and breaks ALL subsequent tests in the same fork/thread.
+- Instead, mock individual methods and restore them in `afterEach`.
+
+### Debugging: Log First, Fix Later
+
+When facing unclear test failures, **do NOT spend multiple rounds guessing root causes**. Instead:
+1. **Add diagnostic logging immediately**
+2. **Run (or push and let CI run)** — get real data
+3. **Fix based on evidence**
 
 ## Architecture
 
@@ -78,7 +103,8 @@ Each grid component exists in **two layers** that must stay in sync:
 - `<name>.ts` — Angular component class
 - `<name>.html` — Angular template
 - `<name>.service.ts` — Component service (grid state, event handling)
-- `<name>.cy.ts` — Cypress component test
+- `<name>.spec.ts` — Vitest component test
+- `<name>.cy.ts` — Cypress component test (legacy, being phased out)
 
 ### Components
 
@@ -99,16 +125,18 @@ Each grid component exists in **two layers** that must stay in sync:
 |-----------|---------|
 | `projects/nggrids/src/editors/` | Shared cell editors (text, select, date, form) |
 | `projects/nggrids/src/filters/` | Shared column filters |
-| `projects/nggrids/src/nggrid.ts` | Shared base class for both Angular grids |
+| `projects/nggrids/src/nggrid.ts` | Shared base directive for both Angular grids |
 | `projects/nggrids/src/nggrids.module.ts` | NgModule declarations |
 | `projects/nggrids/src/public-api.ts` | Library exports |
 | `aggrid/lib/` | Shared utilities |
 
 ### Angular component conventions
 
+- **Signal-based inputs:** `myProp = input<T>()` — NOT `@Input()`
+- **Signal queries:** `viewChild()`, `contentChild()` — NOT `@ViewChild()` / `@ContentChild()`
 - **Selector prefix:** `aggrid-` (kebab-case, enforced by ESLint)
 - **Directive selector prefix:** `aggrid` (camelCase)
-- **Base class:** Both grids share `NGGridComponent` from `nggrid.ts`
+- **Base class:** Both grids share `NGGridDirective` from `nggrid.ts`
 - **Standalone:** `false` — all components declared in `NGGridsModule`
 - **Change detection:** `ChangeDetectionStrategy.OnPush`
 - **AG Grid integration:** Uses `ag-grid-angular` with enterprise features
@@ -241,7 +269,8 @@ When changing component properties, handlers, or API:
 - **@servoy/public version coupling.** Must match the target Servoy runtime version.
 - **Legacy files still active.** The AngularJS files in `datasettable/` and `groupingtable/`
   are still used by older Servoy runtimes. Don't delete them.
-- **Base class hierarchy:** Both Angular grids extend `NGGridComponent` (in `nggrid.ts`),
+- **Base class hierarchy:** Both Angular grids extend `NGGridDirective` (in `nggrid.ts`),
   which extends `ServoyBaseComponent` from `@servoy/public`.
+- **Signal-based:** Components use `input()`, `viewChild()`, `contentChild()`, `signal()` — not decorators.
 - **Service pattern:** Each Angular grid has a companion service (e.g., `powergrid.service.ts`)
   that manages AG Grid state and event handling. Changes often span both the component and service.
