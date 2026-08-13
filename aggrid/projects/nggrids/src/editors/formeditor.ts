@@ -39,7 +39,7 @@ export class FormEditor extends EditorDirective implements OnDestroy {
         }
 
         this.editForm = column.editForm;
-        this.ngGrid.servoyApi.formWillShow(this.editForm).finally(() => this.cdRef.markForCheck());
+        this.ngGrid.servoyApi().formWillShow(this.editForm).finally(() => this.cdRef.markForCheck());
     }
 
     ngAfterViewInit(): void {
@@ -56,7 +56,7 @@ export class FormEditor extends EditorDirective implements OnDestroy {
 
     ngOnDestroy(): void {
         const column = this.ngGrid.getColumn(this.params.column.getColId());
-        this.ngGrid.servoyApi.hideForm(column.editForm);
+        this.ngGrid.servoyApi().hideForm(column.editForm);
     }
 
     getForm() {

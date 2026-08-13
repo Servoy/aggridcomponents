@@ -1019,7 +1019,7 @@ export class DataGrid extends NGGridDirective {
 		if (columns) {
 			for (let i = 0; i < columns.length; i++) {
 				if (columns[i].headerCheckbox) {
-					let ch = this.doc.getElementById(this.servoyApi.getMarkupId() + '-headerCheck-' + i);
+					let ch = this.doc.getElementById(this.servoyApi().getMarkupId() + '-headerCheck-' + i);
 					if (ch) {
 						let colId = columns[i].id;
 						if (!colId) {
@@ -1101,7 +1101,7 @@ export class DataGrid extends NGGridDirective {
 	svyOnInit() {
 		super.svyOnInit();
 		// TODO:
-		if (this.servoyApi.isInDesigner()) {
+		if (this.servoyApi().isInDesigner()) {
 			// $element.addClass("design-mode");
 			// var designGridOptions = {
 			//     rowModelType: 'clientSide',
@@ -1244,7 +1244,7 @@ export class DataGrid extends NGGridDirective {
 								const filterMyFoundsetArg = [];
 								filterMyFoundsetArg.push('{}');
 								filterMyFoundsetArg.push(this.myFoundsetId);
-								this.servoyApi.callServerSideApi('filterMyFoundset', filterMyFoundsetArg);
+								this.servoyApi().callServerSideApi('filterMyFoundset', filterMyFoundsetArg);
 							} else {
 								// there is actually no foundset change!
 								return;
@@ -1828,16 +1828,16 @@ export class DataGrid extends NGGridDirective {
 					//colDef.filter = 'agDateColumnFilter';
 					colDef.filter = 'dateFilter';
 					colDef.filterParams['suppressAndOrCondition'] = true;
-					if (!this.servoyApi.isInDesigner()) colDef.floatingFilterComponent = 'dateFilter';
+					if (!this.servoyApi().isInDesigner()) colDef.floatingFilterComponent = 'dateFilter';
 				} else if (column.filterType === 'VALUELIST') {
 					colDef.filter = 'valuelistFilter';
 					colDef.filterParams['suppressAndOrCondition'] = true;
-					if (!this.servoyApi.isInDesigner()) colDef.floatingFilterComponent = 'valuelistFilter';
+					if (!this.servoyApi().isInDesigner()) colDef.floatingFilterComponent = 'valuelistFilter';
 					//colDef.floatingFilterComponentParams = { suppressFilterButton : true};
 				} else if (column.filterType === 'RADIO') {
 					colDef.filter = 'radioFilter';
 					colDef.filterParams['suppressAndOrCondition'] = true;
-					if (!this.servoyApi.isInDesigner()) colDef.floatingFilterComponent = 'radioFilter';
+					if (!this.servoyApi().isInDesigner()) colDef.floatingFilterComponent = 'radioFilter';
 					//colDef.floatingFilterComponentParams = { suppressFilterButton : true};
 				}
 			}
@@ -1872,13 +1872,13 @@ export class DataGrid extends NGGridDirective {
 						records.push(this.getRecord(row));
 					});
 
-					this.registrationService.datagridService.setDragData(new DragTransferData(dragDatas, this.name, sourceColumnId));
+					this.registrationService.datagridService.setDragData(new DragTransferData(dragDatas, this.name(), sourceColumnId));
 
 					const onDragGetImageFunc = this.onDragGetImageFunc();
 					if (onDragGetImageFunc) {
 						const jsDragGetImageEvent = this.servoyService.createJSEvent(params.dragEvent, 'onDragGetImage') as JSDNDEvent;
 						jsDragGetImageEvent.targetColumnId = sourceColumnId;
-						jsDragGetImageEvent.sourceGridName = this.name;
+						jsDragGetImageEvent.sourceGridName = this.name();
 						jsDragGetImageEvent.sourceColumnId = sourceColumnId;
 
 						const dragGhostEl = this.doc.createElement('div') as HTMLElement;
@@ -1890,7 +1890,7 @@ export class DataGrid extends NGGridDirective {
 
 						params.dragEvent.dataTransfer.setDragImage(dragGhostEl, 0, 0);
 					}
-					params.dragEvent.dataTransfer.setData('nggrids-drag/json', JSON.stringify(new DragTransferData(records, this.name, sourceColumnId)));
+					params.dragEvent.dataTransfer.setData('nggrids-drag/json', JSON.stringify(new DragTransferData(records, this.name(), sourceColumnId)));
 				};
 			}
 
@@ -1931,7 +1931,7 @@ export class DataGrid extends NGGridDirective {
 						'   <span data-ref="eFilterButton" class="ag-header-icon ag-header-cell-filter-button" aria-hidden="true"></span>' +
 						'   <div data-ref="eLabel" class="ag-header-cell-label" role="presentation">' +
 						'       <div class="svy-header-checkbox">' +
-						'           <input class="ag-input-field-input ag-checkbox-input" type="checkbox" id="' + this.servoyApi.getMarkupId() + '-headerCheck-' + i + '">' +
+						'           <input class="ag-input-field-input ag-checkbox-input" type="checkbox" id="' + this.servoyApi().getMarkupId() + '-headerCheck-' + i + '">' +
 						'       </div>' +
 						'       <span data-ref="eText" class="ag-header-cell-text"></span>' +
 						'       <span data-ref="eFilter" class="ag-header-icon ag-header-label-icon ag-filter-icon" aria-hidden="true"></span>' +
@@ -2731,7 +2731,7 @@ export class DataGrid extends NGGridDirective {
 				} else {
 					applyProperty = 'hashedFoundsets[' + groupFoundsetIndex + '].columns[' + _this.getColumnIndex(params.column.colId) + '].dataprovider[' + dpIdx + ']';
 				}
-				_this.servoyApi.apply(applyProperty, newValue);
+				_this.servoyApi().apply(applyProperty, newValue);
 				// if there is real/display value, after updating with realValue using 'apply',
 				// set the displayValue in the model for the UI, as 'apply' will set the realValue in the model
 				if (newDisplayValue !== undefined) {
@@ -2818,7 +2818,7 @@ export class DataGrid extends NGGridDirective {
 		}
 
 		// remove the hashedFoundsets
-		(this.servoyApi.callServerSideApi('removeGroupedFoundsetUUID', [foundsetHash]) as any).then((removed: any) => {
+		(this.servoyApi().callServerSideApi('removeGroupedFoundsetUUID', [foundsetHash]) as any).then((removed: any) => {
 			if (removed) {
 				delete (this.state.foundsetManagers as any)[foundsetHash];
 			} else {
@@ -3370,7 +3370,7 @@ export class DataGrid extends NGGridDirective {
 
 		if (this.columnStateOnError()) {
 			// can't parse columnState
-			this.servoyApi.callServerSideApi('columnStateOnErrorHandler', [errorMsg, this.createJSEvent(), oldColumnState, missingColumnIdsFromState, missingColumnIdsFromModel]);
+			this.servoyApi().callServerSideApi('columnStateOnErrorHandler', [errorMsg, this.createJSEvent(), oldColumnState, missingColumnIdsFromState, missingColumnIdsFromModel]);
 		} else {
 			console.error(errorMsg);
 		}
@@ -3385,7 +3385,7 @@ export class DataGrid extends NGGridDirective {
 					(columns[j].styleClassDataprovider !== undefined ? columns[j].styleClassDataprovider.idForFoundset : null));
 			if (id == null || ids.indexOf(id) !== -1) {
 				console.error('Column at index ' + j + ' in the model, does not have unique id/dataprovider/styleClassDataprovider for data grid "' +
-					this.name + '" on form "' + this.servoyApi.getFormName() + '"');
+					this.name + '" on form "' + this.servoyApi().getFormName() + '"');
 				return false;
 			}
 			ids.push(id);
@@ -3736,7 +3736,7 @@ export class DataGrid extends NGGridDirective {
 
 	showEditorHint() {
 		const columns = this.columns();
-		return (!columns || columns.length === 0) && this.servoyApi.isInDesigner();
+		return (!columns || columns.length === 0) && this.servoyApi().isInDesigner();
 	}
 
 	getIconRefreshData() {
@@ -4112,11 +4112,11 @@ export class DataGrid extends NGGridDirective {
 
 		if (timeout !== undefined) {
 			this.setTimeout(() => {
-				this.servoyApi.callServerSideApi('cellClick',
+				this.servoyApi().callServerSideApi('cellClick',
 					['click', this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), jsEvent, this.getDataTarget(params.event)]);
 			}, timeout);
 		} else {
-			this.servoyApi.callServerSideApi('cellClick',
+			this.servoyApi().callServerSideApi('cellClick',
 				['click', this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), jsEvent, this.getDataTarget(params.event)]);
 		}
 	}
@@ -4141,7 +4141,7 @@ export class DataGrid extends NGGridDirective {
 	onCellDoubleClickedEx(params: any, jsEvent: JSEvent) {
 		this.log.debug(params);
 		if (!params.node.rowPinned) {
-			this.servoyApi.callServerSideApi('cellClick',
+			this.servoyApi().callServerSideApi('cellClick',
 				['doubleClick', this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), jsEvent, this.getDataTarget(params.event)]);
 		}
 	}
@@ -4156,7 +4156,7 @@ export class DataGrid extends NGGridDirective {
 			const jsEvent = this.servoyService.createJSEvent(params.event, params.event.type);
 			// Added setTimeOut to enable onColumnDataChangeEvent to go first; must be over 250, so selection is sent first
 			this.setTimeout(() => {
-				this.servoyApi.callServerSideApi('cellClick',
+				this.servoyApi().callServerSideApi('cellClick',
 					['rightClick', this.getFoundsetIndexFromEvent(params), this.getColumnIndex(params.column.colId), this.getRecord(params), jsEvent, this.getDataTarget(params.event)]);
 			}, 350);
 		}
@@ -4322,7 +4322,7 @@ export class DataGrid extends NGGridDirective {
 	}
 
 	getDetailItemTemplate(item: any): TemplateRef<any> {
-		return (this.servoyService as any).getTemplateForFormComponentChild(this.servoyApi.getFormName(), item);
+		return (this.servoyService as any).getTemplateForFormComponentChild(this.servoyApi().getFormName(), item);
 	}
 
 	getDetailItemState(item: any, rowIndex: number): any {
@@ -4621,7 +4621,7 @@ export class DataGrid extends NGGridDirective {
 	}
 
 	getRequestInfoWithId(requestInfo: string): string {
-		return requestInfo + '-' + this.servoyApi.getMarkupId();
+		return requestInfo + '-' + this.servoyApi().getMarkupId();
 	}
 
 	/***********************************************************************************************************************************
@@ -5312,7 +5312,7 @@ class FoundsetServer {
 				filterMyFoundsetArg.push(sUpdatedFilterModel);
 			}
 
-			const filterPromise = this.dataGrid.servoyApi.callServerSideApi('filterMyFoundset', filterMyFoundsetArg);
+			const filterPromise = this.dataGrid.servoyApi().callServerSideApi('filterMyFoundset', filterMyFoundsetArg);
 			(filterPromise as any)['requestInfo'] = this.dataGrid.getRequestInfoWithId('filterMyFoundset');
 			allPromises.push(filterPromise);
 		}
@@ -5926,7 +5926,7 @@ class GroupManager {
 			}
 		}
 
-		const childFoundsetPromise = this.dataGrid.servoyApi.callServerSideApi('getGroupedFoundsetUUID',
+		const childFoundsetPromise = this.dataGrid.servoyApi().callServerSideApi('getGroupedFoundsetUUID',
 			[groupColumns, groupKeys, idForFoundsets, sort, this.dataGrid.filterModel, hasRowStyleClassDataprovider, sortColumns]);
 
 		(childFoundsetPromise as any).then((childFoundsetUUID: any) => {

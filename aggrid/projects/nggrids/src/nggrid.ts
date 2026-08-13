@@ -71,7 +71,7 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
 
     svyOnInit() {
         super.svyOnInit();
-        if (!this.servoyApi.isInDesigner()) {
+        if (!this.servoyApi().isInDesigner()) {
             this.__internalFormEditorValue.set(this._internalFormEditorValue());
             let mainWindowContainer = this.agGridElementRef()!.nativeElement.closest('.svy-main-window-container');
             if (!mainWindowContainer) {
@@ -209,7 +209,7 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
     }
 
     setHeight() {
-        if (!this.servoyApi.isInAbsoluteLayout()) {
+        if (!this.servoyApi().isInAbsoluteLayout()) {
             if (this.responsiveHeight()! < 0) {
                 const agGridElementRef = this.agGridElementRef();
                 if (agGridElementRef) agGridElementRef.nativeElement.style.height = '';

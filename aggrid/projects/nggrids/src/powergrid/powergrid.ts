@@ -688,7 +688,7 @@ export class PowerGrid extends NGGridDirective {
         super.svyOnInit();
         // TODO:
         // init the grid. If is in designer render a mocked grid
-        if (this.servoyApi.isInDesigner()) {
+        if (this.servoyApi().isInDesigner()) {
             // $element.addClass("design-mode");
             // var designGridOptions = {
             //     rowModelType: 'clientSide',
@@ -745,7 +745,7 @@ export class PowerGrid extends NGGridDirective {
             }
         });
 
-        if (!this.servoyApi.isInDesigner() && this.useLazyLoading()) {
+        if (!this.servoyApi().isInDesigner() && this.useLazyLoading()) {
             this.lazyLoadingRemoteDatasource = new RemoteDatasource(this);
             this.agGrid()!.api.setGridOption('serverSideDatasource', this.lazyLoadingRemoteDatasource);
         }
@@ -791,7 +791,7 @@ export class PowerGrid extends NGGridDirective {
                                     this.agGrid()!.api.refreshCells({force: true, rowNodes: rowNodes});
                                 }
                             }
-                            this.servoyApi.callServerSideApi('clearUpdateData', []);
+                            this.servoyApi().callServerSideApi('clearUpdateData', []);
                         }
                         break;
                     case 'columns':
@@ -1049,16 +1049,16 @@ export class PowerGrid extends NGGridDirective {
                         //colDef.filter = 'agDateColumnFilter';
                         colDef.filter = 'dateFilter';
                         colDef.filterParams['suppressAndOrCondition'] = true;
-                        if(!this.servoyApi.isInDesigner()) colDef.floatingFilterComponent = 'dateFilter';
+                        if(!this.servoyApi().isInDesigner()) colDef.floatingFilterComponent = 'dateFilter';
                     } else if (column.filterType === 'VALUELIST') {
                         colDef.filter = 'valuelistFilter';
                         colDef.filterParams['suppressAndOrCondition'] = true;
-                        if(!this.servoyApi.isInDesigner()) colDef.floatingFilterComponent = 'valuelistFilter';
+                        if(!this.servoyApi().isInDesigner()) colDef.floatingFilterComponent = 'valuelistFilter';
                         //colDef.floatingFilterComponentParams = { suppressFilterButton : true};
                     } else if (column.filterType === 'RADIO') {
                         colDef.filter = 'radioFilter';
                         colDef.filterParams['suppressAndOrCondition'] = true;
-                        if(!this.servoyApi.isInDesigner()) colDef.floatingFilterComponent = 'radioFilter';
+                        if(!this.servoyApi().isInDesigner()) colDef.floatingFilterComponent = 'radioFilter';
                         //colDef.floatingFilterComponentParams = { suppressFilterButton : true};
                     }
                 }
@@ -1103,13 +1103,13 @@ export class PowerGrid extends NGGridDirective {
                             dragDatas.push(rowData);
                         });
 
-                        this.registrationService.powergridService.setDragData(new DragTransferData(dragDatas, this.name, sourceColumnId) );
+                        this.registrationService.powergridService.setDragData(new DragTransferData(dragDatas, this.name(), sourceColumnId) );
 
                         const onDragGetImageFunc = this.onDragGetImageFunc();
                         if(onDragGetImageFunc) {
                             const jsDragGetImageEvent = this.servoyService.createJSEvent(params.dragEvent, 'onDragGetImage') as JSDNDEvent;                
                             jsDragGetImageEvent.targetColumnId = sourceColumnId;
-                            jsDragGetImageEvent.sourceGridName = this.name;
+                            jsDragGetImageEvent.sourceGridName = this.name();
                             jsDragGetImageEvent.sourceColumnId = sourceColumnId;
 
                             const dragGhostEl = this.doc.createElement('div') as HTMLElement;
