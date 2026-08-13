@@ -666,14 +666,14 @@ export class DataGrid extends NGGridDirective {
 			onSortChanged: (event: SortChangedEvent) => {
 				if (event.source === 'uiColumnSorted' || event.source === 'columnMenu') {
 					this.isSortModelApplied = true;
+					if (this.onSort()) {
+						this.onSortHandler();
+					}
 				}
 				this.storeColumnsState();
 				if (this.isTableGrouped()) {
 					this.removeAllFoundsetRef = true;
 					this.refreshAgGridServerSide();
-				}
-				if (this.onSort()) {
-					this.onSortHandler();
 				}
 			},
 			onColumnResized: (e: ColumnResizedEvent) => {

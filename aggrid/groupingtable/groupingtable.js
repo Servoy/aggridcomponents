@@ -731,14 +731,16 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							}
 						},
 						onFilterChanged: storeColumnsState,
-						onSortChanged: function() {
+						onSortChanged: function(event) {
 							storeColumnsState();
 							if(isTableGrouped()) {
 								removeAllFoundsetRef = true;
 								gridOptions.api.purgeServerSideCache();
 							}
-							if($scope.handlers.onSort) {
-								onSortHandler();
+							if(event && (event.source === 'uiColumnSorted' || event.source === 'columnMenu')) {
+								if($scope.handlers.onSort) {
+									onSortHandler();
+								}
 							}
 						},
 	//	                onColumnVisible: storeColumnsState,			 covered by onDisplayedColumnsChanged
