@@ -451,7 +451,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                         // skip pinned (footer) nodes
 						if(params.node.rowPinned) return "";
                         var rowData = params.data || Object.assign(params.node.groupData, params.node.aggData);
-                        return rowStyleClassFunc(params.rowIndex, rowData, params.event, params.node.group);
+                        return rowStyleClassFunc(params.rowIndex, rowData, params.event, params.node.group, params);
                     };
                 }
 

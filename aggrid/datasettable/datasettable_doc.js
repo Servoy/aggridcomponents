@@ -19,7 +19,14 @@ var responsiveHeight;
 var rowHeight;
 
 /**
- * Function to add style class to row
+ * Function to add style class to row.
+ *
+ * @param {number} rowIndex - The row index
+ * @param {object} rowData - The row data (for group rows: merged groupData + aggData)
+ * @param {object} event - The event object (may be null)
+ * @param {boolean} isGroup - Whether this is a group row
+ * @param {object} params - The full AG Grid RowClassParams (includes node, api, context)
+ * @return {string} CSS class name(s) to apply
  */
 var rowStyleClassFunc;
 

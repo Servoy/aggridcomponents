@@ -530,7 +530,7 @@ export class PowerGrid extends NGGridDirective {
             this.agGridOptions.getRowClass =
                 (params) => {
                     if (params.node.rowPinned) return '';
-                    return rowStyleClassFunc(params.rowIndex, (params.data || Object.assign(params.node.groupData as any, params.node.aggData)), /* TODO CHECK params.event*/ null, params.node.group) as any;
+                    return rowStyleClassFunc(params.rowIndex, (params.data || Object.assign(params.node.groupData as any, params.node.aggData)), /* TODO CHECK params.event*/ null, params.node.group, params) as any;
                 };
         }
 
