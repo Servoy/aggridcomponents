@@ -71,3 +71,10 @@ aggrid/
   - `datasettable/datasettable.spec` + `datasettable_doc.js` → powergrid + datasettable
   - `groupingtable/groupingtable.spec` + `groupingtable_doc.js` → datagrid + groupingtable
 - When modifying model/handlers/api: always update spec + doc + implementation together
+
+### Spec property tags: `serveronly`
+
+- If a spec property is handled **only on the server** (not sent to the client, no `@Input` in Angular), add `"tags": { "serveronly": true }` to its definition.
+- The `serveronly` tag prevents the property from being generated in the Angular template AND from being sent over the websocket.
+- **Every spec model property MUST have a corresponding `@Input` (signal input) in the Angular component, unless it is tagged `serveronly`.**
+- When adding or modifying spec properties, always verify this alignment.
