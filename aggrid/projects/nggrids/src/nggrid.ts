@@ -1,7 +1,7 @@
 /// <reference path="./typings.d.ts" />
 import { AgGridAngular } from 'ag-grid-angular';
 import { GridOptions } from 'ag-grid-community';
-import { ChangeDetectorRef, Directive, ElementRef, TemplateRef, input, contentChild, viewChild, signal } from '@angular/core';
+import { Directive, ElementRef, TemplateRef, input, contentChild, viewChild, signal } from '@angular/core';
 import { Deferred, BaseCustomObject, Format, FormattingService, LoggerService, ServoyBaseComponent, JSEvent, IJSMenu, IJSMenuItem, PopupStateService, SabloTabseq } from '@servoy/public';
 import { Options } from '@eonasdan/tempus-dominus';
 
@@ -46,7 +46,6 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
     doc!: Document;
 
     agGridOptions!: GridOptions;
-    cdRef!: ChangeDetectorRef;
     formattingService!: FormattingService;
     selectionEvent: any;
     log!: LoggerService;

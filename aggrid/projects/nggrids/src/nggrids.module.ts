@@ -19,7 +19,12 @@ import { IconConfig, MainMenuItemsConfig, ToolPanelConfig } from './nggrid';
 import { DateFilter } from './filters/datefilter';
 
 @NgModule({
-    declarations: [
+    imports: [
+        CommonModule,
+        FormsModule,
+        ServoyPublicModule,
+        NgbModule,
+        AgGridModule,
         DataGrid,
         TextEditor,
         DatePicker,
@@ -32,13 +37,6 @@ import { DateFilter } from './filters/datefilter';
         BlankLoadingCellRendrer,
         DetailFormRenderer,
         PowerGrid
-    ],
-    imports: [
-        CommonModule,
-        FormsModule,
-        ServoyPublicModule,
-        NgbModule,
-        AgGridModule
     ],
     exports: [
         DataGrid,

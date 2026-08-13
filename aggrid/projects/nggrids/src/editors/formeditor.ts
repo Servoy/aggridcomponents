@@ -1,5 +1,6 @@
 import { ICellEditorParams } from 'ag-grid-community';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, OnDestroy, signal } from '@angular/core';
 import { EditorDirective } from './editor';
 
 @Component({
@@ -9,7 +10,8 @@ import { EditorDirective } from './editor';
         <ng-template [ngTemplateOutlet]="getTemplate()" [ngTemplateOutletContext]="{name:getForm()}"></ng-template>
       </div>
     `,
-    standalone: false,
+    standalone: true,
+    imports: [CommonModule],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class FormEditor extends EditorDirective implements OnDestroy {
@@ -17,8 +19,9 @@ export class FormEditor extends EditorDirective implements OnDestroy {
     editForm: any;
     width = 300;
     height = 200;
+    private readonly formReady = signal(false);
 
-    constructor(private cdRef: ChangeDetectorRef) {
+    constructor() {
         super();
     }
 
@@ -39,7 +42,7 @@ export class FormEditor extends EditorDirective implements OnDestroy {
         }
 
         this.editForm = column.editForm;
-        this.ngGrid.servoyApi().formWillShow(this.editForm).finally(() => this.cdRef.markForCheck());
+        this.ngGrid.servoyApi().formWillShow(this.editForm).finally(() => this.formReady.set(true));
     }
 
     ngAfterViewInit(): void {

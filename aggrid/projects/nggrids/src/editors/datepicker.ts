@@ -18,7 +18,7 @@ import { DateTime, Namespace, Options, TempusDominus } from '@eonasdan/tempus-do
         'style': 'width: 100%; height: 100%;'
     },
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+    standalone: true
 })
 export class DatePicker extends EditorDirective {
 

@@ -17,7 +17,7 @@ import { Deferred } from '@servoy/public';
         '(mousedown)': 'onMouseDown($event)'
     },
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+    standalone: true
 })
 export class SelectEditor extends EditorDirective {
 

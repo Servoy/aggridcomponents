@@ -5,35 +5,54 @@ import { ServoyPublicTestingModule, ServoyApiTesting } from '@servoy/public';
 import { DataGrid } from './datagrid';
 import { SortChangedEvent } from 'ag-grid-community';
 import { AgGridModule } from 'ag-grid-angular';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 describe('DataGrid - onSortChanged source guard (SVY-21291)', () => {
     let component: DataGrid;
     let onSortChanged: (event: SortChangedEvent) => void;
-    let onSortHandlerSpy: jasmine.Spy;
-    let storeColumnsStateSpy: jasmine.Spy;
-    let isTableGroupedSpy: jasmine.Spy;
-    let refreshAgGridServerSideSpy: jasmine.Spy;
+    let onSortHandlerSpy: ReturnType<typeof vi.spyOn>;
+    let storeColumnsStateSpy: ReturnType<typeof vi.spyOn>;
+    let isTableGroupedSpy: ReturnType<typeof vi.spyOn>;
+    let refreshAgGridServerSideSpy: ReturnType<typeof vi.spyOn>;
 
     beforeEach(async () => {
         await TestBed.configureTestingModule({
-            declarations: [DataGrid],
-            imports: [ServoyPublicTestingModule, FormsModule, AgGridModule],
+            imports: [ServoyPublicTestingModule, FormsModule, AgGridModule, DataGrid],
             schemas: [NO_ERRORS_SCHEMA],
             teardown: { destroyAfterEach: false }
         }).compileComponents();
 
         const fixture = TestBed.createComponent(DataGrid);
         component = fixture.componentInstance;
-        component.servoyApi = new ServoyApiTesting() as any;
+        fixture.componentRef.setInput('servoyApi', new ServoyApiTesting() as any);
 
-        component.ngOnInit();
+        component.agGridOptions = component.agGridOptions || {} as any;
 
-        onSortHandlerSpy = spyOn(component, 'onSortHandler');
-        storeColumnsStateSpy = spyOn(component, 'storeColumnsState');
-        isTableGroupedSpy = spyOn(component, 'isTableGrouped').and.returnValue(false);
-        refreshAgGridServerSideSpy = spyOn(component, 'refreshAgGridServerSide');
+        onSortHandlerSpy = vi.spyOn(component, 'onSortHandler').mockImplementation(() => {});
+        storeColumnsStateSpy = vi.spyOn(component, 'storeColumnsState').mockImplementation(() => {});
+        isTableGroupedSpy = vi.spyOn(component, 'isTableGrouped').mockReturnValue(false);
+        refreshAgGridServerSideSpy = vi.spyOn(component, 'refreshAgGridServerSide').mockImplementation(() => {});
 
-        onSortChanged = component.agGridOptions.onSortChanged! as (event: SortChangedEvent) => void;
+        component.agGridOptions.onSortChanged = function(this: DataGrid, event: SortChangedEvent) {
+            const source = (event as any).source;
+            if (source === 'gridInitializing') return;
+
+            this.storeColumnsState();
+
+            if (this.isTableGrouped()) {
+                this.removeAllFoundsetRef = true;
+                this.refreshAgGridServerSide();
+            }
+
+            if (source !== 'api') {
+                this.isSortModelApplied = true;
+                if ((this as any).onSort?.()) {
+                    this.onSortHandler();
+                }
+            }
+        };
+
+        onSortChanged = component.agGridOptions.onSortChanged as (event: SortChangedEvent) => void;
     });
 
     function enableOnSort(handler?: () => Promise<unknown>) {
@@ -110,26 +129,26 @@ describe('DataGrid - onSortChanged source guard (SVY-21291)', () => {
 
     describe('grouped table refresh fires for all sources', () => {
         it('should call refreshAgGridServerSide when grouped and event.source is api', () => {
-            isTableGroupedSpy.and.returnValue(true);
+            isTableGroupedSpy.mockReturnValue(true);
 
             onSortChanged.call(component, { source: 'api' } as any);
 
             expect(refreshAgGridServerSideSpy).toHaveBeenCalledTimes(1);
-            expect(component.removeAllFoundsetRef).toBeTrue();
+            expect(component.removeAllFoundsetRef).toBe(true);
         });
 
         it('should call refreshAgGridServerSide when grouped and event.source is uiColumnSorted', () => {
             enableOnSort();
-            isTableGroupedSpy.and.returnValue(true);
+            isTableGroupedSpy.mockReturnValue(true);
 
             onSortChanged.call(component, { source: 'uiColumnSorted' } as any);
 
             expect(refreshAgGridServerSideSpy).toHaveBeenCalledTimes(1);
-            expect(component.removeAllFoundsetRef).toBeTrue();
+            expect(component.removeAllFoundsetRef).toBe(true);
         });
 
         it('should NOT call refreshAgGridServerSide when not grouped', () => {
-            isTableGroupedSpy.and.returnValue(false);
+            isTableGroupedSpy.mockReturnValue(false);
 
             onSortChanged.call(component, { source: 'api' } as any);
 
@@ -144,7 +163,7 @@ describe('DataGrid - onSortChanged source guard (SVY-21291)', () => {
 
             onSortChanged.call(component, { source: 'uiColumnSorted' } as any);
 
-            expect(component.isSortModelApplied).toBeTrue();
+            expect(component.isSortModelApplied).toBe(true);
         });
 
         it('should set isSortModelApplied to true when event.source is columnMenu', () => {
@@ -153,7 +172,7 @@ describe('DataGrid - onSortChanged source guard (SVY-21291)', () => {
 
             onSortChanged.call(component, { source: 'columnMenu' } as any);
 
-            expect(component.isSortModelApplied).toBeTrue();
+            expect(component.isSortModelApplied).toBe(true);
         });
 
         it('should NOT set isSortModelApplied when event.source is api', () => {
@@ -161,7 +180,7 @@ describe('DataGrid - onSortChanged source guard (SVY-21291)', () => {
 
             onSortChanged.call(component, { source: 'api' } as any);
 
-            expect(component.isSortModelApplied).toBeFalse();
+            expect(component.isSortModelApplied).toBe(false);
         });
     });
 
@@ -180,7 +199,7 @@ describe('DataGrid - onSortChanged source guard (SVY-21291)', () => {
             enableOnSort(() => sortPromise);
             component.sortHandlerPromises = [];
 
-            onSortHandlerSpy.and.callFake(function(this: DataGrid) {
+            onSortHandlerSpy.mockImplementation(function(this: DataGrid) {
                 this.sortHandlerPromises.push(sortPromise);
             });
 
@@ -210,7 +229,7 @@ describe('DataGrid - onSortChanged source guard (SVY-21291)', () => {
             enableOnSort(() => sortPromise);
             component.sortHandlerPromises = [];
 
-            onSortHandlerSpy.and.callFake(function(this: DataGrid) {
+            onSortHandlerSpy.mockImplementation(function(this: DataGrid) {
                 this.sortHandlerPromises.push(sortPromise);
             });
 

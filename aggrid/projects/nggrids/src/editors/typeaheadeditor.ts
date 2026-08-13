@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, Inject, input, viewChild, signal, DOCUMENT } from '@angular/core';
-import { NgbTypeahead, NgbTypeaheadConfig } from '@ng-bootstrap/ng-bootstrap';
+import { NgbModule, NgbTypeahead, NgbTypeaheadConfig } from '@ng-bootstrap/ng-bootstrap';
 import { merge, Observable, of, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, switchMap } from 'rxjs/operators';
-import { FormattingService, IPopupSupportComponent } from '@servoy/public';
+import { FormattingService, IPopupSupportComponent, ServoyPublicModule } from '@servoy/public';
 import { EditorDirective } from './editor';
 
 @Component({
@@ -27,7 +27,8 @@ import { EditorDirective } from './editor';
       '(keypress)': 'onKeyPress($event)'
     },
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+    standalone: true,
+    imports: [ServoyPublicModule, NgbModule]
 })
 export class TypeaheadEditor extends EditorDirective implements IPopupSupportComponent{
 

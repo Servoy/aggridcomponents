@@ -1,4 +1,6 @@
+import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, ElementRef, Inject, Renderer2, DOCUMENT, viewChild } from "@angular/core";
+import { FormsModule } from '@angular/forms';
 import { FilterDirective } from "./filter";
 import { Format, FormattingService, getFirstDayOfWeek, MaskFormat, ServoyPublicService } from '@servoy/public';
 import { DateTime as DateTimeLuxon} from 'luxon';
@@ -54,7 +56,8 @@ import { DateTime, Options, Namespace, TempusDominus } from '@eonasdan/tempus-do
       </div>
     }</div>
     `,
-  standalone: false,
+  standalone: true,
+  imports: [CommonModule, FormsModule],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DateFilter extends FilterDirective {

@@ -41,7 +41,7 @@ import { FilterDirective } from './filter';
         </div>
       }
       `,
-    standalone: false,
+    standalone: true,
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class RadioFilter extends FilterDirective {

@@ -7,8 +7,8 @@ import { Component, ChangeDetectionStrategy } from '@angular/core';
     template: `
     <div ></div>
     `,
-    changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: true
 })
 export class BlankLoadingCellRendrer implements ILoadingCellRendererAngularComp {
     agInit(params: ILoadingCellRendererParams): void {

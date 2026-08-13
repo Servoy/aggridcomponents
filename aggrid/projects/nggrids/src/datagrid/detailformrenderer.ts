@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, TemplateRef } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, TemplateRef } from '@angular/core';
 import { ICellRendererAngularComp } from 'ag-grid-angular';
 import { ICellRendererParams } from 'ag-grid-community';
 import { DataGrid } from './datagrid';
@@ -31,7 +32,8 @@ import { DataGrid } from './datagrid';
         }
       </div>
     `,
-    standalone: false,
+    standalone: true,
+    imports: [CommonModule],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DetailFormRenderer implements ICellRendererAngularComp {
@@ -42,7 +44,7 @@ export class DetailFormRenderer implements ICellRendererAngularComp {
     formComponentCache: any;
     height = 200;
 
-    constructor(private cdRef: ChangeDetectorRef) {
+    constructor() {
     }
 
     agInit(params: ICellRendererParams): void {

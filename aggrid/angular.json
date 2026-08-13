@@ -21,22 +21,22 @@
           "configurations": {
             "production": {
               "tsConfig": "projects/nggrids/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/nggrids/tsconfig.lib.json"
             }
           }
         },
         "test": {
-          "builder": "@angular/build:karma",
+          "builder": "@angular/build:unit-test",
           "options": {
-            "preserveSymlinks": true,
-            "main": "projects/nggrids/src/test.ts",
             "tsConfig": "projects/nggrids/tsconfig.spec.json",
-            "karmaConfig": "projects/nggrids/karma.conf.js"
+            "buildTarget": "@servoy/nggrids:build:development"
           }
         },
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
-            "preserveSymlinks": true,
             "lintFilePatterns": [
               "projects/nggrids/src/**/*.ts",
               "projects/nggrids/src/**/*.html"
@@ -71,12 +71,6 @@
     }
   },
   "schematics": {
-    "@angular-eslint/schematics:application": {
-      "setParserOptionsProject": true
-    },
-    "@angular-eslint/schematics:library": {
-      "setParserOptionsProject": true
-    },
     "@schematics/angular:component": {
       "type": "component"
     },

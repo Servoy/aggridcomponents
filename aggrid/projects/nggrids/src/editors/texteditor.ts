@@ -1,5 +1,6 @@
 import { ICellEditorParams } from 'ag-grid-community';
 import { ChangeDetectionStrategy, Component, input, signal } from '@angular/core';
+import { ServoyPublicModule } from '@servoy/public';
 import { EditorDirective } from './editor';
 
 @Component({
@@ -15,7 +16,8 @@ import { EditorDirective } from './editor';
         '(keypress)': 'onKeyPress($event)'
     },
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+    standalone: true,
+    imports: [ServoyPublicModule]
 })
 export class TextEditor extends EditorDirective {
 

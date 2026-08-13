@@ -6,9 +6,10 @@ import {
 	GetMainMenuItemsParams,
 	ProcessRowParams
 } from 'ag-grid-community';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Renderer2, SecurityContext, SimpleChanges, TemplateRef, DOCUMENT, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, Renderer2, SecurityContext, SimpleChanges, TemplateRef, DOCUMENT, input, output, signal } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
-import { LoggerFactory, ChangeType, IFoundset, FoundsetChangeEvent, Deferred, FormattingService, ServoyPublicService, BaseCustomObject, JSEvent, PopupStateService } from '@servoy/public';
+import { AgGridModule } from 'ag-grid-angular';
+import { LoggerFactory, ChangeType, IFoundset, FoundsetChangeEvent, Deferred, FormattingService, ServoyPublicService, BaseCustomObject, JSEvent, PopupStateService, ServoyPublicModule } from '@servoy/public';
 import { DatePicker } from '../editors/datepicker';
 import { FormEditor } from '../editors/formeditor';
 import { SelectEditor } from '../editors/selecteditor';
@@ -97,7 +98,8 @@ const COLUMN_KEYS_TO_SKIP_IN_CHANGES = [
 	selector: 'aggrid-groupingtable',
 	templateUrl: './datagrid.html',
 	changeDetection: ChangeDetectionStrategy.OnPush,
-	standalone: false
+	standalone: true,
+	imports: [AgGridModule, ServoyPublicModule]
 })
 export class DataGrid extends NGGridDirective {
 
@@ -322,10 +324,10 @@ export class DataGrid extends NGGridDirective {
 
 	sideBar: any;
 
-	constructor(renderer: Renderer2, public cdRef: ChangeDetectorRef, logFactory: LoggerFactory,
+	constructor(renderer: Renderer2, logFactory: LoggerFactory,
 		private servoyService: ServoyPublicService, public formattingService: FormattingService, public ngbTypeaheadConfig: NgbTypeaheadConfig,
 		private sanitizer: DomSanitizer, @Inject(DOCUMENT) public doc: Document, private registrationService: RegistrationService, protected popupStateService: PopupStateService) {
-		super(renderer, cdRef);
+		super(renderer);
 		this.ngbTypeaheadConfig.container = 'body';
 		this.log = logFactory.getLogger('DataGrid');
 	}
