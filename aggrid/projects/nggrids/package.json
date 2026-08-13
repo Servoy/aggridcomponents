@@ -2,15 +2,15 @@
   "name": "@servoy/nggrids",
   "version": "2026.9.0",
   "peerDependencies": {
-    "@angular/animations": "^21",
-    "@angular/common": "^21",
-    "@angular/core": "^21",
-    "@angular/forms": "^21",
+    "@angular/animations": "^22",
+    "@angular/common": "^22",
+    "@angular/core": "^22",
+    "@angular/forms": "^22",
     "luxon": "*",
     "lodash-es": "<5"
   },
   "dependencies": {
-    "@angular/cdk": "^21",
+    "@angular/cdk": "^22",
     "@ng-bootstrap/ng-bootstrap": "^21",
     "@popperjs/core": "<3",
     "@eonasdan/tempus-dominus": "<6.11.0",
