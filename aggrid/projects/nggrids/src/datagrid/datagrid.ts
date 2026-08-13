@@ -324,10 +324,10 @@ export class DataGrid extends NGGridDirective {
 
 	sideBar: any;
 
-	constructor(renderer: Renderer2, logFactory: LoggerFactory,
+	constructor(logFactory: LoggerFactory,
 		private servoyService: ServoyPublicService, public formattingService: FormattingService, public ngbTypeaheadConfig: NgbTypeaheadConfig,
 		private sanitizer: DomSanitizer, @Inject(DOCUMENT) public doc: Document, private registrationService: RegistrationService, protected popupStateService: PopupStateService) {
-		super(renderer);
+		super();
 		this.ngbTypeaheadConfig.container = 'body';
 		this.log = logFactory.getLogger('DataGrid');
 	}
