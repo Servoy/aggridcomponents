@@ -264,6 +264,10 @@ When changing component properties, handlers, or API:
 - **Shared specs:** Unlike servoy-extra-components where each component has its own spec,
   here `datasettable.spec` covers BOTH the AngularJS datasettable AND the Angular powergrid.
   Same for `groupingtable.spec` → groupingtable + datagrid.
+- **Signal inputs with defaults:** Servoy form templates bind ALL model properties (`[prop]="model.prop"`). If the server never sends a value, the expression evaluates to `undefined`, overriding `input(30)`. Use a transform to preserve defaults:
+  ```typescript
+  readonly pane1MinSize = input(30, { transform: (v: any) => v ?? 30 });
+  ```
 - **AG Grid Enterprise.** The components use enterprise-only features (row grouping, pivoting,
   server-side row model). Ensure the AG Grid license and imports are correct.
 - **@servoy/public version coupling.** Must match the target Servoy runtime version.
@@ -274,3 +278,7 @@ When changing component properties, handlers, or API:
 - **Signal-based:** Components use `input()`, `viewChild()`, `contentChild()`, `signal()` — not decorators.
 - **Service pattern:** Each Angular grid has a companion service (e.g., `powergrid.service.ts`)
   that manages AG Grid state and event handling. Changes often span both the component and service.
+
+## Cross-Session Knowledge
+
+At the start of a new session, list stored memory keys (`memory_listMemories`) to discover reusable migration patterns, conventions, and lessons learned from previous sessions on Servoy Angular projects.
