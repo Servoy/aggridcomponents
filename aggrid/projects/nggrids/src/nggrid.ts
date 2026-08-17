@@ -72,6 +72,17 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
         super.svyOnInit();
         if (!this.servoyApi().isInDesigner()) {
             this.__internalFormEditorValue.set(this._internalFormEditorValue());
+
+            if (!this.enableBrowserContextMenu()) {
+                this.agGridElementRef()!.nativeElement.addEventListener('contextmenu', (e: any) => {
+                    e.preventDefault();
+                });
+            }
+        }
+    }
+
+    protected onGridReadyBase() {
+        if (!this.servoyApi().isInDesigner()) {
             let mainWindowContainer = this.agGridElementRef()!.nativeElement.closest('.svy-main-window-container');
             if (!mainWindowContainer) {
                 mainWindowContainer = this.agGridElementRef()!.nativeElement.closest('.svy-dialog');
@@ -96,13 +107,6 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
             });
 
             this.popupParentObserver.observe(this.popupParent, { childList: true, subtree: false });
-            //this.popupParentObserver.observe(this.doc.body, { childList: true, subtree: false });
-
-            if (!this.enableBrowserContextMenu()) {
-                this.agGridElementRef()!.nativeElement.addEventListener('contextmenu', (e: any) => {
-                    e.preventDefault();
-                });
-            }
         }
     }
 

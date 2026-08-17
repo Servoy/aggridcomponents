@@ -467,8 +467,59 @@ export class DataGrid extends NGGridDirective {
 			rowModelType: 'serverSide',
 			rowGroupPanelShow: 'onlyWhenGrouping', // TODO expose property,
 			onGridReady: (event) => {
+				this.onGridReadyBase();
 				this.log.debug('gridReady');
 				this.isGridReady = true;
+
+				// default sort order
+				if ((this.agGridOptions as any)['enableServerSideSorting']) {
+					this.applySortModel(this.getSortModel());
+				}
+
+				// register listener for selection changed
+				this.agGrid()!.api.addEventListener('selectionChanged', (e: SelectionChangedEvent) => {
+					this.onSelectionChanged(e);
+				});
+
+				this.agGrid()!.api.addEventListener('rowSelected', (e: RowSelectedEvent) => {
+					this.onRowSelected(e);
+				});
+
+				this.agGrid()!.api.addEventListener('cellClicked', (params: any) => {
+					this.cellClickHandler(params);
+				});
+				this.agGrid()!.api.addEventListener('cellDoubleClicked', (params: any) => {
+					this.onCellDoubleClicked(params);
+				});
+				this.agGrid()!.api.addEventListener('cellContextMenu', (params: any) => {
+					this.onCellContextMenu(params);
+				});
+				this.agGrid()!.api.addEventListener('cellFocused', (params: any) => {
+					this.onCellFocusedHandler(params);
+				});
+
+				// listen to group changes
+				this.agGrid()!.api.addEventListener('columnRowGroupChanged', (params: any) => {
+					if (!this.isTableGrouped()) {
+						this.setupHeaderCheckbox(true);
+					}
+					this.onColumnRowGroupChanged(params);
+				});
+
+				// listen to group collapsed
+				this.agGrid()!.api.addEventListener('rowGroupOpened', (params: any) => {
+					this.onRowGroupOpenedHandler(params);
+				});
+
+				// listen to header clicks on non-sortable columns
+				this.agGrid()!.api.addEventListener('columnHeaderClicked', (params: any) => {
+					const onHeaderClick = this.onHeaderClick();
+					if (onHeaderClick && params.column && !params.column.isSortable()) {
+						const columnIndex = this.getColumnIndex(params.column.getId());
+						onHeaderClick(columnIndex, this.createJSEvent());
+					}
+				});
+
 				if (this.isRendered) {
 					const emptyValue = '_empty';
 					const _internalColumnState = this.__internalColumnState();
@@ -494,6 +545,9 @@ export class DataGrid extends NGGridDirective {
 						const currentColumnState = this._columnState();
 						this.__internalInitialColumnState.set(currentColumnState);
 						this._internalInitialColumnStateChange.emit(currentColumnState);
+					}
+					if (this.myFoundset()) {
+						this.initRootFoundset();
 					}
 				}
 				if (this.delayedColumnChange) {
@@ -1150,55 +1204,6 @@ export class DataGrid extends NGGridDirective {
 				}
 			}
 		});
-
-		// default sort order
-		if ((this.agGridOptions as any)['enableServerSideSorting']) {
-			this.applySortModel(this.getSortModel());
-		}
-
-		// register listener for selection changed
-		this.agGrid()!.api.addEventListener('selectionChanged', (e: SelectionChangedEvent) => {
-			this.onSelectionChanged(e);
-		});
-
-		this.agGrid()!.api.addEventListener('rowSelected', (e: RowSelectedEvent) => {
-			this.onRowSelected(e);
-		});
-
-		this.agGrid()!.api.addEventListener('cellClicked', (params: any) => {
-			this.cellClickHandler(params);
-		});
-		this.agGrid()!.api.addEventListener('cellDoubleClicked', (params: any) => {
-			this.onCellDoubleClicked(params);
-		});
-		this.agGrid()!.api.addEventListener('cellContextMenu', (params: any) => {
-			this.onCellContextMenu(params);
-		});
-        this.agGrid()!.api.addEventListener('cellFocused', (params: any) => {
-         this.onCellFocusedHandler(params);
-        });
-
-		// // listen to group changes
-		this.agGrid()!.api.addEventListener('columnRowGroupChanged', (params: any) => {
-			if (!this.isTableGrouped()) {
-				this.setupHeaderCheckbox(true);
-			}
-			this.onColumnRowGroupChanged(params);
-		});
-
-		// listen to group collapsed
-		this.agGrid()!.api.addEventListener('rowGroupOpened', (params: any) => {
-			this.onRowGroupOpenedHandler(params);
-		});
-
-		// listen to header clicks on non-sortable columns
-		this.agGrid()!.api.addEventListener('columnHeaderClicked', (params: any) => {
-			const onHeaderClick = this.onHeaderClick();
-			if (onHeaderClick && params.column && !params.column.isSortable()) {
-				const columnIndex = this.getColumnIndex(params.column.getId());
-				onHeaderClick(columnIndex, this.createJSEvent());
-			}
-		});
 	}
 
 	svyOnChanges(changes: SimpleChanges) {
@@ -1625,6 +1630,7 @@ export class DataGrid extends NGGridDirective {
 	}
 
 	initRootFoundset() {
+		if (!this.isGridReady) return;
 
 		this.foundset = new FoundsetManager(this, this.myFoundset(), 'root', true);
 		if (this.onSort()) {

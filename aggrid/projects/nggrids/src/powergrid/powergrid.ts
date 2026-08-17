@@ -346,8 +346,37 @@ export class PowerGrid extends NGGridDirective {
             enableCellExpressions: true,
 
             onGridReady: (event) => {
+                this.onGridReadyBase();
                 this.log.debug('gridReady');
                 this.isGridReady = true;
+
+                // register listener for selection changed
+                this.agGrid()!.api.addEventListener('rowSelected', (ev: any) => this.onRowSelectedHandler(ev));
+                this.agGrid()!.api.addEventListener('cellClicked', (params: any) => this.cellClickHandler(params));
+                this.agGrid()!.api.addEventListener('cellDoubleClicked', (params: any) => this.onCellDoubleClicked(params));
+                this.agGrid()!.api.addEventListener('cellContextMenu', (params: any) => this.onCellContextMenu(params));
+                this.agGrid()!.api.addEventListener('cellFocused', (params: any) => this.onCellFocusedHandler(params));
+                this.agGrid()!.api.addEventListener('displayedColumnsChanged', () => this.svySizeColumnsToFit(GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED));
+
+                // listen to group changes
+                this.agGrid()!.api.addEventListener('columnRowGroupChanged', (ev: any) => this.onColumnRowGroupChanged(ev));
+
+                // listen to group collapsed
+                this.agGrid()!.api.addEventListener('rowGroupOpened', (ev: any) => this.onRowGroupOpenedHandler(ev));
+
+                // listen to header clicks on non-sortable columns
+                this.agGrid()!.api.addEventListener('columnHeaderClicked', (params: any) => {
+                    const onHeaderClick = this.onHeaderClick();
+                    if (onHeaderClick && params.column && !params.column.isSortable()) {
+                        const columnIndex = this.getColumnIndex(params.column.getId());
+                        onHeaderClick(columnIndex, this.createJSEvent());
+                    }
+                });
+
+                if (!this.servoyApi().isInDesigner() && this.useLazyLoading()) {
+                    this.lazyLoadingRemoteDatasource = new RemoteDatasource(this);
+                    this.agGrid()!.api.setGridOption('serverSideDatasource', this.lazyLoadingRemoteDatasource);
+                }
                 const emptyValue = '_empty';
                 const _internalColumnState = this.__internalColumnState();
                 if (_internalColumnState !== emptyValue) {
@@ -723,34 +752,6 @@ export class PowerGrid extends NGGridDirective {
                 }
             }
         });
-
-        // register listener for selection changed
-        this.agGrid()!.api.addEventListener('rowSelected', (event: any) => this.onRowSelectedHandler(event));
-        this.agGrid()!.api.addEventListener('cellClicked', (params: any) => this.cellClickHandler(params));
-        this.agGrid()!.api.addEventListener('cellDoubleClicked', (params: any) => this.onCellDoubleClicked(params));
-        this.agGrid()!.api.addEventListener('cellContextMenu', (params: any) => this.onCellContextMenu(params));
-        this.agGrid()!.api.addEventListener('cellFocused', (params: any) => this.onCellFocusedHandler(params));
-        this.agGrid()!.api.addEventListener('displayedColumnsChanged', () => this.svySizeColumnsToFit(GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED));
-
-        // listen to group changes
-        this.agGrid()!.api.addEventListener('columnRowGroupChanged', (event: any) => this.onColumnRowGroupChanged(event));
-
-        // listen to group collapsed
-        this.agGrid()!.api.addEventListener('rowGroupOpened', (event: any) => this.onRowGroupOpenedHandler(event));
-
-        // listen to header clicks on non-sortable columns
-        this.agGrid()!.api.addEventListener('columnHeaderClicked', (params: any) => {
-            const onHeaderClick = this.onHeaderClick();
-            if (onHeaderClick && params.column && !params.column.isSortable()) {
-                const columnIndex = this.getColumnIndex(params.column.getId());
-                onHeaderClick(columnIndex, this.createJSEvent());
-            }
-        });
-
-        if (!this.servoyApi().isInDesigner() && this.useLazyLoading()) {
-            this.lazyLoadingRemoteDatasource = new RemoteDatasource(this);
-            this.agGrid()!.api.setGridOption('serverSideDatasource', this.lazyLoadingRemoteDatasource);
-        }
     }
 
     svyOnChanges(changes: SimpleChanges) {
