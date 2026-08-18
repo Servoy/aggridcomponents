@@ -18,7 +18,7 @@
     },
 	"model":
 	{
-		"designsize" : {"type" :"dimension", "tags": {"serveronly": true}, "default" : {"width":400, "height":300}},
+		"designsize" : {"type" :"dimension", "tags": {"serveronly": true, "scope": "private"}, "default" : {"width":400, "height":300}},
 		"data": { "type": "object[]", "tags": {"scope" : "private"}, "pushToServer": "allow"},
 		"pks": { "type": "string[]", "tags": {"scope" : "private"}},
 		"updateData": { "type": "object", "tags": {"scope" : "private"}},
