@@ -21,7 +21,7 @@
     "chai": "^4.3.6",
     "jsonfile": "^6.1.0",
     "lodash": "^4.17.21",
-    "open": "8.4.0"
+    "open": "8.4.2"
   },
   "engine": "node >= 7.5.0",
   "devDependencies": {
