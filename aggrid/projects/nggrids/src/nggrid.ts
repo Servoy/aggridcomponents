@@ -219,7 +219,7 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
                 const agGrid = this.agGrid();
                 if (agGrid?.api) {
                     agGrid.api.setGridOption('domLayout', 'autoHeight');
-                } else {
+                } else if (this.agGridOptions) {
                     this.agGridOptions.domLayout = 'autoHeight';
                 }
             }
@@ -227,7 +227,7 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
                 const agGrid = this.agGrid();
                 if (agGrid?.api) {
                     agGrid.api.setGridOption('domLayout', 'normal');
-                } else {
+                } else if (this.agGridOptions) {
                     this.agGridOptions.domLayout = 'normal';
                 }
                 const agGridElementRef = this.agGridElementRef();
