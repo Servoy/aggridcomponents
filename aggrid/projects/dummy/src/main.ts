@@ -1,21 +1,14 @@
-import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
-import { NgModule, ChangeDetectionStrategy } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
-import { Component } from '@angular/core';
+import { bootstrapApplication } from '@angular/platform-browser';
+import { Component, ChangeDetectionStrategy, provideZonelessChangeDetection } from '@angular/core';
 
 @Component({
     selector: 'app-root',
     template: '<div></div>',
-    changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: true
 })
 class AppComponent {}
 
-@NgModule({
-    declarations: [AppComponent],
-    imports: [BrowserModule],
-    bootstrap: [AppComponent]
-})
-class AppModule {}
-
-platformBrowserDynamic().bootstrapModule(AppModule);
+bootstrapApplication(AppComponent, {
+    providers: [provideZonelessChangeDetection()]
+});
