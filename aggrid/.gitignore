@@ -15,3 +15,5 @@
 /cypress/videos/
 /cypress/screenshots/
 cypress.env.json
+/.vitest-attachments/
+__screenshots__/

@@ -3,7 +3,7 @@ import { NgbModule, NgbTypeahead } from '@ng-bootstrap/ng-bootstrap';
 import { merge, Observable, of, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, switchMap } from 'rxjs/operators';
 import { FilterDirective } from './filter';
-import { NULL_VALUE } from '../datagrid/datagrid';
+import { NULL_VALUE } from '../commons/constants';
 
 @Component({
     selector: 'aggrid-datagrid-valuelistfilter',

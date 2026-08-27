@@ -114,7 +114,7 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
         this.cancelDragViewportScroll();
         if (this.popupParentObserver) this.popupParentObserver.disconnect();
         const agGrid = this.agGrid();
-        if (agGrid && !agGrid.api.isDestroyed()) agGrid.api.destroy();
+        if (agGrid?.api && !agGrid.api.isDestroyed()) agGrid.api.destroy();
         this.destroyed = true;
     }
 

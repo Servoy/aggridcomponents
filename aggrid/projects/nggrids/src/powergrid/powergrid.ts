@@ -773,13 +773,13 @@ export class PowerGrid extends NGGridDirective {
                         break;
                     case 'data':
                         this._data.set(this.data());
-                        if (agGrid && !this.useLazyLoading()) {
+                        if (agGrid?.api && !this.useLazyLoading()) {
                             agGrid.api.setGridOption('rowData', this._data())
                             this.applyExpandedState();
                         }
                         break;
                     case 'updateData':
-                        if (change.currentValue) {
+                        if (change.currentValue && this.agGrid()?.api) {
                             this.agGrid()!.api.applyTransaction(change.currentValue);
                             if(change.currentValue.update) {
                                 const rowNodes = [];

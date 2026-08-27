@@ -55,8 +55,8 @@ const COLUMN_PROPERTIES_DEFAULTS: Record<string, {colDefProperty: string, defaul
 const CHUNK_SIZE = 50;
 const CACHED_CHUNK_BLOCKS = 2;
 
-export const NULL_VALUE: { displayValue: string, realValue: any } = { displayValue: '', realValue: null };
-NULL_VALUE.toString = () => '';
+export { NULL_VALUE } from '../commons/constants';
+import { NULL_VALUE } from '../commons/constants';
 
 const COLUMN_KEYS_TO_CHECK_FOR_CHANGES = [
 	'headerTitle',

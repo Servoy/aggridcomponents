@@ -1,12 +1,15 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "outDir": "../../out-tsc/spec",
+    "outDir": "../../out-tsc/spec-browser",
     "types": []
   },
   "include": [
     "src/**/*.ts",
     "src/**/*.d.ts"
+  ],
+  "exclude": [
+    "src/test.ts"
   ],
   "angularCompilerOptions": {
     "extendedDiagnostics": {

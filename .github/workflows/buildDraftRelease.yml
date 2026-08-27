@@ -38,10 +38,11 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-node_modules-
 
-    - name: Install and build component
+    - name: Install, test and build component
       working-directory: ${{ env.COMPONENT_DIR }}
       run: |
         npm install
+        npm test
         npm run make_release
 
     - name: Extract version number

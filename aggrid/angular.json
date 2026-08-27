@@ -31,7 +31,19 @@
           "builder": "@angular/build:unit-test",
           "options": {
             "tsConfig": "projects/nggrids/tsconfig.spec.json",
-            "buildTarget": "@servoy/nggrids:build:development"
+            "buildTarget": "@servoy/nggrids:build:development",
+            "include": ["**/*.spec.ts"],
+            "exclude": ["**/*.browser.spec.ts"]
+          }
+        },
+        "test-browser": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "tsConfig": "projects/nggrids/tsconfig.spec-browser.json",
+            "buildTarget": "@servoy/nggrids:build:development",
+            "browsers": ["chromium"],
+            "headless": true,
+            "include": ["projects/nggrids/src/**/*.browser.spec.ts"]
           }
         },
         "lint": {

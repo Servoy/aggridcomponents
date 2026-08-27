@@ -7,13 +7,13 @@
     "build": "ng build @servoy/nggrids --configuration production",
     "build_debug": "ng build @servoy/nggrids --watch",
     "make_release": "ng build @servoy/nggrids --configuration production && node scripts/build.js",
-    "test": "ng test --no-watch",
+    "test": "ng test --no-watch && ng run @servoy/nggrids:test-browser --no-watch",
+    "test:unit": "ng test --no-watch",
+    "test:browser": "ng run @servoy/nggrids:test-browser --no-watch",
     "test:watch": "ng test",
     "test:ui": "ng test --ui",
     "test_headless": "ng test --no-watch",
-    "lint": "ng lint",
-    "cy:open": "cypress open",
-    "cy:run": "cypress run --config video=false --component --browser chrome"
+    "lint": "ng lint"
   },
   "private": true,
   "dependencies": {
@@ -43,20 +43,21 @@
     "@angular/platform-browser": "22.1.4",
     "@eslint/js": "10.0.1",
     "@stylistic/eslint-plugin-ts": "4.4.1",
+    "@vitest/browser": "^4.1.11",
+    "@vitest/browser-playwright": "^4.1.11",
     "adm-zip": "0.6.0",
     "angular-eslint": "22.1.0",
-    "cypress": "^15.21.1",
     "eslint": "^10.9.1",
     "eslint-plugin-only-warn": "1.2.1",
     "jsdom": "^30.0.1",
     "ng-packagr": "22.1.1",
+    "playwright": "^1.62.1",
     "typescript": "6.0.3",
     "typescript-eslint": "^8.68.0",
     "vitest": "^4.1.11"
   },
   "allowScripts": {
     "@parcel/watcher@2.5.1": true,
-    "cypress@15.21.1": true,
     "esbuild@0.28.2": true,
     "lmdb@3.5.6": true,
     "msgpackr-extract@3.0.4": true
