@@ -3081,6 +3081,9 @@ export class DataGrid extends NGGridDirective {
 	}
 
 	getValuelistForFilter(params: any): any {
+		const column = this.getColumn(params.column.getColId());
+		if (column && column.filterValuelist) return column.filterValuelist;
+
 		const agGrid = this.agGrid();
 		const rows = agGrid && agGrid.api ? agGrid.api.getSelectedRows() : null;
 		return rows && rows.length > 0 ? this.getValuelistEx(rows[0], params.column.getColId()) : null;

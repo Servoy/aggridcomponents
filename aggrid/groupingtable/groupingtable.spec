@@ -749,6 +749,8 @@
 			"editFormSize": {"type": "dimension", "default" : {"width":300, "height":200}},
 			"stopEditingOnChange" : {"type": "boolean", "default" : false},
 			"filterType": {"type": "string", "values": [{"NONE":null}, {"TEXT":"TEXT"}, {"NUMBER":"NUMBER"}, {"DATE":"DATE"}, {"VALUELIST":"VALUELIST"}, {"RADIO":"RADIO"}]},
+			"filterValuelist": { "type": "valuelist", "config": "valuelistConfig", "tags": { "doc": "Valuelist used only to populate the VALUELIST/RADIO column filter. Unlike 'valuelist' it is not bound to the foundset, so it does not trigger per-row display value resolution. Use together with 'filterDataprovider' when the column displays a related or derived value whose type differs from the valuelist real value." }},
+			"filterDataprovider": { "type": "dataprovider", "forFoundset": "myFoundset", "pushToServer": "reject", "tags": { "doc": "Dataprovider the filter condition is applied to. Defaults to 'dataprovider'. Use when the displayed dataprovider differs from the column whose values match the filter valuelist's real values." }},
 			"id": {"type" : "string", "tags": {"wizard": {"prefill" : "dataprovider", "unique": true}, "basic": true, "showInOutlineView": true, "doc": "Used to set the column id (colId) property in the serialized column state json string of getColumnState and onColumnStateChanged" }},
 			"columnDef": {"type" : "json", "tags": {"doc": "Map where additional column properties of ag-grid can be set", "value_types": {"valueGetter": "clientfunction"}}},
 			"showAs": { "type": "string", "values": [{"text":null}, {"html":"html"}, {"sanitizedHtml":"sanitizedHtml"}] },

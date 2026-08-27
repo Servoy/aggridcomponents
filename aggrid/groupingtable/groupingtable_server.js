@@ -479,7 +479,7 @@ function filterFoundset(foundset, sFilterModel) {
 
 		if($scope.model.columns) {
 			for(var i = 0; i < $scope.model.columns.length; i++) {
-				var dp = $scope.model.columns[i].dataprovider;
+				var dp = $scope.model.columns[i].filterDataprovider || $scope.model.columns[i].dataprovider;
 				var filter = filterModel[i];
 				if(filter) {
 					var whereClauseForDP = null;
