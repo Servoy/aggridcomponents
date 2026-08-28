@@ -2,7 +2,6 @@ import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { Component, ViewChild, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ServoyApi, ServoyApiTesting, ServoyPublicTestingModule, IFoundset } from '@servoy/public';
 import { DataGrid, DataGridColumn } from './datagrid';
-import { NGGridsModule } from '../nggrids.module';
 import { FormsModule } from '@angular/forms';
 import { createMockFoundset } from '../testing/mock-foundset';
 import { describe, it, expect, vi } from 'vitest';
@@ -29,7 +28,7 @@ import { describe, it, expect, vi } from 'vitest';
     `,
     changeDetection: ChangeDetectionStrategy.OnPush,
     standalone: true,
-    imports: [NGGridsModule, FormsModule]
+    imports: [DataGrid, FormsModule]
 })
 class WrapperComponent {
     columns = signal<DataGridColumn[]>([]);
@@ -57,32 +56,35 @@ class WrapperComponent {
 }
 
 function createDataGridColumns(): DataGridColumn[] {
-    const col1 = new DataGridColumn();
-    col1.headerTitle = 'ID';
-    col1.id = 'id';
-    col1.dataprovider = 'id';
-    col1.width = 100;
-    col1.enableSort = true;
-    col1.enableResize = true;
-    col1.visible = true;
+    const col1 = {
+        headerTitle: 'ID',
+        id: 'id',
+        dataprovider: 'id',
+        width: 100,
+        enableSort: true,
+        enableResize: true,
+        visible: true
+    } as DataGridColumn;
 
-    const col2 = new DataGridColumn();
-    col2.headerTitle = 'Country';
-    col2.id = 'country';
-    col2.dataprovider = 'country';
-    col2.width = 150;
-    col2.enableSort = true;
-    col2.enableResize = true;
-    col2.visible = true;
+    const col2 = {
+        headerTitle: 'Country',
+        id: 'country',
+        dataprovider: 'country',
+        width: 150,
+        enableSort: true,
+        enableResize: true,
+        visible: true
+    } as DataGridColumn;
 
-    const col3 = new DataGridColumn();
-    col3.headerTitle = 'City';
-    col3.id = 'city';
-    col3.dataprovider = 'city';
-    col3.width = 150;
-    col3.enableSort = true;
-    col3.enableResize = true;
-    col3.visible = true;
+    const col3 = {
+        headerTitle: 'City',
+        id: 'city',
+        dataprovider: 'city',
+        width: 150,
+        enableSort: true,
+        enableResize: true,
+        visible: true
+    } as DataGridColumn;
 
     return [col1, col2, col3];
 }

@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ServoyPublicTestingModule, ServoyApiTesting } from '@servoy/public';
-import { PowerGrid } from './powergrid';
+import { PowerGrid, PowerGridColumn } from './powergrid';
 import { AgGridModule } from 'ag-grid-angular';
 import { RowClassParams } from 'ag-grid-community';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
@@ -262,6 +262,33 @@ describe('PowerGrid - rowStyleClassFunc params argument (SVYX-1141)', () => {
 
             expect(result).toBe('');
             expect(spy).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('dataproviderToLowerCase inline expression (SVY-21388 / SVY-20337 regression)', () => {
+        function dataproviderToLowerCase(column: Partial<PowerGridColumn>): string {
+            return (column.dataprovider?.toLowerCase?.() || '');
+        }
+
+        it('should lowercase a mixed-case dataprovider', () => {
+            expect(dataproviderToLowerCase({ dataprovider: 'MyColumn' })).toBe('mycolumn');
+        });
+
+        it('should return already-lowercase dataprovider unchanged', () => {
+            expect(dataproviderToLowerCase({ dataprovider: 'mycolumn' })).toBe('mycolumn');
+        });
+
+        it('should return empty string for undefined dataprovider', () => {
+            expect(dataproviderToLowerCase({ dataprovider: undefined } as any)).toBe('');
+            expect(dataproviderToLowerCase({} as any)).toBe('');
+        });
+
+        it('should return empty string for null dataprovider', () => {
+            expect(dataproviderToLowerCase({ dataprovider: null } as any)).toBe('');
+        });
+
+        it('should return empty string for empty string dataprovider', () => {
+            expect(dataproviderToLowerCase({ dataprovider: '' })).toBe('');
         });
     });
 

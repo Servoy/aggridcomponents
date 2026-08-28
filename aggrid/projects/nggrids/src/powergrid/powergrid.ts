@@ -1,7 +1,7 @@
 import { GetRowIdParams, ColumnMenuTab, ColumnResizedEvent, ColDef, Column, IRowNode, IAggFunc, DisplayedColumnsChangedEvent } from 'ag-grid-community';
 import { ChangeDetectionStrategy, Component, Inject, Renderer2, SecurityContext, SimpleChanges, DOCUMENT, input, output, signal } from '@angular/core';
 import { AgGridModule } from 'ag-grid-angular';
-import { BaseCustomObject, FormattingService, ICustomArray, ServoyPublicService, PopupStateService, ServoyPublicModule } from '@servoy/public';
+import { FormattingService, ICustomArray, ServoyPublicService, PopupStateService, ServoyPublicModule } from '@servoy/public';
 import { LoggerFactory } from '@servoy/public';
 import { ColumnsAutoSizingOn, DragTransferData, GRID_EVENT_TYPES, IconConfig, JSDNDEvent, MainMenuItemsConfig, NGGridDirective, ToolPanelConfig } from '../nggrid';
 import { DatePicker } from '../editors/datepicker';
@@ -837,7 +837,7 @@ export class PowerGrid extends NGGridDirective {
                                                 const column = this.columns()[i];
                                                 let colId = column.id;
                                                 if (!colId) {
-                                                    colId = column.dataproviderToLowerCase();
+                                                    colId = (column.dataprovider?.toLowerCase?.() || '');
                                                 }
                                                 if (!colId) {
                                                     this.log.warn('cannot update "' + property + '" property on column at position index ' + i);
@@ -941,7 +941,7 @@ export class PowerGrid extends NGGridDirective {
                 colDef = {
                     headerName: column['headerTitle'] ? column['headerTitle'] : '',
                     headerTooltip: column['headerTooltip'] ? column['headerTooltip'] : null,
-                    field: column.dataproviderToLowerCase(),
+                    field: (column.dataprovider?.toLowerCase?.() || ''),
                     tooltipField: column['tooltip'] ? column['tooltip'] : null
                 };
 
@@ -1787,7 +1787,7 @@ export class PowerGrid extends NGGridDirective {
         const columns = this.columns();
         if (columns) {
             for (const column of columns) {
-                if (column['id'] === colId || column.dataproviderToLowerCase() === colId) {
+                if (column['id'] === colId || (column.dataprovider?.toLowerCase?.() || '') === colId) {
                     return column;
                 }
             }
@@ -1800,7 +1800,7 @@ export class PowerGrid extends NGGridDirective {
         if (columns) {
             let i = 0;
             for (const column of columns) {
-                if (column['id'] === colId || column.dataproviderToLowerCase() === colId) {
+                if (column['id'] === colId || (column.dataprovider?.toLowerCase?.() || '') === colId) {
                     return i;
                 }
                 i++;
@@ -1906,7 +1906,7 @@ export class PowerGrid extends NGGridDirective {
         const column = this.columns()[index];
         let colId = column.id;
         if (!colId) {
-            colId = column.dataproviderToLowerCase();
+            colId = (column.dataprovider?.toLowerCase?.() || '');
         }
 
         if (!colId) {
@@ -1949,12 +1949,12 @@ export class PowerGrid extends NGGridDirective {
         const columns = this.columns();
         for (let i = 0; columns && i < columns.length; i++) {
             const column = columns[i];
-            if (column.dataproviderToLowerCase()) {
+            if ((column.dataprovider?.toLowerCase?.() || '')) {
             	if (column.footerText) {
-                	resultData[column.dataproviderToLowerCase()] = column.footerText;
+                	resultData[(column.dataprovider?.toLowerCase?.() || '')] = column.footerText;
                 	hasFooterData = true;
             	} else {
-					resultData[column.dataproviderToLowerCase()] = null;
+					resultData[(column.dataprovider?.toLowerCase?.() || '')] = null;
 				}
 			}
         }
@@ -1971,12 +1971,12 @@ export class PowerGrid extends NGGridDirective {
         const columns = this.columns();
         for (let i = 0; columns && i < columns.length; i++) {
             const column = columns[i];
-            if (column.dataproviderToLowerCase()) {
+            if ((column.dataprovider?.toLowerCase?.() || '')) {
             	if (column.headerText) {
-                	resultData[column.dataproviderToLowerCase()] = column.headerText;
+                	resultData[(column.dataprovider?.toLowerCase?.() || '')] = column.headerText;
                 	hasHeaderData = true;
             	} else {
-					resultData[column.dataproviderToLowerCase()] = null;
+					resultData[(column.dataprovider?.toLowerCase?.() || '')] = null;
 				}
 			}
         }
@@ -2256,7 +2256,7 @@ export class PowerGrid extends NGGridDirective {
             this.log.warn('editCellAt API, invalid columnindex:' + columnindex);
         } else {
             const column = this.columns()[columnindex];
-            const colId = column['id'] ? column['id'] : column.dataproviderToLowerCase();
+            const colId = column['id'] ? column['id'] : (column.dataprovider?.toLowerCase?.() || '');
             this.setTimeout(() => {
                 this.agGrid()!.api.startEditingCell({
                     rowIndex: rowindex,
@@ -2607,61 +2607,57 @@ class RemoteDatasource {
 //     }
 // }
 
-export class PowerGridColumn extends BaseCustomObject {
-    headerGroup!: string;
-    headerGroupStyleClass!: string;
-    headerTitle!: string;
-    headerStyleClass!: string;
-    headerIconStyleClass!: string;
-    headerTooltip!: string;
-    headerText!: string;
-    headerTextStyleClass!: string;
-    footerText!: string;
-    footerStyleClass!: string;
-    dataprovider!: string;
-    tooltip!: string;
-    styleClass!: string;
-    visible!: boolean;
-    excluded!: boolean;
-    width!: number;
-    initialWidth!: number;
-    minWidth!: number;
-    maxWidth!: number;
-    enableRowGroup!: boolean;
-    rowGroupIndex!: number;
-    enablePivot!: boolean;
-    pivotIndex!: number;
+export interface PowerGridColumn {
+    headerGroup: string;
+    headerGroupStyleClass: string;
+    headerTitle: string;
+    headerStyleClass: string;
+    headerIconStyleClass: string;
+    headerTooltip: string;
+    headerText: string;
+    headerTextStyleClass: string;
+    footerText: string;
+    footerStyleClass: string;
+    dataprovider: string;
+    tooltip: string;
+    styleClass: string;
+    visible: boolean;
+    excluded: boolean;
+    width: number;
+    initialWidth: number;
+    minWidth: number;
+    maxWidth: number;
+    enableRowGroup: boolean;
+    rowGroupIndex: number;
+    enablePivot: boolean;
+    pivotIndex: number;
     aggFunc: any;
     aggCustomFunc: any;
-    enableSort!: boolean;
-    enableResize!: boolean;
-    enableToolPanel!: boolean;
-    autoResize!: boolean;
+    enableSort: boolean;
+    enableResize: boolean;
+    enableToolPanel: boolean;
+    autoResize: boolean;
     cellStyleClassFunc: any;
     cellRendererFunc: any;
     format: any;
-    formatType!: string;
-    editType!: string;
-    editTypeTextFieldInput!: string;
+    formatType: string;
+    editType: string;
+    editTypeTextFieldInput: string;
     editForm: any;
     editFormSize: any;
-    filterType!: string;
-    id!: string;
+    filterType: string;
+    id: string;
     columnDef: any;
-    showAs!: string;
-    exportDisplayValue!: boolean;
+    showAs: string;
+    exportDisplayValue: boolean;
     pivotComparatorFunc: any;
     valueGetterFunc: any;
-    dndSource!: boolean;
+    dndSource: boolean;
     dndSourceFunc: any;
-    valuelist: any
-
-	dataproviderToLowerCase(): string {
-		return this.dataprovider?.toLowerCase?.() || '';
-	}
+    valuelist: any;
 }
 
-export class AggFuncInfo extends BaseCustomObject {
-    name!: string;
-    aggFunc!: (values: unknown[]) => number;
+export interface AggFuncInfo {
+    name: string;
+    aggFunc: (values: unknown[]) => number;
 }

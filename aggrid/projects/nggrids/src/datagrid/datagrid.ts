@@ -9,7 +9,7 @@ import {
 import { ChangeDetectionStrategy, Component, Inject, Renderer2, SecurityContext, SimpleChanges, TemplateRef, DOCUMENT, input, output, signal } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { AgGridModule } from 'ag-grid-angular';
-import { LoggerFactory, ChangeType, IFoundset, FoundsetChangeEvent, Deferred, FormattingService, ServoyPublicService, BaseCustomObject, JSEvent, PopupStateService, ServoyPublicModule } from '@servoy/public';
+import { LoggerFactory, ChangeType, IFoundset, FoundsetChangeEvent, Deferred, FormattingService, ServoyPublicService, JSEvent, PopupStateService, ServoyPublicModule } from '@servoy/public';
 import { DatePicker } from '../editors/datepicker';
 import { FormEditor } from '../editors/formeditor';
 import { SelectEditor } from '../editors/selecteditor';
@@ -6513,68 +6513,68 @@ class GroupNode {
 	}
 }
 
-export class DataGridColumn extends BaseCustomObject {
+export interface DataGridColumn {
 	footerText: any;
-	footerTextShowAs!: string;
+	footerTextShowAs: string;
 	headerText: any;
-	headerTextShowAs!: string;
-	headerTextStyleClass!: string;
-	headerTitle!: string;
-	footerStyleClass!: string;
-	headerStyleClass!: string;
-	headerIconStyleClass!: string;
-	headerTooltip!: string;
-	headerGroup!: string;
-	headerGroupStyleClass!: string;
+	headerTextShowAs: string;
+	headerTextStyleClass: string;
+	headerTitle: string;
+	footerStyleClass: string;
+	headerStyleClass: string;
+	headerIconStyleClass: string;
+	headerTooltip: string;
+	headerGroup: string;
+	headerGroupStyleClass: string;
 	dataprovider: any;
 	tooltip: any;
-	styleClass!: string;
+	styleClass: string;
 	styleClassDataprovider: any;
 	format: any;
 	valuelist: any;
-	visible!: boolean;
-	excluded!: boolean;
-	enabled!: boolean;
-	width!: number;
-	initialWidth!: number;
-	minWidth!: number;
-	maxWidth!: number;
-	enableRowGroup!: boolean;
-	enableSort!: boolean;
-	enableResize!: boolean;
-	enableToolPanel!: boolean;
-	autoResize!: boolean;
-	rowGroupIndex!: number;
+	visible: boolean;
+	excluded: boolean;
+	enabled: boolean;
+	width: number;
+	initialWidth: number;
+	minWidth: number;
+	maxWidth: number;
+	enableRowGroup: boolean;
+	enableSort: boolean;
+	enableResize: boolean;
+	enableToolPanel: boolean;
+	autoResize: boolean;
+	rowGroupIndex: number;
 	isEditableDataprovider: any;
-	editType!: string;
-	editTypeTextFieldInput!: string;
+	editType: string;
+	editTypeTextFieldInput: string;
 	editForm: any;
 	editFormSize: any;
-	filterType!: string;
-	id!: string;
+	filterType: string;
+	id: string;
 	columnDef: any;
-	showAs!: string;
-	dndSource!: boolean;
-	dndSourceDataprovider!: boolean;
-	headerCheckbox!: boolean;
+	showAs: string;
+	dndSource: boolean;
+	dndSourceDataprovider: boolean;
+	headerCheckbox: boolean;
 }
 
-export class GroupedColumn extends BaseCustomObject {
+export interface GroupedColumn {
 	dataprovider: any;
 	format: any;
 	valuelist: any;
-	id!: string;
+	id: string;
 	styleClassDataprovider: any;
 }
 
-export class HashedFoundset extends BaseCustomObject {
-	foundset!: IFoundset;
+export interface HashedFoundset {
+	foundset: IFoundset;
 	foundsetUUID: any;
-	uuid!: string;
-	columns!: GroupedColumn[];
+	uuid: string;
+	columns: GroupedColumn[];
 }
 
-export class FunctionCall extends BaseCustomObject {
-	alias!: string;
-	f!: (...args: unknown[]) => void;
+export interface FunctionCall {
+	alias: string;
+	f: (...args: unknown[]) => void;
 }

@@ -2,7 +2,6 @@ import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { Component, ViewChild, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ServoyApi, ServoyApiTesting, ServoyPublicTestingModule } from '@servoy/public';
 import { PowerGrid, PowerGridColumn } from './powergrid';
-import { NGGridsModule } from '../nggrids.module';
 import { FormsModule } from '@angular/forms';
 import { createPowerGridColumns, createPowerGridData } from '../testing/mock-data';
 import { describe, it, expect, vi } from 'vitest';
@@ -33,7 +32,7 @@ import { describe, it, expect, vi } from 'vitest';
     `,
     changeDetection: ChangeDetectionStrategy.OnPush,
     standalone: true,
-    imports: [NGGridsModule, FormsModule]
+    imports: [PowerGrid, FormsModule]
 })
 class WrapperComponent {
     columns = signal<PowerGridColumn[]>([]);

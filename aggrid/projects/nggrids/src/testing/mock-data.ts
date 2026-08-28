@@ -1,34 +1,37 @@
 import { PowerGridColumn } from '../powergrid/powergrid';
 
 export function createPowerGridColumns(): PowerGridColumn[] {
-    const col1 = new PowerGridColumn();
-    col1.headerText = 'ID';
-    col1.id = 'id';
-    col1.dataprovider = 'id';
-    col1.width = 100;
-    col1.enableSort = true;
-    col1.enableResize = true;
-    col1.visible = true;
+    const col1: Partial<PowerGridColumn> = {
+        headerText: 'ID',
+        id: 'id',
+        dataprovider: 'id',
+        width: 100,
+        enableSort: true,
+        enableResize: true,
+        visible: true
+    };
 
-    const col2 = new PowerGridColumn();
-    col2.headerText = 'Country';
-    col2.id = 'country';
-    col2.dataprovider = 'country';
-    col2.width = 150;
-    col2.enableSort = true;
-    col2.enableResize = true;
-    col2.visible = true;
+    const col2: Partial<PowerGridColumn> = {
+        headerText: 'Country',
+        id: 'country',
+        dataprovider: 'country',
+        width: 150,
+        enableSort: true,
+        enableResize: true,
+        visible: true
+    };
 
-    const col3 = new PowerGridColumn();
-    col3.headerText = 'City';
-    col3.id = 'city';
-    col3.dataprovider = 'city';
-    col3.width = 150;
-    col3.enableSort = true;
-    col3.enableResize = true;
-    col3.visible = true;
+    const col3: Partial<PowerGridColumn> = {
+        headerText: 'City',
+        id: 'city',
+        dataprovider: 'city',
+        width: 150,
+        enableSort: true,
+        enableResize: true,
+        visible: true
+    };
 
-    return [col1, col2, col3];
+    return [col1, col2, col3] as PowerGridColumn[];
 }
 
 export function createPowerGridData(): any {

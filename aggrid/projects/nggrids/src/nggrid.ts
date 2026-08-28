@@ -2,7 +2,7 @@
 import { AgGridAngular } from 'ag-grid-angular';
 import { GridOptions } from 'ag-grid-community';
 import { Directive, ElementRef, TemplateRef, input, contentChild, viewChild, signal } from '@angular/core';
-import { Deferred, BaseCustomObject, Format, FormattingService, LoggerService, ServoyBaseComponent, JSEvent, IJSMenu, IJSMenuItem, PopupStateService, SabloTabseq } from '@servoy/public';
+import { Deferred, Format, FormattingService, LoggerService, ServoyBaseComponent, JSEvent, IJSMenu, IJSMenuItem, PopupStateService, SabloTabseq } from '@servoy/public';
 import { Options } from '@eonasdan/tempus-dominus';
 
 export const GRID_EVENT_TYPES = {
@@ -343,16 +343,16 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
     abstract hasValuelistResolvedDisplayData(): boolean;
 }
 
-export class IconConfig extends BaseCustomObject {
+export interface IconConfig {
 }
 
-export class ToolPanelConfig extends BaseCustomObject {
+export interface ToolPanelConfig {
 }
 
-export class MainMenuItemsConfig extends BaseCustomObject {
+export interface MainMenuItemsConfig {
 }
 
-export class ColumnsAutoSizingOn extends BaseCustomObject {
+export interface ColumnsAutoSizingOn {
 }
 
 export class DragTransferData {
