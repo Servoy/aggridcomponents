@@ -42,7 +42,6 @@
 		"tooltipTextRefreshData" : { "type": "tagstring", "default" : "Refresh for latest data !", "tags": {"doc": "Tooltip text shown when hovering the refresh button"}},
 		"visible": "visible",
 		"hashedFoundsets": { "type": "hashedFoundset[]", "default": [], "tags": {"scope": "private", "allowaccess": "enabled"}, "pushToServer": "shallow"},
-		"hashedColumns": {"type" : "string[]", "default": [], "tags": { "serveronly": true,"scope": "private"}},
 		"showColumnsMenuTab": {"type": "boolean", "default" : false, "tags" : {"scope": "design", "doc": "If the column selection panel should be shown in the column menu"}},
 		"toolPanelConfig": { "type": "toolPanelConfig", "tags": { "scope": "design" } },
 		"iconConfig": { "type": "iconConfig", "tags": { "scope": "design" } },
