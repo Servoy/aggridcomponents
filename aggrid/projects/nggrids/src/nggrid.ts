@@ -212,33 +212,47 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
     }
 
     setHeight() {
-        if (!this.servoyApi().isInAbsoluteLayout()) {
-            if (this.responsiveHeight()! < 0) {
-                const agGridElementRef = this.agGridElementRef();
-                if (agGridElementRef) agGridElementRef.nativeElement.style.height = '';
-                const agGrid = this.agGrid();
-                if (agGrid?.api) {
-                    agGrid.api.setGridOption('domLayout', 'autoHeight');
-                } else if (this.agGridOptions) {
-                    this.agGridOptions.domLayout = 'autoHeight';
-                }
+        if (this.servoyApi().isInAbsoluteLayout()) {
+            return;
+        }
+        const agGrid = this.agGrid();
+        if (agGrid?.api) {
+            // live grid: defer the DOM/style mutation out of the current change-detection pass
+            // to avoid ExpressionChangedAfterItHasBeenChecked (NG0100) when called from svyOnChanges.
+            this.setTimeout(() => this.applyHeight(), 0);
+        } else {
+            // init-time: no API yet, only mutates the plain agGridOptions config object.
+            // apply synchronously so the grid is created with the correct domLayout/height.
+            this.applyHeight();
+        }
+    }
+
+    private applyHeight() {
+        if (this.responsiveHeight()! < 0) {
+            const agGridElementRef = this.agGridElementRef();
+            if (agGridElementRef) agGridElementRef.nativeElement.style.height = '';
+            const agGrid = this.agGrid();
+            if (agGrid?.api) {
+                agGrid.api.setGridOption('domLayout', 'autoHeight');
+            } else if (this.agGridOptions) {
+                this.agGridOptions.domLayout = 'autoHeight';
             }
-            else {
-                const agGrid = this.agGrid();
-                if (agGrid?.api) {
-                    agGrid.api.setGridOption('domLayout', 'normal');
-                } else if (this.agGridOptions) {
-                    this.agGridOptions.domLayout = 'normal';
-                }
-                const agGridElementRef = this.agGridElementRef();
-                if (agGridElementRef) {
-                    const responsiveHeight = this.responsiveHeight();
-                    if (responsiveHeight) {
-                        agGridElementRef.nativeElement.style.height = responsiveHeight + 'px';
-                    } else {
-                        // when responsive height is 0 or undefined, use 100% of the parent container.
-                        agGridElementRef.nativeElement.style.height = '100%';
-                    }
+        }
+        else {
+            const agGrid = this.agGrid();
+            if (agGrid?.api) {
+                agGrid.api.setGridOption('domLayout', 'normal');
+            } else if (this.agGridOptions) {
+                this.agGridOptions.domLayout = 'normal';
+            }
+            const agGridElementRef = this.agGridElementRef();
+            if (agGridElementRef) {
+                const responsiveHeight = this.responsiveHeight();
+                if (responsiveHeight) {
+                    agGridElementRef.nativeElement.style.height = responsiveHeight + 'px';
+                } else {
+                    // when responsive height is 0 or undefined, use 100% of the parent container.
+                    agGridElementRef.nativeElement.style.height = '100%';
                 }
             }
         }
