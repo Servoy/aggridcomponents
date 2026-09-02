@@ -1790,9 +1790,10 @@ export class PowerGrid extends NGGridDirective {
      */
     addRowExpandedState(groupKeys: any) {
 
-        const _internalExpandedState = this.__internalExpandedState();
+        let _internalExpandedState = this.__internalExpandedState();
         if (!_internalExpandedState) {
-            this.__internalExpandedState.set(new Object());
+            _internalExpandedState = new Object();
+            this.__internalExpandedState.set(_internalExpandedState);
         }
 
         let node = _internalExpandedState;
