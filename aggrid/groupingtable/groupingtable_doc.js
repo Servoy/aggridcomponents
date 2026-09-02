@@ -1034,6 +1034,16 @@ var svy_types = {
         filterType: null,
 
         /**
+         * Valuelist used only to populate the VALUELIST/RADIO column filter. Unlike 'valuelist' it is not bound to the foundset, so it does not trigger per-row display value resolution. Use together with 'filterDataprovider' when the column displays a related or derived value whose type differs from the valuelist real value.
+         */
+        filterValuelist: null,
+
+        /**
+         * Dataprovider the filter condition is applied to. Defaults to 'dataprovider'. Use when the displayed dataprovider differs from the column whose values match the filter valuelist's real values.
+         */
+        filterDataprovider: null,
+
+        /**
          * Used to set the column id (colId) property in the serialized column state json string of getColumnState and onColumnStateChanged
          */
         id : null,
