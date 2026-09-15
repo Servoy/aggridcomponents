@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ServoyPublicTestingModule, ServoyApiTesting } from '@servoy/public';
-import { DataGrid } from './datagrid';
+import { DataGrid, DataGridColumn } from './datagrid';
 import { SortChangedEvent } from 'ag-grid-community';
 import { AgGridModule } from 'ag-grid-angular';
 
@@ -226,5 +226,109 @@ describe('DataGrid - onSortChanged source guard (SVY-21291)', () => {
             expect(component.sortHandlerPromises.length).toBe(1);
             expect(onSortHandlerSpy).toHaveBeenCalledTimes(1);
         });
+    });
+});
+
+describe('DataGrid - headerGroupKeepColumnsTogether -> marryChildren (SVYX-1144)', () => {
+    let component: DataGrid;
+    let fixture: ReturnType<typeof TestBed.createComponent<DataGrid>>;
+
+    function makeColumn(overrides: Record<string, any> = {}): DataGridColumn {
+        return {
+            columnid: 'col_' + Math.random().toString(36).slice(2, 8),
+            ...overrides
+        } as unknown as DataGridColumn;
+    }
+
+    function findGroupDef(colDefs: any[], headerName: string): any {
+        return colDefs.find(def => def && def.children && def.headerName === headerName);
+    }
+
+    beforeEach(async () => {
+        await TestBed.configureTestingModule({
+            declarations: [DataGrid],
+            imports: [ServoyPublicTestingModule, FormsModule, AgGridModule],
+            schemas: [NO_ERRORS_SCHEMA],
+            teardown: { destroyAfterEach: false }
+        }).compileComponents();
+
+        fixture = TestBed.createComponent(DataGrid);
+        component = fixture.componentInstance;
+        fixture.componentRef.setInput('servoyApi', new ServoyApiTesting() as any);
+    });
+
+    it('sets marryChildren=true on the synthesized group def when the first column of the group has headerGroupKeepColumnsTogether=true', () => {
+        fixture.componentRef.setInput('columns', [
+            makeColumn({ columnid: 'a', headerGroup: 'G1', headerGroupKeepColumnsTogether: true }),
+            makeColumn({ columnid: 'b', headerGroup: 'G1' })
+        ]);
+
+        const colDefs = component.getColumnDefs();
+        const group = findGroupDef(colDefs, 'G1');
+
+        expect(group).toBeDefined();
+        expect(group.marryChildren).toBe(true);
+        expect(group.children.length).toBe(2);
+    });
+
+    it('leaves marryChildren falsy when the flag is unset on the establishing column', () => {
+        fixture.componentRef.setInput('columns', [
+            makeColumn({ columnid: 'a', headerGroup: 'G1' }),
+            makeColumn({ columnid: 'b', headerGroup: 'G1' })
+        ]);
+
+        const colDefs = component.getColumnDefs();
+        const group = findGroupDef(colDefs, 'G1');
+
+        expect(group).toBeDefined();
+        expect(group.marryChildren).toBeFalsy();
+    });
+
+    it('leaves marryChildren false when the flag is explicitly false on the establishing column', () => {
+        fixture.componentRef.setInput('columns', [
+            makeColumn({ columnid: 'a', headerGroup: 'G1', headerGroupKeepColumnsTogether: false }),
+            makeColumn({ columnid: 'b', headerGroup: 'G1' })
+        ]);
+
+        const colDefs = component.getColumnDefs();
+        const group = findGroupDef(colDefs, 'G1');
+
+        expect(group.marryChildren).toBe(false);
+    });
+
+    it('first-column-wins: a later member column setting the flag does NOT enable marryChildren', () => {
+        fixture.componentRef.setInput('columns', [
+            makeColumn({ columnid: 'a', headerGroup: 'G1', headerGroupKeepColumnsTogether: false }),
+            makeColumn({ columnid: 'b', headerGroup: 'G1', headerGroupKeepColumnsTogether: true })
+        ]);
+
+        const colDefs = component.getColumnDefs();
+        const group = findGroupDef(colDefs, 'G1');
+
+        expect(group.marryChildren).toBe(false);
+    });
+
+    it('first-column-wins: a later member column clearing the flag does NOT disable marryChildren', () => {
+        fixture.componentRef.setInput('columns', [
+            makeColumn({ columnid: 'a', headerGroup: 'G1', headerGroupKeepColumnsTogether: true }),
+            makeColumn({ columnid: 'b', headerGroup: 'G1', headerGroupKeepColumnsTogether: false })
+        ]);
+
+        const colDefs = component.getColumnDefs();
+        const group = findGroupDef(colDefs, 'G1');
+
+        expect(group.marryChildren).toBe(true);
+    });
+
+    it('resolves the flag independently per header group', () => {
+        fixture.componentRef.setInput('columns', [
+            makeColumn({ columnid: 'a', headerGroup: 'G1', headerGroupKeepColumnsTogether: true }),
+            makeColumn({ columnid: 'b', headerGroup: 'G2', headerGroupKeepColumnsTogether: false })
+        ]);
+
+        const colDefs = component.getColumnDefs();
+
+        expect(findGroupDef(colDefs, 'G1').marryChildren).toBe(true);
+        expect(findGroupDef(colDefs, 'G2').marryChildren).toBe(false);
     });
 });

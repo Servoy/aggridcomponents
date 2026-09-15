@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ServoyApiTesting, ServoyPublicTestingModule } from '@servoy/public';
 
-import { PowerGrid } from './powergrid';
+import { PowerGrid, PowerGridColumn } from './powergrid';
 
 describe('PowerGrid - addRowExpandedState (SVY-21409)', () => {
     let component: PowerGrid;
@@ -101,5 +101,108 @@ describe('PowerGrid - addRowExpandedState (SVY-21409)', () => {
         expect(emitSpy).toHaveBeenCalledTimes(2);
 
         sub.unsubscribe();
+    });
+});
+
+describe('PowerGrid - headerGroupKeepColumnsTogether -> marryChildren (SVYX-1144)', () => {
+    let component: PowerGrid;
+    let fixture: ReturnType<typeof TestBed.createComponent<PowerGrid>>;
+
+    function makeColumn(overrides: Partial<PowerGridColumn> = {}): PowerGridColumn {
+        return Object.assign(new PowerGridColumn(), {
+            dataprovider: 'col_' + Math.random().toString(36).slice(2, 8),
+            ...overrides
+        }) as PowerGridColumn;
+    }
+
+    function findGroupDef(colDefs: any[], headerName: string): any {
+        return colDefs.find(def => def && def.children && def.headerName === headerName);
+    }
+
+    beforeEach(async () => {
+        await TestBed.configureTestingModule({
+            declarations: [PowerGrid],
+            imports: [ServoyPublicTestingModule],
+            schemas: [NO_ERRORS_SCHEMA]
+        }).compileComponents();
+
+        fixture = TestBed.createComponent(PowerGrid);
+        component = fixture.componentInstance;
+        fixture.componentRef.setInput('servoyApi', new ServoyApiTesting() as any);
+    });
+
+    it('sets marryChildren=true on the synthesized group def when the first column of the group has headerGroupKeepColumnsTogether=true', () => {
+        fixture.componentRef.setInput('columns', [
+            makeColumn({ dataprovider: 'a', headerGroup: 'G1', headerGroupKeepColumnsTogether: true }),
+            makeColumn({ dataprovider: 'b', headerGroup: 'G1' })
+        ]);
+
+        const colDefs = component.getColumnDefs();
+        const group = findGroupDef(colDefs, 'G1');
+
+        expect(group).toBeDefined();
+        expect(group.marryChildren).toBe(true);
+        expect(group.children.length).toBe(2);
+    });
+
+    it('leaves marryChildren falsy when the flag is unset on the establishing column', () => {
+        fixture.componentRef.setInput('columns', [
+            makeColumn({ dataprovider: 'a', headerGroup: 'G1' }),
+            makeColumn({ dataprovider: 'b', headerGroup: 'G1' })
+        ]);
+
+        const colDefs = component.getColumnDefs();
+        const group = findGroupDef(colDefs, 'G1');
+
+        expect(group).toBeDefined();
+        expect(group.marryChildren).toBeFalsy();
+    });
+
+    it('leaves marryChildren false when the flag is explicitly false on the establishing column', () => {
+        fixture.componentRef.setInput('columns', [
+            makeColumn({ dataprovider: 'a', headerGroup: 'G1', headerGroupKeepColumnsTogether: false }),
+            makeColumn({ dataprovider: 'b', headerGroup: 'G1' })
+        ]);
+
+        const colDefs = component.getColumnDefs();
+        const group = findGroupDef(colDefs, 'G1');
+
+        expect(group.marryChildren).toBe(false);
+    });
+
+    it('first-column-wins: a later member column setting the flag does NOT enable marryChildren', () => {
+        fixture.componentRef.setInput('columns', [
+            makeColumn({ dataprovider: 'a', headerGroup: 'G1', headerGroupKeepColumnsTogether: false }),
+            makeColumn({ dataprovider: 'b', headerGroup: 'G1', headerGroupKeepColumnsTogether: true })
+        ]);
+
+        const colDefs = component.getColumnDefs();
+        const group = findGroupDef(colDefs, 'G1');
+
+        expect(group.marryChildren).toBe(false);
+    });
+
+    it('first-column-wins: a later member column clearing the flag does NOT disable marryChildren', () => {
+        fixture.componentRef.setInput('columns', [
+            makeColumn({ dataprovider: 'a', headerGroup: 'G1', headerGroupKeepColumnsTogether: true }),
+            makeColumn({ dataprovider: 'b', headerGroup: 'G1', headerGroupKeepColumnsTogether: false })
+        ]);
+
+        const colDefs = component.getColumnDefs();
+        const group = findGroupDef(colDefs, 'G1');
+
+        expect(group.marryChildren).toBe(true);
+    });
+
+    it('resolves the flag independently per header group', () => {
+        fixture.componentRef.setInput('columns', [
+            makeColumn({ dataprovider: 'a', headerGroup: 'G1', headerGroupKeepColumnsTogether: true }),
+            makeColumn({ dataprovider: 'b', headerGroup: 'G2', headerGroupKeepColumnsTogether: false })
+        ]);
+
+        const colDefs = component.getColumnDefs();
+
+        expect(findGroupDef(colDefs, 'G1').marryChildren).toBe(true);
+        expect(findGroupDef(colDefs, 'G2').marryChildren).toBe(false);
     });
 });

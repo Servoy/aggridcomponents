@@ -497,6 +497,7 @@
 			"footerStyleClass" : {"type" : "styleclass"},
 			"headerGroup": {"type" : "tagstring", "tags": {"doc": "Header group, that this column will be part of"}},
 			"headerGroupStyleClass" : {"type" : "styleclass"},
+			"headerGroupKeepColumnsTogether": {"type": "boolean", "default": false, "tags": {"doc": "Group-level flag, read from the first column that establishes the header group. When true, keeps the columns of the header group together so an end user can reorder the whole group but cannot drag an individual column out of it (maps to AG Grid marryChildren). Its value on later member columns is ignored."}},
 			"headerTitle": {"type" : "tagstring", "tags": { "basic": true, "useAsCaptionInDeveloper" : true, "captionPriority" : 1, "showInOutlineView": true }},
 			"headerStyleClass" : {"type" : "styleclass"},
 			"headerIconStyleClass" : {"type" : "styleclass", "tags": {"doc": "(Font awesome) Styles for header icon"}},
