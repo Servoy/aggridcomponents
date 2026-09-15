@@ -1180,6 +1180,7 @@ export class PowerGrid extends NGGridDirective {
                         colDefs.push(colGroups[column.headerGroup]);
                         colGroups[column.headerGroup]['headerName'] = column.headerGroup;
                         colGroups[column.headerGroup]['headerClass'] = column.headerGroupStyleClass;
+                        colGroups[column.headerGroup]['marryChildren'] = column.headerGroupKeepColumnsTogether;
                         colGroups[column.headerGroup]['children'] = [];
                     }
                     colGroups[column.headerGroup]['children'].push(colDef);
@@ -2611,6 +2612,7 @@ class RemoteDatasource {
 export interface PowerGridColumn {
     headerGroup: string;
     headerGroupStyleClass: string;
+    headerGroupKeepColumnsTogether: boolean;
     headerTitle: string;
     headerStyleClass: string;
     headerIconStyleClass: string;

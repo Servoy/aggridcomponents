@@ -720,6 +720,7 @@
 			"headerTooltip" : {"type" : "tagstring"},
 			"headerGroup": {"type" : "tagstring", "tags": {"doc": "Header group, that this column will be part of"}},
 			"headerGroupStyleClass" : {"type" : "styleclass"},
+			"headerGroupKeepColumnsTogether": {"type": "boolean", "default": false, "tags": {"doc": "Group-level flag, read from the first column that establishes the header group. When true, keeps the columns of the header group together so an end user can reorder the whole group but cannot drag an individual column out of it (maps to AG Grid marryChildren). Its value on later member columns is ignored."}},
 			"headerCheckbox" : {"type": "boolean", "default" : false, "tags" : {"scope": "design", "doc": "When true the column has checkbox for selecting/unselecting all rows"}},
 			"dataprovider": { "type": "dataprovider", "forFoundset": "myFoundset", "resolveValuelist" : true, "pushToServer" : "allow", "ondatachange": { "onchange":"onElementDataChange"}, "tags": { "wizard": "1", "useAsCaptionInDeveloper" : true, "captionPriority" : 2, "basic": true }},
 			"tooltip": { "type": "dataprovider", "forFoundset": "myFoundset", "pushToServer" : "reject"},

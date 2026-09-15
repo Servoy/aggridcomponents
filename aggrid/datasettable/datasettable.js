@@ -1185,6 +1185,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                             if(!colGroups[column.headerGroup]) {
                                 colGroups[column.headerGroup] = {}
                                 colGroups[column.headerGroup]['headerClass'] = column.headerGroupStyleClass;
+                                colGroups[column.headerGroup]['marryChildren'] = column.headerGroupKeepColumnsTogether;
                                 colGroups[column.headerGroup]['children'] = [];
 
                             }
@@ -1199,6 +1200,7 @@ function($sabloApplication, $sabloConstants, $log, $formatterUtils, $injector, $
                         var group = {};
                         group.headerName = groupName;
                         group.headerClass = colGroups[groupName]['headerClass']; 
+                        group.marryChildren = colGroups[groupName]['marryChildren'];
                         group.children = colGroups[groupName]['children'];
                         colDefs.push(group);
                     }

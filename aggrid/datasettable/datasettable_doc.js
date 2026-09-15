@@ -614,6 +614,14 @@ var svy_types = {
         headerGroupStyleClass: null,
 
         /**
+         * Group-level flag, read from the first column that establishes the header group.
+         * When true, keeps the columns of the header group together so an end user can
+         * reorder the whole group but cannot drag an individual column out of it (maps to
+         * AG Grid marryChildren). Its value on later member columns is ignored.
+         */
+        headerGroupKeepColumnsTogether: false,
+
+        /**
          * The title text to be displayed in the column header.
          */
         headerTitle: null,

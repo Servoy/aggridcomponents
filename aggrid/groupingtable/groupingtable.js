@@ -6078,6 +6078,7 @@ var sortColumns = [];
 								if(!colGroups[column.headerGroup]) {
 									colGroups[column.headerGroup] = {}
 									colGroups[column.headerGroup]['headerClass'] = column.headerGroupStyleClass;
+									colGroups[column.headerGroup]['marryChildren'] = column.headerGroupKeepColumnsTogether;
 									colGroups[column.headerGroup]['children'] = [];
 		
 								}
@@ -6092,6 +6093,7 @@ var sortColumns = [];
 							var group = {};
 							group.headerName = groupName;
 							group.headerClass = colGroups[groupName]['headerClass']; 
+							group.marryChildren = colGroups[groupName]['marryChildren'];
 							group.children = colGroups[groupName]['children'];
 							colDefs.push(group);
 						}

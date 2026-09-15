@@ -1975,6 +1975,7 @@ export class DataGrid extends NGGridDirective {
 					colDefs.push(colGroups[column.headerGroup]);
 					colGroups[column.headerGroup]['headerName'] = column.headerGroup;
 					colGroups[column.headerGroup]['headerClass'] = column.headerGroupStyleClass;
+					colGroups[column.headerGroup]['marryChildren'] = column.headerGroupKeepColumnsTogether;
 					colGroups[column.headerGroup]['children'] = [];
 				}
 				colGroups[column.headerGroup]['children'].push(colDef);
@@ -6529,6 +6530,7 @@ export interface DataGridColumn {
 	headerTooltip: string;
 	headerGroup: string;
 	headerGroupStyleClass: string;
+	headerGroupKeepColumnsTogether: boolean;
 	dataprovider: any;
 	tooltip: any;
 	styleClass: string;
