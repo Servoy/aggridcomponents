@@ -1267,8 +1267,8 @@ export class DataGrid extends NGGridDirective {
 						const isChangedToEmpty = change.currentValue && change.previousValue && change.currentValue.serverSize === 0 && change.previousValue.serverSize > 0;
 						if (myFoundset.viewPort.size > 0 || isChangedToEmpty) {
 							// browser refresh
-							this.isRootFoundsetLoaded = true;
 							this.initRootFoundset();
+							this.isRootFoundsetLoaded = !!this.foundset;
 						} else {
 							// newly set foundset
 							this.isRootFoundsetLoaded = false;
@@ -2938,7 +2938,10 @@ export class DataGrid extends NGGridDirective {
 	 *
 	 */
 	getSortModel() {
-		const sortModel = [];
+		const sortModel: any[] = [];
+		if (!this.foundset) {
+			return sortModel;
+		}
 		let sortColumns: any = this.foundset.getSortColumns();
 		if (sortColumns) {
 			sortColumns = sortColumns.split(',');
@@ -4506,10 +4509,10 @@ export class DataGrid extends NGGridDirective {
 			}
 		}
 
-		if (!this.isRootFoundsetLoaded) {
-			if (changeEvent.viewportRowsCompletelyChanged || changeEvent.fullValueChanged) {
-				this.isRootFoundsetLoaded = true;
+		if (!this.isRootFoundsetLoaded || !this.foundset) {
+			if (this.isGridReady && (changeEvent.viewportRowsCompletelyChanged || changeEvent.fullValueChanged || changeEvent.sortColumnsChanged)) {
 				this.initRootFoundset();
+				this.isRootFoundsetLoaded = !!this.foundset;
 			}
 			return;
 		}

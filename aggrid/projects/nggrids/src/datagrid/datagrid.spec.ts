@@ -7,6 +7,204 @@ import { SortChangedEvent } from 'ag-grid-community';
 import { AgGridModule } from 'ag-grid-angular';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
+describe('DataGrid - onShow foundset.sort crash & init ordering (SVY-21479)', () => {
+    let component: DataGrid;
+    let fixture: ReturnType<typeof TestBed.createComponent<DataGrid>>;
+
+    function makeFoundset(overrides: Record<string, any> = {}): any {
+        return {
+            foundsetId: 1,
+            serverSize: 10,
+            sortColumns: '',
+            viewPort: { size: 10, startIndex: 0, rows: [] },
+            addChangeListener: vi.fn().mockReturnValue(() => {}),
+            removeChangeListener: vi.fn(),
+            getSortColumns() { return this.sortColumns; },
+            ...overrides
+        };
+    }
+
+    function makeColumn(overrides: Record<string, any> = {}): DataGridColumn {
+        return {
+            columnid: 'col_' + Math.random().toString(36).slice(2, 8),
+            ...overrides
+        } as unknown as DataGridColumn;
+    }
+
+    function fakeAgGrid(): any {
+        return {
+            api: {
+                setGridOption: vi.fn(),
+                setRowCount: vi.fn(),
+                applyColumnState: vi.fn(),
+                getEditingCells: vi.fn().mockReturnValue([]),
+                getRowGroupColumns: vi.fn().mockReturnValue([])
+            },
+            gridOptions: {}
+        };
+    }
+
+    beforeEach(async () => {
+        await TestBed.configureTestingModule({
+            imports: [ServoyPublicTestingModule, FormsModule, AgGridModule, DataGrid],
+            schemas: [NO_ERRORS_SCHEMA],
+            teardown: { destroyAfterEach: false }
+        }).compileComponents();
+
+        fixture = TestBed.createComponent(DataGrid);
+        component = fixture.componentInstance;
+        fixture.componentRef.setInput('servoyApi', new ServoyApiTesting() as any);
+        component.agGridOptions = component.agGridOptions || {} as any;
+    });
+
+    describe('AC3 - getSortModel does not throw when foundset is undefined', () => {
+        it('returns an empty sort model instead of dereferencing undefined this.foundset', () => {
+            expect(component.foundset).toBeUndefined();
+
+            let result: any;
+            expect(() => { result = component.getSortModel(); }).not.toThrow();
+            expect(result).toEqual([]);
+        });
+    });
+
+    describe('AC1 - changeListener does not crash on sortColumnsChanged with undefined foundset', () => {
+        it('does not throw when isRootFoundsetLoaded is true but this.foundset is undefined and grid is not ready', () => {
+            component.isRootFoundsetLoaded = true;
+            component.isGridReady = false;
+            component.foundset = undefined as any;
+
+            expect(() => {
+                component.changeListener({ sortColumnsChanged: { newValue: 'created_at desc', oldValue: '' } } as any);
+            }).not.toThrow();
+        });
+
+        it('returns harmlessly (does not init) when grid is not ready', () => {
+            const initSpy = vi.spyOn(component, 'initRootFoundset');
+            component.isRootFoundsetLoaded = true;
+            component.isGridReady = false;
+            component.foundset = undefined as any;
+
+            component.changeListener({ sortColumnsChanged: { newValue: 'created_at desc', oldValue: '' } } as any);
+
+            expect(initSpy).not.toHaveBeenCalled();
+            expect(component.foundset).toBeUndefined();
+        });
+    });
+
+    describe('AC4 - invariant: isRootFoundsetLoaded === true implies this.foundset defined', () => {
+        it('myFoundset change handler keeps isRootFoundsetLoaded false while grid not ready (this.foundset stays undefined)', () => {
+            const myFoundset = makeFoundset({ viewPort: { size: 10, startIndex: 0, rows: [] } });
+            fixture.componentRef.setInput('myFoundset', myFoundset);
+            component.isGridReady = false;
+
+            component.svyOnChanges({ myFoundset: { currentValue: myFoundset, previousValue: undefined } } as any);
+
+            expect(component.foundset).toBeUndefined();
+            expect(component.isRootFoundsetLoaded).toBe(!!component.foundset);
+            expect(component.isRootFoundsetLoaded).toBe(false);
+        });
+
+        it('myFoundset change handler sets isRootFoundsetLoaded true once grid is ready (this.foundset assigned)', () => {
+            const myFoundset = makeFoundset({ viewPort: { size: 10, startIndex: 0, rows: [] } });
+            fixture.componentRef.setInput('myFoundset', myFoundset);
+            (component as any).agGrid = () => fakeAgGrid();
+            component.isGridReady = true;
+
+            component.svyOnChanges({ myFoundset: { currentValue: myFoundset, previousValue: undefined } } as any);
+
+            expect(component.foundset).toBeDefined();
+            expect(component.isRootFoundsetLoaded).toBe(!!component.foundset);
+            expect(component.isRootFoundsetLoaded).toBe(true);
+        });
+    });
+
+    describe('AC2 - onShow sort applied after render (not just crash suppression)', () => {
+        it('once the grid becomes ready and initRootFoundset runs, getSortModel returns the real (non-empty) sort model', () => {
+            fixture.componentRef.setInput('columns', [
+                makeColumn({ id: 'created_at', dataprovider: { idForFoundset: 'created_at' } })
+            ]);
+            const myFoundset = makeFoundset({ sortColumns: 'created_at desc' });
+            fixture.componentRef.setInput('myFoundset', myFoundset);
+            (component as any).agGrid = () => fakeAgGrid();
+
+            expect(component.getSortModel()).toEqual([]);
+
+            component.isGridReady = true;
+            component.initRootFoundset();
+
+            expect(component.foundset).toBeDefined();
+            expect(component.getSortModel()).toEqual([{ colId: 'created_at', sort: 'desc' }]);
+        });
+
+        it('applies the foundset sort to the grid once ready (initRootFoundset pushes the model via applySortModel)', () => {
+            fixture.componentRef.setInput('columns', [
+                makeColumn({ id: 'created_at', dataprovider: { idForFoundset: 'created_at' } })
+            ]);
+            const myFoundset = makeFoundset({ sortColumns: 'created_at desc' });
+            fixture.componentRef.setInput('myFoundset', myFoundset);
+            (component as any).agGrid = () => fakeAgGrid();
+            vi.spyOn(component, 'onSort').mockReturnValue((() => {}) as any);
+            const applySortModelSpy = vi.spyOn(component, 'applySortModel').mockImplementation(() => {});
+
+            component.isGridReady = true;
+            component.initRootFoundset();
+
+            expect(component.foundset).toBeDefined();
+            expect(applySortModelSpy).toHaveBeenCalledWith([{ colId: 'created_at', sort: 'desc' }]);
+        });
+    });
+
+    describe('AC4 - changeListener lazily re-inits when foundset missing but grid ready', () => {
+        it('assigns this.foundset and restores the invariant when a change arrives after the grid is ready', () => {
+            fixture.componentRef.setInput('columns', [
+                makeColumn({ id: 'created_at', dataprovider: { idForFoundset: 'created_at' } })
+            ]);
+            const myFoundset = makeFoundset({ sortColumns: 'created_at desc' });
+            fixture.componentRef.setInput('myFoundset', myFoundset);
+            (component as any).agGrid = () => fakeAgGrid();
+
+            component.isRootFoundsetLoaded = true;
+            component.foundset = undefined as any;
+            component.isGridReady = true;
+
+            component.changeListener({ sortColumnsChanged: { newValue: 'created_at desc', oldValue: '' } } as any);
+
+            expect(component.foundset).toBeDefined();
+            expect(component.isRootFoundsetLoaded).toBe(!!component.foundset);
+            expect(component.isRootFoundsetLoaded).toBe(true);
+        });
+    });
+
+    describe('AC5 - ee508d76 preserved: initRootFoundset returns early when grid not ready', () => {
+        it('does not assign this.foundset and does not call AG Grid API when isGridReady is false', () => {
+            const grid = fakeAgGrid();
+            (component as any).agGrid = () => grid;
+            const myFoundset = makeFoundset();
+            fixture.componentRef.setInput('myFoundset', myFoundset);
+            component.isGridReady = false;
+
+            component.initRootFoundset();
+
+            expect(component.foundset).toBeUndefined();
+            expect(grid.api.setGridOption).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('Non-regression - empty / newly-set foundset', () => {
+        it('leaves isRootFoundsetLoaded false and this.foundset undefined for an empty foundset', () => {
+            const myFoundset = makeFoundset({ serverSize: 0, viewPort: { size: 0, startIndex: 0, rows: [] } });
+            fixture.componentRef.setInput('myFoundset', myFoundset);
+            (component as any).agGrid = () => fakeAgGrid();
+            component.isGridReady = true;
+
+            component.svyOnChanges({ myFoundset: { currentValue: myFoundset, previousValue: undefined } } as any);
+
+            expect(component.isRootFoundsetLoaded).toBe(false);
+            expect(component.foundset).toBeUndefined();
+        });
+    });
+});
+
 describe('DataGrid - onSortChanged source guard (SVY-21291)', () => {
     let component: DataGrid;
     let onSortChanged: (event: SortChangedEvent) => void;
