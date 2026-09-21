@@ -227,6 +227,54 @@ describe('DataGrid - onSortChanged source guard (SVY-21291)', () => {
             expect(onSortHandlerSpy).toHaveBeenCalledTimes(1);
         });
     });
+
+    describe('sortHandlerPromises out-of-order resolution', () => {
+        let logErrorSpy: jasmine.Spy;
+
+        function removeSortHandlerPromise(promise: unknown) {
+            (component as any).removeSortHandlerPromise(promise);
+        }
+
+        beforeEach(() => {
+            logErrorSpy = spyOn(component.log, 'error');
+            component.sortHandlerPromises = [];
+        });
+
+        it('should drain the queue without error when promises resolve out of order', () => {
+            const first = Promise.resolve();
+            const second = Promise.resolve();
+            component.sortHandlerPromises.push(first, second);
+
+            removeSortHandlerPromise(second);
+            removeSortHandlerPromise(first);
+
+            expect(component.sortHandlerPromises.length).toBe(0);
+            expect(logErrorSpy).not.toHaveBeenCalled();
+        });
+
+        it('should drain the queue without error when a reject settles before an earlier resolve', () => {
+            const first = Promise.resolve();
+            const second = Promise.reject().catch(() => undefined);
+            component.sortHandlerPromises.push(first, second);
+
+            removeSortHandlerPromise(second);
+            removeSortHandlerPromise(first);
+
+            expect(component.sortHandlerPromises.length).toBe(0);
+            expect(logErrorSpy).not.toHaveBeenCalled();
+        });
+
+        it('should log out of sync when a settling promise is not in the queue', () => {
+            const known = Promise.resolve();
+            const stray = Promise.resolve();
+            component.sortHandlerPromises.push(known);
+
+            removeSortHandlerPromise(stray);
+
+            expect(logErrorSpy).toHaveBeenCalledWith('sortHandlerPromises out of sync');
+            expect(component.sortHandlerPromises.length).toBe(1);
+        });
+    });
 });
 
 describe('DataGrid - headerGroupKeepColumnsTogether -> marryChildren (SVYX-1144)', () => {
