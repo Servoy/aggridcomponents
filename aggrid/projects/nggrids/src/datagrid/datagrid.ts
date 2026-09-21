@@ -3539,19 +3539,18 @@ export class DataGrid extends NGGridDirective {
 			const sortHandlerPromise = this.onSort()(sortColumns, sortColumnDirections);
 			this.sortHandlerPromises.push(sortHandlerPromise);
 			sortHandlerPromise.then(
-				() => {
-					// success
-					if (this.sortHandlerPromises.shift() !== sortHandlerPromise) {
-						this.log.error('sortHandlerPromises out of sync');
-					}
-				},
-				() => {
-					// fail
-					if (this.sortHandlerPromises.shift() !== sortHandlerPromise) {
-						this.log.error('sortHandlerPromises out of sync');
-					}
-				}
+				() => this.removeSortHandlerPromise(sortHandlerPromise),
+				() => this.removeSortHandlerPromise(sortHandlerPromise)
 			);
+		}
+	}
+
+	private removeSortHandlerPromise(sortHandlerPromise: unknown) {
+		const idx = this.sortHandlerPromises.indexOf(sortHandlerPromise);
+		if (idx === -1) {
+			this.log.error('sortHandlerPromises out of sync');
+		} else {
+			this.sortHandlerPromises.splice(idx, 1);
 		}
 	}
 

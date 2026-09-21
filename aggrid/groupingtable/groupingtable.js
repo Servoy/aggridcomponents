@@ -390,18 +390,21 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							sortHandlerPromises.push(sortHandlerPromise);
 							sortHandlerPromise.then(
 								function(){
-									// success
-									if(sortHandlerPromises.shift() != sortHandlerPromise) {
-										$log.error('sortHandlerPromises out of sync');
-									}
+									removeSortHandlerPromise(sortHandlerPromise);
 								},
 								function(){
-									// fail
-									if(sortHandlerPromises.shift() != sortHandlerPromise) {
-										$log.error('sortHandlerPromises out of sync');
-									}
+									removeSortHandlerPromise(sortHandlerPromise);
 								}
 							);
+						}
+					}
+
+					function removeSortHandlerPromise(sortHandlerPromise) {
+						var idx = sortHandlerPromises.indexOf(sortHandlerPromise);
+						if(idx === -1) {
+							$log.error('sortHandlerPromises out of sync');
+						} else {
+							sortHandlerPromises.splice(idx, 1);
 						}
 					}
 
