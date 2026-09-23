@@ -1268,7 +1268,6 @@ export class DataGrid extends NGGridDirective {
 						if (myFoundset.viewPort.size > 0 || isChangedToEmpty) {
 							// browser refresh
 							this.initRootFoundset();
-							this.isRootFoundsetLoaded = !!this.foundset;
 						} else {
 							// newly set foundset
 							this.isRootFoundsetLoaded = false;
@@ -1633,6 +1632,7 @@ export class DataGrid extends NGGridDirective {
 		if (!this.isGridReady) return;
 
 		this.foundset = new FoundsetManager(this, this.myFoundset(), 'root', true);
+		this.isRootFoundsetLoaded = !!this.foundset;
 		if (this.onSort()) {
 			this.applySortModel(this.getSortModel());
 		}
@@ -4511,7 +4511,6 @@ export class DataGrid extends NGGridDirective {
 		if (!this.isRootFoundsetLoaded || !this.foundset) {
 			if (this.isGridReady && (changeEvent.viewportRowsCompletelyChanged || changeEvent.fullValueChanged || changeEvent.sortColumnsChanged)) {
 				this.initRootFoundset();
-				this.isRootFoundsetLoaded = !!this.foundset;
 			}
 			return;
 		}

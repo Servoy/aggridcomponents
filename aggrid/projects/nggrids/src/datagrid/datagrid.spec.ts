@@ -203,6 +203,47 @@ describe('DataGrid - onShow foundset.sort crash & init ordering (SVY-21479)', ()
             expect(component.foundset).toBeUndefined();
         });
     });
+
+    describe('AC4 - isRootFoundsetLoaded set when foundset loaded via onGridReady (grid ready after model)', () => {
+        it('initRootFoundset sets isRootFoundsetLoaded true whenever this.foundset is assigned', () => {
+            const myFoundset = makeFoundset({ viewPort: { size: 10, startIndex: 0, rows: [] } });
+            fixture.componentRef.setInput('myFoundset', myFoundset);
+            (component as any).agGrid = () => fakeAgGrid();
+
+            component.isGridReady = false;
+            component.svyOnChanges({ myFoundset: { currentValue: myFoundset, previousValue: undefined } } as any);
+            expect(component.foundset).toBeUndefined();
+            expect(component.isRootFoundsetLoaded).toBe(false);
+
+            component.isGridReady = true;
+            component.initRootFoundset();
+
+            expect(component.foundset).toBeDefined();
+            expect(component.isRootFoundsetLoaded).toBe(true);
+        });
+
+        it('a subsequent foundset change is processed (not dropped) after onGridReady loads the foundset', () => {
+            const myFoundset = makeFoundset({ viewPort: { size: 10, startIndex: 0, rows: [] } });
+            fixture.componentRef.setInput('myFoundset', myFoundset);
+            (component as any).agGrid = () => fakeAgGrid();
+
+            component.isGridReady = false;
+            component.svyOnChanges({ myFoundset: { currentValue: myFoundset, previousValue: undefined } } as any);
+
+            component.isGridReady = true;
+            component.initRootFoundset();
+            expect(component.isRootFoundsetLoaded).toBe(true);
+
+            const isTableGroupedSpy = vi.spyOn(component, 'isTableGrouped').mockReturnValue(false);
+            const refreshDatasourceSpy = vi.spyOn(component, 'refreshDatasource').mockImplementation(() => {});
+
+            component.changeListener({ foundsetDefinitionChanged: { newValue: {} as any, oldValue: {} as any } } as any);
+
+            expect(refreshDatasourceSpy).toHaveBeenCalled();
+            isTableGroupedSpy.mockRestore();
+            refreshDatasourceSpy.mockRestore();
+        });
+    });
 });
 
 describe('DataGrid - onSortChanged source guard (SVY-21291)', () => {
@@ -446,14 +487,15 @@ describe('DataGrid - onSortChanged source guard (SVY-21291)', () => {
     });
 
     describe('sortHandlerPromises out-of-order resolution', () => {
-        let logErrorSpy: jasmine.Spy;
+        let logErrorSpy: ReturnType<typeof vi.fn>;
 
         function removeSortHandlerPromise(promise: unknown) {
             (component as any).removeSortHandlerPromise(promise);
         }
 
         beforeEach(() => {
-            logErrorSpy = spyOn(component.log, 'error');
+            logErrorSpy = vi.fn();
+            Object.defineProperty(component.log, 'error', { configurable: true, get: () => logErrorSpy });
             component.sortHandlerPromises = [];
         });
 
