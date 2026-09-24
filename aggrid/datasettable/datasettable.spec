@@ -68,7 +68,7 @@
 	},
 	"handlers" : {
 		"onRowSelected": {
-			"doc": "Called when the mouse is clicked on a row/cell",
+			"doc": "Called when a row is selected or deselected",
 			"parameters": [{
 				"name": "rowData",
 				"type": "object"

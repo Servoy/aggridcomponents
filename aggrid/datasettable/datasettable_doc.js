@@ -193,11 +193,11 @@ var customMainMenu;
 
 var handlers = {
     /**
-     * Called when the mouse is clicked on a row/cell
+     * Called when a row is selected or deselected
      *
-     * @param {Object} rowData The data for the clicked row.
+     * @param {Object} rowData The data for the affected row.
      * @param {Boolean} selected True if the row has been selected, false if deselected.
-     * @param {JSEvent} [event] The event object associated with the click.
+     * @param {JSEvent} [event] The event object associated with the selection change.
      */
     onRowSelected: function() {},
 
@@ -347,7 +347,7 @@ function exportData(fileName, skipHeader, columnGroups, skipFooters, skipGroups,
 /**
  * Export data to JSDataSet
  *
- * @return {JSDataset} A dataset object containing the exported grid data, where the first row represents 
+ * @return {JSDataset} A dataset object containing the exported grid data, where the first row contains the column header names and each subsequent row contains the cell values of a grid row (after filtering and sorting).
  */
 function exportToDataset() {
 }

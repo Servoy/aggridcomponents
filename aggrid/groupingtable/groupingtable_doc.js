@@ -161,7 +161,7 @@ var moveToNextEditableCellOnTab;
 /**
  * When the component is hidden, if a filter is applied, keep it applied on the foundset.
  */
-var keepAppliedFilterOnHide
+var keepAppliedFilterOnHide;
 
 /**
  * When true, enables master/detail mode. Rows can be expanded to show a detail form.
@@ -392,12 +392,6 @@ function refreshData() {
 }
 
 /**
- * Returns the selected rows when in grouping mode
- */
-function getGroupedSelection() {
-}
-
-/**
  * Start cell editing (only works when the table is not in grouping mode).
  * @param {Number} foundsetindex Foundset row index of the editing cell (1-based)
  * @param {Number} columnindex Column index in the model of the editing cell (0-based)
@@ -447,7 +441,7 @@ function showToolPanel(show) {
  *
  * @return {Boolean} `true` if the ToolPanel is showing otherwise `false`
  */
-function isToolPanelShowing(show) {
+function isToolPanelShowing() {
 }
 
 
@@ -533,11 +527,13 @@ function removeAllColumns() {
 /**
  * Set new columns
  *
+ * @param {Array<CustomType<aggrid-groupingtable.column>>} columns The columns to set on the table.
+ *
  * @example
- *     %%prefix%%elements.%%elementName%%.setColumn(columns)
+ *     %%prefix%%elements.%%elementName%%.setColumns(columns)
  *
  */
-function setColumns() {
+function setColumns(columns) {
 }
 
 /**
@@ -556,7 +552,7 @@ function getViewColumns() {
  * 
  * @return {CustomType<aggrid-groupingtable.viewColumn>} The view column object corresponding to the specified column ID.
  */
-function getViewColumnById() {
+function getViewColumnById(colId) {
 
 }
 
@@ -731,10 +727,10 @@ function getColumnIndex(colId) {
 }
 
 /**
- * Set the selection in grouping mode 111. The table must be already in grouping mode,
+ * Set the selection in grouping mode. The table must be already in grouping mode,
  * and the record already loaded (the group of the record expanded - see: setExpandedGroups)
  *
- * @param {Array<JSRecord>} selectedRecords Form editor value
+ * @param {Array<JSRecord>} selectedRecords The records to select in the currently expanded groups.
  */ 
 function setGroupedSelection(selectedRecords) {
 }
@@ -800,7 +796,7 @@ function getGroupedSelection() {
  * ];
  * elements.myTable.setCheckboxGroupSelection(selectedHeaders);
  */
-function setCheckboxGroupSelection() {
+function setCheckboxGroupSelection(groups) {
 }
 
 /**
