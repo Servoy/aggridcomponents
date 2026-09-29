@@ -134,11 +134,19 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
     }
 
     handleDragViewportScroll($event: any) {
-        if (!this.dragViewport) {
-            this.dragViewport = $event.currentTarget.getElementsByClassName("ag-body-viewport")[0] as HTMLElement;
-            this.dragViewportHorizontalScrollViewport = $event.currentTarget.getElementsByClassName("ag-body-horizontal-scroll-viewport")[0] as HTMLElement;
-
-            this.dragViewportRect = this.dragViewport.getBoundingClientRect();
+        if (!this.dragViewport || !this.dragViewportRect) {
+            const container = $event?.currentTarget as HTMLElement;
+            if (!container?.getElementsByClassName) {
+                return;
+            }
+            // AG Grid 36: .ag-grid-viewport is the body scroll container (overflow:auto, both axes)
+            const viewport = container.getElementsByClassName('ag-grid-viewport')[0] as HTMLElement;
+            if (!viewport) {
+                return;
+            }
+            this.dragViewport = viewport;
+            this.dragViewportHorizontalScrollViewport = viewport;
+            this.dragViewportRect = viewport.getBoundingClientRect();
         }
         const clientX = $event.clientX - this.dragViewportRect.left;
         const clientY = $event.clientY - this.dragViewportRect.top;
@@ -160,16 +168,16 @@ export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement
                 if (this.dragScrollDirection) {
                     switch (this.dragScrollDirection) {
                         case 'left':
-                            this.dragViewportHorizontalScrollViewport.scrollBy({ left: -this.dragViewportScrollSpeed, top: 0 });
+                            this.dragViewportHorizontalScrollViewport?.scrollBy({ left: -this.dragViewportScrollSpeed, top: 0 });
                             break;
                         case 'right':
-                            this.dragViewportHorizontalScrollViewport.scrollBy({ left: this.dragViewportScrollSpeed, top: 0 });
+                            this.dragViewportHorizontalScrollViewport?.scrollBy({ left: this.dragViewportScrollSpeed, top: 0 });
                             break;
                         case 'up':
-                            this.dragViewport.scrollBy({ left: 0, top: -this.dragViewportScrollSpeed });
+                            this.dragViewport?.scrollBy({ left: 0, top: -this.dragViewportScrollSpeed });
                             break;
                         case 'down':
-                            this.dragViewport.scrollBy({ left: 0, top: this.dragViewportScrollSpeed });
+                            this.dragViewport?.scrollBy({ left: 0, top: this.dragViewportScrollSpeed });
                             break;
                     }
                 } else {
