@@ -467,9 +467,10 @@ function getColumn(id, forChange) {
 
 /**
  * Fills the table with data from a dataset.
- * The column name from the dataset is used to match on the component column id
+ * The column name from the dataset is used to match on the component column dataprovider (case-insensitive).
+ * Columns without a dataprovider will not render dataset values.
  * 
- * @param {JSDataset} [dataset] The dataset containing the data to populate the table. The dataset's column names must match the component's column IDs to bind data correctly.
+ * @param {JSDataset} [dataset] The dataset containing the data to populate the table. The dataset's column names must match the component's column dataproviders (case-insensitive) to bind data correctly.
  * @param {Array<String>} [pks] list of dataprovider names; needed in case of using apis: updateRows and deleteRows
  */
 function renderData(dataset, pks) {
@@ -484,7 +485,7 @@ function renderData(dataset, pks) {
  * "lastRowIndex" specifies the index of the last row on the server; if not set, the lazy loading will behave
  * like an infinite scroll, and onLazyLoadingGetRows will be called called until "lastRowIndex" will be set
  * 
- * @param {JSDataset} dataset The dataset containing the new rows to append to the table. The dataset's structure must align with the table's columns for proper data binding.
+ * @param {JSDataset} dataset The dataset containing the new rows to append to the table. The dataset's column names must match the component's column dataproviders (case-insensitive) to bind data correctly.
  * @param {long} [lastRowIndex] The index of the last row available on the server. If not provided, lazy loading will function as infinite scrolling until this value is set.
  * @param {Array<String>} [pks] list of dataprovider names; needed in case of using apis: updateRows and deleteRows
  */

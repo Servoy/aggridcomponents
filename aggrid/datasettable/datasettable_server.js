@@ -102,7 +102,7 @@ $scope.api.getColumn = function(id, forChange) {
 /**
  * Fills the table with data from a dataset.
  * The column name from the dataset is used to match on the
- * component column id
+ * component column dataprovider (case-insensitive)
  * 
  * @param {JSDataSet} [dataset]
  * @param {Array<String>} [pks] list of dataprovider names; needed in case of using apis: updateRows and deleteRows
