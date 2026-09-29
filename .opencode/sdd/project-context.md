@@ -1,6 +1,6 @@
-# Project Context — Servoy NG Grids (Angular)
+﻿# Project Context â€” Servoy NG Grids (Angular)
 
-This project is the **Servoy NG Grids** package — a set of AG Grid-based Angular
+This project is the **Servoy NG Grids** package â€” a set of AG Grid-based Angular
 components for the Servoy NGClient runtime. It is built as an Angular library using
 ng-packagr and deployed as a Servoy web package.
 
@@ -11,7 +11,7 @@ ng-packagr and deployed as a Servoy web package.
 | Angular version | 22.0.8 |
 | TypeScript version | 6.0.3 |
 | Build system | Angular CLI + ng-packagr 22.0.2 |
-| Test framework | Karma + Jasmine (headless Chrome) |
+| Test framework | Vitest 4 (Angular TestBed) |
 | Linting | ESLint 10.x with @angular-eslint + @typescript-eslint |
 | Module system | ES modules (moduleResolution: "bundler") |
 | Package name | @servoy/nggrids |
@@ -26,7 +26,7 @@ Top-level directories contain the **Servoy spec definition** and legacy assets:
 
 | File | Purpose |
 |------|---------|
-| `<name>.spec` | Servoy component specification (JSON) — defines name, model properties, handlers, API methods, types |
+| `<name>.spec` | Servoy component specification (JSON) â€” defines name, model properties, handlers, API methods, types |
 | `<name>.js` | Legacy AngularJS client-side code |
 | `<name>.html` | Legacy AngularJS template |
 | `<name>.css` | Component styles |
@@ -49,12 +49,12 @@ The modern Angular implementations:
 |-----------|------|----------------|-------------------|
 | **Power Grid** | Dataset-based grid | `datasettable/datasettable.spec` | `projects/nggrids/src/powergrid/` |
 | **Data Grid** | Foundset-based grid | `groupingtable/groupingtable.spec` | `projects/nggrids/src/datagrid/` |
-| **datasettable** | AngularJS Power Grid | `datasettable/` | — (JS only) |
-| **groupingtable** | AngularJS Data Grid | `groupingtable/` | — (JS only) |
+| **datasettable** | AngularJS Power Grid | `datasettable/` | â€” (JS only) |
+| **groupingtable** | AngularJS Data Grid | `groupingtable/` | â€” (JS only) |
 
 **Important shared specs:** Unlike servoy-extra-components where each component has its own spec:
-- `datasettable/datasettable.spec` + `datasettable_doc.js` → powergrid (Angular) + datasettable (AngularJS)
-- `groupingtable/groupingtable.spec` + `groupingtable_doc.js` → datagrid (Angular) + groupingtable (AngularJS)
+- `datasettable/datasettable.spec` + `datasettable_doc.js` â†’ powergrid (Angular) + datasettable (AngularJS)
+- `groupingtable/groupingtable.spec` + `groupingtable_doc.js` â†’ datagrid (Angular) + groupingtable (AngularJS)
 
 ## Angular Component Pattern
 
@@ -62,7 +62,7 @@ Components follow these conventions:
 - **Selector prefix:** `aggrid-` (kebab-case, enforced by ESLint)
 - **Directive selector prefix:** `aggrid` (camelCase)
 - **Base class:** Both grids extend `NGGridComponent` from `nggrid.ts`
-- **Standalone:** `false` — all components declared in `NGGridsModule`
+- **Standalone:** `false` â€” all components declared in `NGGridsModule`
 - **Change detection:** `ChangeDetectionStrategy.OnPush`
 - **Service pattern:** Each grid has a companion service (e.g., `powergrid.service.ts`)
   that manages AG Grid state and event handling
@@ -72,31 +72,31 @@ Components follow these conventions:
 
 ```
 aggridcomponents/
-├── aggrid/                              # Main working directory
-│   ├── angular.json                     # Angular workspace config
-│   ├── package.json                     # Dependencies & scripts
-│   ├── tsconfig.json                    # Root TypeScript config
-│   ├── .eslintrc.json                   # ESLint config
-│   ├── cypress.config.ts                # Cypress component testing config
-│   ├── projects/
-│   │   ├── nggrids/                     # Angular library project
-│   │   │   ├── ng-package.json
-│   │   │   ├── src/
-│   │   │   │   ├── public-api.ts        # Library exports
-│   │   │   │   ├── nggrids.module.ts    # NgModule declarations
-│   │   │   │   ├── nggrid.ts            # Shared grid base class
-│   │   │   │   ├── testingutils.ts      # Test utilities
-│   │   │   │   ├── powergrid/           # Power Grid (Angular)
-│   │   │   │   ├── datagrid/            # Data Grid (Angular)
-│   │   │   │   ├── editors/             # Shared cell editors
-│   │   │   │   └── filters/             # Shared column filters
-│   │   └── dummy/                       # Dummy app (dev/testing scaffold)
-│   ├── datasettable/                    # Servoy spec + AngularJS Power Grid
-│   ├── groupingtable/                   # Servoy spec + AngularJS Data Grid
-│   ├── lib/                             # Shared utilities
-│   └── scripts/build.js                 # Release packaging script
-├── webpackage.json                      # Servoy package manifest
-└── README.md
+â”œâ”€â”€ aggrid/                              # Main working directory
+â”‚   â”œâ”€â”€ angular.json                     # Angular workspace config
+â”‚   â”œâ”€â”€ package.json                     # Dependencies & scripts
+â”‚   â”œâ”€â”€ tsconfig.json                    # Root TypeScript config
+â”‚   â”œâ”€â”€ .eslintrc.json                   # ESLint config
+â”‚   â”œâ”€â”€ cypress.config.ts                # Cypress component testing config
+â”‚   â”œâ”€â”€ projects/
+â”‚   â”‚   â”œâ”€â”€ nggrids/                     # Angular library project
+â”‚   â”‚   â”‚   â”œâ”€â”€ ng-package.json
+â”‚   â”‚   â”‚   â”œâ”€â”€ src/
+â”‚   â”‚   â”‚   â”‚   â”œâ”€â”€ public-api.ts        # Library exports
+â”‚   â”‚   â”‚   â”‚   â”œâ”€â”€ nggrids.module.ts    # NgModule declarations
+â”‚   â”‚   â”‚   â”‚   â”œâ”€â”€ nggrid.ts            # Shared grid base class
+â”‚   â”‚   â”‚   â”‚   â”œâ”€â”€ testingutils.ts      # Test utilities
+â”‚   â”‚   â”‚   â”‚   â”œâ”€â”€ powergrid/           # Power Grid (Angular)
+â”‚   â”‚   â”‚   â”‚   â”œâ”€â”€ datagrid/            # Data Grid (Angular)
+â”‚   â”‚   â”‚   â”‚   â”œâ”€â”€ editors/             # Shared cell editors
+â”‚   â”‚   â”‚   â”‚   â””â”€â”€ filters/             # Shared column filters
+â”‚   â”‚   â””â”€â”€ dummy/                       # Dummy app (dev/testing scaffold)
+â”‚   â”œâ”€â”€ datasettable/                    # Servoy spec + AngularJS Power Grid
+â”‚   â”œâ”€â”€ groupingtable/                   # Servoy spec + AngularJS Data Grid
+â”‚   â”œâ”€â”€ lib/                             # Shared utilities
+â”‚   â””â”€â”€ scripts/build.js                 # Release packaging script
+â”œâ”€â”€ webpackage.json                      # Servoy package manifest
+â””â”€â”€ README.md
 ```
 
 ## Key dependencies
@@ -123,7 +123,7 @@ aggridcomponents/
 
 ## Testing
 
-- **Framework:** Karma + Jasmine (headless Chrome)
+- **Framework:** Vitest 4 (Angular TestBed)
 - **Commands:** `npm run test_headless` (single run) / `npm run test` (watch)
 - **Cypress:** `npm run cy:open` (interactive) / `npm run cy:run` (headless)
 - **Pattern:** Each component has a `<name>.cy.ts` file alongside its implementation
@@ -137,8 +137,8 @@ aggridcomponents/
 
 ## Code conventions
 
-- Follow existing patterns in neighboring components — consistency over personal preference
-- Use the `@servoy/public` base classes and utilities — never reinvent what's already provided
+- Follow existing patterns in neighboring components â€” consistency over personal preference
+- Use the `@servoy/public` base classes and utilities â€” never reinvent what's already provided
 - Component selectors must use the `aggrid-` prefix
 - No console.log in production code
 - Prefer existing utility functions from `@servoy/public` and `lodash-es`
@@ -148,11 +148,11 @@ aggridcomponents/
 ## Gotchas
 
 - **The .spec file is NOT a test file.** It's the Servoy component specification (JSON)
-  that defines the component's contract — model properties, handlers, API methods, types.
+  that defines the component's contract â€” model properties, handlers, API methods, types.
   Changes to the component contract REQUIRE updating this file.
 
 - **Shared specs:** `datasettable.spec` covers BOTH the AngularJS datasettable AND the
-  Angular powergrid. Same for `groupingtable.spec` → groupingtable + datagrid.
+  Angular powergrid. Same for `groupingtable.spec` â†’ groupingtable + datagrid.
 
 - **Dual-layer sync:** When changing component properties or API, the `.spec` file,
   `_doc.js` file, Angular component, and AngularJS implementation must all be updated.
