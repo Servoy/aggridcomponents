@@ -1,5 +1,4 @@
 import { IJSMenu } from '@servoy/public';
-import { DragTransferData, NGGridDirective } from '../../nggrid';
 
 export class GridService {
     public iconConfig: any;
@@ -14,14 +13,4 @@ export class GridService {
     public columnsAutoSizingOn: any;
     public licenseKey!: string;
     public customMainMenu!: IJSMenu;
-    
-    private dragData!: DragTransferData;
-
-    setDragData(dragData: DragTransferData) {
-      this.dragData = dragData;
-    }
-
-    getDragData(): DragTransferData {
-      return this.dragData;
-    }
 }

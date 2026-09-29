@@ -1106,7 +1106,7 @@ export class PowerGrid extends NGGridDirective {
                             dragDatas.push(rowData);
                         });
 
-                        this.registrationService.powergridService.setDragData(new DragTransferData(dragDatas, this.name(), sourceColumnId) );
+                        this.registrationService.setDragData(new DragTransferData(dragDatas, this.name(), sourceColumnId) );
 
                         const onDragGetImageFunc = this.onDragGetImageFunc();
                         if(onDragGetImageFunc) {
@@ -1125,7 +1125,7 @@ export class PowerGrid extends NGGridDirective {
                             params.dragEvent.dataTransfer.setDragImage(dragGhostEl, 0, 0);
                         }                        
 
-                        params.dragEvent.dataTransfer.setData('nggrids-drag/json', JSON.stringify(this.registrationService.powergridService.getDragData()));
+                        params.dragEvent.dataTransfer.setData('nggrids-drag/json', JSON.stringify(new DragTransferData(dragDatas, this.name(), sourceColumnId)));
                     };
                 }
 
@@ -2487,13 +2487,13 @@ export class PowerGrid extends NGGridDirective {
                         if (overRow) {
                             overRowData = overRow.data || Object.assign(overRow.groupData, overRow.aggData);
                         }
-                        const dragData = this.registrationService.datagridService.getDragData();
+                        const dragData = this.registrationService.getDragData();
 
                         const jsDragOverEvent = this.servoyService.createJSEvent($event, 'onDragOver') as JSDNDEvent;
                         jsDragOverEvent.targetColumnId = validTargetColumn.getAttribute('col-id');
-                        jsDragOverEvent.sourceGridName = dragData.sourceGridName;
-                        jsDragOverEvent.sourceColumnId = dragData.sourceColumnId;
-                        this.lastDragOverResult = onDragOverFunc(dragData.records, overRowData, jsDragOverEvent);
+                        jsDragOverEvent.sourceGridName = dragData?.sourceGridName ?? '';
+                        jsDragOverEvent.sourceColumnId = dragData?.sourceColumnId ?? '';
+                        this.lastDragOverResult = onDragOverFunc(dragData?.records ?? [], overRowData, jsDragOverEvent);
                     } else {
                         this.lastDragOverResult = false;
                     }

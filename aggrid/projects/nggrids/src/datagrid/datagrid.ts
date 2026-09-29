@@ -1880,7 +1880,7 @@ export class DataGrid extends NGGridDirective {
 						records.push(this.getRecord(row));
 					});
 
-					this.registrationService.datagridService.setDragData(new DragTransferData(dragDatas, this.name(), sourceColumnId));
+					this.registrationService.setDragData(new DragTransferData(dragDatas, this.name(), sourceColumnId));
 
 					const onDragGetImageFunc = this.onDragGetImageFunc();
 					if (onDragGetImageFunc) {
@@ -4937,12 +4937,12 @@ export class DataGrid extends NGGridDirective {
 								}
 							}
 						}
-						const dragData = this.registrationService.datagridService.getDragData();
+						const dragData = this.registrationService.getDragData();
 						const jsDragOverEvent = this.servoyService.createJSEvent($event, 'onDragOver') as JSDNDEvent;
 						jsDragOverEvent.targetColumnId = validTargetColumn.getAttribute('col-id');
-						jsDragOverEvent.sourceGridName = dragData.sourceGridName;
-						jsDragOverEvent.sourceColumnId = dragData.sourceColumnId;
-						this.lastDragOverResult = onDragOverFunc(dragData.records, overDragData, jsDragOverEvent, validTargetColumn);
+						jsDragOverEvent.sourceGridName = dragData?.sourceGridName ?? '';
+						jsDragOverEvent.sourceColumnId = dragData?.sourceColumnId ?? '';
+						this.lastDragOverResult = onDragOverFunc(dragData?.records ?? [], overDragData, jsDragOverEvent, validTargetColumn);
 					} else {
 						this.lastDragOverResult = false;
 					}
