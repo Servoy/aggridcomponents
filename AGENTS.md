@@ -177,7 +177,6 @@ When adding a new component:
 ```
 aggridcomponents/
 ├── AGENTS.md                            # This file
-├── JIRA.md                              # Jira API reference
 ├── opencode.json                        # opencode configuration
 ├── README.md                            # Basic setup instructions
 ├── .opencode/                           # opencode skills & plugins
@@ -219,6 +218,14 @@ aggridcomponents/
 ├── svyGroupingGridDemo/                 # Demo solution
 └── webpackage.json                      # Servoy package manifest & release history
 ```
+
+## Jira API
+
+For anything Jira — reading, creating, updating, commenting on, linking, searching (JQL),
+assigning or transitioning issues — load the **`servoy-jira`** skill (global opencode skill)
+and follow its instructions. It holds the connection details (base URL, `ATLASSIAN_AUTH_BASIC`
+auth), the per-OS command recipes and the ADF templates. Always load the skill first rather
+than hand-rolling the REST calls.
 
 ## Workflow
 
