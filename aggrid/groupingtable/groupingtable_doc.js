@@ -567,7 +567,10 @@ function moveColumn(id, index) {
 /**
  * Restore columns state to a previously save one, using getColumnState.
  * 
- * If no argument is used, it restores the columns to designe time state.
+ * If no argument is used, it restores the columns to the initial state: the state the grid had when it became ready.
+ * This is the design time state, unless restoreColumnState(columnState) was already called before the grid was ready
+ * (before onGridReady, for example in onShow); in that case, the state applied at that moment is the initial state.
+ * To be able to return to the design time state, apply your own stored state from onGridReady, not earlier.
  * If the columns from columnState does not match with the columns of the component, no restore will be done.
  * 
  * The optional boolean arguments: columns, filter, sort can be used to specify what to restore:
@@ -575,7 +578,7 @@ function moveColumn(id, index) {
  * - the filter state (default false),
  * - the sort state (default false).
  * 
- * @param {string} [columnState] A JSON string representing the saved state of the columns, including width, position, visibility, filters, and sorting. If omitted, the columns will be restored to their design-time state.
+ * @param {string} [columnState] A JSON string representing the saved state of the columns, including width, position, visibility, filters, and sorting. If omitted, the columns will be restored to their initial state (the design-time state, unless a state was already restored before the grid was ready).
  * @param {function} [onError] A callback function to handle errors during the restore process, such as mismatched column configurations.
  * @param {Boolean} [columns] Specifies whether to restore the columns' size, position, and visibility. Defaults to true.
  * @param {Boolean} [filter] Specifies whether to restore the columns' filter state. Defaults to false.

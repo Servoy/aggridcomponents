@@ -55,7 +55,7 @@ $scope.api.getColumnState = function() {
 
 /**
  * Restore columns state to a previously save one, using getColumnState.
- * If no argument is used, it restores the columns to designe time state.
+ * If no argument is used, it resets the columns (width, position, visibility, sort, filter) to the design time state.
  * It won't re-create deleted columns.
  * 
  * @param {String} columnState

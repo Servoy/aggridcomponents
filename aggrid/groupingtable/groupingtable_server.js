@@ -896,7 +896,10 @@ $scope.api.getViewColumns = function() {
 
 /**
  * Restore columns state to a previously save one, using getColumnState.
- * If no argument is used, it restores the columns to designe time state.
+ * If no argument is used, it restores the columns to the initial state: the state the grid had when it became ready.
+ * This is the design time state, unless restoreColumnState(columnState) was already called before the grid was ready
+ * (before onGridReady, for example in onShow); in that case, the state applied at that moment is the initial state.
+ * To be able to return to the design time state, apply your own stored state from onGridReady, not earlier.
  * If the columns from columnState does not match with the columns of the component,
  * no restore will be done. The optional boolean arguments: columns, filter, sort can
  * be used to specify what to restore, the columns size/position/visibility (default true),
