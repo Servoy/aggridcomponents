@@ -1589,6 +1589,15 @@ export class DataGrid extends NGGridDirective {
 	 * Update header height based on cells content height
 	 */
 	sizeHeader() {
+		// If the header is hidden through CSS (e.g. a 'no-header' styleClass setting display:none on
+		// .ag-header), ag grid still reserves headerHeight pixels in its layout and subtracts them from
+		// the body viewport. In autoHeight dom layout that lost space means the last row(s) are never
+		// rendered. Report a zero header height so ag grid's layout matches what is actually displayed.
+		if (this.isHeaderHiddenByCSS()) {
+			this.agGrid()!.api.setGridOption('headerHeight', 0);
+			return;
+		}
+
 		const headerCell = this.findChildrenNativeElements(this.agGridElementRef()!.nativeElement, 'ag-header-cell');
 		const paddingTop = headerCell.length ? parseInt(this.getCSSProperty(headerCell[0], 'padding-top'), 10) : 0;
 		const paddinBottom = headerCell.length ? parseInt(this.getCSSProperty(headerCell[0], 'padding-bottom'), 10) : 0;
@@ -1602,6 +1611,24 @@ export class DataGrid extends NGGridDirective {
 			}
 		}
 		this.agGrid()!.api.setGridOption('headerHeight', minHeight)
+	}
+
+	/** true when the grid header is not displayed because of CSS rules */
+	isHeaderHiddenByCSS(): boolean {
+		const header = this.findChildrenNativeElements(this.agGridElementRef()!.nativeElement, 'ag-header');
+		if (!header.length) {
+			return false;
+		}
+		// walk the header and its ancestors up to the grid element; display:none anywhere hides it
+		let el: HTMLElement | null = header[0];
+		const root = this.agGridElementRef()!.nativeElement;
+		while (el && el !== root) {
+			if (this.getCSSProperty(el, 'display') === 'none') {
+				return true;
+			}
+			el = el.parentElement;
+		}
+		return false;
 	}
 
 	findChildrenNativeElements(el: any, className: any) {
