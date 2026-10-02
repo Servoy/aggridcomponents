@@ -2682,13 +2682,14 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 								if (!foundsetManager) foundsetManager = foundset;
 								var foundsetRef = foundsetManager.foundset;
 								var recRef = foundsetRef.getRecordRefByRowID(row._svyRowId);
-								var valuelistValuesPromise = vl.filterList("");
+								this.valuelistValuesPromise = vl.filterList("");
 								var selectEl = this.eSelect;
+								var _this = this;
 								var v = params.value;
 								if(v && v.displayValue != undefined) {
 									v = v.displayValue;
 								}
-								valuelistValuesPromise.then(function(valuelistValues) {
+								this.valuelistValuesPromise.then(function(valuelistValues) {
 									valuelistValues.forEach(function (value) {
 										var option = document.createElement('option');
 										option.value = value.realValue == null ? '_SERVOY_NULL' : value.realValue;
@@ -2702,6 +2703,9 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 										selectEl.appendChild(option);
 									});
 
+									// open the native picker only after the options have been
+									// appended, so it is sized to the full content width (SVY-21519)
+									_this.showPicker();
 								});
 							}
 
@@ -2731,11 +2735,25 @@ angular.module('aggridGroupingtable', ['webSocketModule', 'servoy']).directive('
 							return this.eGui;
 						};
 
+						SelectEditor.prototype.showPicker = function () {
+							var selectEl = this.eSelect;
+							// defer so the browser lays out the populated <select> before opening
+							// the picker, otherwise it is clipped to the column width (SVY-21519)
+							setTimeout(function() {
+								selectEl.focus();
+								try {
+									selectEl.showPicker();
+								} catch(e) {
+								}
+							}, 0);
+						};
+
 						SelectEditor.prototype.afterGuiAttached = function () {
-							this.eSelect.focus();
-							try {
-								this.eSelect.showPicker();
-							} catch(e) {
+							// if the valuelist is still loading, the picker is opened once the
+							// options are populated (see init); only open it here when there is
+							// no pending valuelist promise
+							if(!this.valuelistValuesPromise) {
+								this.showPicker();
 							}
 						};
 
