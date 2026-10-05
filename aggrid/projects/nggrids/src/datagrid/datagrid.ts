@@ -17,7 +17,7 @@ import { TextEditor } from '../editors/texteditor';
 import { TypeaheadEditor } from '../editors/typeaheadeditor';
 import { RadioFilter } from '../filters/radiofilter';
 import { ValuelistFilter } from '../filters/valuelistfilter';
-import { ColumnsAutoSizingOn, DragTransferData, GRID_EVENT_TYPES, IconConfig, JSDNDEvent, MainMenuItemsConfig, NGGridDirective, ToolPanelConfig } from '../nggrid';
+import { ColumnsAutoSizingOn, DragTransferData, getMediaImageCellTag, GRID_EVENT_TYPES, IconConfig, JSDNDEvent, MainMenuItemsConfig, NGGridDirective, ToolPanelConfig } from '../nggrid';
 
 import { BlankLoadingCellRendrer } from './renderers/blankloadingcellrenderer';
 import { DetailFormRenderer } from './detailformrenderer';
@@ -2396,7 +2396,12 @@ export class DataGrid extends NGGridDirective {
 			} else if (value && value.contentType && value.contentType.indexOf('image/') === 0 && value.url) {
 				value = '<img class="ag-table-image-cell" src="' + value.url + '">';
 			} else {
-				returnValueFormatted = true;
+				const mediaImageTag = getMediaImageCellTag(value, this.servoyService);
+				if (mediaImageTag !== null) {
+					value = mediaImageTag;
+				} else {
+					returnValueFormatted = true;
+				}
 			}
 
 			if (value instanceof Date) returnValueFormatted = true;

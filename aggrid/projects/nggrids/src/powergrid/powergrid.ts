@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component, Inject, Renderer2, SecurityContext,
 import { AgGridModule } from 'ag-grid-angular';
 import { FormattingService, ICustomArray, ServoyPublicService, PopupStateService, ServoyPublicModule } from '@servoy/public';
 import { LoggerFactory } from '@servoy/public';
-import { ColumnsAutoSizingOn, DragTransferData, GRID_EVENT_TYPES, IconConfig, JSDNDEvent, MainMenuItemsConfig, NGGridDirective, ToolPanelConfig } from '../nggrid';
+import { ColumnsAutoSizingOn, DragTransferData, getMediaImageCellTag, GRID_EVENT_TYPES, IconConfig, JSDNDEvent, MainMenuItemsConfig, NGGridDirective, ToolPanelConfig } from '../nggrid';
 import { DatePicker } from '../editors/datepicker';
 import { FormEditor } from '../editors/formeditor';
 import { TextEditor } from '../editors/texteditor';
@@ -2111,7 +2111,12 @@ export class PowerGrid extends NGGridDirective {
             } else if (value && value.contentType && value.contentType.indexOf('image/') === 0 && value.url) {
                 value = '<img class="ag-table-image-cell" src="' + value.url + '">';
             } else {
-                returnValueFormatted = true;
+                const mediaImageTag = getMediaImageCellTag(value, this.servoyService);
+                if (mediaImageTag !== null) {
+                    value = mediaImageTag;
+                } else {
+                    returnValueFormatted = true;
+                }
             }
 
             return returnValueFormatted ? this.doc.createTextNode(valueFormatted) : value;

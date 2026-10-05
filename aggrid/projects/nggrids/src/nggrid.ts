@@ -2,7 +2,7 @@
 import { AgGridAngular } from 'ag-grid-angular';
 import { GridOptions } from 'ag-grid-community';
 import { Directive, ElementRef, TemplateRef, input, contentChild, viewChild, signal } from '@angular/core';
-import { Deferred, Format, FormattingService, LoggerService, ServoyBaseComponent, JSEvent, IJSMenu, IJSMenuItem, PopupStateService, SabloTabseq } from '@servoy/public';
+import { Deferred, Format, FormattingService, LoggerService, ServoyBaseComponent, JSEvent, IJSMenu, IJSMenuItem, PopupStateService, SabloTabseq, ServoyPublicService } from '@servoy/public';
 import { Options } from '@eonasdan/tempus-dominus';
 
 export const GRID_EVENT_TYPES = {
@@ -14,6 +14,30 @@ export const GRID_EVENT_TYPES = {
     COLUMN_RESIZED: 'columnResize',
     COLUMN_ROW_GROUP_CHANGED: 'columnRowGroupChange',
     TOOLPANEL_VISIBLE_CHANGE: 'toolPanelVisibleChange'
+};
+
+const MEDIA_IMAGE_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.bmp', '.ico'];
+
+/**
+ * If the given cell value is a string that references a Servoy media image - either a
+ * 'media:///...' url or an already resolved 'resources/fs/...' url - this returns an
+ * <img> tag that renders it. Returns null for any value that is not an image media string,
+ * so the caller can fall back to the normal (text) rendering.
+ *
+ * This makes a media dataprovider that holds a media string (e.g. a media-typed calculation
+ * or form variable) render as an image in the grid, like the SmartClient table-view did,
+ * without the solution having to wrap it in html (SVY-21452).
+ */
+export const getMediaImageCellTag = (value: any, servoyService: ServoyPublicService): string | null => {
+    if (typeof value !== 'string') return null;
+    if (value.indexOf('media:///') !== 0 && value.indexOf('resources/fs/') !== 0) return null;
+    const pathWithoutQuery = value.split('?')[0].toLowerCase();
+    if (!MEDIA_IMAGE_EXTENSIONS.some(ext => pathWithoutQuery.endsWith(ext))) return null;
+    // a 'resources/fs/...' value is already a resolved download url (e.g. a media-typed db
+    // calculation that the server already translated), only 'media:///...' needs resolving
+    const url = value.indexOf('media:///') === 0 ? servoyService.generateMediaDownloadUrl(value) : value;
+    if (!url) return null;
+    return '<img class="ag-table-image-cell" src="' + url + '">';
 };
 
 @Directive()
