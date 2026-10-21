@@ -1324,6 +1324,11 @@ export class PowerGrid extends NGGridDirective {
                             delete columnStateJSON.columnState[i].flex;
                         }
                     }
+
+                    // keep the saved sort priority; it does not necessarily match the columnState order
+                    if (Array.isArray(columnStateJSON.sortModel)) {
+                        columnStateJSON.sortModel.sort((s1: any, s2: any) => s1.index - s2.index);
+                    }
                 }
 
                 if (Array.isArray(columnStateJSON.columnState) && columnStateJSON.columnState.length > 0) {

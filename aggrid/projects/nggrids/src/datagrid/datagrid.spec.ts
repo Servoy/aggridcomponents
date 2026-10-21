@@ -536,6 +536,83 @@ describe('DataGrid - onSortChanged source guard (SVY-21291)', () => {
     });
 });
 
+describe('DataGrid - restoreColumnsState multi-column sort priority (SVY-21644)', () => {
+    let component: DataGrid;
+    let fixture: ReturnType<typeof TestBed.createComponent<DataGrid>>;
+    let appliedColumnState: any[];
+
+    function makeColumn(overrides: Record<string, any> = {}): DataGridColumn {
+        return {
+            id: 'col_' + Math.random().toString(36).slice(2, 8),
+            ...overrides
+        } as unknown as DataGridColumn;
+    }
+
+    beforeEach(async () => {
+        await TestBed.configureTestingModule({
+            imports: [ServoyPublicTestingModule, FormsModule, AgGridModule, DataGrid],
+            schemas: [NO_ERRORS_SCHEMA],
+            teardown: { destroyAfterEach: false }
+        }).compileComponents();
+
+        fixture = TestBed.createComponent(DataGrid);
+        component = fixture.componentInstance;
+        fixture.componentRef.setInput('servoyApi', new ServoyApiTesting() as any);
+        fixture.componentRef.setInput('columns', [
+            makeColumn({ id: 'data' }),
+            makeColumn({ id: 'id' })
+        ]);
+
+        appliedColumnState = [];
+        // stub the AG Grid api signal; restoreColumnsState/applySortModel only need applyColumnState and friends
+        (component as any).agGrid = () => ({
+            api: {
+                applyColumnState: (params: any) => {
+                    appliedColumnState = params.state;
+                },
+                setRowGroupColumns: () => { /* no-op */ },
+                setFilterModel: () => { /* no-op */ }
+            }
+        });
+    });
+
+    function sortEntryFor(colId: string): any {
+        return appliedColumnState.find(s => s.colId === colId);
+    }
+
+    it('keeps the saved sort priority when the sortIndex order differs from the columnState column order', () => {
+        // column "id" appears first in columnState but was sorted *second* (sortIndex 1);
+        // column "data" appears second but was sorted *first* (sortIndex 0)
+        const savedState = {
+            columnState: [
+                { colId: 'id', sort: 'desc', sortIndex: 1 },
+                { colId: 'data', sort: 'desc', sortIndex: 0 }
+            ]
+        };
+        (component as any)._columnState.set(JSON.stringify(savedState));
+
+        component.restoreColumnsState({ columns: true, filter: false, sort: true });
+
+        expect(sortEntryFor('data').sortIndex).toBe(0);
+        expect(sortEntryFor('id').sortIndex).toBe(1);
+    });
+
+    it('preserves sort priority already matching columnState order', () => {
+        const savedState = {
+            columnState: [
+                { colId: 'data', sort: 'desc', sortIndex: 0 },
+                { colId: 'id', sort: 'desc', sortIndex: 1 }
+            ]
+        };
+        (component as any)._columnState.set(JSON.stringify(savedState));
+
+        component.restoreColumnsState({ columns: true, filter: false, sort: true });
+
+        expect(sortEntryFor('data').sortIndex).toBe(0);
+        expect(sortEntryFor('id').sortIndex).toBe(1);
+    });
+});
+
 describe('DataGrid - headerGroupKeepColumnsTogether -> marryChildren (SVYX-1144)', () => {
     let component: DataGrid;
     let fixture: ReturnType<typeof TestBed.createComponent<DataGrid>>;
