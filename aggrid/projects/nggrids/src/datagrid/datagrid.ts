@@ -396,14 +396,16 @@ export class DataGrid extends NGGridDirective {
 		const columnDefs = this.getColumnDefs();
 		let maxBlocksInCache = CACHED_CHUNK_BLOCKS;
 
-		// If any column declares `headerCheckbox: true`, force-disable column
-		// virtualisation. The header checkbox is rendered through ag-Grid's
-		// custom header template; if the column is virtualised out of the
-		// horizontal viewport the input element is never created in the DOM
-		// and `setupHeaderCheckbox` cannot find it. Disabling virtualisation
-		// only when a header checkbox is configured keeps the perf impact
-		// scoped to grids that actually need it.
+  		// If any column declares `headerCheckbox: true` or `headerIconStyleClass`,
+		// force-disable column virtualisation. Both features are applied by
+		// patching the header cell DOM directly (custom header template for the
+		// checkbox, manual class injection for the icon); if the column is
+		// virtualised out of the horizontal viewport the element is never
+		// created/kept in the DOM and `setupHeaderCheckbox`/`setupHeaderIconStyleClass`
+		// cannot find it. Disabling virtualisation only when one of these features
+		// is configured keeps the perf impact scoped to grids that actually need it.
 		const hasHeaderCheckboxColumn = this.hasHeaderCheckboxColumn();
+		const hasHeaderIconStyleClassColumn = this.hasHeaderIconStyleClassColumn();
 
 		// if row autoHeight, we need to do a refresh after first time data are displayed, to allow ag grid to re-calculate the heights
 		// if there is 'autoHeight' = true in any column, infinite cache needs to be disabled (ag grid lib requirement)
@@ -565,6 +567,7 @@ export class DataGrid extends NGGridDirective {
                         if(!this.isTableGrouped()) {
                             this.setupHeaderCheckbox(true);
                         }
+						this.setupHeaderIconStyleClass();
 						const onReady = this.onReady();
 						if (onReady) {
 							onReady();
@@ -635,7 +638,7 @@ export class DataGrid extends NGGridDirective {
 			groupDisplayType: this.groupUseEntireRow() ? 'groupRows' : 'multipleColumns',
 			suppressAggFuncInHeader: true, // TODO support aggregations
 
-			suppressColumnVirtualisation: hasHeaderCheckboxColumn,
+			suppressColumnVirtualisation: hasHeaderCheckboxColumn || hasHeaderIconStyleClassColumn,
 			suppressScrollOnNewData: true,
 
 			pivotMode: false,
@@ -818,6 +821,7 @@ export class DataGrid extends NGGridDirective {
                     if(!this.isTableGrouped()) {
                         this.setupHeaderCheckbox(true);
                     }
+					this.setupHeaderIconStyleClass();
 				}
 			},
 			getContextMenuItems: () => this.contextMenuItems,
@@ -1066,6 +1070,21 @@ export class DataGrid extends NGGridDirective {
 		if (!columns) return false;
 		for (let i = 0; i < columns.length; i++) {
 			if (columns[i].headerCheckbox) return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Returns true if any configured column has `headerIconStyleClass` set.
+	 * Used to decide whether to disable column virtualisation so the header
+	 * cell (and the class injected onto its label element) is always
+	 * materialised in the DOM, regardless of horizontal scroll position.
+	 */
+	private hasHeaderIconStyleClassColumn(): boolean {
+		const columns = this.columns();
+		if (!columns) return false;
+		for (let i = 0; i < columns.length; i++) {
+			if (columns[i].headerIconStyleClass) return true;
 		}
 		return false;
 	}
