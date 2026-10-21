@@ -104,6 +104,73 @@ describe('PowerGrid - addRowExpandedState (SVY-21409)', () => {
     });
 });
 
+describe('PowerGrid - restoreColumnsState multi-column sort priority (SVY-21644)', () => {
+    let component: PowerGrid;
+    let fixture: ComponentFixture<PowerGrid>;
+    let appliedColumnState: any[];
+
+    beforeEach(async () => {
+        await TestBed.configureTestingModule({
+            declarations: [PowerGrid],
+            imports: [ServoyPublicTestingModule],
+            schemas: [NO_ERRORS_SCHEMA]
+        }).compileComponents();
+
+        fixture = TestBed.createComponent(PowerGrid);
+        component = fixture.componentInstance;
+        fixture.componentRef.setInput('servoyApi', new ServoyApiTesting());
+
+        appliedColumnState = [];
+        // stub the AG Grid api signal; restoreColumnsState/applySortModel only need applyColumnState and friends
+        (component as any).agGrid = () => ({
+            api: {
+                isDestroyed: () => true,
+                applyColumnState: (params: any) => {
+                    appliedColumnState = params.state;
+                },
+                setRowGroupColumns: () => { /* no-op */ },
+                setSideBarVisible: () => { /* no-op */ }
+            }
+        });
+    });
+
+    function sortEntryFor(colId: string): any {
+        return appliedColumnState.find(s => s.colId === colId);
+    }
+
+    it('keeps the saved sort priority when the sortIndex order differs from the columnState column order', () => {
+        // column "id" appears first in columnState but was sorted *second* (sortIndex 1);
+        // column "data" appears second but was sorted *first* (sortIndex 0)
+        const savedState = {
+            columnState: [
+                { colId: 'id', sort: 'desc', sortIndex: 1 },
+                { colId: 'data', sort: 'desc', sortIndex: 0 }
+            ]
+        };
+        (component as any)._columnState.set(JSON.stringify(savedState));
+
+        component.restoreColumnsState();
+
+        expect(sortEntryFor('data').sortIndex).toBe(0);
+        expect(sortEntryFor('id').sortIndex).toBe(1);
+    });
+
+    it('preserves sort priority already matching columnState order', () => {
+        const savedState = {
+            columnState: [
+                { colId: 'data', sort: 'desc', sortIndex: 0 },
+                { colId: 'id', sort: 'desc', sortIndex: 1 }
+            ]
+        };
+        (component as any)._columnState.set(JSON.stringify(savedState));
+
+        component.restoreColumnsState();
+
+        expect(sortEntryFor('data').sortIndex).toBe(0);
+        expect(sortEntryFor('id').sortIndex).toBe(1);
+    });
+});
+
 describe('PowerGrid - headerGroupKeepColumnsTogether -> marryChildren (SVYX-1144)', () => {
     let component: PowerGrid;
     let fixture: ReturnType<typeof TestBed.createComponent<PowerGrid>>;
