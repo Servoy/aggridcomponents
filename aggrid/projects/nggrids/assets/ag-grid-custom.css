@@ -190,12 +190,33 @@
     display: none !important;
 }
 
+/*
+ * The grid paints the selected row itself, with background-color, so a theme
+ * or a solution can restyle it by overriding this one rule.
+ *
+ * AG Grid 36 no longer puts the selection colour on the row background; it
+ * draws an extra overlay over the row, filled with
+ * --ag-selected-row-background-color. Left alone that overlay is painted on
+ * top of whatever background-color is set here or by a solution, and the two
+ * colours blend (SVY-21651).
+ *
+ * The variable is therefore cleared on the selected row itself. That has to
+ * happen on the row and not on the grid host: AG Grid 36 inserts
+ * .ag-styled-root elements between the two and copies the ag-theme-* class
+ * onto one of them, so a theme's own declaration for this variable would win
+ * over anything the host says. A declaration on the row is below all of them.
+ * Keep it off .ag-styled-root as well, so popups rendered inside the grid
+ * (rich select, autocomplete, agg-func list) keep their theme colours.
+ *
+ * transparent, not none: the hovered-and-selected row feeds the same variable
+ * into a linear-gradient(), which only stays valid with a real colour.
+ */
 .ag-table .ag-row-selected {
+    --ag-selected-row-background-color: transparent;
     background-color: rgba(33, 150, 243, 0.3);
 }
 
 .ag-table.ag-theme-alpine {
-    --ag-selected-row-background-color: none;
     --ag-range-selection-border-style: none;
     --ag-icon-size: 12px;
 }
