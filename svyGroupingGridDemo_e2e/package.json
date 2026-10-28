@@ -13,7 +13,7 @@
     "restler": "*",
     "selenium-webdriver": "*",
     "universal-analytics": "*",
-    "webdriver-manager": "*",
+    "webdriver-manager": "13.0.0",
     "cucumber-html-reporter": "*",
     "find": "^0.3.0",
     "fs-extra": "^10.0.1",
