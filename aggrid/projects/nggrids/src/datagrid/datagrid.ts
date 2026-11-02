@@ -4557,10 +4557,16 @@ export class DataGrid extends NGGridDirective {
 		}
 
 		if (changeEvent.multiSelectChanged) {
+			// a stale (already handled) user click must not be replayed for the deselect that ag-grid does when the selection mode changes
+			this.selectionEvent = null;
 			(this.agGridOptions.rowSelection as any)['mode'] = changeEvent.multiSelectChanged.newValue ? 'multiRow' : 'singleRow';
+			// changing the selection mode makes ag-grid clear its selection, so apply the foundset selection again
 			this.agGrid()!.api.setGridOption('rowSelection', this.agGridOptions.rowSelection);
 			if (this.groupCheckbox()) {
 				this.updateGridOptionsForGroupCheckbox(changeEvent.multiSelectChanged.newValue);
+			}
+			if (this.isRootFoundsetLoaded) {
+				this.selectedRowIndexesChanged();
 			}
 		}
 
