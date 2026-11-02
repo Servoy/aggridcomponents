@@ -1326,10 +1326,16 @@ export class DataGrid extends NGGridDirective {
 							if (!columnState && _internalInitialColumnState) {
 								this._columnState.set(_internalInitialColumnState);
 							}
-							this.columnStateChange.emit(columnState);
 							// need to clear it, so the watch can be used, if columnState changes, and we want to apply the same _internalColumnState again
 							this.__internalColumnState.set('_empty');
-							this._internalColumnStateChange.emit(this.__internalColumnState());
+							// the outputs write the model of the parent form, so they must not be emitted while the parent is being checked (NG0100)
+							const appliedInternalColumnState = change.currentValue;
+							this.setTimeout(() => {
+								// a newer state was pushed in the meantime, it will report and clear itself
+								if (this._internalColumnState() !== appliedInternalColumnState) return;
+								this.columnStateChange.emit(columnState);
+								this._internalColumnStateChange.emit('_empty');
+							}, 0);
 							if (columnState) {
 								this.restoreColumnsState(this._restoreStates());
 							} else {
