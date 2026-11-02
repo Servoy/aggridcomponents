@@ -509,3 +509,68 @@ describe('DataGrid - headerIconStyleClass survives column hide/show (SVYX-1146)'
         });
     });
 });
+
+describe('DataGrid - foundset multiSelect change re-applies the selection (SVY-21681)', () => {
+    let component: DataGrid;
+    let setGridOptionSpy: jasmine.Spy;
+    let selectedRowIndexesChangedSpy: jasmine.Spy;
+
+    beforeEach(async () => {
+        await TestBed.configureTestingModule({
+            declarations: [DataGrid],
+            imports: [ServoyPublicTestingModule, FormsModule, AgGridModule],
+            schemas: [NO_ERRORS_SCHEMA],
+            teardown: { destroyAfterEach: false }
+        }).compileComponents();
+
+        const fixture = TestBed.createComponent(DataGrid);
+        component = fixture.componentInstance;
+        fixture.componentRef.setInput('servoyApi', new ServoyApiTesting() as any);
+        fixture.componentRef.setInput('myFoundset', { multiSelect: true, viewPort: { size: 0 }, addChangeListener: () => undefined } as any);
+        component.ngOnInit();
+
+        setGridOptionSpy = jasmine.createSpy('setGridOption');
+        Object.defineProperty(component, 'agGrid', {
+            value: () => ({ api: { setGridOption: setGridOptionSpy } }),
+            configurable: true
+        });
+        spyOn(component, 'isTableGrouped').and.returnValue(false);
+        selectedRowIndexesChangedSpy = spyOn(component, 'selectedRowIndexesChanged');
+    });
+
+    it('switches ag-grid to singleRow and re-applies the foundset selection', () => {
+        component.isRootFoundsetLoaded = true;
+
+        component.changeListener({ multiSelectChanged: { oldValue: true, newValue: false } } as any);
+
+        expect(component.agGridOptions.rowSelection['mode']).toBe('singleRow');
+        expect(setGridOptionSpy).toHaveBeenCalledWith('rowSelection', component.agGridOptions.rowSelection);
+        expect(selectedRowIndexesChangedSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('switches ag-grid to multiRow and re-applies the foundset selection', () => {
+        component.isRootFoundsetLoaded = true;
+
+        component.changeListener({ multiSelectChanged: { oldValue: false, newValue: true } } as any);
+
+        expect(component.agGridOptions.rowSelection['mode']).toBe('multiRow');
+        expect(selectedRowIndexesChangedSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('drops a stale user selection event so it is not replayed for the selection reset', () => {
+        component.isRootFoundsetLoaded = true;
+        component.selectionEvent = { type: 'click', event: { ctrlKey: true, shiftKey: false }, rowIndex: 3 };
+
+        component.changeListener({ multiSelectChanged: { oldValue: true, newValue: false } } as any);
+
+        expect(component.selectionEvent).toBeNull();
+    });
+
+    it('does not touch the selection while the root foundset is not loaded yet', () => {
+        component.isRootFoundsetLoaded = false;
+
+        component.changeListener({ multiSelectChanged: { oldValue: true, newValue: false } } as any);
+
+        expect(selectedRowIndexesChangedSpy).not.toHaveBeenCalled();
+    });
+});
