@@ -6,6 +6,7 @@
     "start": "ng serve",
     "build": "ng build @servoy/nggrids --configuration production",
     "build_debug": "ng build @servoy/nggrids --watch",
+    "build_debug_nowatch": "ng build @servoy/nggrids --watch=false",
     "make_release": "ng build @servoy/nggrids --configuration production && node scripts/build.js",
     "test": "ng test --no-watch && ng run @servoy/nggrids:test-browser --no-watch",
     "test:unit": "ng test --no-watch",

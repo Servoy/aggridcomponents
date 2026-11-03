@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component, Inject, Renderer2, SecurityContext,
 import { AgGridModule } from 'ag-grid-angular';
 import { FormattingService, ICustomArray, ServoyPublicService, PopupStateService, ServoyPublicModule } from '@servoy/public';
 import { LoggerFactory } from '@servoy/public';
-import { ColumnsAutoSizingOn, DragTransferData, getMediaImageCellTag, GRID_EVENT_TYPES, IconConfig, JSDNDEvent, MainMenuItemsConfig, NGGridDirective, ToolPanelConfig } from '../nggrid';
+import { ColumnsAutoSizingOn, dataproviderToLowerCase, DragTransferData, getMediaImageCellTag, GRID_EVENT_TYPES, IconConfig, JSDNDEvent, MainMenuItemsConfig, NGGridDirective, ToolPanelConfig } from '../nggrid';
 import { DatePicker } from '../editors/datepicker';
 import { FormEditor } from '../editors/formeditor';
 import { TextEditor } from '../editors/texteditor';
@@ -865,7 +865,7 @@ export class PowerGrid extends NGGridDirective {
                                                 const column = this.columns()[i];
                                                 let colId = column.id;
                                                 if (!colId) {
-                                                    colId = (column.dataprovider?.toLowerCase?.() || '');
+                                                    colId = dataproviderToLowerCase(column);
                                                 }
                                                 if (!colId) {
                                                     this.log.warn('cannot update "' + property + '" property on column at position index ' + i);
@@ -975,7 +975,7 @@ export class PowerGrid extends NGGridDirective {
                 colDef = {
                     headerName: column['headerTitle'] ? column['headerTitle'] : '',
                     headerTooltip: column['headerTooltip'] ? column['headerTooltip'] : null,
-                    field: (column.dataprovider?.toLowerCase?.() || ''),
+                    field: dataproviderToLowerCase(column),
                     tooltipField: column['tooltip'] ? column['tooltip'] : null
                 };
 
@@ -1827,7 +1827,7 @@ export class PowerGrid extends NGGridDirective {
         const columns = this.columns();
         if (columns) {
             for (const column of columns) {
-                if (column['id'] === colId || (column.dataprovider?.toLowerCase?.() || '') === colId) {
+                if (column['id'] === colId || dataproviderToLowerCase(column) === colId) {
                     return column;
                 }
             }
@@ -1840,7 +1840,7 @@ export class PowerGrid extends NGGridDirective {
         if (columns) {
             let i = 0;
             for (const column of columns) {
-                if (column['id'] === colId || (column.dataprovider?.toLowerCase?.() || '') === colId) {
+                if (column['id'] === colId || dataproviderToLowerCase(column) === colId) {
                     return i;
                 }
                 i++;
@@ -1947,7 +1947,7 @@ export class PowerGrid extends NGGridDirective {
         const column = this.columns()[index];
         let colId = column.id;
         if (!colId) {
-            colId = (column.dataprovider?.toLowerCase?.() || '');
+            colId = dataproviderToLowerCase(column);
         }
 
         if (!colId) {
@@ -1990,12 +1990,12 @@ export class PowerGrid extends NGGridDirective {
         const columns = this.columns();
         for (let i = 0; columns && i < columns.length; i++) {
             const column = columns[i];
-            if ((column.dataprovider?.toLowerCase?.() || '')) {
+            if (dataproviderToLowerCase(column)) {
             	if (column.footerText) {
-                	resultData[(column.dataprovider?.toLowerCase?.() || '')] = column.footerText;
+                	resultData[dataproviderToLowerCase(column)] = column.footerText;
                 	hasFooterData = true;
             	} else {
-					resultData[(column.dataprovider?.toLowerCase?.() || '')] = null;
+					resultData[dataproviderToLowerCase(column)] = null;
 				}
 			}
         }
@@ -2012,12 +2012,12 @@ export class PowerGrid extends NGGridDirective {
         const columns = this.columns();
         for (let i = 0; columns && i < columns.length; i++) {
             const column = columns[i];
-            if ((column.dataprovider?.toLowerCase?.() || '')) {
+            if (dataproviderToLowerCase(column)) {
             	if (column.headerText) {
-                	resultData[(column.dataprovider?.toLowerCase?.() || '')] = column.headerText;
+                	resultData[dataproviderToLowerCase(column)] = column.headerText;
                 	hasHeaderData = true;
             	} else {
-					resultData[(column.dataprovider?.toLowerCase?.() || '')] = null;
+					resultData[dataproviderToLowerCase(column)] = null;
 				}
 			}
         }
@@ -2329,7 +2329,7 @@ export class PowerGrid extends NGGridDirective {
             this.log.warn('editCellAt API, invalid columnindex:' + columnindex);
         } else {
             const column = this.columns()[columnindex];
-            const colId = column['id'] ? column['id'] : (column.dataprovider?.toLowerCase?.() || '');
+            const colId = column['id'] ? column['id'] : dataproviderToLowerCase(column);
             this.setTimeout(() => {
                 this.agGrid()!.api.startEditingCell({
                     rowIndex: rowindex,

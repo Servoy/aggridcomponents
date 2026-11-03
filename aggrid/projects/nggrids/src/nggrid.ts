@@ -40,6 +40,13 @@ export const getMediaImageCellTag = (value: any, servoyService: ServoyPublicServ
     return '<img class="ag-table-image-cell" src="' + url + '">';
 };
 
+/**
+ * Returns the lowercased dataprovider of a column, or '' when it is not set. Used as column id / field name,
+ * because datasets created by querying in-memory datasets have uppercase column names while the grid works
+ * with lowercase ones (SVY-20337).
+ */
+export const dataproviderToLowerCase = (column: { dataprovider?: string | null }): string => column.dataprovider?.toLowerCase?.() || '';
+
 @Directive()
 export abstract class NGGridDirective extends ServoyBaseComponent<HTMLDivElement> {
 

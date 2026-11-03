@@ -1,13 +1,15 @@
-import { TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ServoyPublicTestingModule, ServoyApiTesting } from '@servoy/public';
 import { PowerGrid, PowerGridColumn } from './powergrid';
+import { dataproviderToLowerCase } from '../nggrid';
 import { AgGridModule } from 'ag-grid-angular';
 import { RowClassParams } from 'ag-grid-community';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 describe('PowerGrid - rowStyleClassFunc params argument (SVYX-1141)', () => {
+    let fixture: ComponentFixture<PowerGrid>;
     let component: PowerGrid;
     let getRowClass: (params: RowClassParams) => string | string[] | undefined;
 
@@ -51,7 +53,7 @@ describe('PowerGrid - rowStyleClassFunc params argument (SVYX-1141)', () => {
             teardown: { destroyAfterEach: false }
         }).compileComponents();
 
-        const fixture = TestBed.createComponent(PowerGrid);
+        fixture = TestBed.createComponent(PowerGrid);
         component = fixture.componentInstance;
         fixture.componentRef.setInput('servoyApi', new ServoyApiTesting() as any);
     });
@@ -265,11 +267,7 @@ describe('PowerGrid - rowStyleClassFunc params argument (SVYX-1141)', () => {
         });
     });
 
-    describe('dataproviderToLowerCase inline expression (SVY-21388 / SVY-20337 regression)', () => {
-        function dataproviderToLowerCase(column: Partial<PowerGridColumn>): string {
-            return (column.dataprovider?.toLowerCase?.() || '');
-        }
-
+    describe('dataproviderToLowerCase (SVY-21388 / SVY-20337 regression)', () => {
         it('should lowercase a mixed-case dataprovider', () => {
             expect(dataproviderToLowerCase({ dataprovider: 'MyColumn' })).toBe('mycolumn');
         });
@@ -289,6 +287,26 @@ describe('PowerGrid - rowStyleClassFunc params argument (SVYX-1141)', () => {
 
         it('should return empty string for empty string dataprovider', () => {
             expect(dataproviderToLowerCase({ dataprovider: '' })).toBe('');
+        });
+
+        it('should use lowercase dataproviders as keys in the header data', () => {
+            fixture.componentRef.setInput('columns', [
+                { dataprovider: 'MyColumn', headerText: 'My header' },
+                { dataprovider: 'OtherColumn' },
+                { headerText: 'no dataprovider' }
+            ] as PowerGridColumn[]);
+
+            expect(component.getHeaderData()).toEqual([{ mycolumn: 'My header', othercolumn: null }]);
+        });
+
+        it('should use lowercase dataproviders as keys in the footer data', () => {
+            fixture.componentRef.setInput('columns', [
+                { dataprovider: 'MyColumn', footerText: 'My footer' },
+                { dataprovider: 'OtherColumn' },
+                { footerText: 'no dataprovider' }
+            ] as PowerGridColumn[]);
+
+            expect(component.getFooterData()).toEqual([{ mycolumn: 'My footer', othercolumn: null }]);
         });
     });
 
