@@ -383,6 +383,7 @@ export class DataGrid extends NGGridDirective {
                         if(!this.isTableGrouped()) {
                             this.setupHeaderCheckbox(true);
                         }
+                        this.setupHeaderIconStyleClass();
                         if(this.onReady) {
                             this.onReady();
                         }
@@ -428,7 +429,14 @@ export class DataGrid extends NGGridDirective {
             groupDisplayType: this.groupUseEntireRow ? 'groupRows' : 'multipleColumns',
             suppressAggFuncInHeader: true, // TODO support aggregations
 
-            suppressColumnVirtualisation: false,
+            // If any column declares `headerCheckbox: true` or `headerIconStyleClass`, force-disable
+            // column virtualisation. Both features are applied by patching the header cell DOM
+            // directly (custom header template for the checkbox, manual class injection for the icon);
+            // if the column is virtualised out of the horizontal viewport the element is never
+            // created/kept in the DOM and `setupHeaderCheckbox`/`setupHeaderIconStyleClass` cannot find
+            // it. Disabling virtualisation only when one of these features is configured keeps the
+            // perf impact scoped to grids that actually need it.
+            suppressColumnVirtualisation: this.hasHeaderIconStyleClassColumn(),
             suppressScrollOnNewData: true,
 
             pivotMode: false,
@@ -576,6 +584,7 @@ export class DataGrid extends NGGridDirective {
                     if(!this.isTableGrouped()) {
                         this.setupHeaderCheckbox(true);
                     }
+                    this.setupHeaderIconStyleClass();
                 }
             },
             getContextMenuItems: () => this.contextMenuItems,
@@ -803,6 +812,20 @@ export class DataGrid extends NGGridDirective {
                 }
             }
         }
+    }
+
+    /**
+     * Returns true if any configured column has `headerIconStyleClass` set.
+     * Used to decide whether to disable column virtualisation so the header cell (and the class
+     * injected onto its label element) is always materialised in the DOM, regardless of horizontal
+     * scroll position.
+     */
+    private hasHeaderIconStyleClassColumn(): boolean {
+        if (!this.columns) return false;
+        for (let i = 0; i < this.columns.length; i++) {
+            if (this.columns[i].headerIconStyleClass) return true;
+        }
+        return false;
     }
 
     private onHeaderCheckClick(colId: any, event: Event): void {
