@@ -237,6 +237,14 @@ export class PowerGrid extends NGGridDirective {
 
         const columnDefs = this.getColumnDefs();
 
+        // If any column declares `headerIconStyleClass`, force-disable column virtualisation. The
+        // icon class is applied by patching the header cell DOM directly (see
+        // `setupHeaderIconStyleClass`); if the column is virtualised out of the horizontal viewport
+        // the header cell is removed/recreated without the injected class. Disabling virtualisation
+        // only when the feature is configured keeps the perf impact scoped to grids that actually
+        // need it.
+        const hasHeaderIconStyleClassColumn = this.hasHeaderIconStyleClassColumn();
+
         // setup grid options
         this.agGridOptions = {
             context: {
@@ -244,6 +252,7 @@ export class PowerGrid extends NGGridDirective {
             },
             debug: false,
             rowGroupPanelShow: 'always', // TODO expose property
+            suppressColumnVirtualisation: hasHeaderIconStyleClassColumn,
 
             defaultColDef: {
                 //                width: 0,
@@ -611,6 +620,20 @@ export class PowerGrid extends NGGridDirective {
         }
     }
 
+    /**
+     * Returns true if any configured column has `headerIconStyleClass` set.
+     * Used to decide whether to disable column virtualisation so the header cell (and the class
+     * injected onto its label element) is always materialised in the DOM, regardless of horizontal
+     * scroll position.
+     */
+    private hasHeaderIconStyleClassColumn(): boolean {
+        if (!this.columns) return false;
+        for (let i = 0; i < this.columns.length; i++) {
+            if (this.columns[i].headerIconStyleClass) return true;
+        }
+        return false;
+    }
+
     private getColumnsAutoSizingOn(): unknown {
         if(this.columnsAutoSizingOn) {
             return this.columnsAutoSizingOn;
@@ -675,7 +698,10 @@ export class PowerGrid extends NGGridDirective {
         this.agGrid.api.addEventListener('cellDoubleClicked', (params: any) => this.onCellDoubleClicked(params));
         this.agGrid.api.addEventListener('cellContextMenu', (params: any) => this.onCellContextMenu(params));
         this.agGrid.api.addEventListener('cellFocused', (params: any) => this.onCellFocusedHandler(params));
-        this.agGrid.api.addEventListener('displayedColumnsChanged', () => this.svySizeColumnsToFit(GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED));
+        this.agGrid.api.addEventListener('displayedColumnsChanged', () => {
+            this.svySizeColumnsToFit(GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED);
+            this.setupHeaderIconStyleClass();
+        });
 
         // listen to group changes
         this.agGrid.api.addEventListener('columnRowGroupChanged', (event: any) => this.onColumnRowGroupChanged(event));
