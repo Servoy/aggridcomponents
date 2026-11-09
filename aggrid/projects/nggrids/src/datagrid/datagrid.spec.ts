@@ -574,3 +574,66 @@ describe('DataGrid - foundset multiSelect change re-applies the selection (SVY-2
         expect(selectedRowIndexesChangedSpy).not.toHaveBeenCalled();
     });
 });
+
+describe('DataGrid - user selection event is consumed (SVY-21681)', () => {
+    let component: DataGrid;
+    let foundsetManager: any;
+    let requestSelectionUpdateSpy: jasmine.Spy;
+
+    // any api call not given explicitly (e.g. from the async onGridReady of the rendered grid) is a no-op
+    function stubGrid(api: Record<string, any>) {
+        const safeApi = new Proxy(api, { get: (target, prop: string) => (prop in target ? target[prop] : () => undefined) });
+        (component as any).agGrid = () => ({ api: safeApi });
+    }
+
+    beforeEach(async () => {
+        await TestBed.configureTestingModule({
+            declarations: [DataGrid],
+            imports: [ServoyPublicTestingModule, FormsModule, AgGridModule],
+            schemas: [NO_ERRORS_SCHEMA],
+            teardown: { destroyAfterEach: false }
+        }).compileComponents();
+
+        const fixture = TestBed.createComponent(DataGrid);
+        component = fixture.componentInstance;
+        fixture.componentRef.setInput('servoyApi', new ServoyApiTesting() as any);
+
+        requestSelectionUpdateSpy = jasmine.createSpy('requestSelectionUpdate').and.callFake((idxs: number[]) => {
+            foundsetManager.foundset.selectedRowIndexes = idxs;
+            return Promise.resolve(idxs);
+        });
+        foundsetManager = { foundset: { multiSelect: true, selectedRowIndexes: [0, 1, 2], requestSelectionUpdate: requestSelectionUpdateSpy } };
+        component.foundset = foundsetManager;
+        component.agGridOptions = { rowSelection: { mode: 'multiRow' } } as any;
+        spyOn(component, 'isTableGrouped').and.returnValue(false);
+        spyOn(component, 'selectedRowIndexesChanged');
+    });
+
+    it('clears the handled click, so a later server side selection change is not treated as the same ctrl click', () => {
+        const click = { type: 'click', event: { ctrlKey: true, shiftKey: false }, rowIndex: 3 };
+        component.selectionEvent = click;
+        // ag-grid has the clicked row selected, together with the previous ones
+        stubGrid({ getSelectedNodes: () => [0, 1, 2, 3].map(rowIndex => ({ rowIndex })) });
+
+        component.onSelectionChangedEx(click, {} as any);
+
+        expect(component.selectionEvent).toBeNull();
+        expect(requestSelectionUpdateSpy).toHaveBeenCalledWith([0, 1, 2, 3]);
+    });
+
+    it('does not add the old clicked row back when the server replaced the selection (foundset.setSelectedIndex)', () => {
+        const click = { type: 'click', event: { ctrlKey: true, shiftKey: false }, rowIndex: 3 };
+        component.selectionEvent = click;
+        stubGrid({ getSelectedNodes: () => [0, 1, 2, 3].map(rowIndex => ({ rowIndex })) });
+        component.onSelectionChangedEx(click, {} as any);
+        requestSelectionUpdateSpy.calls.reset();
+
+        // the script selects only record 5; ag-grid reports the change later, with the same (already handled) selectionEvent field
+        foundsetManager.foundset.selectedRowIndexes = [4];
+        stubGrid({ getSelectedNodes: () => [{ rowIndex: 4 }] });
+        component.onSelectionChangedEx(component.selectionEvent, {} as any);
+
+        expect(requestSelectionUpdateSpy).not.toHaveBeenCalledWith([3, 4]);
+        expect(component.selectedRowIndexesChanged).toHaveBeenCalled();
+    });
+});
