@@ -3924,6 +3924,11 @@ export class DataGrid extends NGGridDirective {
 	}
 
 	onSelectionChangedEx(selectionEvent: any, agGridSelectionEvent: SelectionChangedEvent) {
+		// the user event is consumed here, else a later selection change that comes from the server (ag-grid reports it asynchronously)
+		// would be treated as the same user click again (ctrl/shift click toggles the old clicked row back in the new selection)
+		if (selectionEvent && this.selectionEvent === selectionEvent) {
+			this.selectionEvent = null;
+		}
 		// Don't trigger foundset selection if table is grouping
 		const _internalGroupRowsSelection = this.__internalGroupRowsSelection();
 		if (this.isTableGrouped()) {

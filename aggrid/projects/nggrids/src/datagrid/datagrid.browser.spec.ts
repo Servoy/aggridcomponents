@@ -203,3 +203,53 @@ describe('DataGrid - browser rendering', () => {
         expect(rows.length).toBe(10);
     });
 });
+
+describe('DataGrid - server side setSelectedIndex after a multi selection', () => {
+    async function setupMultiSelectGrid(): Promise<{ fixture: ComponentFixture<WrapperComponent>; foundset: IFoundset }> {
+        await TestBed.configureTestingModule({
+            imports: [ServoyPublicTestingModule, WrapperComponent],
+            teardown: { destroyAfterEach: false }
+        }).compileComponents();
+
+        const fixture = TestBed.createComponent(WrapperComponent);
+        const wrapper = fixture.componentInstance;
+        wrapper.servoyApi = new ServoyApiTesting() as any;
+        wrapper.columns.set(createDataGridColumns());
+        const rows = Array.from({ length: 10 }, (_, i) => ({ _svyRowId: `1.${i + 1};_${i}`, id: i + 1, country: 'c' + i, city: 'x' + i }));
+        const foundset = createMockFoundset({ rows, selectedRowIndexes: [0], multiSelect: true });
+        wrapper.myFoundset.set(foundset);
+        fixture.detectChanges();
+        await wrapper.gridReady;
+        fixture.detectChanges();
+        return { fixture, foundset };
+    }
+
+    const settle = (fixture: ComponentFixture<any>) => new Promise<void>(resolve => setTimeout(() => { fixture.detectChanges(); resolve(); }, 400));
+
+    function selectedRowIndexes(grid: DataGrid): number[] {
+        return grid.agGrid()!.api.getSelectedNodes().map(n => n.rowIndex!).sort((a, b) => a - b);
+    }
+
+    it('selects only the record set by the server, the last clicked row must not be added back', async () => {
+        const { fixture, foundset } = await setupMultiSelectGrid();
+        const grid = fixture.componentInstance.element;
+
+        // the user ctrl-clicks rows 1, 2 and 3 (row 0 is selected from the start)
+        for (const rowIndex of [1, 2, 3]) {
+            grid.selectionEvent = { type: 'click', event: { ctrlKey: true, shiftKey: false }, rowIndex };
+            grid.agGrid()!.api.getDisplayedRowAtIndex(rowIndex)!.setSelected(true);
+            await settle(fixture);
+        }
+        expect(foundset.selectedRowIndexes).toEqual([0, 1, 2, 3]);
+        expect(selectedRowIndexes(grid)).toEqual([0, 1, 2, 3]);
+
+        // a script calls foundset.setSelectedIndex(5): the server replaces the whole selection
+        const oldValue = foundset.selectedRowIndexes;
+        foundset.selectedRowIndexes = [4];
+        grid.changeListener({ selectedRowIndexesChanged: { oldValue, newValue: [4] } } as any);
+        await settle(fixture);
+
+        expect(foundset.selectedRowIndexes).toEqual([4]);
+        expect(selectedRowIndexes(grid)).toEqual([4]);
+    });
+});
