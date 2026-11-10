@@ -1488,6 +1488,10 @@ export class DataGrid extends NGGridDirective {
 			}
 			if (updateColumnDefs) {
 				this.updateColumnDefs();
+				// a structural column change (e.g. excluded toggled) changes the set of displayed columns;
+				// let the remaining columns re-fit the viewport, honoring the column auto-sizing setting
+				// (sizeHeaderAndColumnsToFit is a no-op when columnsAutoSizing is NONE)
+				this.sizeHeaderAndColumnsToFit(GRID_EVENT_TYPES.DISPLAYED_COLUMNS_CHANGED);
 			}
 			if (restoreColumnState) {
 				this.restoreColumnsState();
@@ -3300,10 +3304,17 @@ export class DataGrid extends NGGridDirective {
 
 				const missingColumnIdsFromState = this.getMissingColumnIdsFromState(savedColumns, columnStateJSON);
 				const missingColumnIdsFromModel = this.getMissingColumnIdsFromModel(savedColumns, columnStateJSON);
-				if (missingColumnIdsFromState.length !== 0 || missingColumnIdsFromModel.length !== 0) {
+				// a column present in the model but absent from the saved state (missingColumnIdsFromState) does not
+				// block the restore: it is a column that was excluded when the state was captured and is now included
+				// again (excluded columns are structural and never persisted, unlike visible=false columns), or a
+				// genuinely new column. Such a column simply keeps its design-time position. Only a state entry that
+				// references a column no longer in the model (missingColumnIdsFromModel) is a real mismatch and errors.
+				if (missingColumnIdsFromModel.length !== 0) {
 					this.innerColumnStateOnError('Cannot restore columns state, different columns in state and model.', missingColumnIdsFromState, missingColumnIdsFromModel);
 					return;
-
+				}
+				if (missingColumnIdsFromState.length !== 0) {
+					this.log.debug('restoreColumnsState: columns present in model but absent from saved state, applying restore and keeping their design-time position: ' + missingColumnIdsFromState.join(', '));
 				}
 			}
 
@@ -3362,13 +3373,21 @@ export class DataGrid extends NGGridDirective {
 
 			for (let j = 0; j < this.columns().length; j++) {
 				const columns = this.columns();
-				if (columns[j].excluded) continue;
 				// TODO shall i simply check if column exists using gridOptions.columnApi.getColumn(fieldToCompare) instead ?
 
-				// check if fieldToCompare has a matching column id
-				if (columns[j].id && fieldToCompare === columns[j].id) {
+				// match against the full model (including excluded columns); a saved column that is
+				// now excluded is still present in the model, just hidden, so it must not be reported as missing
+				const matchesById = columns[j].id && fieldToCompare === columns[j].id;
+				const matchesByIdentifier = !matchesById && fieldToCompare === this.getColumnID(columns[j], j);
+				if ((matchesById || matchesByIdentifier) && columns[j].excluded) {
 					columnExist = true;
-				} else if (fieldToCompare === this.getColumnID(columns[j], j)) {
+					break;
+				}
+
+				// check if fieldToCompare has a matching column id
+				if (matchesById) {
+					columnExist = true;
+				} else if (matchesByIdentifier) {
 					// if no column id check if column has matching column identifier
 
 					// if a column id has been later set. Update the columnState
