@@ -1,5 +1,7 @@
 /.angular/cache
 /.angular/
+/coverage/
+/coverage-report.md
 /nggrids.zip
 /dist/
 /node_modules/
