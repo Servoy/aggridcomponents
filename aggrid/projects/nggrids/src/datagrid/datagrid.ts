@@ -57,6 +57,7 @@ const CACHED_CHUNK_BLOCKS = 2;
 
 export { NULL_VALUE } from '../commons/constants';
 import { NULL_VALUE } from '../commons/constants';
+import { isInDesignerOrSampleData } from '../sampledata';
 
 const COLUMN_KEYS_TO_CHECK_FOR_CHANGES = [
 	'headerTitle',
@@ -3831,7 +3832,7 @@ export class DataGrid extends NGGridDirective {
 
 	showEditorHint() {
 		const columns = this.columns();
-		return (!columns || columns.length === 0) && this.servoyApi().isInDesigner();
+		return (!columns || columns.length === 0) && isInDesignerOrSampleData(this.servoyApi());
 	}
 
 	getIconRefreshData() {

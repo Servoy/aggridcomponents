@@ -189,6 +189,27 @@ describe('DataGrid - header/sizing/grouping (jsdom render)', () => {
         it('is false when columns are present', () => {
             expect(grid.showEditorHint()).toBe(false);
         });
+
+        describe('without columns', () => {
+            beforeEach(() => {
+                wrapper.columns.set([]);
+                fixture.detectChanges();
+            });
+
+            it('is false at runtime', () => {
+                expect(grid.showEditorHint()).toBe(false);
+            });
+
+            it('is true in the designer', () => {
+                (wrapper.servoyApi as any).isInDesigner = () => true;
+                expect(grid.showEditorHint()).toBe(true);
+            });
+
+            it('is true in the sample data render', () => {
+                (wrapper.servoyApi as any).isInSampleDataMode = () => true;
+                expect(grid.showEditorHint()).toBe(true);
+            });
+        });
     });
 
     describe('getRowClass', () => {
