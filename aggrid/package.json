@@ -1,6 +1,6 @@
 {
   "name": "nggrids",
-  "version": "2025.3.8",
+  "version": "2025.3.8-pre",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
